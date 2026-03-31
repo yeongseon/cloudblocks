@@ -367,4 +367,16 @@ describe('SidebarPalette additional coverage', () => {
     expect(addExternalBlock).toHaveBeenCalledWith('internet');
     expect(playSoundMock).toHaveBeenCalledWith('block-snap');
   });
+
+  it('does not attach drag listeners to external buttons', () => {
+    render(<SidebarPalette />);
+
+    const internetBtn = screen.getByTitle('Add Internet');
+    const browserBtn = screen.getByTitle('Add Browser');
+
+    // External buttons should NOT be in the interact listeners map
+    // because the selector scopes to [data-resource-type] only
+    expect(interactState.listenersByElement.has(internetBtn)).toBe(false);
+    expect(interactState.listenersByElement.has(browserBtn)).toBe(false);
+  });
 });

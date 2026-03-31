@@ -154,6 +154,11 @@
     opacity var(--duration-fast) var(--easing-standard);
 }
 
+/* External buttons are click-only, not draggable */
+.sidebar-palette-resource-btn:not([data-resource-type]) {
+  cursor: pointer;
+}
+
 .sidebar-palette-resource-btn:hover:not(.disabled):not(:disabled) {
   border-color: color-mix(in srgb, var(--accent-primary) 48%, var(--border-default));
   background: var(--bg-surface-raised);

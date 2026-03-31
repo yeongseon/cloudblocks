@@ -254,7 +254,7 @@ Lives in `shared/presentation/` — importable from any layer (`entities/`, `fea
 
 ### Migration Path
 
-Existing consumers (`SidebarPalette.tsx`, `BlockSvg.tsx`, `ContainerBlockSprite.tsx`) currently import directly from `useTechTree`, `iconResolver`, and `providerMapping`. Future issues (#1558, #1559) will migrate these consumers to use `blockPresentation.ts` instead, consolidating the resolution path.
+Existing consumers (`SidebarPalette.tsx`, `BlockSvg.tsx`, `ContainerBlockSprite.tsx`) previously imported directly from `useTechTree`, `iconResolver`, and `providerMapping`. Issues #1558 and #1559 migrated these consumers to use `blockPresentation.ts`, consolidating the resolution path. `SidebarPalette.tsx` now exclusively uses `resolveResourcePresentation` and `resolveExternalPresentation` for all label, icon, and search operations.
 
 ## 6. Container Block Color System (#1557)
 
@@ -360,3 +360,56 @@ Block and container labels used divergent typography tokens:
 | `shared/tokens/designTokens.ts` | Added `LABEL_FACE_MIN_PX` and `LABEL_FACE_SCALE` exports |
 | `entities/block/BlockSvg.tsx` | Replaced inline `Math.max(8, ...)` with token-based formula |
 | `entities/container-block/ContainerBlockSvg.tsx` | Replaced inline `Math.max(10, ...)` with token-based formula |
+
+## 8. Palette Iconography Unification (#1559)
+
+### Problem
+
+The sidebar palette used three separate resolution paths for labels and icons:
+
+| Element | Previous Source | Problem |
+| --- | --- | --- |
+| Resource labels | `getResourceLabel()` / `getResourceShortLabel()` (useTechTree) | Different resolution path than canvas blocks |
+| Resource icons | `getResourceIconUrl()` (iconResolver) | Direct iconResolver call bypasses blockPresentation |
+| External actors | Hardcoded names + emoji in JSX | Bespoke section with unique CSS, no shared resolver |
+| Search matching | `getResourceLabel()` / `getResourceShortLabel()` | Labels could differ from what was displayed |
+
+### Resolution
+
+**Single source of truth**: All palette label/icon resolution now goes through `blockPresentation.ts`:
+
+- `resolveResourcePresentation(type, { provider })` — resource items (labels, icons, search)
+- `resolveExternalPresentation(type, { provider })` — external items (Internet, Browser)
+
+**External actors unified**: The bespoke external actors section (custom CSS, hardcoded names, emoji badges) was replaced by `PaletteExternalGroup`, which uses the same `sidebar-palette-resource-btn` layout as resource items. External items now support collapse/expand and search filtering.
+
+**Emoji fallback removed**: Resource items no longer fall back to emoji when `iconUrl` is null. A neutral `sidebar-palette-icon-placeholder` span (18×18 rounded muted block) is shown instead.
+
+**Count updates**: Total count includes external types (`ALL_RESOURCES.length + EXTERNAL_TYPES.length = 30`). Visible count includes external items matching the current search query.
+
+### Label Changes
+
+Switching from `getResourceLabel` to `resolveResourcePresentation` changes some Azure labels:
+
+| Old Label (useTechTree) | New Label (blockPresentation) |
+| --- | --- |
+| Azure Virtual Network | Virtual Network |
+| Azure Functions | Functions |
+| Azure SQL Database | SQL Database |
+| Azure App Service | App Service |
+
+These shorter labels match what canvas blocks already display, ensuring palette–canvas consistency.
+
+### Files Modified
+
+| File | Change |
+| --- | --- |
+| `widgets/sidebar-palette/SidebarPalette.tsx` | Switched to `resolveResourcePresentation` / `resolveExternalPresentation`; added `PaletteExternalGroup` component; removed emoji fallback; updated search, sort, drag, and create to use resolved labels |
+| `widgets/sidebar-palette/SidebarPalette.css` | Removed 63 lines of bespoke `.sidebar-palette-actor-*` CSS; added `.sidebar-palette-icon-placeholder` |
+
+### Invariants
+
+1. **Single resolution path**: All displayed labels and icons in the palette come from `blockPresentation.ts` resolvers.
+2. **No emoji in items**: Resource and external items never render emoji. Group headers (e.g., 🔌 External) are explicitly preserved.
+3. **External items searchable**: External items participate in search filtering via resolved `displayLabel` and `shortLabel`.
+4. **Palette–canvas consistency**: Labels in the palette match labels on canvas blocks because both use the same `blockPresentation` resolver.

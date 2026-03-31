@@ -364,7 +364,7 @@ export function SidebarPalette() {
     if (!containerRef.current) return;
 
     const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>(
-      '.sidebar-palette-resource-btn:not(.disabled):not(:disabled)',
+      '.sidebar-palette-resource-btn[data-resource-type]:not(.disabled):not(:disabled)',
     );
     const interactables = Array.from(buttons).map((button) =>
       interact(button).draggable({
