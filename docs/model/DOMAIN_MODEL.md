@@ -299,17 +299,17 @@ export function resolveConnectionNodes(conn: { from: string; to: string }): { so
 
 # 6. External Actor
 
-> **@deprecated — Active Migration (Epic #1533)**: ExternalActors are being folded into standard resource blocks. Migration progress:
+> **Migration Complete (Epic #1533)**: ExternalActors have been fully folded into standard resource blocks. Migration history:
 >
 > - **#1534 (Resource Rules)**: Added `internet`/`browser` entries to `RESOURCE_RULES` with `category: 'delivery'`, `roles: ['external']`, `allowedParents: [null]`. Added `isExternalResourceType()` helper and `EXTERNAL_RESOURCE_TYPES` constant.
 > - **#1535 (Persistence Migration)**: `serialize()` materializes remaining `externalActors` into `ResourceBlock` nodes (with `kind: 'resource'`, `category: 'delivery'`, `roles: ['external']`). `deserialize()` migrates legacy `externalActors[]` via `migrateExternalActorsToBlocks()`, preserving actor IDs.
-> - **#1536 (Store Unification)**: Added `addExternalBlock()` store action that creates external blocks as root-level `ResourceBlock` nodes in `nodes[]`. Legacy shims (`addExternalActor`, `removeExternalActor`, `moveActorPosition`) remain operational on `externalActors[]` for rendering compatibility. `addConnection` resolves endpoints from **both** `nodes[]` and `externalActors[]` via a bridge pattern. `getEffectiveEndpointType()` maps external blocks to their `resourceType` as `EndpointType` (not `category`). `createBlankArchitecture()` still creates `externalActors` (deferred to #1538).
-> - **#1537 (Connection System Unification)**: Introduced shared `endpointResolver.ts` with `resolveEndpointSource()` (normalizes both `nodes[]` and `externalActors[]` into uniform `EndpointSource` shape) and `getEffectiveEndpointType()` (single source of truth, moved from domainSlice). Removed hardcoded actor-specific branches from `canConnect()` — now pure `ALLOWED_CONNECTIONS` table lookup. Bridge-period safety: resolver prefers `externalActors[]` over `nodes[]` when IDs collide (since `moveActorPosition()` only updates actors). Root-level positioning guards tightened to `parentId === null && isExternal`. `ConnectionRenderer` reads `externalActors` from store instead of prop.
-> - **#1538 (Templates & Blank Architecture)**: Added `ext-browser`/`ext-internet` as `ResourceBlock` entries in all 6 template `nodes[]` arrays and `createBlankArchitecture()`. `loadFromTemplate()` simplified to generate endpoints from `nodes[]` only; external blocks skip name/subtype remapping during provider switch. Code generation filters (`isExternalResourceType()`) added to all 3 generators (Terraform, Bicep, Pulumi) and both Azure and GCP provider `renderSharedResources` to exclude external blocks from IaC output.
->
-> The `ExternalActor` interface is kept for backward compatibility during the migration window.
+> - **#1536 (Store Unification)**: Added `addExternalBlock()` store action that creates external blocks as root-level `ResourceBlock` nodes in `nodes[]`. Introduced bridge pattern with dual-path resolution during transition.
+> - **#1537 (Connection System Unification)**: Introduced shared `endpointResolver.ts` with `resolveEndpointSource()` and `getEffectiveEndpointType()`. Removed hardcoded actor-specific branches from `canConnect()` — now pure `ALLOWED_CONNECTIONS` table lookup.
+> - **#1538 (Templates & Blank Architecture)**: Added `ext-browser`/`ext-internet` as `ResourceBlock` entries in all 6 template `nodes[]` arrays and `createBlankArchitecture()`. Code generation filters exclude external blocks from IaC output.
+> - **#1539 (Rendering Migration)**: `SceneCanvas` renders external blocks as `BlockSprite` with full block geometry. `moveExternalBlockPosition` updates `nodes[]` positions. Connection anchors use `getBlockWorldAnchors` for all blocks uniformly.
+> - **#1540 (Cleanup)**: Removed all runtime ExternalActor references. Deleted `ExternalActorSprite` component and related CSS/tests. Removed legacy store actions (`addExternalActor`, `removeExternalActor`, `moveActorPosition`). Simplified all function signatures to remove `externalActors?` parameters. Only schema migration code remains for backward compatibility.
 
-An External Actor represents an endpoint outside the architecture. After migration, these become `ResourceBlock` nodes with `roles: ['external']` and `resourceType: 'internet' | 'browser'`.
+After migration, internet and browser endpoints are standard `ResourceBlock` nodes with `roles: ['external']` and `resourceType: 'internet' | 'browser'`. They live in `nodes[]` like any other resource block, with `parentId: null` (root-level, no container parent).
 
 ```typescript
 /** @deprecated Folded into blocks in v4. Kept for v3→v4 migration. */
@@ -332,21 +332,24 @@ export function migrateExternalActorsToBlocks(
 ): ResourceBlock[];
 ```
 
-### 6.1 Store Bridge Pattern (#1536, updated #1537)
+### 6.1 Post-Migration State
 
-During the migration window, two parallel data paths coexist in the architecture store:
+After migration completion (#1540), the dual-path bridge pattern has been fully removed. External blocks now follow the single unified path:
 
-| Path | Collection | APIs | Used By |
-| --- | --- | --- | --- |
-| **Legacy** (fallback only) | `externalActors[]` | `addExternalActor`, `removeExternalActor`, `moveActorPosition` | `ExternalActorSprite` (only for actors without a matching node), `SidebarPalette` |
-| **New** (active for rendering) | `nodes[]` | `addExternalBlock`, `addNode({parentId: null})`, `moveExternalBlockPosition` | `SceneCanvas`, `BlockSprite`, `ConnectionPreview`, `addConnection` |
+| Aspect | Before (Bridge Period) | After (#1540 Cleanup) |
+| --- | --- | --- |
+| **Data path** | Dual: `externalActors[]` + `nodes[]` | Single: `nodes[]` only |
+| **Store actions** | `addExternalActor`, `removeExternalActor`, `moveActorPosition` + `addExternalBlock` | `addExternalBlock`, standard node operations |
+| **Rendering** | `ExternalActorSprite` (fallback) + `BlockSprite` | `BlockSprite` only |
+| **Connection resolution** | `resolveEndpointSource(blockId, nodes, externalActors?)` | `resolveEndpointSource(blockId, nodes)` |
+| **Positioning** | `EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET` fallback | Standard block geometry via `getBlockWorldAnchors` |
 
-**Shared Endpoint Resolver** (`entities/connection/endpointResolver.ts`, introduced in #1537): All connection-related functions (`canConnect`, `validateConnection`, `validatePortIndices`, `resolveEndpoint`, `getConnectionSurfaceRoute`) use `resolveEndpointSource()` to normalize both collections into a uniform `EndpointSource` shape. Post-rendering-migration (#1539), the resolver prefers `nodes[]` over `externalActors[]` when IDs collide, because `moveExternalBlockPosition()` atomically updates both collections and nodes use proper block geometry for port anchors.
+**Shared Endpoint Resolver** (`entities/connection/endpointResolver.ts`): All connection-related functions (`canConnect`, `validateConnection`, `validatePortIndices`, `resolveEndpoint`, `getConnectionSurfaceRoute`) use `resolveEndpointSource()` to look up blocks from `nodes[]` only.
 
 ```typescript
-// Shared resolver — normalizes blocks and legacy actors into EndpointSource
+// Shared resolver — looks up block from nodes[]
 export function resolveEndpointSource(
-  blockId: string, nodes: ResourceBlock[], externalActors?: ExternalActor[],
+  blockId: string, nodes: ResourceBlock[],
 ): EndpointSource | null;
 
 // Maps external blocks to EndpointType for connection rules
@@ -355,9 +358,10 @@ export function getEffectiveEndpointType(
 ): EndpointType;  // ResourceCategory | 'internet' | 'browser'
 ```
 
-**Root-level positioning**: Blocks with `parentId === null && isExternal` use world coordinates directly (no container lookup). Node-backed root externals use full block geometry (`getBlockWorldAnchors` + `getBlockDimensions`) for connection endpoint anchors and surface routing (`surfaceRouting.ts` 'rootBlock' kind). The legacy `EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET` (-4 CU Y-shift) remains only as a fallback for actors without a matching node.
+**Root-level positioning**: Blocks with `parentId === null && isExternal` use world coordinates directly (no container lookup). External blocks use full block geometry (`getBlockWorldAnchors` + `getBlockDimensions`) for connection endpoint anchors and surface routing (`surfaceRouting.ts` 'rootBlock' kind).
 
-The rendering migration (#1539) is complete: `SceneCanvas` splits blocks into container-parented and root external groups, rendering externals as `BlockSprite` with `moveExternalBlockPosition` bridge action. `ExternalActorSprite` still exists but only renders for actors without a matching node. All legacy shims are annotated `@deprecated` with `#1540` as the removal target.
+**Backward compatibility**: The `ExternalActor` interface and `migrateExternalActorsToBlocks()` function are preserved in the schema/persistence layer. When loading workspaces saved before the migration, `deserialize()` automatically converts legacy `externalActors[]` entries into `ResourceBlock` nodes. No runtime code references `externalActors[]` — the migration is transparent to users.
+
 ---
 
 # 7. Rule Engine
