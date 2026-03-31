@@ -246,7 +246,6 @@ export function SceneCanvas() {
               connection={conn}
               blocks={blocks}
               plates={plates}
-              externalActors={externalActors}
               originX={origin.x}
               originY={origin.y}
             />

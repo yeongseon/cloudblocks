@@ -48,8 +48,13 @@ function makeConnection(overrides?: Partial<Connection>): Connection {
 function makeActor(overrides?: Partial<ExternalActor>): ExternalActor {
   return {
     id: 'actor-1',
-    type: 'user',
+    type: 'internet',
     name: 'User',
+    position: {
+      x: EXTERNAL_ACTOR_POSITION[0],
+      y: EXTERNAL_ACTOR_POSITION[1],
+      z: EXTERNAL_ACTOR_POSITION[2],
+    },
     ...overrides,
   } as ExternalActor;
 }
@@ -179,6 +184,48 @@ describe('getConnectionEndpointWorldAnchors', () => {
     const result = getConnectionEndpointWorldAnchors(conn, blocks, [container], endpoints, []);
 
     expect(result).toBeNull();
+  });
+
+  it('resolves root-level block endpoints without container lookups', () => {
+    const rootSource = makeBlock({
+      id: 'root-source',
+      parentId: null,
+      category: 'delivery',
+      resourceType: 'internet',
+      position: { x: -2, y: 1, z: 4 },
+    });
+    const rootTarget = makeBlock({
+      id: 'root-target',
+      parentId: null,
+      category: 'delivery',
+      resourceType: 'browser',
+      position: { x: 3, y: 2, z: 6 },
+    });
+    const endpoints = makeEndpoints([rootSource.id, rootTarget.id]);
+    const conn = makeConnection({
+      from: endpointId(rootSource.id, 'output', 'data'),
+      to: endpointId(rootTarget.id, 'input', 'data'),
+    });
+
+    const result = getConnectionEndpointWorldAnchors(
+      conn,
+      [rootSource, rootTarget],
+      [],
+      endpoints,
+      [],
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.src).toEqual([
+      rootSource.position.x,
+      rootSource.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      rootSource.position.z,
+    ]);
+    expect(result!.tgt).toEqual([
+      rootTarget.position.x,
+      rootTarget.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      rootTarget.position.z,
+    ]);
   });
 
   it('falls back to center when endpoint semantic is unknown', () => {

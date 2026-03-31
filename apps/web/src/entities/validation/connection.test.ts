@@ -641,6 +641,23 @@ describe('validatePortIndices', () => {
 
     expect(validatePortIndices(connection, blocks)).toBeNull();
   });
+
+  it('skips port validation for external resource blocks resolved as internet/browser types', () => {
+    const externalBlock = makeBlock({
+      id: 'internet-block',
+      category: 'delivery',
+      resourceType: 'internet',
+      parentId: null,
+      roles: ['external'],
+    });
+    const computeBlock = makeBlock({ id: 'compute-1', category: 'compute' });
+    const connection = makeConnection({
+      from: endpointId(externalBlock.id, 'output', 'event'),
+      to: endpointId(computeBlock.id, 'input', 'event'),
+    });
+
+    expect(validatePortIndices(connection, [externalBlock, computeBlock])).toBeNull();
+  });
 });
 
 describe('canConnect', () => {
@@ -679,6 +696,12 @@ describe('canConnect', () => {
 
   it('returns false when target is internet in category mode', () => {
     expect(canConnect('delivery', 'internet')).toBe(false);
+  });
+
+  it('uses rule-table lookup for browser/internet paths', () => {
+    expect(canConnect('browser', 'internet')).toBe(true);
+    expect(canConnect('browser', 'delivery')).toBe(true);
+    expect(canConnect('internet', 'browser')).toBe(false);
   });
 
   it('returns false when called with mixed category and endpoint args', () => {

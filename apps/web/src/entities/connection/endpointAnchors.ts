@@ -22,11 +22,11 @@ import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import {
   getBlockWorldPosition,
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-  EXTERNAL_ACTOR_POSITION,
 } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { getBlockWorldAnchors } from '../block/blockGeometry';
 import type { PortSide, WorldPoint } from '../block/blockGeometry';
+import { resolveEndpointSource } from './endpointResolver';
 
 export interface EndpointAnchors {
   src: WorldPoint;
@@ -101,45 +101,52 @@ function resolveEndpoint(
     return null;
   }
 
-  // Try block first
-  const block = blocks.find((b) => b.id === endpoint.blockId);
-  if (block) {
-    const container = plates.find((p) => p.id === block.parentId);
-    if (!container) return null;
+  const source = resolveEndpointSource(endpoint.blockId, blocks, externalActors);
+  if (!source) {
+    return null;
+  }
 
-    const worldPos = getBlockWorldPosition(block, container);
-    const floorY = container.position.y + (container.frame?.height ?? 0);
-    const cu = getBlockDimensions(block.category, block.provider, block.subtype);
-    const anchors = getBlockWorldAnchors(worldPos, cu);
+  if (source.parentId === null && source.isExternal) {
+    const rootPoint: WorldPoint = [
+      source.position.x,
+      source.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      source.position.z,
+    ];
+    return { point: rootPoint, floorY: rootPoint[1] };
+  }
 
-    const ports = CATEGORY_PORTS[block.category];
-    const total = side === 'inbound' ? ports.inbound : ports.outbound;
-    const portIndex = semanticToPortIndex(endpoint.semantic, total);
+  const block = blocks.find((candidate) => candidate.id === source.id);
+  if (!block) {
+    return null;
+  }
 
-    if (portIndex !== null) {
-      return {
-        point: anchors.port(side, portIndex, total),
-        side,
-        floorY,
-      };
-    }
+  const container = plates.find((candidate) => candidate.id === source.parentId);
+  if (!container) {
+    return null;
+  }
 
+  const worldPos = getBlockWorldPosition(block, container);
+  const floorY = container.position.y + (container.frame?.height ?? 0);
+  const cu = getBlockDimensions(block.category, block.provider, block.subtype);
+  const anchors = getBlockWorldAnchors(worldPos, cu);
+
+  const ports = CATEGORY_PORTS[block.category];
+  if (!ports) {
     return { point: anchors.center, floorY };
   }
 
-  // Try external actor
-  const actor = externalActors.find((a) => a.id === endpoint.blockId);
-  if (actor) {
-    const pos = actor.position ?? {
-      x: EXTERNAL_ACTOR_POSITION[0],
-      y: EXTERNAL_ACTOR_POSITION[1],
-      z: EXTERNAL_ACTOR_POSITION[2],
+  const total = side === 'inbound' ? ports.inbound : ports.outbound;
+  const portIndex = semanticToPortIndex(endpoint.semantic, total);
+
+  if (portIndex !== null) {
+    return {
+      point: anchors.port(side, portIndex, total),
+      side,
+      floorY,
     };
-    const base: WorldPoint = [pos.x, pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, pos.z];
-    return { point: base, floorY: pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET };
   }
 
-  return null;
+  return { point: anchors.center, floorY };
 }
 
 function semanticToPortIndex(semantic: EndpointSemantic, total: number): number | null {

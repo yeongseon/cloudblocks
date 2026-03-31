@@ -4,7 +4,6 @@ import type {
   ContainerBlock,
   Endpoint,
   EndpointSemantic,
-  ExternalActor,
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
@@ -32,7 +31,6 @@ interface ConnectionRendererProps {
   connection: Connection;
   blocks: ResourceBlock[];
   plates: ContainerBlock[];
-  externalActors: ExternalActor[];
   originX: number;
   originY: number;
 }
@@ -121,7 +119,6 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   connection,
   blocks,
   plates,
-  externalActors,
   originX,
   originY,
 }: ConnectionRendererProps) {
@@ -154,6 +151,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
 
   const fromEndpoint: Endpoint | undefined = useMemo(
     () => endpointsList.find((endpoint) => endpoint.id === connection.from),

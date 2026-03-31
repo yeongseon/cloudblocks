@@ -30,7 +30,8 @@ import type {
   RemoveNodeOptions,
 } from './types';
 import { canConnect } from '../../validation/connection';
-import type { EndpointType } from '../../validation/connection';
+import type { EndpointType } from '../../connection/endpointResolver';
+import { getEffectiveEndpointType } from '../../connection/endpointResolver';
 import { validatePlacement } from '../../validation/placement';
 import {
   clampWithinParent,
@@ -85,20 +86,6 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceTy
   zone: 'virtual_network',
   subnet: 'subnet',
 };
-
-/**
- * Temporary shim - maps external resource blocks back to their string-literal
- * EndpointType ('internet' | 'browser') so that canConnect() in connection.ts
- * continues to work correctly until #1537 rewrites it.
- *
- * For all other blocks, returns the block's category.
- */
-function getEffectiveEndpointType(block: ResourceBlock): EndpointType {
-  if (isExternalResourceType(block.resourceType)) {
-    return block.resourceType as EndpointType;
-  }
-  return block.category;
-}
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   // ── Unified Node API ─────────────────────────────────────────────────────

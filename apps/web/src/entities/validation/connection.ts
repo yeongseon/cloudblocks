@@ -4,11 +4,14 @@ import type {
   Endpoint,
   EndpointSemantic,
   ExternalActor,
-  ResourceCategory,
   Block,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS, parseEndpointId } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
+import { getEffectiveEndpointType, resolveEndpointSource } from '../connection/endpointResolver';
+import type { EndpointType } from '../connection/endpointResolver';
+export type { EndpointType } from '../connection/endpointResolver';
 
 /**
  * Connection Rules (from DOMAIN_MODEL.md §6):
@@ -28,9 +31,6 @@ import type { ValidationError } from '@cloudblocks/domain';
  *
  * Data, Security, Operations, and Network are receiver-only — they never initiate connections.
  */
-
-type ConnectionCategory = ResourceCategory;
-export type EndpointType = ResourceCategory | 'internet' | 'browser';
 
 /** Map of allowed category pairs to endpoint semantics. */
 const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
@@ -118,14 +118,11 @@ export function validateConnection(
     };
   }
 
-  // Resolve types from nodes or external actors
-  const fromNode = nodes.find((node) => node.id === fromEndpoint.blockId);
-  const toNode = nodes.find((node) => node.id === toEndpoint.blockId);
-  const fromActor = externalActors.find((actor) => actor.id === fromEndpoint.blockId);
-  const toActor = externalActors.find((actor) => actor.id === toEndpoint.blockId);
-
-  const fromType: EndpointType | null = fromNode?.category ?? fromActor?.type ?? null;
-  const toType: EndpointType | null = toNode?.category ?? toActor?.type ?? null;
+  const resourceNodes = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
+  const fromSource = resolveEndpointSource(fromEndpoint.blockId, resourceNodes, externalActors);
+  const toSource = resolveEndpointSource(toEndpoint.blockId, resourceNodes, externalActors);
+  const fromType: EndpointType | null = fromSource ? getEffectiveEndpointType(fromSource) : null;
+  const toType: EndpointType | null = toSource ? getEffectiveEndpointType(toSource) : null;
 
   if (!fromType || !toType) {
     return {
@@ -199,41 +196,47 @@ export function validateConnection(
 export function validatePortIndices(
   connection: Connection,
   nodes: Block[],
+  externalActors: ExternalActor[] = [],
 ): ValidationError | null {
   const fromParsed = parseEndpointId(connection.from);
   const toParsed = parseEndpointId(connection.to);
   if (!fromParsed || !toParsed) return null;
 
-  const fromNode = nodes.find((n) => n.id === fromParsed.blockId);
-  const toNode = nodes.find((n) => n.id === toParsed.blockId);
+  const resourceNodes = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
+  const fromSource = resolveEndpointSource(fromParsed.blockId, resourceNodes, externalActors);
+  const toSource = resolveEndpointSource(toParsed.blockId, resourceNodes, externalActors);
 
-  // Check source port: only for resource nodes (not external actors)
-  if (fromNode) {
-    const outbound = CATEGORY_PORTS[fromNode.category]?.outbound ?? 1;
-    const semanticIndex = SEMANTIC_ORDER.indexOf(fromParsed.semantic);
-    if (semanticIndex >= 0 && semanticIndex > outbound) {
-      return {
-        ruleId: 'rule-conn-endpoint-source',
-        severity: 'error',
-        message: `Source endpoint index ${semanticIndex} exceeds outbound capacity ${outbound} for ${fromNode.category}`,
-        suggestion: 'Use a semantic that fits the source category port capacity',
-        targetId: connection.id,
-      };
+  if (fromSource) {
+    const fromType = getEffectiveEndpointType(fromSource);
+    const fromPorts = CATEGORY_PORTS[fromType as keyof typeof CATEGORY_PORTS];
+    if (fromPorts) {
+      const semanticIndex = SEMANTIC_ORDER.indexOf(fromParsed.semantic);
+      if (semanticIndex >= 0 && semanticIndex > fromPorts.outbound) {
+        return {
+          ruleId: 'rule-conn-endpoint-source',
+          severity: 'error',
+          message: `Source endpoint index ${semanticIndex} exceeds outbound capacity ${fromPorts.outbound} for ${fromType}`,
+          suggestion: 'Use a semantic that fits the source category port capacity',
+          targetId: connection.id,
+        };
+      }
     }
   }
 
-  // Check target port: only for resource nodes (not external actors)
-  if (toNode) {
-    const inbound = CATEGORY_PORTS[toNode.category]?.inbound ?? 1;
-    const semanticIndex = SEMANTIC_ORDER.indexOf(toParsed.semantic);
-    if (semanticIndex >= 0 && semanticIndex > inbound) {
-      return {
-        ruleId: 'rule-conn-endpoint-target',
-        severity: 'error',
-        message: `Target endpoint index ${semanticIndex} exceeds inbound capacity ${inbound} for ${toNode.category}`,
-        suggestion: 'Use a semantic that fits the target category port capacity',
-        targetId: connection.id,
-      };
+  if (toSource) {
+    const toType = getEffectiveEndpointType(toSource);
+    const toPorts = CATEGORY_PORTS[toType as keyof typeof CATEGORY_PORTS];
+    if (toPorts) {
+      const semanticIndex = SEMANTIC_ORDER.indexOf(toParsed.semantic);
+      if (semanticIndex >= 0 && semanticIndex > toPorts.inbound) {
+        return {
+          ruleId: 'rule-conn-endpoint-target',
+          severity: 'error',
+          message: `Target endpoint index ${semanticIndex} exceeds inbound capacity ${toPorts.inbound} for ${toType}`,
+          suggestion: 'Use a semantic that fits the target category port capacity',
+          targetId: connection.id,
+        };
+      }
     }
   }
 
@@ -258,16 +261,6 @@ export function canConnect(
   toNode?: Block,
 ): boolean | { valid: boolean; reason?: string } {
   if (typeof source === 'string' && typeof target === 'string') {
-    if (source === 'internet') {
-      return target === 'delivery';
-    }
-    if (source === 'browser') {
-      return target === 'internet' || target === 'delivery';
-    }
-    if (target === 'internet' || target === 'browser') {
-      return false;
-    }
-
     const key = `${source}->${target}`;
     return key in ALLOWED_CONNECTIONS;
   }
@@ -294,19 +287,19 @@ export function canConnect(
     return { valid: false, reason: 'Source and target endpoints must have matching semantics' };
   }
 
-  const fromCategory = fromNode.category as ConnectionCategory;
-  const toCategory = toNode.category as ConnectionCategory;
-  const ruleKey = `${fromCategory}->${toCategory}`;
+  const fromType = getEffectiveEndpointType(fromNode);
+  const toType = getEffectiveEndpointType(toNode);
+  const ruleKey = `${fromType}->${toType}`;
   const allowedSemantics = ALLOWED_CONNECTIONS[ruleKey];
 
   if (!allowedSemantics) {
-    return { valid: false, reason: `Invalid connection: ${fromCategory} \u2192 ${toCategory}` };
+    return { valid: false, reason: `Invalid connection: ${fromType} \u2192 ${toType}` };
   }
 
   if (!allowedSemantics.includes(fromEndpoint.semantic)) {
     return {
       valid: false,
-      reason: `Invalid semantic for ${fromCategory} \u2192 ${toCategory}: ${fromEndpoint.semantic}`,
+      reason: `Invalid semantic for ${fromType} \u2192 ${toType}: ${fromEndpoint.semantic}`,
     };
   }
 

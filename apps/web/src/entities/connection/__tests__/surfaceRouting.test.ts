@@ -58,8 +58,13 @@ function makeConnection(overrides?: Partial<Connection>): Connection {
 function makeExternalActor(overrides?: Partial<ExternalActor>): ExternalActor {
   return {
     id: 'external-1',
-    kind: 'external',
     name: 'External Actor',
+    type: 'internet',
+    position: {
+      x: EXTERNAL_ACTOR_POSITION[0],
+      y: EXTERNAL_ACTOR_POSITION[1],
+      z: EXTERNAL_ACTOR_POSITION[2],
+    },
     ...overrides,
   } as ExternalActor;
 }
@@ -446,7 +451,7 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(connection, [block], [ctr], endpoints, [actor]);
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.containerId).toBe('external');
+    expect(route!.srcPort.containerId).toBe('ground');
     expect(route!.tgtPort.containerId).toBe(ctr.id);
     expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
     expect(route!.segments.some((segment) => segment.surfaceId === 'ground')).toBe(true);
@@ -474,7 +479,7 @@ describe('getConnectionSurfaceRoute', () => {
 
     expect(route).not.toBeNull();
     expect(route!.srcPort.containerId).toBe(ctr.id);
-    expect(route!.tgtPort.containerId).toBe('external');
+    expect(route!.tgtPort.containerId).toBe('ground');
     expect(route!.segments[0].kind).toBe('exit');
     expect(route!.segments[route!.segments.length - 1].kind).toBe('exit');
   });
@@ -504,8 +509,8 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(connection, [], [], endpoints, [srcActor, tgtActor]);
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.containerId).toBe('external');
-    expect(route!.tgtPort.containerId).toBe('external');
+    expect(route!.srcPort.containerId).toBe('ground');
+    expect(route!.tgtPort.containerId).toBe('ground');
     expect(
       route!.segments.every((segment) => segment.kind === 'exit' || segment.kind === 'surface'),
     ).toBe(true);
@@ -575,6 +580,41 @@ describe('getConnectionSurfaceRoute', () => {
       expectedY,
       EXTERNAL_ACTOR_POSITION[2],
     ]);
+  });
+
+  it('routes root-level external blocks on the ground plane', () => {
+    const rootBlock = makeBlock({
+      id: 'root-internet',
+      parentId: null,
+      category: 'delivery',
+      resourceType: 'internet',
+      roles: ['external'],
+      position: { x: -4, y: 1, z: 6 },
+    });
+    const container = makeContainerBlock({ id: 'container-a', position: { x: 5, y: 1, z: 5 } });
+    const innerBlock = makeBlock({
+      id: 'block-a',
+      parentId: container.id,
+      position: { x: 2, y: 0, z: 2 },
+    });
+    const endpoints = makeEndpoints([rootBlock.id, innerBlock.id]);
+    const connection = makeConnection({
+      from: endpointId(rootBlock.id, 'output', 'data'),
+      to: endpointId(innerBlock.id, 'input', 'data'),
+    });
+
+    const route = getConnectionSurfaceRoute(
+      connection,
+      [rootBlock, innerBlock],
+      [container],
+      endpoints,
+      [],
+    );
+
+    expect(route).not.toBeNull();
+    expect(route!.srcPort.containerId).toBe('ground');
+    expect(route!.segments.some((segment) => segment.surfaceId === 'ground')).toBe(true);
+    expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
   });
 });
 

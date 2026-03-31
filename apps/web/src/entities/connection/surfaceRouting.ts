@@ -17,11 +17,11 @@ import type {
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-  EXTERNAL_ACTOR_POSITION,
   getBlockWorldPosition,
 } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import type { PortSide } from '../block/blockGeometry';
+import { resolveEndpointSource } from './endpointResolver';
 
 export type WorldPoint3 = [number, number, number];
 
@@ -365,8 +365,8 @@ function resolveEndpointContext(
       totalPorts: number;
     }
   | {
-      kind: 'actor';
-      actor: ExternalActor;
+      kind: 'root';
+      position: { x: number; y: number; z: number };
     }
   | null {
   const endpoint = endpoints.find((ep) => ep.id === endpointId);
@@ -375,14 +375,21 @@ function resolveEndpointContext(
   const resolvedSide = endpoint.direction === 'output' ? 'outbound' : 'inbound';
   if (resolvedSide !== side) return null;
 
-  const block = blocks.find((b) => b.id === endpoint.blockId);
-  if (!block) {
-    const actor = externalActors.find((candidate) => candidate.id === endpoint.blockId);
-    if (!actor) return null;
-    return { kind: 'actor', actor };
+  const source = resolveEndpointSource(endpoint.blockId, blocks, externalActors);
+  if (!source) {
+    return null;
   }
 
-  const container = plates.find((p) => p.id === block.parentId);
+  if (source.parentId === null && source.isExternal) {
+    return { kind: 'root', position: source.position };
+  }
+
+  const block = blocks.find((candidate) => candidate.id === source.id);
+  if (!block) {
+    return null;
+  }
+
+  const container = plates.find((p) => p.id === source.parentId);
   if (!container) return null;
 
   const ports = CATEGORY_PORTS[block.category];
@@ -393,20 +400,19 @@ function resolveEndpointContext(
   return { kind: 'block', block, container, portIndex, totalPorts: total };
 }
 
-function resolveSurfacePortForActor(actor: ExternalActor): SurfacePort {
-  const pos = actor.position ?? {
-    x: EXTERNAL_ACTOR_POSITION[0],
-    y: EXTERNAL_ACTOR_POSITION[1],
-    z: EXTERNAL_ACTOR_POSITION[2],
-  };
-  const y = pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
-  const surfaceBase: WorldPoint3 = [pos.x, y, pos.z];
-  const surfaceExit: WorldPoint3 = [pos.x, y, pos.z - SURFACE_EXIT_OFFSET_CU];
+function resolveSurfacePortForRootBlock(position: {
+  x: number;
+  y: number;
+  z: number;
+}): SurfacePort {
+  const y = position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
+  const surfaceBase: WorldPoint3 = [position.x, y, position.z];
+  const surfaceExit: WorldPoint3 = [position.x, y, position.z - SURFACE_EXIT_OFFSET_CU];
 
   return {
     surfaceBase,
     surfaceExit,
-    containerId: 'external',
+    containerId: 'ground',
     surfaceY: y,
     normal: 'neg-z',
   };
@@ -448,8 +454,8 @@ export function getConnectionSurfaceRoute(
   if (!tgtCtx) return null;
 
   const srcPort =
-    srcCtx.kind === 'actor'
-      ? resolveSurfacePortForActor(srcCtx.actor)
+    srcCtx.kind === 'root'
+      ? resolveSurfacePortForRootBlock(srcCtx.position)
       : resolveSurfacePort(
           srcCtx.block,
           srcCtx.container,
@@ -459,8 +465,8 @@ export function getConnectionSurfaceRoute(
         );
 
   const tgtPort =
-    tgtCtx.kind === 'actor'
-      ? resolveSurfacePortForActor(tgtCtx.actor)
+    tgtCtx.kind === 'root'
+      ? resolveSurfacePortForRootBlock(tgtCtx.position)
       : resolveSurfacePort(
           tgtCtx.block,
           tgtCtx.container,
