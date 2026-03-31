@@ -9,8 +9,8 @@ import {
 } from '../../shared/utils/position';
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
-import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
+import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
+import type { ExternalActor, ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../entities/validation/connection';
@@ -27,12 +27,16 @@ interface Point {
 
 const MAGNETIC_SNAP_THRESHOLD_PX = 40;
 
+const EMPTY_ACTORS: ExternalActor[] = [];
+
 export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
   const setMagneticSnapTarget = useUIStore((s) => s.setMagneticSnapTarget);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
+  const externalActors = useArchitectureStore(
+    (s) => s.workspace.architecture.externalActors ?? EMPTY_ACTORS,
+  );
   const blocks = useMemo(
     () => nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [nodes],
@@ -63,10 +67,19 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       if (block.id === connectionSource) continue;
       if (!canConnect(sourceEndpointType, block.category)) continue;
 
-      const container = plates.find((p) => p.id === block.parentId);
-      if (!container) continue;
+      const isRootExternal =
+        block.parentId === null &&
+        (Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType));
 
-      const worldPos = getBlockWorldPosition(block, container);
+      const container = isRootExternal ? undefined : plates.find((p) => p.id === block.parentId);
+      if (!isRootExternal && !container) continue;
+
+      let worldPos: [number, number, number];
+      if (isRootExternal) {
+        worldPos = [block.position.x, block.position.y, block.position.z];
+      } else {
+        worldPos = getBlockWorldPosition(block, container!);
+      }
       const cu = getBlockDimensions(block.category, block.provider, block.subtype);
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[block.category];
@@ -123,6 +136,30 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
     const sourceBlock = blocks.find((block) => block.id === connectionSource);
     if (sourceBlock) {
+      const isRootExternal =
+        sourceBlock.parentId === null &&
+        (Boolean(sourceBlock.roles?.includes('external')) ||
+          isExternalResourceType(sourceBlock.resourceType));
+
+      if (isRootExternal) {
+        // Root external block: compute from own world position using outbound port
+        const worldPos: [number, number, number] = [
+          sourceBlock.position.x,
+          sourceBlock.position.y,
+          sourceBlock.position.z,
+        ];
+        const cu = getBlockDimensions(
+          sourceBlock.category,
+          sourceBlock.provider,
+          sourceBlock.subtype,
+        );
+        const anchors = getBlockWorldAnchors(worldPos, cu);
+        const ports = CATEGORY_PORTS[sourceBlock.category];
+        const portWorld = anchors.port('outbound', 0, ports.outbound);
+        const screen = worldToScreen(portWorld[0], portWorld[1], portWorld[2], originX, originY);
+        return { x: screen.x + PORT_OUT_PX, y: screen.y };
+      }
+
       const parentContainer = plates.find((container) => container.id === sourceBlock.parentId);
       if (!parentContainer) {
         return null;

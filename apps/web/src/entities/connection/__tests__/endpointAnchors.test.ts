@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import type { Connection, ContainerBlock, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ContainerBlock,
+  Endpoint,
+  ExternalActor,
+  ResourceBlock,
+} from '@cloudblocks/schema';
 import { getConnectionEndpointWorldAnchors } from '../endpointAnchors';
 import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
@@ -216,16 +222,16 @@ describe('getConnectionEndpointWorldAnchors', () => {
     );
 
     expect(result).not.toBeNull();
-    expect(result!.src).toEqual([
-      rootSource.position.x,
-      rootSource.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      rootSource.position.z,
-    ]);
-    expect(result!.tgt).toEqual([
-      rootTarget.position.x,
-      rootTarget.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      rootTarget.position.z,
-    ]);
+    // Node-backed root externals now use block geometry port anchors
+    // rootSource: outbound side, delivery ports={inbound:1, outbound:2}
+    // semantic='data', index=2%2=0, t=1/3, worldPos=[-2,1,4], cu.width=2
+    // → [-2 + (1/3)*2, 1, 4] = [-4/3, 1, 4]
+    expect(result!.src[1]).toBe(rootSource.position.y); // y = block.position.y (no offset)
+    expect(result!.src[2]).toBe(rootSource.position.z);
+    // rootTarget: inbound side, delivery ports={inbound:1, outbound:2}
+    // semantic='data', index=2%1=0, t=1/2, worldPos=[3,2,6], cu.depth=2
+    // → [3, 2, 6 + (1/2)*2] = [3, 2, 7]
+    expect(result!.tgt).toEqual([3, 2, 7]);
   });
 
   it('falls back to center when endpoint semantic is unknown', () => {
@@ -242,6 +248,59 @@ describe('getConnectionEndpointWorldAnchors', () => {
 
     expect(result).not.toBeNull();
     expect(result!.tgtSide).toBeUndefined();
+  });
+
+  it('falls back to center anchor when non-root block category has no port definition', () => {
+    const oddBlock = makeBlock({
+      id: 'odd-block',
+      category: 'unknown' as unknown as ResourceBlock['category'],
+      parentId: container.id,
+      position: { x: 7, y: 0, z: 2 },
+    });
+    const conn = makeConnection({
+      from: endpointId(oddBlock.id, 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+    const endpoints = makeEndpoints([oddBlock.id, 'block-b']);
+
+    const result = getConnectionEndpointWorldAnchors(
+      conn,
+      [oddBlock, blockB],
+      [container],
+      endpoints,
+      [],
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.srcSide).toBeUndefined();
+  });
+
+  it('falls back to center anchor for root external block when category has no port definition', () => {
+    const oddRoot = makeBlock({
+      id: 'odd-root',
+      parentId: null,
+      roles: ['external'],
+      resourceType: 'internet',
+      category: 'unknown' as unknown as ResourceBlock['category'],
+      position: { x: -1, y: 2, z: 8 },
+    });
+    const conn = makeConnection({
+      from: endpointId(oddRoot.id, 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+    const endpoints = makeEndpoints([oddRoot.id, 'block-b']);
+
+    const result = getConnectionEndpointWorldAnchors(
+      conn,
+      [oddRoot, blockB],
+      [container],
+      endpoints,
+      [],
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.srcSide).toBeUndefined();
+    expect(result!.src).toEqual([oddRoot.position.x, oddRoot.position.y, oddRoot.position.z]);
   });
 
   it('resolves external actor source endpoint', () => {
@@ -293,6 +352,33 @@ describe('getConnectionEndpointWorldAnchors', () => {
       EXTERNAL_ACTOR_POSITION[0],
       EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
       EXTERNAL_ACTOR_POSITION[2],
+    ]);
+  });
+
+  it('uses legacy actor-only fallback when endpoint actor has no matching node block', () => {
+    const actor = makeActor({ id: 'legacy-actor', position: { x: -7, y: 3, z: 11 } });
+    const conn = makeConnection({
+      from: endpointId('block-a', 'output', 'data'),
+      to: endpointId(actor.id, 'input', 'data'),
+    });
+    const endpoints: Endpoint[] = [
+      ...makeEndpoints(blocks.map((block) => block.id)),
+      {
+        id: endpointId(actor.id, 'input', 'data'),
+        blockId: actor.id,
+        direction: 'input',
+        semantic: 'data',
+      } as Endpoint,
+    ];
+
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [container], endpoints, [actor]);
+
+    expect(result).not.toBeNull();
+    expect(result!.tgtSide).toBeUndefined();
+    expect(result!.tgt).toEqual([
+      actor.position.x,
+      actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      actor.position.z,
     ]);
   });
 });

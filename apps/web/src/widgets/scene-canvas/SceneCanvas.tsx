@@ -14,6 +14,7 @@ import { ExternalActorSprite } from '../../entities/connection/ExternalActorSpri
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
+import { isExternalResourceType } from '@cloudblocks/schema';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -24,8 +25,20 @@ export function SceneCanvas() {
   const blocks = architecture.nodes.filter(
     (node): node is ResourceBlock => node.kind === 'resource',
   );
-  const externalActors = architecture.externalActors ?? [];
+  // Split blocks: those parented to containers vs root external blocks
+  const containerBlocks = blocks.filter((b) => b.parentId !== null);
+  const rootExternalBlocks = blocks.filter(
+    (b) =>
+      b.parentId === null &&
+      (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
+  );
+  // Filter out externalActors that have a matching node (to avoid double rendering)
+  const rootExternalBlockIds = new Set(rootExternalBlocks.map((b) => b.id));
+  const externalActors = (architecture.externalActors ?? []).filter(
+    (actor) => !rootExternalBlockIds.has(actor.id),
+  );
   const addNode = useArchitectureStore((s) => s.addNode);
+  const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
@@ -285,7 +298,7 @@ export function SceneCanvas() {
         </div>
 
         <div className="block-layer">
-          {blocks.map((block) => {
+          {containerBlocks.map((block) => {
             const parentContainer = plates.find((p) => p.id === block.parentId);
             if (!parentContainer?.frame) return null;
             const worldX = parentContainer.position.x + block.position.x;
@@ -301,6 +314,26 @@ export function SceneCanvas() {
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
+              />
+            );
+          })}
+          {rootExternalBlocks.map((block) => {
+            const screenPos = worldToScreen(
+              block.position.x,
+              block.position.y,
+              block.position.z,
+              origin.x,
+              origin.y,
+            );
+            const zIndex = depthKey(block.position.x, block.position.z, block.position.y, 2);
+            return (
+              <BlockSprite
+                key={block.id}
+                block={block}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
+                onMove={moveExternalBlockPosition}
               />
             );
           })}

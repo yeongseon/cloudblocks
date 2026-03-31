@@ -200,11 +200,22 @@ const VENDOR_ICON_REGISTRY: Record<ProviderType, Record<string, string>> = {
   gcp: GCP_SUBTYPE_ICONS,
 };
 
+/** Icon map for external blocks that have no subtype but use actor-sprite icons. */
+const EXTERNAL_BLOCK_ICONS: Record<string, string> = {
+  internet: '/actor-sprites/internet.svg',
+  browser: '/actor-sprites/browser.svg',
+};
+
 export function getBlockIconUrl(
   provider: ProviderType,
   _category: ResourceCategory,
   subtype?: string,
+  resourceType?: string,
 ): string | null {
+  // External blocks (internet/browser) have no subtype but use actor-sprite icons
+  if (!subtype && resourceType) {
+    return EXTERNAL_BLOCK_ICONS[resourceType] ?? null;
+  }
   if (!subtype) return null;
   return VENDOR_ICON_REGISTRY[provider]?.[subtype] ?? null;
 }

@@ -8,6 +8,7 @@ import type {
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { awsProviderDefinition, azureProviderDefinition, gcpProviderDefinition } from './provider';
+import type { ProviderDefinition } from './types';
 import { generateMainTf, generateOutputsTf, generateVariablesTf, normalize } from './terraform';
 import {
   makeTestArchitecture,
@@ -197,6 +198,16 @@ describe('normalize', () => {
     expect(normalized.resourceNames.has('ext-internet')).toBe(false);
     expect(normalized.resourceNames.has('net-1')).toBe(true);
     expect(normalized.resourceNames.has('web-1')).toBe(true);
+  });
+
+  it('maps legacy resource-layer containers as region containers', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'resource-layer-1', name: 'Resource Layer', type: 'resource' })],
+    });
+
+    const normalized = normalize(model, azureProviderDefinition);
+
+    expect(normalized.resourceNames.get('resource-layer-1')).toBe('vnet_resource_layer');
   });
 });
 
@@ -392,6 +403,64 @@ describe('generateMainTf', () => {
     expect(hclWithoutConnections).not.toContain(
       '# ─── Data Flow Connections ─────────────────────',
     );
+  });
+
+  it('falls back to raw endpoint ids in connection comments when endpoint ids are malformed', () => {
+    const malformedFrom = 'source-without-endpoint-pattern';
+    const malformedTo = 'target-without-endpoint-pattern';
+    const model = createTestModel({
+      connections: [
+        createConnection({
+          id: 'conn-malformed',
+          from: malformedFrom,
+          to: malformedTo,
+        }),
+      ],
+      endpoints: [],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
+
+    expect(hcl).toContain(`# DataFlow: ${malformedFrom} → ${malformedTo}`);
+  });
+
+  it('appends non-empty container companion lines for both region and subnet containers', () => {
+    const providerWithContainerCompanions: ProviderDefinition = {
+      ...azureProviderDefinition,
+      generators: {
+        ...azureProviderDefinition.generators,
+        terraform: {
+          ...azureProviderDefinition.generators.terraform,
+          renderContainerCompanions: (ctx) =>
+            ctx.parentResourceName
+              ? [`# companion-subnet:${ctx.resourceName}:${ctx.parentResourceName}`]
+              : [`# companion-region:${ctx.resourceName}`],
+        },
+      },
+    };
+
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'net1', name: 'Main Network', type: 'region', parentId: null }),
+        createPlate({ id: 'sub1', name: 'Main Subnet', type: 'subnet', parentId: 'net1' }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, providerWithContainerCompanions),
+      providerWithContainerCompanions,
+      {
+        ...defaultOptions,
+        provider: 'azure',
+      },
+    );
+
+    expect(hcl).toContain('# companion-region:vnet_main_network');
+    expect(hcl).toContain('# companion-subnet:subnet_main_subnet:vnet_main_network');
   });
 
   it('generates serverless and new category resources', () => {

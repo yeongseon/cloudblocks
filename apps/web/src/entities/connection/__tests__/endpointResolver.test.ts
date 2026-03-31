@@ -79,10 +79,10 @@ describe('endpointResolver', () => {
   });
 });
 
-it('prefers externalActors over nodes when IDs collide (bridge safety)', () => {
-  // During the bridge period, migration creates a ResourceBlock copy in nodes[]
-  // but externalActors[] is preserved for rendering. moveActorPosition() only
-  // updates externalActors[], so the resolver must prefer the actor copy.
+it('prefers node over actor when IDs collide (post-bridge: node is source of truth)', () => {
+  // Post-bridge: moveExternalBlockPosition() keeps both nodes[] and externalActors[]
+  // in sync, and nodes use proper block geometry for port anchors.
+  // The resolver now prefers the node (ResourceBlock) when both exist.
   const actor = makeActor({
     id: 'ext-internet-1',
     type: 'internet',
@@ -100,8 +100,8 @@ it('prefers externalActors over nodes when IDs collide (bridge safety)', () => {
   const source = resolveEndpointSource('ext-internet-1', [block], [actor]);
 
   expect(source).not.toBeNull();
-  // Must use the actor position (x:5, z:10), not the stale block position (x:-3, z:5)
-  expect(source!.position).toEqual({ x: 5, y: 0, z: 10 });
+  // Must use the node position (x:-3, z:5) — node is source of truth post-bridge
+  expect(source!.position).toEqual({ x: -3, y: 0, z: 5 });
   expect(source!.isExternal).toBe(true);
   expect(source!.category).toBe('delivery');
 });

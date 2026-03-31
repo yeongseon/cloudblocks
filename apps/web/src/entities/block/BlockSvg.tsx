@@ -18,6 +18,7 @@ interface BlockSvgProps {
   category: ResourceCategory;
   provider?: ProviderType;
   subtype?: string;
+  resourceType?: string;
   name?: string;
   aggregationCount?: number;
   roles?: BlockRole[];
@@ -27,6 +28,7 @@ export const BlockSvg = memo(function BlockSvg({
   category,
   provider,
   subtype,
+  resourceType,
   name: _name,
   aggregationCount,
   roles,
@@ -40,7 +42,7 @@ export const BlockSvg = memo(function BlockSvg({
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
-  const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
+  const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype, resourceType);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
   const silhouetteResult = getSilhouetteFromCU(profile.silhouette, cu);

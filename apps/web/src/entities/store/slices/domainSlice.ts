@@ -61,6 +61,7 @@ type DomainSlice = Pick<
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveActorPosition'
+  | 'moveExternalBlockPosition'
   | 'addExternalActor'
   | 'removeExternalActor'
   | 'addExternalBlock'
@@ -815,6 +816,51 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       });
 
       return withHistory(state, { ...arch, nodes });
+    });
+  },
+
+  moveExternalBlockPosition: (id, deltaX, deltaZ) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const resources = arch.nodes.filter(isResource);
+      const block = resources.find((candidate) => candidate.id === id);
+
+      if (!block || block.parentId !== null) {
+        return state;
+      }
+
+      // Update nodes[]
+      const nodes = arch.nodes.map((candidate) => {
+        if (candidate.id === id && candidate.kind === 'resource') {
+          return {
+            ...candidate,
+            position: {
+              x: candidate.position.x + deltaX,
+              y: candidate.position.y,
+              z: candidate.position.z + deltaZ,
+            },
+          };
+        }
+        return candidate;
+      });
+
+      // Update externalActors[] in the same history write
+      const currentActors = arch.externalActors ?? [];
+      const externalActors: ExternalActor[] = currentActors.map((candidate) => {
+        if (candidate.id !== id) {
+          return candidate;
+        }
+        return {
+          ...candidate,
+          position: {
+            x: candidate.position.x + deltaX,
+            y: candidate.position.y,
+            z: candidate.position.z + deltaZ,
+          },
+        };
+      });
+
+      return withHistory(state, { ...arch, nodes, externalActors });
     });
   },
 

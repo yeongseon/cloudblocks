@@ -453,6 +453,100 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
+  describe('moveExternalBlockPosition', () => {
+    it('no-ops when block is not found', () => {
+      seedState({ externalActors: [], nodes: [] });
+      const archBefore = getArch();
+
+      getState().moveExternalBlockPosition('nonexistent-id', 1, 1);
+
+      expect(getArch()).toBe(archBefore);
+    });
+
+    it('no-ops when block is not root-level', () => {
+      const nestedExternal = makeExternalBlock('ext-nested', 'internet', { x: -3, y: 0, z: 5 });
+      seedState({
+        nodes: [{ ...nestedExternal, parentId: 'some-container' }],
+        externalActors: [
+          { id: 'ext-nested', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        ],
+      });
+      const archBefore = getArch();
+
+      getState().moveExternalBlockPosition('ext-nested', 1, 1);
+
+      expect(getArch()).toBe(archBefore);
+    });
+
+    it('moves both node and mirrored external actor positions for root-level block', () => {
+      seedState({ externalActors: [], nodes: [] });
+      getState().addExternalBlock('internet', { x: -3, y: 0, z: 5 });
+
+      const movedId = getBlocks().find((block) => block.roles?.includes('external'))?.id;
+      expect(movedId).toBeDefined();
+      const beforeNode = getBlocks().find((block) => block.id === movedId)!;
+      useArchitectureStore.setState((state) => ({
+        ...state,
+        workspace: {
+          ...state.workspace,
+          architecture: {
+            ...state.workspace.architecture,
+            nodes: [
+              ...state.workspace.architecture.nodes,
+              makeExternalBlock('ext-other', 'browser', { x: 9, y: 0, z: 9 }),
+            ],
+            externalActors: [
+              ...(state.workspace.architecture.externalActors ?? []),
+              {
+                id: movedId!,
+                name: 'Internet',
+                type: 'internet',
+                position: {
+                  x: beforeNode.position.x,
+                  y: beforeNode.position.y,
+                  z: beforeNode.position.z,
+                },
+              },
+              {
+                id: 'ext-other',
+                name: 'Browser',
+                type: 'browser',
+                position: { x: 9, y: 0, z: 9 },
+              },
+            ],
+          },
+        },
+      }));
+      const beforeActor = (getArch().externalActors ?? []).find((actor) => actor.id === movedId)!;
+      const beforeOtherNode = getBlocks().find((block) => block.id === 'ext-other')!;
+      const beforeOtherActor = (getArch().externalActors ?? []).find(
+        (actor) => actor.id === 'ext-other',
+      )!;
+
+      getState().moveExternalBlockPosition(movedId!, 2, 3);
+
+      const afterNode = getBlocks().find((block) => block.id === movedId)!;
+      const afterActor = (getArch().externalActors ?? []).find((actor) => actor.id === movedId)!;
+
+      expect(afterNode.position).toEqual({
+        x: beforeNode.position.x + 2,
+        y: beforeNode.position.y,
+        z: beforeNode.position.z + 3,
+      });
+      expect(afterActor.position).toEqual({
+        x: beforeActor.position.x + 2,
+        y: beforeActor.position.y,
+        z: beforeActor.position.z + 3,
+      });
+      expect(getBlocks().find((block) => block.id === 'ext-other')!.position).toEqual(
+        beforeOtherNode.position,
+      );
+      expect(
+        (getArch().externalActors ?? []).find((actor) => actor.id === 'ext-other')!.position,
+      ).toEqual(beforeOtherActor.position);
+    });
+  });
+
   describe('addConnection – external block in nodes[] (new path)', () => {
     it('rejects connection from external block in nodes[] to non-edge block', () => {
       const externalInternet = makeExternalBlock('ext-internet', 'internet', { x: -3, y: 0, z: 5 });
@@ -886,6 +980,23 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getArch()).toBe(before);
     });
 
+    it('moveBlockPosition moves root-level block when parentId is null', () => {
+      getState().addExternalBlock('internet');
+      const rootBlock = getBlocks().find((b) => b.resourceType === 'internet')!;
+      expect(rootBlock).toBeDefined();
+      expect(rootBlock.parentId).toBeNull();
+
+      const origX = rootBlock.position.x;
+      const origZ = rootBlock.position.z;
+
+      getState().moveBlockPosition(rootBlock.id, 3, -2);
+
+      const moved = getBlocks().find((b) => b.id === rootBlock.id)!;
+      expect(moved.position.x).toBe(origX + 3);
+      expect(moved.position.z).toBe(origZ - 2);
+      expect(moved.position.y).toBe(rootBlock.position.y);
+    });
+
     it('handles addConnection branches with actors and endpoint parse fallback', () => {
       const externalInternet = makeExternalBlock('ext-internet', 'internet', { x: -3, y: 0, z: 5 });
       const subnet = makeContainerNode('container-1', {
@@ -971,6 +1082,29 @@ describe('domainSlice – targeted branch coverage', () => {
         externalActors: [],
       });
 
+      expect(getState().addConnection('delivery-1', 'compute-1')).toBe(false);
+    });
+
+    it('returns false when target has no stored endpoint and is not an actor', () => {
+      const subnet = makeContainerNode('container-1', {
+        layer: 'subnet',
+        resourceType: 'subnet',
+        frame: { width: 8, height: 0.3, depth: 10 },
+      });
+      const edge = makeLeafNode('delivery-1', 'container-1', 'delivery', {
+        resourceType: 'load_balancer',
+      });
+      const compute = makeLeafNode('compute-1', 'container-1', 'compute', {
+        resourceType: 'web_compute',
+      });
+      seedState({
+        nodes: [subnet, edge, compute],
+        // Only source endpoints, no target endpoints
+        endpoints: [...generateEndpointsForBlock(edge.id)],
+        externalActors: [],
+      });
+
+      // Source (delivery-1) has endpoints, target (compute-1) does not
       expect(getState().addConnection('delivery-1', 'compute-1')).toBe(false);
     });
 

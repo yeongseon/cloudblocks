@@ -127,6 +127,28 @@ describe('metricsService', () => {
     navigationSpy.mockRestore();
   });
 
+  it('captures heap usage values when performance memory is available', () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(performance, 'memory');
+    Object.defineProperty(performance, 'memory', {
+      configurable: true,
+      value: {
+        usedJSHeapSize: 12.4 * 1024 * 1024,
+        totalJSHeapSize: 48.6 * 1024 * 1024,
+      },
+    });
+
+    const snapshot = metricsService.captureHealthSnapshot();
+
+    expect(snapshot.heapUsedMB).toBe(12);
+    expect(snapshot.heapTotalMB).toBe(49);
+
+    if (originalDescriptor) {
+      Object.defineProperty(performance, 'memory', originalDescriptor);
+    } else {
+      Reflect.deleteProperty(performance, 'memory');
+    }
+  });
+
   it('keeps only latest 50 health snapshots', () => {
     for (let i = 0; i < 52; i += 1) {
       metricsService.captureHealthSnapshot(i);
