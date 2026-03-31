@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ContainerBlock, ResourceBlock, Workspace } from './index';
-import { SCHEMA_VERSION, createBlankArchitecture, deserialize, serialize } from './schema';
+import {
+  SCHEMA_VERSION,
+  createBlankArchitecture,
+  deserialize,
+  migrateExternalActorsToBlocks,
+  serialize,
+} from './schema';
 
 function createWorkspace(id: string): Workspace {
   return {
@@ -39,7 +45,12 @@ describe('schema utilities', () => {
     const parsed = JSON.parse(json) as { schemaVersion: string; workspaces: Workspace[] };
 
     expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(parsed.workspaces).toEqual(workspaces);
+    // serialize strips externalActors from persisted output (v4 migration)
+    const expected = workspaces.map((ws) => {
+      const { externalActors: _ea, ...archWithout } = ws.architecture;
+      return { ...ws, architecture: archWithout };
+    });
+    expect(parsed.workspaces).toEqual(expected);
   });
 
   it('deserialize parses valid data', () => {
@@ -48,7 +59,19 @@ describe('schema utilities', () => {
 
     const parsed = deserialize(json);
 
-    expect(parsed).toEqual(workspaces);
+    // After deserialization, externalActors are migrated into nodes
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].architecture.externalActors).toEqual(
+      workspaces[0].architecture.externalActors,
+    );
+    // Migrated external actor should now appear as a block node
+    const migratedNode = parsed[0].architecture.nodes.find((n) => n.id === 'ext-internet');
+    expect(migratedNode).toBeDefined();
+    expect(migratedNode?.kind).toBe('resource');
+    expect(migratedNode?.resourceType).toBe('internet');
+    expect(migratedNode?.category).toBe('delivery');
+    expect(migratedNode?.roles).toEqual(['external']);
+    expect(migratedNode?.parentId).toBeNull();
   });
 
   it('migrates legacy plates without profileId', () => {
@@ -480,7 +503,9 @@ describe('schema utilities', () => {
 
     const parsed = deserialize(json);
 
-    expect(parsed).toEqual(workspaces);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].id).toBe('w1');
+    // Migration converts externalActors to nodes, so we don't do a deep-equal on the full structure
     expect(warnSpy).toHaveBeenCalledWith(
       `Schema version mismatch: expected ${SCHEMA_VERSION}, got 9.9.9. Data may need migration.`,
     );
@@ -621,7 +646,13 @@ describe('schema utilities', () => {
     const json = serialize(workspaces);
     const parsed = deserialize(json);
 
-    expect(parsed).toEqual(workspaces);
+    // serialize() strips externalActors, so the roundtripped data
+    // won't include them — compare against the stripped version
+    const expected = workspaces.map((ws) => {
+      const { externalActors: _ea, ...archWithout } = ws.architecture;
+      return { ...ws, architecture: archWithout };
+    });
+    expect(parsed).toEqual(expected);
   });
 });
 
@@ -869,4 +900,307 @@ it('accepts schema version 2.0.0 without warning', () => {
   expect(result).toHaveLength(1);
   // Should NOT emit schema mismatch warning since 2.0.0 is now supported
   expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining('Schema version mismatch'));
+});
+
+// ─── #1535: ExternalActor → Block Migration Tests ───────────────────────
+
+describe('migrateExternalActorsToBlocks', () => {
+  it('converts external actors to ResourceBlock nodes', () => {
+    const actors = [
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet' as const,
+        position: { x: -3, y: 0, z: 5 },
+      },
+      {
+        id: 'ext-browser',
+        name: 'Browser',
+        type: 'browser' as const,
+        position: { x: -6, y: 0, z: 5 },
+      },
+    ];
+    const result = migrateExternalActorsToBlocks(actors, new Set(), 'aws');
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({
+      id: 'ext-internet',
+      name: 'Internet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'internet',
+      category: 'delivery',
+      provider: 'aws',
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      roles: ['external'],
+    });
+    expect(result[1].resourceType).toBe('browser');
+  });
+
+  it('is idempotent — skips actors whose ID already exists as a node', () => {
+    const actors = [
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet' as const,
+        position: { x: -3, y: 0, z: 5 },
+      },
+    ];
+    const existingIds = new Set(['ext-internet']);
+    const result = migrateExternalActorsToBlocks(actors, existingIds, 'azure');
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('uses default position when actor position is missing', () => {
+    const actors = [
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet' as const,
+        position: undefined as unknown as { x: number; y: number; z: number },
+      },
+    ];
+    const result = migrateExternalActorsToBlocks(actors, new Set(), 'gcp');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].position).toEqual({ x: -3, y: 0, z: 5 });
+  });
+});
+
+describe('deserialize — externalActors migration', () => {
+  it('migrates externalActors into nodes while preserving them in-memory', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'aws',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [],
+            endpoints: [],
+            connections: [],
+            externalActors: [
+              {
+                id: 'ext-browser',
+                name: 'Browser',
+                type: 'browser',
+                position: { x: -6, y: 0, z: 5 },
+              },
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: -3, y: 0, z: 5 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+
+    // Migrated blocks should appear in nodes
+    expect(ws.architecture.nodes).toHaveLength(2);
+    const internetNode = ws.architecture.nodes.find((n) => n.id === 'ext-internet');
+    expect(internetNode).toBeDefined();
+    expect(internetNode?.kind).toBe('resource');
+    expect(internetNode?.resourceType).toBe('internet');
+    expect(internetNode?.category).toBe('delivery');
+    expect(internetNode?.provider).toBe('aws');
+    expect(internetNode?.parentId).toBeNull();
+    expect(internetNode?.roles).toEqual(['external']);
+
+    const browserNode = ws.architecture.nodes.find((n) => n.id === 'ext-browser');
+    expect(browserNode).toBeDefined();
+    expect(browserNode?.resourceType).toBe('browser');
+
+    // externalActors are preserved in memory for runtime backward compat
+    expect(ws.architecture.externalActors).toHaveLength(2);
+
+    // Endpoints should include the migrated block endpoints
+    const internetEndpoints = ws.architecture.endpoints.filter((ep) =>
+      ep.id.includes('ext-internet'),
+    );
+    expect(internetEndpoints).toHaveLength(6); // 3 semantics × 2 directions
+  });
+
+  it('does not duplicate nodes when externalActor ID already exists in nodes', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'azure',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'internet',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: -3, y: 0, z: 5 },
+                metadata: {},
+                roles: ['external'],
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            externalActors: [
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: -3, y: 0, z: 5 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+
+    // Should NOT duplicate — still just 1 node
+    expect(ws.architecture.nodes).toHaveLength(1);
+    expect(ws.architecture.nodes[0].id).toBe('ext-internet');
+  });
+
+  it('loads new block-only data without externalActors field', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'gcp',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [
+              {
+                id: 'ext-browser',
+                name: 'Browser',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'browser',
+                category: 'delivery',
+                provider: 'gcp',
+                parentId: null,
+                position: { x: -6, y: 0, z: 5 },
+                metadata: {},
+                roles: ['external'],
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+
+    // Block-only data loads without migration
+    expect(ws.architecture.nodes).toHaveLength(1);
+    expect(ws.architecture.nodes[0].resourceType).toBe('browser');
+    expect(ws.architecture.externalActors).toBeUndefined();
+  });
+});
+
+describe('serialize — strips externalActors', () => {
+  it('omits externalActors from serialized output', () => {
+    const workspaces: Workspace[] = [
+      {
+        id: 'ws-1',
+        name: 'Test',
+        provider: 'azure',
+        architecture: {
+          id: 'arch-1',
+          name: 'Arch',
+          version: '1',
+          nodes: [],
+          endpoints: [],
+          connections: [],
+          externalActors: [
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              type: 'internet',
+              position: { x: -3, y: 0, z: 5 },
+            },
+          ],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const json = serialize(workspaces);
+    const parsed = JSON.parse(json);
+
+    // externalActors should not be present in the persisted JSON
+    expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
+    // Other fields should be preserved
+    expect(parsed.workspaces[0].architecture.nodes).toEqual([]);
+    expect(parsed.workspaces[0].architecture.connections).toEqual([]);
+  });
+
+  it('preserves workspaces without externalActors unchanged', () => {
+    const workspaces: Workspace[] = [
+      {
+        id: 'ws-1',
+        name: 'Test',
+        provider: 'azure',
+        architecture: {
+          id: 'arch-1',
+          name: 'Arch',
+          version: '1',
+          nodes: [],
+          endpoints: [],
+          connections: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const json = serialize(workspaces);
+    const parsed = JSON.parse(json);
+
+    expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
+    expect(parsed.workspaces[0].id).toBe('ws-1');
+  });
 });

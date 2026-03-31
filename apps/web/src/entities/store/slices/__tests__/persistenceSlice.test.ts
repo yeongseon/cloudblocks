@@ -666,7 +666,19 @@ describe('persistenceSlice branches', () => {
       const architecture = useArchitectureStore.getState().workspace.architecture;
 
       expect(result).toBeNull();
-      expect(architecture.nodes).toEqual([]);
+      // Migration converts externalActors into resource block nodes
+      expect(architecture.nodes).toHaveLength(1);
+      expect(architecture.nodes[0]).toMatchObject({
+        id: 'ext-1',
+        name: 'Internet',
+        kind: 'resource',
+        resourceType: 'internet',
+        category: 'delivery',
+        parentId: null,
+        roles: ['external'],
+      });
+      // Position fallback: actor had no position, so defaults to { x: -3, y: 0, z: 5 }
+      expect(architecture.nodes[0].position).toEqual({ x: -3, y: 0, z: 5 });
       expect(architecture.externalActors).toEqual([
         { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
       ]);
@@ -1011,5 +1023,69 @@ describe('persistenceSlice branches', () => {
         subtype: 'compute-engine',
       });
     });
+  });
+});
+
+// ─── #1535: ExternalActor-to-Block validation tests ────────────
+
+describe('validateArchitectureShape — external resource blocks', () => {
+  it('accepts resource nodes with parentId: null for external resource types', () => {
+    const payload = {
+      nodes: [
+        {
+          id: 'ext-internet',
+          name: 'Internet',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'internet',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          position: { x: -3, y: 0, z: 5 },
+          metadata: {},
+          roles: ['external'],
+        },
+        {
+          id: 'ext-browser',
+          name: 'Browser',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'browser',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          position: { x: -6, y: 0, z: 5 },
+          metadata: {},
+          roles: ['external'],
+        },
+      ],
+      endpoints: [],
+      connections: [],
+    };
+
+    expect(validateArchitectureShape(payload)).toEqual({ valid: true });
+  });
+
+  it('rejects non-external resource nodes with parentId: null', () => {
+    const payload = {
+      nodes: [
+        {
+          id: 'vm-1',
+          name: 'VM',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'virtual_machine',
+          category: 'compute',
+          provider: 'azure',
+          parentId: null,
+          position: { x: 0, y: 0, z: 0 },
+        },
+      ],
+      connections: [],
+    };
+
+    expect(() => validateArchitectureShape(payload)).toThrow(
+      'non-external resource node parentId must be a string',
+    );
   });
 });

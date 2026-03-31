@@ -1782,7 +1782,7 @@ describe('architectureStore', () => {
       expect(result).toBeNull();
       expect(getArch().name).toBe('Imported Arch');
       expect(getArch().plates).toHaveLength(1);
-      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks).toHaveLength(2); // original b1 + migrated ext-1 from externalActors
     });
 
     it('normalizes missing fields with defaults', () => {

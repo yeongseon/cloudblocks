@@ -39,10 +39,15 @@ describe('storage utilities', () => {
 
     saveWorkspaces(workspaces);
 
+    // serialize() strips externalActors from persisted output
+    const strippedWorkspaces = workspaces.map((ws) => {
+      const { externalActors: _ea, ...archWithout } = ws.architecture;
+      return { ...ws, architecture: archWithout };
+    });
     const expectedJson = JSON.stringify(
       {
         schemaVersion: SCHEMA_VERSION,
-        workspaces,
+        workspaces: strippedWorkspaces,
       },
       null,
       2,
@@ -73,7 +78,12 @@ describe('storage utilities', () => {
 
     const loaded = loadWorkspaces();
 
-    expect(loaded).toEqual(workspaces);
+    // deserialize migrates externalActors into nodes and generates endpoints
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0].id).toBe('w1');
+    // The migrated internet actor should now be a node
+    expect(loaded[0].architecture.nodes).toHaveLength(1);
+    expect(loaded[0].architecture.nodes[0].id).toBe('ext-internet');
   });
 
   it('loadWorkspaces returns empty array when storage key is missing', () => {
