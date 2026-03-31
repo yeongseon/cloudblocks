@@ -197,3 +197,61 @@ No change needed here, but the subtype should also be provider-aware for future 
 - Out of scope for this iteration
 - AWS/GCP will continue using Azure icon fallbacks with correct labels
 - Icon packs can be added later without code changes (just add SVGs + update `PROVIDER_BLOCK_ICONS`)
+
+## 5. Unified Presentation Resolver
+
+> Added in #1555 (Milestone 35).
+
+### Problem
+
+Label and icon resolution was split across three modules:
+
+| Path | Module | Key used |
+| --- | --- | --- |
+| Palette (sidebar) | `useTechTree.ts` → `RESOURCE_DEFINITIONS` | `ResourceType` (`'vm'`, `'sql'`) |
+| Canvas (blocks) | `iconResolver.ts` → `SUBTYPE_LABELS` | Provider subtype (`'ec2'`, `'lambda'`) |
+| Canvas (containers) | `providerMapping.ts` → `CONTAINER_LABELS` | `LayerType` (`'region'`, `'subnet'`) |
+
+This caused label/icon divergence: the sidebar showed one name and icon while the canvas showed another.
+
+### Solution: `shared/presentation/blockPresentation.ts`
+
+A single **pure module** (no React hooks, no store dependencies) that resolves `BlockPresentation` metadata for any block kind:
+
+```typescript
+interface BlockPresentation {
+  kind: 'resource' | 'container' | 'external';
+  subtype: string;
+  shortLabel: string;   // Face label ("VM", "VPC")
+  displayLabel: string; // Full label ("Virtual Machine", "VPC Network")
+  iconUrl: string | null;
+  category: string;     // Resource category ("compute", "network")
+  provider: ProviderType;
+  layer?: string;       // Container layer (only for containers)
+  isFallback: boolean;  // True if iconUrl is a category/generic fallback
+}
+```
+
+### API
+
+| Function | Input | Use case |
+| --- | --- | --- |
+| `resolveResourcePresentation(key, { provider })` | `ResourceType` or provider subtype | Palette + canvas resource blocks |
+| `resolveContainerPresentation(layer, { provider })` | `LayerType` | Container blocks |
+| `resolveExternalPresentation(type, { provider })` | `'internet'` \| `'browser'` | External blocks |
+| `resolveBlockPresentation(key, { kind?, provider?, layer? })` | Any key | Unified entry point with auto-inference |
+
+### Resolution Order (Resource Blocks)
+
+1. **Direct match**: `ResourceType` key in `RESOURCE_DEFINITIONS` → exact category, remapped subtype
+2. **Reverse lookup**: Provider subtype (`'ec2'`) matches a remapped `RESOURCE_DEFINITIONS` entry → preserves correct category
+3. **iconResolver fallback**: Subtype exists in `iconResolver` maps but not in `RESOURCE_DEFINITIONS` → best-effort `'compute'` category
+4. **Unknown fallback**: Humanized label, null icon, `category: 'unknown'`, `isFallback: true`
+
+### FSD Layer
+
+Lives in `shared/presentation/` — importable from any layer (`entities/`, `features/`, `widgets/`). No upward imports.
+
+### Migration Path
+
+Existing consumers (`SidebarPalette.tsx`, `BlockSvg.tsx`, `ContainerBlockSprite.tsx`) currently import directly from `useTechTree`, `iconResolver`, and `providerMapping`. Future issues (#1558, #1559) will migrate these consumers to use `blockPresentation.ts` instead, consolidating the resolution path.
