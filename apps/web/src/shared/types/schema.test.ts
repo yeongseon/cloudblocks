@@ -18,7 +18,34 @@ function createWorkspace(id: string): Workspace {
       id: `arch-${id}`,
       name: `Architecture ${id}`,
       version: '1',
-      nodes: [],
+      nodes: [
+        {
+          id: 'ext-browser',
+          name: 'Browser',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'browser',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          roles: ['external'],
+          position: { x: -6, y: 0, z: 5 },
+          metadata: {},
+        },
+        {
+          id: 'ext-internet',
+          name: 'Internet',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'internet',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          roles: ['external'],
+          position: { x: -3, y: 0, z: 5 },
+          metadata: {},
+        },
+      ],
       connections: [],
       endpoints: [],
       externalActors: [
@@ -47,17 +74,18 @@ describe('schema utilities', () => {
     expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
     // serialize materializes externalActors into nodes and strips the legacy field
     expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
-    // ext-internet should now appear as a block node
     const nodes = parsed.workspaces[0].architecture.nodes;
-    expect(nodes).toHaveLength(1);
-    expect(nodes[0].id).toBe('ext-internet');
-    expect(nodes[0].kind).toBe('resource');
-    expect(nodes[0].resourceType).toBe('internet');
-    expect(nodes[0].category).toBe('delivery');
-    expect(nodes[0].parentId).toBeNull();
-    expect(nodes[0].roles).toEqual(['external']);
-    // Endpoints should be generated for the materialized block
-    expect(parsed.workspaces[0].architecture.endpoints.length).toBeGreaterThan(0);
+    expect(nodes).toHaveLength(2);
+    const internetNode = nodes.find((node) => node.id === 'ext-internet');
+    const browserNode = nodes.find((node) => node.id === 'ext-browser');
+    expect(browserNode).toBeDefined();
+    expect(internetNode).toBeDefined();
+    expect(internetNode?.kind).toBe('resource');
+    expect(internetNode?.resourceType).toBe('internet');
+    expect(internetNode?.category).toBe('delivery');
+    expect(internetNode?.parentId).toBeNull();
+    expect(internetNode?.roles).toEqual(['external']);
+    expect(parsed.workspaces[0].architecture.endpoints).toEqual([]);
   });
 
   it('deserialize parses valid data', () => {
@@ -555,7 +583,34 @@ describe('schema utilities', () => {
       id: 'arch-1',
       name: 'My Architecture',
       version: '1',
-      nodes: [],
+      nodes: [
+        {
+          id: 'ext-browser',
+          name: 'Browser',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'browser',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          roles: ['external'],
+          position: { x: -6, y: 0, z: 5 },
+          metadata: {},
+        },
+        {
+          id: 'ext-internet',
+          name: 'Internet',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'internet',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          roles: ['external'],
+          position: { x: -3, y: 0, z: 5 },
+          metadata: {},
+        },
+      ],
       connections: [
         {
           id: 'conn-browser-internet',

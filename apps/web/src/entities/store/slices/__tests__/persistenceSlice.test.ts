@@ -1023,6 +1023,97 @@ describe('persistenceSlice branches', () => {
         subtype: 'compute-engine',
       });
     });
+
+    it('remaps external block provider but preserves name and subtype when non-azure', () => {
+      useUIStore.setState({ activeProvider: 'aws' });
+
+      const template: ArchitectureTemplate = {
+        id: 'template-external-provider',
+        name: 'External Block Provider Remap',
+        description: 'Verify external blocks get provider remapped but name/subtype preserved',
+        category: 'general' as const,
+        difficulty: 'beginner' as const,
+        tags: ['test'],
+        architecture: {
+          name: 'Template With External Blocks',
+          version: '1',
+          nodes: [
+            {
+              id: 'container-region',
+              name: 'VNet',
+              kind: 'container',
+              layer: 'region',
+              resourceType: 'virtual_network',
+              category: 'network',
+              provider: 'azure',
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              frame: { width: 16, height: 1, depth: 16 },
+              subtype: 'vnet',
+              metadata: {},
+            },
+            {
+              id: 'ext-browser',
+              name: 'Browser',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'browser',
+              category: 'delivery',
+              provider: 'azure',
+              parentId: null,
+              position: { x: -6, y: 0, z: 5 },
+              metadata: {},
+              roles: ['external'],
+              subtype: 'custom-browser',
+            },
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'internet',
+              category: 'delivery',
+              provider: 'azure',
+              parentId: null,
+              position: { x: -3, y: 0, z: 5 },
+              metadata: {},
+              roles: ['external'],
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+      };
+
+      useArchitectureStore.getState().loadFromTemplate(template);
+
+      const architecture = useArchitectureStore.getState().workspace.architecture;
+      const browser = architecture.nodes.find((node) => node.id === 'ext-browser');
+      const internet = architecture.nodes.find((node) => node.id === 'ext-internet');
+      const region = architecture.nodes.find((node) => node.id === 'container-region');
+
+      // External blocks: provider remapped, name/subtype preserved
+      expect(browser).toMatchObject({
+        name: 'Browser',
+        provider: 'aws',
+        resourceType: 'browser',
+        roles: ['external'],
+        subtype: 'custom-browser',
+      });
+      expect(internet).toMatchObject({
+        name: 'Internet',
+        provider: 'aws',
+        resourceType: 'internet',
+        roles: ['external'],
+      });
+      // Regular container: provider remapped AND name remapped
+      expect(region).toMatchObject({
+        name: 'VPC',
+        provider: 'aws',
+        subtype: 'vpc',
+      });
+    });
   });
 });
 
