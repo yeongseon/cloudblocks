@@ -616,6 +616,108 @@ describe('getConnectionSurfaceRoute', () => {
     expect(route!.segments.some((segment) => segment.surfaceId === 'ground')).toBe(true);
     expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
   });
+
+  it('routes block -> root-level external block using inbound root-block ports', () => {
+    const rootBlock = makeBlock({
+      id: 'root-browser',
+      parentId: null,
+      category: 'delivery',
+      resourceType: 'browser',
+      roles: ['external'],
+      position: { x: 8, y: 2, z: 4 },
+    });
+    const container = makeContainerBlock({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
+    const innerBlock = makeBlock({
+      id: 'block-a',
+      parentId: container.id,
+      position: { x: 2, y: 0, z: 2 },
+    });
+    const endpoints = makeEndpoints([innerBlock.id, rootBlock.id]);
+    const connection = makeConnection({
+      from: endpointId(innerBlock.id, 'output', 'data'),
+      to: endpointId(rootBlock.id, 'input', 'data'),
+    });
+
+    const route = getConnectionSurfaceRoute(
+      connection,
+      [innerBlock, rootBlock],
+      [container],
+      endpoints,
+      [],
+    );
+
+    expect(route).not.toBeNull();
+    expect(route!.tgtPort.containerId).toBe('ground');
+    expect(route!.tgtPort.normal).toBe('neg-x');
+    expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
+  });
+
+  it('uses legacy actor-only fallback when actor endpoint has no matching node block', () => {
+    const container = makeContainerBlock({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
+    const innerBlock = makeBlock({
+      id: 'block-a',
+      parentId: container.id,
+      position: { x: 2, y: 0, z: 2 },
+    });
+    const actor = makeExternalActor({ id: 'external-legacy', position: { x: -6, y: 1, z: 9 } });
+    const endpoints = [
+      ...makeEndpoints([innerBlock.id]),
+      {
+        id: endpointId(actor.id, 'input', 'data'),
+        blockId: actor.id,
+        direction: 'input',
+        semantic: 'data',
+      } as Endpoint,
+    ];
+    const connection = makeConnection({
+      from: endpointId(innerBlock.id, 'output', 'data'),
+      to: endpointId(actor.id, 'input', 'data'),
+    });
+
+    const route = getConnectionSurfaceRoute(connection, [innerBlock], [container], endpoints, [
+      actor,
+    ]);
+
+    expect(route).not.toBeNull();
+    expect(route!.tgtPort.containerId).toBe('ground');
+    expect(route!.tgtPort.surfaceBase).toEqual([
+      actor.position.x,
+      actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      actor.position.z,
+    ]);
+  });
+
+  it('returns null when root-level external block endpoint semantic cannot map to a port', () => {
+    const rootBlock = makeBlock({
+      id: 'root-internet-unknown-semantic',
+      parentId: null,
+      category: 'delivery',
+      resourceType: 'internet',
+      roles: ['external'],
+      position: { x: -2, y: 1, z: 4 },
+    });
+    const container = makeContainerBlock({ id: 'container-a' });
+    const innerBlock = makeBlock({ id: 'block-a', parentId: container.id });
+    const endpoints = makeEndpoints([rootBlock.id, innerBlock.id]).map((endpoint) =>
+      endpoint.blockId === rootBlock.id && endpoint.direction === 'output'
+        ? { ...endpoint, semantic: 'unknown' as never }
+        : endpoint,
+    );
+    const connection = makeConnection({
+      from: endpointId(rootBlock.id, 'output', 'data'),
+      to: endpointId(innerBlock.id, 'input', 'data'),
+    });
+
+    const route = getConnectionSurfaceRoute(
+      connection,
+      [rootBlock, innerBlock],
+      [container],
+      endpoints,
+      [],
+    );
+
+    expect(route).toBeNull();
+  });
 });
 
 describe('findLCA', () => {
