@@ -26,7 +26,7 @@ function createPlate(id: string): ContainerBlock {
   };
 }
 
-function createBlock(id: string, parentId: string): ResourceBlock {
+function createBlock(id: string, parentId: string | null): ResourceBlock {
   return {
     id,
     name: `Block ${id}`,
@@ -99,6 +99,28 @@ describe('position utilities', () => {
     const endpoint = getEndpointWorldPosition(id, [block], [], [actor]);
 
     expect(endpoint).toEqual([-2, 3 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, 4]);
+  });
+
+  it('resolves root-level external block endpoints from world coordinates', () => {
+    const rootBlock = createBlock('root-block', null);
+    rootBlock.resourceType = 'internet';
+    rootBlock.category = 'delivery';
+    (rootBlock as ResourceBlock & { roles?: string[] }).roles = ['external'];
+    rootBlock.position = { x: 7, y: 3, z: -2 };
+
+    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], [], []);
+
+    expect(endpoint).toEqual([7, 3 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, -2]);
+  });
+
+  it('returns null for non-external root-level blocks with parentId null', () => {
+    // A non-external block with parentId: null should NOT get actor-style handling
+    const rootBlock = createBlock('orphan-block', null);
+    rootBlock.position = { x: 7, y: 3, z: -2 };
+
+    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], [], []);
+
+    expect(endpoint).toBeNull();
   });
 
   it('falls back to default external actor position for legacy actor payloads', () => {

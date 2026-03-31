@@ -78,14 +78,7 @@ function renderConnector(conn: Connection = connection) {
   return render(
     <svg aria-label="Test SVG">
       <title>Test SVG</title>
-      <ConnectionRenderer
-        connection={conn}
-        blocks={[]}
-        plates={[]}
-        externalActors={[]}
-        originX={100}
-        originY={200}
-      />
+      <ConnectionRenderer connection={conn} blocks={[]} plates={[]} originX={100} originY={200} />
     </svg>,
   );
 }
@@ -153,7 +146,6 @@ describe('ConnectionRenderer', () => {
           connection={connection}
           blocks={[]}
           plates={[]}
-          externalActors={[]}
           originX={0}
           originY={0}
         />

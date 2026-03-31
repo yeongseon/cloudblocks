@@ -1,4 +1,5 @@
 import type { ContainerBlock, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
+import { isExternalResourceType } from '@cloudblocks/schema';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -56,15 +57,8 @@ export function getEndpointWorldPosition(
   plates: ContainerBlock[],
   externalActors: ExternalActor[],
 ): [number, number, number] | null {
-  // Check blocks
-  const block = blocks.find((b) => b.id === id);
-  if (block) {
-    const container = plates.find((p) => p.id === block.parentId);
-    if (container) {
-      return getBlockWorldPosition(block, container);
-    }
-  }
-
+  // During the bridge period, prefer externalActors over nodes when IDs collide
+  // (moveActorPosition only updates externalActors[], same as endpointResolver).
   const actor = externalActors.find((a) => a.id === id);
   if (actor) {
     const base = actor.position
@@ -72,6 +66,26 @@ export function getEndpointWorldPosition(
       : ([...EXTERNAL_ACTOR_POSITION] as [number, number, number]);
     base[1] += EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
     return base;
+  }
+
+  // Check blocks
+  const block = blocks.find((b) => b.id === id);
+  if (block) {
+    if (
+      block.parentId === null &&
+      (Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType))
+    ) {
+      return [
+        block.position.x,
+        block.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+        block.position.z,
+      ];
+    }
+
+    const container = plates.find((p) => p.id === block.parentId);
+    if (container) {
+      return getBlockWorldPosition(block, container);
+    }
   }
 
   return null;
