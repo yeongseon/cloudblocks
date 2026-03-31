@@ -39,10 +39,12 @@ function getBlockScreenSize(
 
 interface BlockSpriteProps {
   block: ResourceBlock;
-  parentContainer: ContainerBlock;
+  parentContainer?: ContainerBlock;
   screenX: number;
   screenY: number;
   zIndex: number;
+  /** Override move handler for root external blocks (bridge action). */
+  onMove?: (id: string, deltaX: number, deltaZ: number) => void;
 }
 
 export const BlockSprite = memo(function BlockSprite({
@@ -51,6 +53,7 @@ export const BlockSprite = memo(function BlockSprite({
   screenX,
   screenY,
   zIndex,
+  onMove,
 }: BlockSpriteProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -111,7 +114,9 @@ export const BlockSprite = memo(function BlockSprite({
     return fromBlockId === block.id || toBlockId === block.id;
   });
 
-  const hasValidationWarning = validatePlacement(block, parentContainer) !== null;
+  const hasValidationWarning = parentContainer
+    ? validatePlacement(block, parentContainer) !== null
+    : false;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
   const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
@@ -155,7 +160,7 @@ export const BlockSprite = memo(function BlockSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          moveNodePosition(block.id, dWorldX, dWorldZ);
+          (onMove ?? moveNodePosition)(block.id, dWorldX, dWorldZ);
         },
         end() {
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
@@ -187,7 +192,7 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                moveNodePosition(block.id, deltaX, deltaZ);
+                (onMove ?? moveNodePosition)(block.id, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -216,7 +221,7 @@ export const BlockSprite = memo(function BlockSprite({
       el.querySelector('.block-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [block.id, moveNodePosition, toolMode]);
+  }, [block.id, moveNodePosition, onMove, toolMode]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (diffMode && diffState === 'removed') return;
@@ -300,6 +305,7 @@ export const BlockSprite = memo(function BlockSprite({
             category={block.category}
             provider={block.provider}
             subtype={block.subtype}
+            resourceType={block.resourceType}
             name={block.name}
             aggregationCount={block.aggregation?.count}
             roles={block.roles}

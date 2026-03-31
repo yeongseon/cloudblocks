@@ -28,10 +28,23 @@ export function resolveEndpointSource(
   nodes: ResourceBlock[],
   externalActors: ExternalActor[] = [],
 ): EndpointSource | null {
-  // During the bridge period, the same external entity may exist in both
-  // nodes[] (migrated ResourceBlock) and externalActors[] (legacy array).
-  // moveActorPosition() only updates externalActors[], so we must prefer
-  // the actor copy when IDs collide to keep drag-position in sync.
+  // Post-bridge: prefer the node (ResourceBlock) when it exists, because
+  // moveExternalBlockPosition() keeps both nodes[] and externalActors[] in sync,
+  // and blocks use proper block geometry for port anchors.
+  // Fall back to the actor copy only when no migrated node exists.
+  const block = nodes.find((candidate) => candidate.id === blockId);
+  if (block) {
+    return {
+      id: block.id,
+      category: block.category,
+      resourceType: block.resourceType,
+      position: block.position,
+      parentId: block.parentId,
+      isExternal:
+        Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType),
+    };
+  }
+
   const actor = externalActors.find((candidate) => candidate.id === blockId);
   if (actor) {
     return {
@@ -45,19 +58,6 @@ export function resolveEndpointSource(
       },
       parentId: null,
       isExternal: true,
-    };
-  }
-
-  const block = nodes.find((candidate) => candidate.id === blockId);
-  if (block) {
-    return {
-      id: block.id,
-      category: block.category,
-      resourceType: block.resourceType,
-      position: block.position,
-      parentId: block.parentId,
-      isExternal:
-        Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType),
     };
   }
 

@@ -107,6 +107,25 @@ function resolveEndpoint(
   }
 
   if (source.parentId === null && source.isExternal) {
+    // Node-backed external: use block geometry for proper port anchors
+    const block = blocks.find((candidate) => candidate.id === source.id);
+    if (block) {
+      const worldPos: WorldPoint = [block.position.x, block.position.y, block.position.z];
+      const cu = getBlockDimensions(block.category, block.provider, block.subtype);
+      const anchors = getBlockWorldAnchors(worldPos, cu);
+      const ports = CATEGORY_PORTS[block.category];
+      if (!ports) {
+        return { point: anchors.center, floorY: worldPos[1] };
+      }
+      const total = side === 'inbound' ? ports.inbound : ports.outbound;
+      const portIndex = semanticToPortIndex(endpoint.semantic, total);
+      if (portIndex !== null) {
+        return { point: anchors.port(side, portIndex, total), side, floorY: worldPos[1] };
+      }
+      return { point: anchors.center, floorY: worldPos[1] };
+    }
+
+    // Legacy actor-only fallback
     const rootPoint: WorldPoint = [
       source.position.x,
       source.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,

@@ -365,6 +365,12 @@ function resolveEndpointContext(
       totalPorts: number;
     }
   | {
+      kind: 'rootBlock';
+      block: ResourceBlock;
+      portIndex: number;
+      totalPorts: number;
+    }
+  | {
       kind: 'root';
       position: { x: number; y: number; z: number };
     }
@@ -381,6 +387,16 @@ function resolveEndpointContext(
   }
 
   if (source.parentId === null && source.isExternal) {
+    // Node-backed root external: return as rootBlock for proper geometry
+    const block = blocks.find((candidate) => candidate.id === source.id);
+    if (block) {
+      const ports = CATEGORY_PORTS[block.category];
+      const total = side === 'inbound' ? ports.inbound : ports.outbound;
+      const portIndex = semanticToIndex(endpoint.semantic, total);
+      if (portIndex === null) return null;
+      return { kind: 'rootBlock', block, portIndex, totalPorts: total };
+    }
+    // Legacy actor-only fallback
     return { kind: 'root', position: source.position };
   }
 
@@ -416,6 +432,30 @@ function resolveSurfacePortForRootBlock(position: {
     surfaceY: y,
     normal: 'neg-z',
   };
+}
+
+function resolveSurfacePortForNodeBackedRootBlock(
+  block: ResourceBlock,
+  side: PortSide,
+  portIndex: number,
+  totalPorts: number,
+): SurfacePort {
+  const [bx, , bz] = [block.position.x, block.position.y, block.position.z];
+  const cu = getBlockDimensions(block.category, block.provider, block.subtype);
+  const surfaceY = block.position.y;
+  const t = (portIndex + 1) / (totalPorts + 1);
+
+  if (side === 'inbound') {
+    const portZ = bz + t * cu.depth;
+    const surfaceBase: WorldPoint3 = [bx, surfaceY, portZ];
+    const surfaceExit: WorldPoint3 = [bx - SURFACE_EXIT_OFFSET_CU, surfaceY, portZ];
+    return { surfaceBase, surfaceExit, containerId: 'ground', surfaceY, normal: 'neg-x' };
+  }
+
+  const portX = bx + t * cu.width;
+  const surfaceBase: WorldPoint3 = [portX, surfaceY, bz];
+  const surfaceExit: WorldPoint3 = [portX, surfaceY, bz - SURFACE_EXIT_OFFSET_CU];
+  return { surfaceBase, surfaceExit, containerId: 'ground', surfaceY, normal: 'neg-z' };
 }
 
 function semanticToIndex(semantic: EndpointSemantic, total: number): number | null {
@@ -456,24 +496,38 @@ export function getConnectionSurfaceRoute(
   const srcPort =
     srcCtx.kind === 'root'
       ? resolveSurfacePortForRootBlock(srcCtx.position)
-      : resolveSurfacePort(
-          srcCtx.block,
-          srcCtx.container,
-          'outbound',
-          srcCtx.portIndex,
-          srcCtx.totalPorts,
-        );
+      : srcCtx.kind === 'rootBlock'
+        ? resolveSurfacePortForNodeBackedRootBlock(
+            srcCtx.block,
+            'outbound',
+            srcCtx.portIndex,
+            srcCtx.totalPorts,
+          )
+        : resolveSurfacePort(
+            srcCtx.block,
+            srcCtx.container,
+            'outbound',
+            srcCtx.portIndex,
+            srcCtx.totalPorts,
+          );
 
   const tgtPort =
     tgtCtx.kind === 'root'
       ? resolveSurfacePortForRootBlock(tgtCtx.position)
-      : resolveSurfacePort(
-          tgtCtx.block,
-          tgtCtx.container,
-          'inbound',
-          tgtCtx.portIndex,
-          tgtCtx.totalPorts,
-        );
+      : tgtCtx.kind === 'rootBlock'
+        ? resolveSurfacePortForNodeBackedRootBlock(
+            tgtCtx.block,
+            'inbound',
+            tgtCtx.portIndex,
+            tgtCtx.totalPorts,
+          )
+        : resolveSurfacePort(
+            tgtCtx.block,
+            tgtCtx.container,
+            'inbound',
+            tgtCtx.portIndex,
+            tgtCtx.totalPorts,
+          );
 
   if (srcPort.containerId === tgtPort.containerId) {
     const segments = routeSameSurface(srcPort, tgtPort);

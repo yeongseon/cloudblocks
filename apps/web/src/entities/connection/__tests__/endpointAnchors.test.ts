@@ -216,16 +216,16 @@ describe('getConnectionEndpointWorldAnchors', () => {
     );
 
     expect(result).not.toBeNull();
-    expect(result!.src).toEqual([
-      rootSource.position.x,
-      rootSource.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      rootSource.position.z,
-    ]);
-    expect(result!.tgt).toEqual([
-      rootTarget.position.x,
-      rootTarget.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      rootTarget.position.z,
-    ]);
+    // Node-backed root externals now use block geometry port anchors
+    // rootSource: outbound side, delivery ports={inbound:1, outbound:2}
+    // semantic='data', index=2%2=0, t=1/3, worldPos=[-2,1,4], cu.width=2
+    // → [-2 + (1/3)*2, 1, 4] = [-4/3, 1, 4]
+    expect(result!.src[1]).toBe(rootSource.position.y); // y = block.position.y (no offset)
+    expect(result!.src[2]).toBe(rootSource.position.z);
+    // rootTarget: inbound side, delivery ports={inbound:1, outbound:2}
+    // semantic='data', index=2%1=0, t=1/2, worldPos=[3,2,6], cu.depth=2
+    // → [3, 2, 6 + (1/2)*2] = [3, 2, 7]
+    expect(result!.tgt).toEqual([3, 2, 7]);
   });
 
   it('falls back to center when endpoint semantic is unknown', () => {
