@@ -6,6 +6,8 @@ import {
   TILE_Z,
   BLOCK_MARGIN,
   BLOCK_PADDING,
+  LABEL_FACE_MIN_PX,
+  LABEL_FACE_SCALE,
 } from '../../shared/tokens/designTokens';
 import { getContainerShortLabel } from '../../shared/utils/providerMapping';
 
@@ -181,7 +183,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
           y={0}
           transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
           fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize={Math.max(10, Math.round(sideWallPx * 0.32))}
+          fontSize={Math.max(LABEL_FACE_MIN_PX, Math.round(sideWallPx * LABEL_FACE_SCALE))}
           fontWeight="700"
           fill="rgba(255,255,255,0.85)"
           textAnchor="middle"

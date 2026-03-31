@@ -58,3 +58,9 @@ export const PORT_COLOR_EVENT = '#F59E0B'; // Amber — event/async
 export const PORT_COLOR_DATA = '#14B8A6'; // Teal — data/dataflow
 export const PORT_COLOR_OCCUPIED = '#475569'; // Slate — occupied port (dimmed)
 export const PORT_GLOW_RADIUS = 4; // SVG filter blur radius for port glow
+
+// -- Face Label Typography (SVG text on block/container side walls) --
+// Shared floor and scale factor for the face label font-size formula:
+//   fontSize = Math.max(LABEL_FACE_MIN_PX, Math.round(sideWallPx * LABEL_FACE_SCALE))
+export const LABEL_FACE_MIN_PX = 8;
+export const LABEL_FACE_SCALE = 0.28;

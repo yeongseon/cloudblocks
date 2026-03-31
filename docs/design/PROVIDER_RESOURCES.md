@@ -318,3 +318,45 @@ brand hex → adjustColorHsl(brand, { saturationScale, lightnessBoost }) → der
 3. **Lightness boost**: Container top face lightness is always greater than brand lightness.
 4. **Narrow deltas**: Container face top-to-left luminance delta is <15 units (vs resource blocks which have wider spread).
 5. **Provider distinguishability**: Azure, AWS, and GCP container colors for the same layer are always visually distinct.
+
+## 7. Label Token Standardization (#1558)
+
+### Problem
+
+Block and container labels used divergent typography tokens:
+
+| Element | Block | Container | Problem |
+| --- | --- | --- | --- |
+| Chip `font-size` | `10px` | `11px` | Two different sizes for the same visual role |
+| Chip `font-weight` | `500` | `600` | Inconsistent weight |
+| Face label min | `8` | `10` | Two different floor values |
+| Face label scale | `0.28` | `0.32` | Two different scaling factors |
+
+### Resolution
+
+**Chip labels (CSS custom properties)**:
+- `--cb-label-chip-font-size: 10px` — shared by `.block-label-chip` and `.container-label-chip`
+- `--cb-label-chip-font-weight: 600` — shared weight (600 chosen for better legibility at 10px)
+
+**Face labels (JS design tokens in `designTokens.ts`)**:
+- `LABEL_FACE_MIN_PX = 8` — minimum font size floor
+- `LABEL_FACE_SCALE = 0.28` — multiplier applied to `sideWallPx`
+- Formula: `Math.max(LABEL_FACE_MIN_PX, Math.round(sideWallPx * LABEL_FACE_SCALE))`
+
+### Design Decisions
+
+1. **CSS vars for CSS, JS tokens for JS**: Chip tokens live in `index.css` (consumed by CSS files). Face label tokens live in `designTokens.ts` (consumed by TSX computed expressions). No cross-runtime duplication.
+2. **Unified chip weight at 600**: `500` appeared too light at `10px` on both themes. `600` provides consistent readability.
+3. **No letter-spacing token**: Neither block nor container chip had `letter-spacing` before. Adding it would be a new design decision, not convergence. Deferred to a future issue if needed.
+4. **Container face labels use same formula**: Containers previously used `min 10 / scale 0.32` but this was not an intentional design decision — it was drift. Visual verification confirmed `min 8 / scale 0.28` remains legible on container side walls.
+
+### Files Modified
+
+| File | Change |
+| --- | --- |
+| `app/index.css` | Added `--cb-label-chip-font-size` and `--cb-label-chip-font-weight` CSS custom properties |
+| `entities/block/BlockSprite.css` | Replaced hardcoded `10px`/`500` with CSS variables |
+| `entities/container-block/ContainerBlockSprite.css` | Replaced hardcoded `11px`/`600` with CSS variables |
+| `shared/tokens/designTokens.ts` | Added `LABEL_FACE_MIN_PX` and `LABEL_FACE_SCALE` exports |
+| `entities/block/BlockSvg.tsx` | Replaced inline `Math.max(8, ...)` with token-based formula |
+| `entities/container-block/ContainerBlockSvg.tsx` | Replaced inline `Math.max(10, ...)` with token-based formula |
