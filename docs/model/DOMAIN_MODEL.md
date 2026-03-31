@@ -338,10 +338,10 @@ During the migration window, two parallel data paths coexist in the architecture
 
 | Path | Collection | APIs | Used By |
 | --- | --- | --- | --- |
-| **Legacy** (active for rendering) | `externalActors[]` | `addExternalActor`, `removeExternalActor`, `moveActorPosition` | `SceneCanvas`, `ExternalActorSprite`, `SidebarPalette` |
-| **New** (forward-looking) | `nodes[]` | `addExternalBlock`, `addNode({parentId: null})`, `moveBlockPosition({parentId: null})` | `BlockSprite` (connect mode), `addConnection` |
+| **Legacy** (fallback only) | `externalActors[]` | `addExternalActor`, `removeExternalActor`, `moveActorPosition` | `ExternalActorSprite` (only for actors without a matching node), `SidebarPalette` |
+| **New** (active for rendering) | `nodes[]` | `addExternalBlock`, `addNode({parentId: null})`, `moveExternalBlockPosition` | `SceneCanvas`, `BlockSprite`, `ConnectionPreview`, `addConnection` |
 
-**Shared Endpoint Resolver** (`entities/connection/endpointResolver.ts`, introduced in #1537): All connection-related functions (`canConnect`, `validateConnection`, `validatePortIndices`, `resolveEndpoint`, `getConnectionSurfaceRoute`) use `resolveEndpointSource()` to normalize both collections into a uniform `EndpointSource` shape. During the bridge period, the resolver prefers `externalActors[]` over `nodes[]` when IDs collide, because `moveActorPosition()` only updates the actor copy.
+**Shared Endpoint Resolver** (`entities/connection/endpointResolver.ts`, introduced in #1537): All connection-related functions (`canConnect`, `validateConnection`, `validatePortIndices`, `resolveEndpoint`, `getConnectionSurfaceRoute`) use `resolveEndpointSource()` to normalize both collections into a uniform `EndpointSource` shape. Post-rendering-migration (#1539), the resolver prefers `nodes[]` over `externalActors[]` when IDs collide, because `moveExternalBlockPosition()` atomically updates both collections and nodes use proper block geometry for port anchors.
 
 ```typescript
 // Shared resolver — normalizes blocks and legacy actors into EndpointSource
@@ -355,9 +355,9 @@ export function getEffectiveEndpointType(
 ): EndpointType;  // ResourceCategory | 'internet' | 'browser'
 ```
 
-**Root-level positioning**: Blocks with `parentId === null && isExternal` use world coordinates directly (no container lookup). The `EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET` applies a -4 CU Y-shift so connection endpoints land on the visual center of the sprite.
+**Root-level positioning**: Blocks with `parentId === null && isExternal` use world coordinates directly (no container lookup). Node-backed root externals use full block geometry (`getBlockWorldAnchors` + `getBlockDimensions`) for connection endpoint anchors and surface routing (`surfaceRouting.ts` 'rootBlock' kind). The legacy `EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET` (-4 CU Y-shift) remains only as a fallback for actors without a matching node.
 
-All legacy shims are annotated `@deprecated` with `#1540` as the removal target. The rendering migration (#1539) will switch `SceneCanvas` to read from `nodes[]`, after which the legacy path can be removed.
+The rendering migration (#1539) is complete: `SceneCanvas` splits blocks into container-parented and root external groups, rendering externals as `BlockSprite` with `moveExternalBlockPosition` bridge action. `ExternalActorSprite` still exists but only renders for actors without a matching node. All legacy shims are annotated `@deprecated` with `#1540` as the removal target.
 ---
 
 # 7. Rule Engine
