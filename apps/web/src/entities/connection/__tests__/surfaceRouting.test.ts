@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type {
   Connection,
   ContainerBlock,
@@ -687,6 +687,56 @@ describe('getConnectionSurfaceRoute', () => {
     ]);
   });
 
+  it('returns null when source resolves as non-external but source block is absent from blocks list', async () => {
+    vi.resetModules();
+    vi.doMock('../endpointResolver', () => ({
+      resolveEndpointSource: () => ({
+        id: 'ghost-node',
+        category: 'compute',
+        resourceType: 'virtual_machine',
+        position: { x: 0, y: 0, z: 0 },
+        parentId: 'container-a',
+        isExternal: false,
+      }),
+    }));
+
+    const { getConnectionSurfaceRoute: getConnectionSurfaceRouteWithMock } =
+      await import('../surfaceRouting');
+
+    const container = makeContainerBlock({ id: 'container-a' });
+    const endpoints: Endpoint[] = [
+      {
+        id: endpointId('ghost-node', 'output', 'data'),
+        blockId: 'ghost-node',
+        direction: 'output',
+        semantic: 'data',
+      } as Endpoint,
+      {
+        id: endpointId('block-b', 'input', 'data'),
+        blockId: 'block-b',
+        direction: 'input',
+        semantic: 'data',
+      } as Endpoint,
+    ];
+    const connection = makeConnection({
+      from: endpointId('ghost-node', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+
+    const route = getConnectionSurfaceRouteWithMock(
+      connection,
+      [],
+      [container],
+      endpoints,
+      externalActors,
+    );
+
+    expect(route).toBeNull();
+
+    vi.doUnmock('../endpointResolver');
+    vi.resetModules();
+  });
+
   it('returns null when root-level external block endpoint semantic cannot map to a port', () => {
     const rootBlock = makeBlock({
       id: 'root-internet-unknown-semantic',
@@ -1053,5 +1103,59 @@ describe('routeCrossContainer', () => {
       true,
     );
     expect(surfaces.every((segment) => segment.start[1] === 3 && segment.end[1] === 3)).toBe(true);
+  });
+
+  it('accumulates nested ancestor Y offsets when LCA itself is nested', () => {
+    const root = makeContainerBlock({
+      id: 'root',
+      parentId: null,
+      position: { x: 0, y: 5, z: 0 },
+      frame: { width: 60, depth: 60, height: 2 },
+    });
+    const parent = makeContainerBlock({
+      id: 'parent',
+      parentId: 'root',
+      position: { x: 2, y: 4, z: 2 },
+      frame: { width: 40, depth: 40, height: 3 },
+    });
+    const childA = makeContainerBlock({
+      id: 'child-a',
+      parentId: 'parent',
+      position: { x: 1, y: 1, z: 1 },
+      frame: { width: 12, depth: 12, height: 1 },
+    });
+    const childB = makeContainerBlock({
+      id: 'child-b',
+      parentId: 'parent',
+      position: { x: 20, y: 1, z: 20 },
+      frame: { width: 12, depth: 12, height: 1 },
+    });
+    const map = buildContainerMap([root, parent, childA, childB]);
+
+    const srcPort = makeSurfacePort({
+      surfaceBase: [4, 18, 4],
+      surfaceExit: [4, 18, 3.25],
+      containerId: 'child-a',
+      surfaceY: 18,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [22, 18, 22],
+      surfaceExit: [21.25, 18, 22],
+      containerId: 'child-b',
+      surfaceY: 18,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+    const transitionSegments = segments.filter((segment) => segment.kind === 'transition');
+    const surfaceSegments = segments.filter((segment) => segment.kind === 'surface');
+
+    expect(
+      transitionSegments.some((segment) => segment.start[1] === 14 || segment.end[1] === 14),
+    ).toBe(true);
+    expect(
+      surfaceSegments.every((segment) => segment.start[1] === 14 && segment.end[1] === 14),
+    ).toBe(true);
   });
 });
