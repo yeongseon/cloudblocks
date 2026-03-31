@@ -299,9 +299,15 @@ export function resolveConnectionNodes(conn: { from: string; to: string }): { so
 
 # 6. External Actor
 
-> **@deprecated**: ExternalActors are folded into blocks in v4. The interface is kept for backward compatibility with older saved models (v3 → v4 migration). New architectures still create ExternalActors for "Browser" and "Internet" during `createBlankArchitecture()`, but this pattern may be removed in a future version.
+> **@deprecated — Active Migration (Epic #1533)**: ExternalActors are being folded into standard resource blocks. As of #1535 (Persistence Migration):
+>
+> - `serialize()` **materializes** any remaining `externalActors` into `ResourceBlock` nodes (with `kind: 'resource'`, `category: 'delivery'`, `roles: ['external']`) and strips the legacy `externalActors` key from saved JSON.
+> - `deserialize()` detects legacy data containing `externalActors[]` and migrates them into block nodes via `migrateExternalActorsToBlocks()`, preserving original actor IDs so existing connections remain valid.
+> - `createBlankArchitecture()` still creates `externalActors` for "Browser" and "Internet" (deferred to #1538 for removal).
+>
+> The `ExternalActor` interface is kept for backward compatibility during the migration window.
 
-An External Actor represents an endpoint outside the architecture.
+An External Actor represents an endpoint outside the architecture. After migration, these become `ResourceBlock` nodes with `roles: ['external']` and `resourceType: 'internet' | 'browser'`.
 
 ```typescript
 /** @deprecated Folded into blocks in v4. Kept for v3→v4 migration. */
@@ -313,8 +319,17 @@ export interface ExternalActor {
 }
 ```
 
-External Actors can only be used as a source or target of a Connection — they are not Blocks.
+After persistence migration (#1535), external actors are stored as regular resource blocks:
 
+
+```typescript
+// Migration helper — converts ExternalActor[] to ResourceBlock[]
+export function migrateExternalActorsToBlocks(
+  externalActors: ExternalActor[],
+  existingNodeIds: ReadonlySet<string>,
+  provider: 'azure' | 'aws' | 'gcp',
+): ResourceBlock[];
+```
 ---
 
 # 7. Rule Engine
@@ -443,6 +458,17 @@ The `schemaVersion` is stored in the serialized `SerializedData` wrapper, not in
 - The `deserialize()` function in `schema.ts` must detect version mismatches and either migrate or reject.
 - Additive changes (new optional fields with defaults) may be introduced without a version bump.
 - Destructive changes (field renames, type changes, removals) always require a version bump and a migration function.
+
+### Active Migrations
+
+| Migration | Trigger | Source | Target | Helper |
+| --- | --- | --- | --- | --- |
+| v3 plates+blocks → v4 nodes | `plates[]` present in data | v2.0.0 / v3.0.0 | v4.0.0 | `deserialize()` inline |
+| v3 ConnectionType → v4 Endpoints | `type` field on Connection | v3.0.0 | v4.0.0 | `connectionTypeToSemantic()` |
+| Legacy 10-category → 7-category | Old category names | v2.0.0 | v4.0.0 | `deserialize()` inline |
+| ExternalActor → ResourceBlock | `externalActors[]` present | any | v4.0.0 | `migrateExternalActorsToBlocks()` |
+
+> **ExternalActor migration (#1535)**: Detects by data presence (`externalActors[]` exists), not by `schemaVersion`. Actor IDs are preserved as block IDs so connections remain valid without remapping. `serialize()` also materializes actors to ensure saved JSON is self-contained.
 
 ---
 
