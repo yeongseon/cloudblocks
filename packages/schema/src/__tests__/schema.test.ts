@@ -4,7 +4,12 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { SCHEMA_VERSION } from '../index.js';
-import { RESOURCE_RULES } from '../rules.js';
+import {
+  RESOURCE_RULES,
+  EXTERNAL_RESOURCE_TYPES,
+  isExternalResourceType,
+  KNOWN_RESOURCE_TYPES,
+} from '../rules.js';
 
 // All type re-exports — verify they are importable at runtime
 import type {
@@ -36,15 +41,59 @@ describe('SCHEMA_VERSION', () => {
     expect(SCHEMA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  it('should be 4.0.0', () => {
-    expect(SCHEMA_VERSION).toBe('4.0.0');
+  it('should be 4.1.0', () => {
+    expect(SCHEMA_VERSION).toBe('4.1.0');
   });
 });
 
 describe('Resource rule coverage', () => {
   it('RESOURCE_RULES covers all known resource types', () => {
     const knownTypes = Object.keys(RESOURCE_RULES);
-    expect(knownTypes.length).toBeGreaterThanOrEqual(30);
+    expect(knownTypes.length).toBeGreaterThanOrEqual(32);
+  });
+});
+
+describe('External block resource rules', () => {
+  it('internet should be a delivery resource at root level', () => {
+    expect(RESOURCE_RULES.internet).toBeDefined();
+    expect(RESOURCE_RULES.internet.category).toBe('delivery');
+    expect(RESOURCE_RULES.internet.containerCapable).toBe(false);
+    expect(RESOURCE_RULES.internet.allowedParents).toContain(null);
+    expect(RESOURCE_RULES.internet.canvasTier).toBe('web');
+  });
+
+  it('browser should be a delivery resource at root level', () => {
+    expect(RESOURCE_RULES.browser).toBeDefined();
+    expect(RESOURCE_RULES.browser.category).toBe('delivery');
+    expect(RESOURCE_RULES.browser.containerCapable).toBe(false);
+    expect(RESOURCE_RULES.browser.allowedParents).toContain(null);
+    expect(RESOURCE_RULES.browser.canvasTier).toBe('web');
+  });
+
+  it('EXTERNAL_RESOURCE_TYPES should contain internet and browser', () => {
+    expect(EXTERNAL_RESOURCE_TYPES.has('internet')).toBe(true);
+    expect(EXTERNAL_RESOURCE_TYPES.has('browser')).toBe(true);
+    expect(EXTERNAL_RESOURCE_TYPES.size).toBe(2);
+  });
+
+  it('isExternalResourceType should identify external types correctly', () => {
+    expect(isExternalResourceType('internet')).toBe(true);
+    expect(isExternalResourceType('browser')).toBe(true);
+    expect(isExternalResourceType('virtual_machine')).toBe(false);
+    expect(isExternalResourceType('load_balancer')).toBe(false);
+    expect(isExternalResourceType('')).toBe(false);
+  });
+  it('KNOWN_RESOURCE_TYPES includes internet and browser', () => {
+    expect(KNOWN_RESOURCE_TYPES.has('internet')).toBe(true);
+    expect(KNOWN_RESOURCE_TYPES.has('browser')).toBe(true);
+  });
+
+  it('EXTERNAL_RESOURCE_TYPES members are all valid RESOURCE_RULES keys', () => {
+    for (const ext of EXTERNAL_RESOURCE_TYPES) {
+      expect(Object.keys(RESOURCE_RULES), `External type '${ext}' not in RESOURCE_RULES`).toContain(
+        ext,
+      );
+    }
   });
 });
 

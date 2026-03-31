@@ -96,6 +96,20 @@ export const RESOURCE_RULES = {
     canvasTier: 'web',
   },
 
+  // ── External Actors (folded into blocks — v4 unification) ────
+  internet: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'delivery',
+    canvasTier: 'web',
+  },
+  browser: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'delivery',
+    canvasTier: 'web',
+  },
+
   // ── Compute ─────────────────────────────────────────────────
   function_compute: {
     containerCapable: false,
@@ -297,6 +311,19 @@ export const CONTAINER_CAPABLE_TYPES: ReadonlySet<string> = new Set(
     .filter(([, rule]) => rule.containerCapable)
     .map(([key]) => key),
 );
+
+/** Resource types that represent external actors folded into the block model (v4 unification). */
+export const EXTERNAL_RESOURCE_TYPES: ReadonlySet<string> = new Set(['internet', 'browser']);
+
+/**
+ * Check whether a given resourceType is an external actor type
+ * (internet, browser) folded into the block model.
+ * Use this to filter external blocks from IaC output and apply
+ * non-deployable styling.
+ */
+export function isExternalResourceType(resourceType: string): boolean {
+  return EXTERNAL_RESOURCE_TYPES.has(resourceType);
+}
 
 /**
  * Check whether a given resourceType is allowed to be `kind: 'container'`.
