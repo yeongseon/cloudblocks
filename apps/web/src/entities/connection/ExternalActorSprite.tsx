@@ -33,7 +33,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const startConnecting = useUIStore((s) => s.startConnecting);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
-  const moveActorPosition = useArchitectureStore((s) => s.moveActorPosition);
+  const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const blocks = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
@@ -95,7 +95,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          moveActorPosition(actor.id, dWorldX, dWorldZ);
+          moveNodePosition(actor.id, dWorldX, dWorldZ);
         },
         end() {
           el.classList.remove('is-dragging');
@@ -125,7 +125,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
               const deltaZ = snappedPosition.z - matchedActor.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                moveActorPosition(actor.id, deltaX, deltaZ);
+                moveNodePosition(actor.id, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -154,7 +154,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
       el.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [actor.id, moveActorPosition, toolMode]);
+  }, [actor.id, moveNodePosition, toolMode]);
 
   const handleActivate = () => {
     if (isDragging.current) {

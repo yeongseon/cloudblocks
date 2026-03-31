@@ -1060,11 +1060,26 @@ describe('architectureStore', () => {
 
   describe('moveActorPosition', () => {
     it('moves an external actor by the provided delta', () => {
-      const actorId = (getArch().externalActors ?? [])[0]!.id;
+      const actorNode = makeResourceNode('ext-internet', 'placeholder', 'delivery', {
+        name: 'Internet',
+        resourceType: 'internet',
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        roles: ['external'] as 'external'[],
+      });
+      useArchitectureStore.setState({
+        workspace: {
+          ...getState().workspace,
+          architecture: {
+            ...getState().workspace.architecture,
+            nodes: [actorNode],
+          },
+        },
+      });
 
-      getState().moveActorPosition(actorId, 2.5, -1.5);
+      getState().moveActorPosition(actorNode.id, 2.5, -1.5);
 
-      const moved = (getArch().externalActors ?? []).find((actor) => actor.id === actorId);
+      const moved = getArch().blocks.find((block) => block.id === actorNode.id);
       expect(moved?.position).toEqual({ x: -0.5, y: 0, z: 3.5 });
     });
 

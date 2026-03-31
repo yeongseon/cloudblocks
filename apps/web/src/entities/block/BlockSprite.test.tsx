@@ -924,6 +924,19 @@ describe('BlockSprite', () => {
 
   it('adds is-valid-target class when connect source is external actor and target is gateway', () => {
     const gatewayBlock = makeBlock('block-gateway', 'delivery');
+    const internetBlock: ResourceBlock = {
+      id: 'actor-internet',
+      name: 'Internet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'internet',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      roles: ['external'] as 'external'[],
+    };
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
     useArchitectureStore.setState({
@@ -931,8 +944,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [gatewayBlock] as Block[],
-          externalActors: [internetActor],
+          nodes: [gatewayBlock, internetBlock] as Block[],
           connections: [],
         },
       },
@@ -953,6 +965,19 @@ describe('BlockSprite', () => {
 
   it('adds is-invalid-target class when connect source is external actor and target is compute', () => {
     const computeBlock = makeBlock('block-compute', 'compute');
+    const internetBlock: ResourceBlock = {
+      id: 'actor-internet',
+      name: 'Internet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'internet',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      roles: ['external'] as 'external'[],
+    };
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
     useArchitectureStore.setState({
@@ -960,8 +985,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [computeBlock] as Block[],
-          externalActors: [internetActor],
+          nodes: [computeBlock, internetBlock] as Block[],
           connections: [],
         },
       },

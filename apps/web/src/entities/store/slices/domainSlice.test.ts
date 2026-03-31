@@ -115,6 +115,26 @@ function makeLeafNode(
   };
 }
 
+function makeExternalBlock(
+  id: string,
+  resourceType: 'internet' | 'browser',
+  position: { x: number; y: number; z: number },
+): ResourceBlock {
+  return {
+    id,
+    name: resourceType === 'internet' ? 'Internet' : 'Browser',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType,
+    category: 'delivery',
+    provider: 'azure',
+    parentId: null,
+    position,
+    metadata: {},
+    roles: ['external'] as 'external'[],
+  };
+}
+
 function seedState(arch: Partial<ArchitectureModel>) {
   const now = '2026-01-01T00:00:00.000Z';
   const defaultArchitecture: ArchitectureModel = {
@@ -266,17 +286,17 @@ describe('domainSlice – targeted branch coverage', () => {
   describe('moveActorPosition – multiple actors with non-matching skip', () => {
     it('moves target actor and leaves other actors unchanged', () => {
       seedState({
-        externalActors: [
-          { id: 'actor-1', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } },
-          { id: 'actor-2', name: 'Partner', type: 'internet', position: { x: 5, y: 0, z: 5 } },
+        nodes: [
+          makeExternalBlock('actor-1', 'internet', { x: 0, y: 0, z: 0 }),
+          makeExternalBlock('actor-2', 'internet', { x: 5, y: 0, z: 5 }),
         ],
       });
 
       getState().moveActorPosition('actor-1', 2, -3);
 
-      const actors = getArch().externalActors ?? [];
-      const moved = actors.find((a) => a.id === 'actor-1')!;
-      const unmoved = actors.find((a) => a.id === 'actor-2')!;
+      const externalBlocks = getBlocks().filter((block) => block.roles?.includes('external'));
+      const moved = externalBlocks.find((block) => block.id === 'actor-1')!;
+      const unmoved = externalBlocks.find((block) => block.id === 'actor-2')!;
 
       expect(moved.position).toEqual({ x: 2, y: 0, z: -3 });
       expect(unmoved.position).toEqual({ x: 5, y: 0, z: 5 });
@@ -285,80 +305,70 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('external actor add/remove actions', () => {
     it('adds an internet actor with generated id and default position', () => {
-      seedState({ externalActors: [] });
+      seedState({ externalActors: [], nodes: [] });
 
       getState().addExternalActor('internet');
 
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0]).toEqual({
-        id: 'ext-internet-00000001',
+      const externalBlocks = getBlocks().filter((block) => block.roles?.includes('external'));
+      expect(externalBlocks).toHaveLength(1);
+      expect(externalBlocks[0]).toMatchObject({
+        id: 'block-00000001',
         name: 'Internet',
-        type: 'internet',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'internet',
+        category: 'delivery',
+        provider: 'azure',
+        parentId: null,
         position: { x: -3, y: 0, z: -3 },
+        metadata: {},
+        roles: ['external'],
+        subtype: 'internet',
       });
     });
 
     it('adds a browser actor with custom position', () => {
-      seedState({ externalActors: [] });
+      seedState({ externalActors: [], nodes: [] });
 
       getState().addExternalActor('browser', { x: 1, y: 0, z: 1 });
 
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0]).toEqual({
-        id: 'ext-browser-00000001',
+      const externalBlocks = getBlocks().filter((block) => block.roles?.includes('external'));
+      expect(externalBlocks).toHaveLength(1);
+      expect(externalBlocks[0]).toMatchObject({
+        id: 'block-00000001',
         name: 'Browser',
-        type: 'browser',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'browser',
+        category: 'delivery',
+        provider: 'azure',
+        parentId: null,
         position: { x: 1, y: 0, z: 1 },
+        metadata: {},
+        roles: ['external'],
       });
     });
 
     it('removes an external actor by id', () => {
       seedState({
-        externalActors: [
-          {
-            id: 'ext-browser-1',
-            name: 'Browser',
-            type: 'browser',
-            position: { x: -6, y: 0, z: 5 },
-          },
-          {
-            id: 'ext-internet-1',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
+        nodes: [
+          makeExternalBlock('ext-browser-1', 'browser', { x: -6, y: 0, z: 5 }),
+          makeExternalBlock('ext-internet-1', 'internet', { x: -3, y: 0, z: 5 }),
         ],
       });
 
       getState().removeExternalActor('ext-browser-1');
 
-      expect(getArch().externalActors).toEqual([
-        {
-          id: 'ext-internet-1',
-          name: 'Internet',
-          type: 'internet',
-          position: { x: -3, y: 0, z: 5 },
-        },
+      expect(getBlocks().filter((block) => block.roles?.includes('external'))).toEqual([
+        makeExternalBlock('ext-internet-1', 'internet', { x: -3, y: 0, z: 5 }),
       ]);
     });
 
     it('removes connections that reference the removed actor', () => {
       seedState({
-        externalActors: [
-          {
-            id: 'ext-browser-1',
-            name: 'Browser',
-            type: 'browser',
-            position: { x: -6, y: 0, z: 5 },
-          },
-          {
-            id: 'ext-internet-1',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
+        nodes: [
+          makeExternalBlock('ext-browser-1', 'browser', { x: -6, y: 0, z: 5 }),
+          makeExternalBlock('ext-internet-1', 'internet', { x: -3, y: 0, z: 5 }),
         ],
         connections: [
           makeLegacyConnection('conn-remove', 'ext-browser-1', 'gw1', 'http'),
@@ -373,19 +383,20 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('supports undo/redo after addExternalActor', () => {
-      seedState({ externalActors: [] });
+      seedState({ externalActors: [], nodes: [] });
 
       expect(getState().canUndo).toBe(false);
       getState().addExternalActor('internet');
       expect(getState().canUndo).toBe(true);
-      expect(getArch().externalActors).toHaveLength(1);
+      expect(getBlocks().filter((block) => block.roles?.includes('external'))).toHaveLength(1);
 
       getState().undo();
-      expect(getArch().externalActors).toHaveLength(0);
+      expect(getBlocks().filter((block) => block.roles?.includes('external'))).toHaveLength(0);
 
       getState().redo();
-      expect(getArch().externalActors).toHaveLength(1);
-      expect(getArch().externalActors?.[0]?.id).toBe('ext-internet-00000001');
+      const externalBlocks = getBlocks().filter((block) => block.roles?.includes('external'));
+      expect(externalBlocks).toHaveLength(1);
+      expect(externalBlocks[0].id).toBe('block-00000001');
     });
   });
 
@@ -510,6 +521,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('addConnection – external actor endpoints', () => {
     it('creates a connection from external actor to edge block', () => {
+      const externalInternet = makeExternalBlock('ext-internet', 'internet', { x: -3, y: 0, z: 5 });
       seedState({
         nodes: [
           makeContainerNode('r1'),
@@ -520,14 +532,7 @@ describe('domainSlice – targeted branch coverage', () => {
             frame: { width: 6, height: 0.3, depth: 8 },
           }),
           makeLeafNode('gw1', 's1', 'delivery', { name: 'Gateway' }),
-        ],
-        externalActors: [
-          {
-            id: 'ext-internet',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
+          externalInternet,
         ],
       });
 
@@ -805,6 +810,7 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('handles addConnection branches with actors and endpoint parse fallback', () => {
+      const externalInternet = makeExternalBlock('ext-internet', 'internet', { x: -3, y: 0, z: 5 });
       const subnet = makeContainerNode('container-1', {
         layer: 'subnet',
         resourceType: 'subnet',
@@ -817,18 +823,11 @@ describe('domainSlice – targeted branch coverage', () => {
         resourceType: 'web_compute',
       });
       seedState({
-        nodes: [subnet, edge, compute],
+        nodes: [subnet, edge, compute, externalInternet],
         endpoints: [
           ...generateEndpointsForBlock(edge.id),
           ...generateEndpointsForBlock(compute.id),
-        ],
-        externalActors: [
-          {
-            id: 'ext-internet',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
+          ...generateEndpointsForBlock(externalInternet.id),
         ],
         connections: [makeLegacyConnection('conn-existing', edge.id, compute.id)],
       });
