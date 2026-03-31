@@ -89,10 +89,11 @@ describe('SidebarPalette', () => {
     });
   });
 
-  it('renders category groups', () => {
+  it('renders category groups and external section', () => {
     render(<SidebarPalette />);
 
-    expect(screen.getByText('External Actors')).toBeInTheDocument();
+    // External group uses unified layout
+    expect(screen.getByText('External')).toBeInTheDocument();
     expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
     expect(screen.getByTitle('Add Browser')).toBeInTheDocument();
 
@@ -117,7 +118,7 @@ describe('SidebarPalette', () => {
     expect(screen.getByText('Operations')).toBeInTheDocument();
   });
 
-  it('filters resources by search query', async () => {
+  it('filters resources by search query using resolved labels', async () => {
     const user = userEvent.setup();
     useArchitectureStore.setState({
       workspace: {
@@ -137,7 +138,14 @@ describe('SidebarPalette', () => {
 
     await user.type(screen.getByPlaceholderText('Search resources'), 'vault');
 
-    expect(screen.getByText((_content, el) => el?.textContent === 'Key Vault')).toBeInTheDocument();
+    expect(
+      screen.getByText((_content, el) =>
+        Boolean(
+          el?.classList.contains('sidebar-palette-resource-name') &&
+          el?.textContent === 'Key Vault',
+        ),
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByText('VM')).not.toBeInTheDocument();
   });
 
@@ -159,14 +167,29 @@ describe('SidebarPalette', () => {
 
     render(<SidebarPalette />);
 
+    // blockPresentation resolves 'network' → displayLabel 'Virtual Network'
     const toggle = screen.getByRole('button', { name: 'Collapse Network' });
-    expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Virtual Network')).toBeInTheDocument();
 
     await user.click(toggle);
-    expect(screen.queryByTitle('Create Azure Virtual Network')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Create Virtual Network')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Expand Network' }));
-    expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Virtual Network')).toBeInTheDocument();
+  });
+
+  it('collapses and expands external section', async () => {
+    const user = userEvent.setup();
+    render(<SidebarPalette />);
+
+    expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
+
+    const toggle = screen.getByRole('button', { name: 'Collapse External' });
+    await user.click(toggle);
+    expect(screen.queryByTitle('Add Internet')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Expand External' }));
+    expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
   });
 
   it('shows disabled resources with lock when network is missing', async () => {
@@ -236,9 +259,10 @@ describe('SidebarPalette', () => {
       expect(screen.getByText('Show Advanced')).toBeInTheDocument();
     });
 
-    it('shows only starter tier resources by default', () => {
+    it('shows only starter tier resources plus externals by default', () => {
       render(<SidebarPalette />);
-      expect(screen.getByText(/Showing 13 of 28/)).toBeInTheDocument();
+      // 13 starter resources + 2 external = 15 visible, total = 28 + 2 = 30
+      expect(screen.getByText(/Showing 15 of 30/)).toBeInTheDocument();
     });
 
     it('shows all resources when Show Advanced checkbox is checked', async () => {
@@ -248,7 +272,8 @@ describe('SidebarPalette', () => {
       const checkbox = screen.getByRole('checkbox');
       await user.click(checkbox);
 
-      expect(screen.getByText(/Showing 28 of 28/)).toBeInTheDocument();
+      // 28 resources + 2 external = 30 visible of 30 total
+      expect(screen.getByText(/Showing 30 of 30/)).toBeInTheDocument();
     });
 
     describe('drag-to-create interaction', () => {
@@ -390,4 +415,106 @@ it('highlights matching text in search results', async () => {
   const marks = container.querySelectorAll('mark.sidebar-palette-highlight');
   expect(marks.length).toBeGreaterThan(0);
   expect(marks[0].textContent?.toLowerCase()).toBe('vault');
+});
+
+describe('SidebarPalette — blockPresentation integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    useUIStore.setState({
+      activeProvider: 'azure',
+      isSoundMuted: true,
+      sidebar: { isOpen: true },
+    });
+
+    useArchitectureStore.setState({
+      addNode: vi.fn(),
+      addExternalBlock: vi.fn(),
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        provider: 'azure' as const,
+        architecture: baseArchitecture,
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+  });
+
+  it('renders SVG icons for all resource items (no emoji fallback)', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        provider: 'azure' as const,
+        architecture: {
+          ...baseArchitecture,
+          nodes: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+
+    // All resource icons should be <img> elements, not emoji text
+    const resourceIcons = document.querySelectorAll('.sidebar-palette-resource-icon');
+    resourceIcons.forEach((icon) => {
+      const img = icon.querySelector('img');
+      const placeholder = icon.querySelector('.sidebar-palette-icon-placeholder');
+      // Each icon should be either an SVG img or a placeholder — never emoji text
+      expect(img || placeholder).toBeTruthy();
+    });
+  });
+
+  it('renders external items with SVG icons using blockPresentation', () => {
+    render(<SidebarPalette />);
+
+    const internetBtn = screen.getByTitle('Add Internet');
+    const browserBtn = screen.getByTitle('Add Browser');
+
+    // External items use blockPresentation's iconUrl
+    const internetImg = internetBtn.querySelector('img');
+    expect(internetImg).toBeTruthy();
+    expect(internetImg?.getAttribute('src')).toBe('/actor-sprites/internet.svg');
+
+    const browserImg = browserBtn.querySelector('img');
+    expect(browserImg).toBeTruthy();
+    expect(browserImg?.getAttribute('src')).toBe('/actor-sprites/browser.svg');
+  });
+
+  it('filters external items by search query', async () => {
+    const user = userEvent.setup();
+    render(<SidebarPalette />);
+
+    await user.type(screen.getByPlaceholderText('Search resources'), 'internet');
+    expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
+    expect(screen.queryByTitle('Add Browser')).not.toBeInTheDocument();
+  });
+
+  it('uses resolved labels from blockPresentation for provider switching', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ activeProvider: 'aws' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        provider: 'azure' as const,
+        architecture: {
+          ...baseArchitecture,
+          nodes: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+    await user.click(screen.getByRole('checkbox'));
+
+    // AWS-specific labels from blockPresentation should appear (multiple resources may resolve to EC2)
+    expect(screen.getAllByTitle('Create EC2').length).toBeGreaterThanOrEqual(1);
+  });
 });

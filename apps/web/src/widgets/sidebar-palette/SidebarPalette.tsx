@@ -9,8 +9,6 @@ import type { SoundName } from '../../shared/utils/audioService';
 import {
   useTechTree,
   RESOURCE_DEFINITIONS,
-  getResourceLabel,
-  getResourceShortLabel,
   type ResourceType,
   CREATION_GROUP_ORDER,
   getCreationGroupMeta,
@@ -18,7 +16,10 @@ import {
   type CreationGroupId,
   ALL_RESOURCES,
 } from '../../shared/hooks/useTechTree';
-import { getResourceIconUrl } from '../../shared/utils/iconResolver';
+import {
+  resolveResourcePresentation,
+  resolveExternalPresentation,
+} from '../../shared/presentation/blockPresentation';
 import { getContainerLabel, remapSubtype } from '../../shared/utils/providerMapping';
 import './SidebarPalette.css';
 import { useIsMobile } from '../../shared/hooks/useIsMobile';
@@ -33,6 +34,9 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   identity: 'var(--cat-identity)',
   operations: 'var(--cat-operations)',
 };
+
+/** External block types rendered in the palette. */
+const EXTERNAL_TYPES = ['internet', 'browser'] as const;
 
 interface HighlightMatchProps {
   text: string;
@@ -151,8 +155,6 @@ function PaletteResourceItem({
   searchQuery,
   iconUrl,
 }: PaletteResourceItemProps) {
-  const def = RESOURCE_DEFINITIONS[type];
-
   return (
     <button
       key={type}
@@ -164,7 +166,11 @@ function PaletteResourceItem({
       title={enabled ? `Create ${providerLabel}` : (disabledReason ?? undefined)}
     >
       <span className="sidebar-palette-resource-icon" aria-hidden="true">
-        {iconUrl ? <img src={iconUrl} alt="" width={18} height={18} /> : def.icon}
+        {iconUrl ? (
+          <img src={iconUrl} alt="" width={18} height={18} />
+        ) : (
+          <span className="sidebar-palette-icon-placeholder" />
+        )}
       </span>
       <span className="sidebar-palette-resource-text">
         <span className="sidebar-palette-resource-name">
@@ -183,6 +189,92 @@ function PaletteResourceItem({
   );
 }
 
+/** External actors group rendered as a dedicated section using unified PaletteResourceItem layout. */
+interface PaletteExternalGroupProps {
+  collapsed: boolean;
+  onToggle: () => void;
+  searchQuery: string;
+  onAdd: (type: 'internet' | 'browser') => void;
+  activeProvider: 'azure' | 'aws' | 'gcp';
+}
+
+function PaletteExternalGroup({
+  collapsed,
+  onToggle,
+  searchQuery,
+  onAdd,
+  activeProvider,
+}: PaletteExternalGroupProps) {
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const visibleTypes = useMemo(() => {
+    return EXTERNAL_TYPES.filter((type) => {
+      if (!normalizedQuery) return true;
+      const pres = resolveExternalPresentation(type, { provider: activeProvider });
+      return (
+        pres.displayLabel.toLowerCase().includes(normalizedQuery) ||
+        pres.shortLabel.toLowerCase().includes(normalizedQuery)
+      );
+    });
+  }, [normalizedQuery, activeProvider]);
+
+  if (visibleTypes.length === 0) return null;
+
+  return (
+    <section className="sidebar-palette-group" aria-label="External resources">
+      <button
+        type="button"
+        className="sidebar-palette-group-toggle"
+        style={{ '--category-color': 'var(--cat-network)' } as CSSProperties}
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        aria-label={`${collapsed ? 'Expand' : 'Collapse'} External`}
+      >
+        <span className="sidebar-palette-group-title">
+          <span className="sidebar-palette-group-icon" aria-hidden="true">
+            🔌
+          </span>
+          <span>External</span>
+        </span>
+        <span className="sidebar-palette-group-count">{visibleTypes.length}</span>
+      </button>
+
+      {!collapsed && (
+        <div className="sidebar-palette-group-list">
+          {visibleTypes.map((type) => {
+            const pres = resolveExternalPresentation(type, { provider: activeProvider });
+            return (
+              <button
+                key={type}
+                type="button"
+                className="sidebar-palette-resource-btn"
+                onClick={() => onAdd(type)}
+                title={`Add ${pres.displayLabel}`}
+              >
+                <span className="sidebar-palette-resource-icon" aria-hidden="true">
+                  {pres.iconUrl ? (
+                    <img src={pres.iconUrl} alt="" width={18} height={18} />
+                  ) : (
+                    <span className="sidebar-palette-icon-placeholder" />
+                  )}
+                </span>
+                <span className="sidebar-palette-resource-text">
+                  <span className="sidebar-palette-resource-name">
+                    <HighlightMatch text={pres.shortLabel} query={searchQuery} />
+                  </span>
+                  <span className="sidebar-palette-resource-subtitle">
+                    <HighlightMatch text={pres.displayLabel} query={searchQuery} />
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function SidebarPalette() {
   const techTree = useTechTree();
   const addNode = useArchitectureStore((s) => s.addNode);
@@ -195,7 +287,9 @@ export function SidebarPalette() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<CreationGroupId>>(() => new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<CreationGroupId | 'external'>>(
+    () => new Set(),
+  );
 
   const playSound = useCallback(
     (name: SoundName) => {
@@ -225,18 +319,20 @@ export function SidebarPalette() {
             if (def.tier === 'advanced') return false;
           }
           if (!normalizedQuery) return true;
-          const name = getResourceLabel(type, activeProvider).toLowerCase();
-          const shortName = getResourceShortLabel(type, activeProvider).toLowerCase();
+          // Use blockPresentation resolver for search to match displayed labels
+          const pres = resolveResourcePresentation(type, { provider: activeProvider });
           const category = meta.label.toLowerCase();
           return (
-            name.includes(normalizedQuery) ||
-            shortName.includes(normalizedQuery) ||
+            pres.displayLabel.toLowerCase().includes(normalizedQuery) ||
+            pres.shortLabel.toLowerCase().includes(normalizedQuery) ||
             category.includes(normalizedQuery)
           );
         })
-        .sort((a, b) =>
-          getResourceLabel(a, activeProvider).localeCompare(getResourceLabel(b, activeProvider)),
-        );
+        .sort((a, b) => {
+          const labelA = resolveResourcePresentation(a, { provider: activeProvider }).displayLabel;
+          const labelB = resolveResourcePresentation(b, { provider: activeProvider }).displayLabel;
+          return labelA.localeCompare(labelB);
+        });
 
       return { groupId, resources };
     }).filter((group) => group.resources.length > 0);
@@ -245,15 +341,30 @@ export function SidebarPalette() {
   const totalResourceCount = ALL_RESOURCES.length;
 
   const visibleResourceCount = useMemo(() => {
-    return groupedResources.reduce((total, group) => total + group.resources.length, 0);
-  }, [groupedResources]);
+    const resourceCount = groupedResources.reduce(
+      (total, group) => total + group.resources.length,
+      0,
+    );
+    // Include external types in visible count when they match search
+    const externalCount = EXTERNAL_TYPES.filter((type) => {
+      if (!normalizedQuery) return true;
+      const pres = resolveExternalPresentation(type, { provider: activeProvider });
+      return (
+        pres.displayLabel.toLowerCase().includes(normalizedQuery) ||
+        pres.shortLabel.toLowerCase().includes(normalizedQuery)
+      );
+    }).length;
+    return resourceCount + externalCount;
+  }, [groupedResources, normalizedQuery, activeProvider]);
+
+  const totalCount = totalResourceCount + EXTERNAL_TYPES.length;
 
   useEffect(() => {
     if (isMobile) return;
     if (!containerRef.current) return;
 
     const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>(
-      '.sidebar-palette-resource-btn:not(.disabled):not(:disabled)',
+      '.sidebar-palette-resource-btn[data-resource-type]:not(.disabled):not(:disabled)',
     );
     const interactables = Array.from(buttons).map((button) =>
       interact(button).draggable({
@@ -272,9 +383,11 @@ export function SidebarPalette() {
             const def = RESOURCE_DEFINITIONS[type];
             if (!def?.blockCategory) return;
 
+            const pres = resolveResourcePresentation(type, { provider: activeProvider });
+
             startPlacing(
               def.blockCategory,
-              getResourceLabel(type, activeProvider),
+              pres.displayLabel,
               def.schemaResourceType ?? def.blockCategory,
               remapSubtype(def.azureSubtype ?? def.schemaResourceType, activeProvider),
             );
@@ -353,7 +466,8 @@ export function SidebarPalette() {
       }
 
       counterRef.current += 1;
-      const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
+      const pres = resolveResourcePresentation(type, { provider: activeProvider });
+      const name = `${pres.displayLabel} ${counterRef.current}`;
       addNode({
         kind: 'resource',
         resourceType: def.schemaResourceType ?? def.blockCategory,
@@ -367,7 +481,15 @@ export function SidebarPalette() {
     [activeProvider, addNode, playSound, techTree],
   );
 
-  const toggleGroup = useCallback((groupId: CreationGroupId) => {
+  const handleAddExternal = useCallback(
+    (type: 'internet' | 'browser') => {
+      addExternalBlock(type);
+      playSound('block-snap');
+    },
+    [addExternalBlock, playSound],
+  );
+
+  const toggleGroup = useCallback((groupId: CreationGroupId | 'external') => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) {
@@ -385,7 +507,7 @@ export function SidebarPalette() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         visibleCount={visibleResourceCount}
-        totalCount={totalResourceCount}
+        totalCount={totalCount}
       />
 
       <label className="sidebar-palette-advanced-toggle">
@@ -398,40 +520,13 @@ export function SidebarPalette() {
       </label>
 
       <div className="sidebar-palette-content">
-        <section className="sidebar-palette-actor-section" aria-label="External actors">
-          <div className="sidebar-palette-actor-title">
-            <span aria-hidden="true">🔌</span>
-            <span>External Actors</span>
-          </div>
-          <div className="sidebar-palette-actor-list">
-            {(['internet', 'browser'] as const).map((type) => {
-              const name = type === 'internet' ? 'Internet' : 'Browser';
-              const emoji = type === 'internet' ? '🌐' : '💻';
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  className="sidebar-palette-actor-btn"
-                  onClick={() => {
-                    addExternalBlock(type);
-                    playSound('block-snap');
-                  }}
-                  title={`Add ${name}`}
-                >
-                  <img
-                    className="sidebar-palette-actor-img"
-                    src={`/actor-sprites/${type}.svg`}
-                    alt=""
-                    width={18}
-                    height={18}
-                  />
-                  <span className="sidebar-palette-actor-name">{name}</span>
-                  <span className="sidebar-palette-actor-add">{emoji} Add</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+        <PaletteExternalGroup
+          collapsed={collapsedGroups.has('external')}
+          onToggle={() => toggleGroup('external')}
+          searchQuery={normalizedQuery}
+          onAdd={handleAddExternal}
+          activeProvider={activeProvider}
+        />
 
         {groupedResources.map(({ groupId, resources }) => (
           <PaletteCategoryGroup
@@ -440,23 +535,26 @@ export function SidebarPalette() {
             resourceTypes={resources}
             collapsed={collapsedGroups.has(groupId)}
             onToggle={() => toggleGroup(groupId)}
-            renderItem={(type) => (
-              <PaletteResourceItem
-                key={type}
-                type={type}
-                providerLabel={getResourceLabel(type, activeProvider)}
-                providerShortLabel={getResourceShortLabel(type, activeProvider)}
-                enabled={techTree.isEnabled(type)}
-                disabledReason={techTree.getDisabledReason(type)}
-                searchQuery={normalizedQuery}
-                iconUrl={getResourceIconUrl(type, activeProvider)}
-                onClick={() => {
-                  if (techTree.isEnabled(type)) {
-                    handleCreate(type);
-                  }
-                }}
-              />
-            )}
+            renderItem={(type) => {
+              const pres = resolveResourcePresentation(type, { provider: activeProvider });
+              return (
+                <PaletteResourceItem
+                  key={type}
+                  type={type}
+                  providerLabel={pres.displayLabel}
+                  providerShortLabel={pres.shortLabel}
+                  enabled={techTree.isEnabled(type)}
+                  disabledReason={techTree.getDisabledReason(type)}
+                  searchQuery={normalizedQuery}
+                  iconUrl={pres.iconUrl}
+                  onClick={() => {
+                    if (techTree.isEnabled(type)) {
+                      handleCreate(type);
+                    }
+                  }}
+                />
+              );
+            }}
           />
         ))}
       </div>
