@@ -25,36 +25,36 @@ type PlateLayerType = Exclude<LayerType, 'resource'>;
 
 const LAYER_VISUALS: Record<PlateLayerType, LayerVisuals> = {
   global: {
-    strokeWidth: 3,
-    strokeOpacity: 0.9,
+    strokeWidth: 1.5,
+    strokeOpacity: 0.45,
     labelFontSize: 22,
     emojiFontSize: 28,
     cornerRadius: 0,
   },
   edge: {
-    strokeWidth: 2.5,
-    strokeOpacity: 0.8,
+    strokeWidth: 1.2,
+    strokeOpacity: 0.4,
     labelFontSize: 20,
     emojiFontSize: 26,
     cornerRadius: 0,
   },
   region: {
-    strokeWidth: 2,
-    strokeOpacity: 0.7,
+    strokeWidth: 1,
+    strokeOpacity: 0.35,
     labelFontSize: 18,
     emojiFontSize: 24,
     cornerRadius: 0,
   },
   zone: {
-    strokeWidth: 1.5,
-    strokeOpacity: 0.65,
+    strokeWidth: 0.8,
+    strokeOpacity: 0.3,
     labelFontSize: 16,
     emojiFontSize: 22,
     cornerRadius: 0,
   },
   subnet: {
-    strokeWidth: 1,
-    strokeOpacity: 0.6,
+    strokeWidth: 0.6,
+    strokeOpacity: 0.25,
     labelFontSize: 18,
     emojiFontSize: 24,
     cornerRadius: 0,
@@ -141,7 +141,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
       <polygon
         points={topFacePoints}
         fill="none"
-        stroke="rgba(203,213,225,0.16)"
+        stroke="rgba(203,213,225,0.08)"
         strokeWidth={1}
         strokeLinejoin="round"
         transform={`translate(0, 0.5)`}
@@ -152,7 +152,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
       <polygon
         points={topFacePoints}
         fill="none"
-        stroke="rgba(2,6,23,0.45)"
+        stroke="rgba(2,6,23,0.25)"
         strokeWidth={1}
         strokeLinejoin="round"
         transform={`translate(0, -0.5)`}

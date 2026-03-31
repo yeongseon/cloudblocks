@@ -63,6 +63,70 @@ export function darken(hex: string, percent: number): string {
   return toHex(r * ratio, g * ratio, b * ratio);
 }
 
+// ─── HSL Utilities ───────────────────────────────────────────
+
+/** Convert RGB [0-255] to HSL [h:0-360, s:0-100, l:0-100]. */
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l * 100];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+  else if (max === gn) h = ((bn - rn) / d + 2) / 6;
+  else h = ((rn - gn) / d + 4) / 6;
+  return [h * 360, s * 100, l * 100];
+}
+
+function hueToRgb(p: number, q: number, t: number): number {
+  let tt = t;
+  if (tt < 0) tt += 1;
+  if (tt > 1) tt -= 1;
+  if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+  if (tt < 1 / 2) return q;
+  if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+  return p;
+}
+
+/** Convert HSL [h:0-360, s:0-100, l:0-100] to hex. */
+function hslToHex(h: number, s: number, l: number): string {
+  const sn = s / 100;
+  const ln = l / 100;
+  if (sn === 0) {
+    const v = Math.round(ln * 255);
+    return toHex(v, v, v);
+  }
+  const q = ln < 0.5 ? ln * (1 + sn) : ln + sn - ln * sn;
+  const p = 2 * ln - q;
+  const hn = h / 360;
+  return toHex(
+    Math.round(hueToRgb(p, q, hn + 1 / 3) * 255),
+    Math.round(hueToRgb(p, q, hn) * 255),
+    Math.round(hueToRgb(p, q, hn - 1 / 3) * 255),
+  );
+}
+
+/**
+ * Adjust a hex color in HSL space.
+ * - saturationScale: multiply saturation (0.3 = 30% of original).
+ * - lightnessBoost: add to lightness (in percentage points).
+ */
+export function adjustColorHsl(
+  hex: string,
+  opts: { saturationScale: number; lightnessBoost: number },
+): string {
+  const [r, g, b] = parseHex(hex);
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const newS = Math.max(0, Math.min(100, s * opts.saturationScale));
+  const newL = Math.max(0, Math.min(100, l + opts.lightnessBoost));
+  return hslToHex(h, newS, newL);
+}
+
 // ─── Face Color Derivation (§7.7) ────────────────────────────
 
 /**
@@ -75,6 +139,19 @@ export function deriveFaceColors(base: string): DerivedFaceColors {
     topStroke: darken(base, 8),
     right: darken(base, 6),
     left: darken(base, 12),
+  };
+}
+
+/**
+ * Derive face colors for container blocks with narrower deltas.
+ * Containers use subtler face differentiation to appear as background plates.
+ */
+export function deriveContainerFaceColors(base: string): DerivedFaceColors {
+  return {
+    top: lighten(base, 2),
+    topStroke: darken(base, 8),
+    right: darken(base, 3),
+    left: darken(base, 6),
   };
 }
 
