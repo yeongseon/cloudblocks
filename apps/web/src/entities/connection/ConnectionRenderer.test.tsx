@@ -429,6 +429,23 @@ describe('ConnectionRenderer', () => {
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
+    it('falls back to dataflow for prototype-chain keys like toString/constructor', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-proto-key',
+        metadata: { ...connection.metadata, type: 'toString' },
+      };
+
+      const { container } = renderConnector(conn);
+      const trace = container.querySelector('[data-testid="connection-trace"]');
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+
+      // Should fall back to dataflow (strokeWidth=2, casing=4), not crash
+      expect(trace?.getAttribute('stroke-width')).toBe('2');
+      expect(casing?.getAttribute('stroke-width')).toBe('4');
+      expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+    });
+
     it('selection outline width scales with type-specific casing width', () => {
       const conn: Connection = {
         ...connection,

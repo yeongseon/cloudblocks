@@ -72,5 +72,17 @@ describe('connectionVisualTokens', () => {
         CONNECTION_VISUAL_STYLES.dataflow,
       );
     });
+
+    it('falls back to dataflow for prototype-chain keys (toString, constructor)', () => {
+      expect(resolveConnectionVisualStyle('toString' as ConnectionType)).toBe(
+        CONNECTION_VISUAL_STYLES.dataflow,
+      );
+      expect(resolveConnectionVisualStyle('constructor' as ConnectionType)).toBe(
+        CONNECTION_VISUAL_STYLES.dataflow,
+      );
+      expect(resolveConnectionVisualStyle('hasOwnProperty' as ConnectionType)).toBe(
+        CONNECTION_VISUAL_STYLES.dataflow,
+      );
+    });
   });
 });

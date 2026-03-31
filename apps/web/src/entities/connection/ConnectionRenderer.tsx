@@ -206,7 +206,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   // Resolve per-type stroke width and dash pattern.
   const rawType = connection.metadata?.type;
   const connectionType: ConnectionType | undefined =
-    typeof rawType === 'string' && rawType in CONNECTION_VISUAL_STYLES
+    typeof rawType === 'string' && Object.hasOwn(CONNECTION_VISUAL_STYLES, rawType)
       ? (rawType as ConnectionType)
       : undefined;
   const visualStyle = resolveConnectionVisualStyle(connectionType);

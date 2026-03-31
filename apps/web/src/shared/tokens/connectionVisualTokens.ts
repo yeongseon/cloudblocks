@@ -46,7 +46,7 @@ export const HOVER_WIDTH_OFFSET = 1;
 export function resolveConnectionVisualStyle(
   type: ConnectionType | undefined,
 ): ConnectionVisualStyle {
-  if (type && type in CONNECTION_VISUAL_STYLES) {
+  if (type && Object.hasOwn(CONNECTION_VISUAL_STYLES, type)) {
     return CONNECTION_VISUAL_STYLES[type];
   }
   return CONNECTION_VISUAL_STYLES.dataflow;
