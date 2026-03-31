@@ -34,15 +34,6 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   operations: 'var(--cat-operations)',
 };
 
-const EXTERNAL_ACTOR_OPTIONS: ReadonlyArray<{
-  type: 'internet' | 'browser';
-  name: string;
-  emoji: string;
-}> = [
-  { type: 'internet', name: 'Internet', emoji: '🌐' },
-  { type: 'browser', name: 'Browser', emoji: '💻' },
-];
-
 interface HighlightMatchProps {
   text: string;
   query: string;
@@ -195,7 +186,7 @@ function PaletteResourceItem({
 export function SidebarPalette() {
   const techTree = useTechTree();
   const addNode = useArchitectureStore((s) => s.addNode);
-  const addExternalActor = useArchitectureStore((s) => s.addExternalActor);
+  const addExternalBlock = useArchitectureStore((s) => s.addExternalBlock);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -413,28 +404,32 @@ export function SidebarPalette() {
             <span>External Actors</span>
           </div>
           <div className="sidebar-palette-actor-list">
-            {EXTERNAL_ACTOR_OPTIONS.map((actor) => (
-              <button
-                key={actor.type}
-                type="button"
-                className="sidebar-palette-actor-btn"
-                onClick={() => {
-                  addExternalActor(actor.type);
-                  playSound('block-snap');
-                }}
-                title={`Add ${actor.name}`}
-              >
-                <img
-                  className="sidebar-palette-actor-img"
-                  src={`/actor-sprites/${actor.type}.svg`}
-                  alt=""
-                  width={18}
-                  height={18}
-                />
-                <span className="sidebar-palette-actor-name">{actor.name}</span>
-                <span className="sidebar-palette-actor-add">{actor.emoji} Add</span>
-              </button>
-            ))}
+            {(['internet', 'browser'] as const).map((type) => {
+              const name = type === 'internet' ? 'Internet' : 'Browser';
+              const emoji = type === 'internet' ? '🌐' : '💻';
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className="sidebar-palette-actor-btn"
+                  onClick={() => {
+                    addExternalBlock(type);
+                    playSound('block-snap');
+                  }}
+                  title={`Add ${name}`}
+                >
+                  <img
+                    className="sidebar-palette-actor-img"
+                    src={`/actor-sprites/${type}.svg`}
+                    alt=""
+                    width={18}
+                    height={18}
+                  />
+                  <span className="sidebar-palette-actor-name">{name}</span>
+                  <span className="sidebar-palette-actor-add">{emoji} Add</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

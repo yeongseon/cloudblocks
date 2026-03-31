@@ -2,23 +2,15 @@ import type {
   ArchitectureModel,
   Connection,
   ContainerBlock,
-  ExternalActor,
   ResourceBlock,
 } from '@cloudblocks/schema';
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
-const ROOT_ENTITY_PATHS = new Set([
-  'nodes',
-  'endpoints',
-  'connections',
-  'externalActors',
-  'createdAt',
-  'updatedAt',
-]);
+const ROOT_ENTITY_PATHS = new Set(['nodes', 'endpoints', 'connections', 'createdAt', 'updatedAt']);
 const NO_IGNORED_ROOT_PATHS = new Set<string>();
 
-type DiffableEntity = ContainerBlock | ResourceBlock | Connection | ExternalActor;
+type DiffableEntity = ContainerBlock | ResourceBlock | Connection;
 
 function sortById<T extends { id: string }>(left: T, right: T): number {
   return left.id.localeCompare(right.id);
@@ -133,9 +125,6 @@ function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary']
     delta.connections.added.length +
     delta.connections.removed.length +
     delta.connections.modified.length +
-    delta.externalActors.added.length +
-    delta.externalActors.removed.length +
-    delta.externalActors.modified.length +
     delta.rootChanges.length;
 
   return {
@@ -183,9 +172,6 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
         metadata: { ...connection.metadata },
       }))
       .sort(sortById),
-    externalActors: (model.externalActors ?? [])
-      .map((externalActor) => ({ ...externalActor }))
-      .sort(sortById),
   };
 }
 
@@ -210,7 +196,6 @@ export function computeArchitectureDiff(
       plates: createEmptyEntityDiff<ContainerBlock>(),
       blocks: createEmptyEntityDiff<ResourceBlock>(),
       connections: createEmptyEntityDiff<Connection>(),
-      externalActors: createEmptyEntityDiff<ExternalActor>(),
       rootChanges: [],
       summary: {
         totalChanges: 0,
@@ -228,10 +213,6 @@ export function computeArchitectureDiff(
     plates: compareEntityCollections(basePlates, headPlates),
     blocks: compareEntityCollections(baseBlocks, headBlocks),
     connections: compareEntityCollections(normalizedBase.connections, normalizedHead.connections),
-    externalActors: compareEntityCollections(
-      normalizedBase.externalActors ?? [],
-      normalizedHead.externalActors ?? [],
-    ),
     rootChanges,
   };
 
@@ -242,7 +223,7 @@ export function computeArchitectureDiff(
 }
 
 export function getDiffState(entityId: string, delta: DiffDelta): DiffState {
-  const entityDiffs = [delta.plates, delta.blocks, delta.connections, delta.externalActors];
+  const entityDiffs = [delta.plates, delta.blocks, delta.connections];
 
   if (entityDiffs.some((diff) => diff.added.some((entity) => entity.id === entityId))) {
     return 'added';

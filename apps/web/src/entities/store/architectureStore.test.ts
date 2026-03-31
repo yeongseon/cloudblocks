@@ -127,7 +127,6 @@ function activateDiffState() {
       plates: { added: [], removed: [], modified: [] },
       blocks: { added: [], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
-      externalActors: { added: [], removed: [], modified: [] },
       rootChanges: [],
       summary: { totalChanges: 0, hasBreakingChanges: false },
     },
@@ -1053,41 +1052,6 @@ describe('architectureStore', () => {
       const before = getState().workspace.architecture;
 
       getState().moveBlockPosition('missing-block', 1, 1);
-
-      expect(getState().workspace.architecture).toBe(before);
-    });
-  });
-
-  describe('moveActorPosition', () => {
-    it('moves an external actor by the provided delta', () => {
-      useArchitectureStore.setState({
-        workspace: {
-          ...getState().workspace,
-          architecture: {
-            ...getState().workspace.architecture,
-            externalActors: [
-              {
-                id: 'ext-internet',
-                name: 'Internet',
-                type: 'internet' as const,
-                position: { x: -3, y: 0, z: 5 },
-              },
-            ],
-          },
-        },
-      });
-
-      getState().moveActorPosition('ext-internet', 2.5, -1.5);
-
-      const actors = getState().workspace.architecture.externalActors ?? [];
-      const moved = actors.find((actor) => actor.id === 'ext-internet');
-      expect(moved?.position).toEqual({ x: -0.5, y: 0, z: 3.5 });
-    });
-
-    it('no-ops when moving a non-existent external actor', () => {
-      const before = getState().workspace.architecture;
-
-      getState().moveActorPosition('missing-actor', 1, 1);
 
       expect(getState().workspace.architecture).toBe(before);
     });

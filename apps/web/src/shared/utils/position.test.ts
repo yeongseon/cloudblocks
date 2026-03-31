@@ -1,13 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContainerBlock, ExternalActor, ResourceBlock } from '../types/index';
-import {
-  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-  EXTERNAL_ACTOR_LABEL_POSITION,
-  EXTERNAL_ACTOR_POSITION,
-  getBlockWorldPosition,
-  getEndpointWorldPosition,
-} from './position';
+import type { ContainerBlock, ResourceBlock } from '../types/index';
+import { getBlockWorldPosition, getEndpointWorldPosition } from './position';
 import { GRID_CELL } from './isometric';
 
 function createPlate(id: string): ContainerBlock {
@@ -48,8 +42,6 @@ describe('position utilities', () => {
 
   it('exports expected constants', () => {
     expect(GRID_CELL).toBe(1);
-    expect(EXTERNAL_ACTOR_POSITION).toEqual([-3, 0, 5]);
-    expect(EXTERNAL_ACTOR_LABEL_POSITION).toEqual([-3, 1, 5]);
   });
 
   it('getBlockWorldPosition adds container and block positions with height offsets', () => {
@@ -68,37 +60,9 @@ describe('position utilities', () => {
     const container = createPlate('container-1');
     const block = createBlock('block-1', container.id);
 
-    const endpoint = getEndpointWorldPosition(block.id, [block], [container], []);
+    const endpoint = getEndpointWorldPosition(block.id, [block], [container]);
 
     expect(endpoint).toEqual([14, 4, -5]);
-  });
-
-  it('getEndpointWorldPosition resolves external actor endpoint from actor position', () => {
-    const actor: ExternalActor = {
-      id: 'ext-internet',
-      name: 'Internet',
-      type: 'internet',
-      position: { x: 42, y: 1, z: -7 },
-    };
-
-    const endpoint = getEndpointWorldPosition(actor.id, [], [], [actor]);
-
-    expect(endpoint).toEqual([42, 1 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, -7]);
-  });
-
-  it('falls back to external actor when block exists but parent container is missing', () => {
-    const id = 'shared-id';
-    const block = createBlock(id, 'missing-container');
-    const actor: ExternalActor = {
-      id,
-      name: 'Internet',
-      type: 'internet',
-      position: { x: -2, y: 3, z: 4 },
-    };
-
-    const endpoint = getEndpointWorldPosition(id, [block], [], [actor]);
-
-    expect(endpoint).toEqual([-2, 3 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, 4]);
   });
 
   it('resolves root-level external block endpoints from world coordinates', () => {
@@ -108,9 +72,9 @@ describe('position utilities', () => {
     (rootBlock as ResourceBlock & { roles?: string[] }).roles = ['external'];
     rootBlock.position = { x: 7, y: 3, z: -2 };
 
-    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], [], []);
+    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], []);
 
-    expect(endpoint).toEqual([7, 3 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, -2]);
+    expect(endpoint).toEqual([7, 3, -2]);
   });
 
   it('returns null for non-external root-level blocks with parentId null', () => {
@@ -118,32 +82,16 @@ describe('position utilities', () => {
     const rootBlock = createBlock('orphan-block', null);
     rootBlock.position = { x: 7, y: 3, z: -2 };
 
-    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], [], []);
+    const endpoint = getEndpointWorldPosition(rootBlock.id, [rootBlock], []);
 
     expect(endpoint).toBeNull();
-  });
-
-  it('falls back to default external actor position for legacy actor payloads', () => {
-    const legacyActor = {
-      id: 'ext-legacy',
-      name: 'Internet',
-      type: 'internet',
-    } as unknown as ExternalActor;
-
-    const endpoint = getEndpointWorldPosition(legacyActor.id, [], [], [legacyActor]);
-
-    expect(endpoint).toEqual([
-      EXTERNAL_ACTOR_POSITION[0],
-      EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      EXTERNAL_ACTOR_POSITION[2],
-    ]);
   });
 
   it('returns null when endpoint id cannot be resolved', () => {
     const container = createPlate('container-1');
     const block = createBlock('block-1', container.id);
 
-    const endpoint = getEndpointWorldPosition('unknown-id', [block], [container], []);
+    const endpoint = getEndpointWorldPosition('unknown-id', [block], [container]);
 
     expect(endpoint).toBeNull();
   });

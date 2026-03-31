@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ExternalActor, ResourceBlock } from '@cloudblocks/schema';
+import type { ResourceBlock } from '@cloudblocks/schema';
 import { getEffectiveEndpointType, resolveEndpointSource } from '../endpointResolver';
 
 function makeBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
@@ -18,20 +18,10 @@ function makeBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
   };
 }
 
-function makeActor(overrides: Partial<ExternalActor> = {}): ExternalActor {
-  return {
-    id: 'actor-1',
-    name: 'Internet',
-    type: 'internet',
-    position: { x: -3, y: 0, z: 5 },
-    ...overrides,
-  };
-}
-
 describe('endpointResolver', () => {
   it('resolves resource blocks into normalized endpoint sources', () => {
     const block = makeBlock();
-    const source = resolveEndpointSource(block.id, [block], []);
+    const source = resolveEndpointSource(block.id, [block]);
 
     expect(source).toEqual({
       id: block.id,
@@ -40,20 +30,6 @@ describe('endpointResolver', () => {
       position: block.position,
       parentId: block.parentId,
       isExternal: false,
-    });
-  });
-
-  it('normalizes external actors into root-level endpoint sources', () => {
-    const actor = makeActor({ id: 'internet-1', type: 'internet' });
-    const source = resolveEndpointSource(actor.id, [], [actor]);
-
-    expect(source).toEqual({
-      id: actor.id,
-      category: 'delivery',
-      resourceType: 'internet',
-      position: actor.position,
-      parentId: null,
-      isExternal: true,
     });
   });
 
@@ -80,14 +56,6 @@ describe('endpointResolver', () => {
 });
 
 it('prefers node over actor when IDs collide (post-bridge: node is source of truth)', () => {
-  // Post-bridge: moveExternalBlockPosition() keeps both nodes[] and externalActors[]
-  // in sync, and nodes use proper block geometry for port anchors.
-  // The resolver now prefers the node (ResourceBlock) when both exist.
-  const actor = makeActor({
-    id: 'ext-internet-1',
-    type: 'internet',
-    position: { x: 5, y: 0, z: 10 },
-  });
   const block = makeBlock({
     id: 'ext-internet-1',
     resourceType: 'internet',
@@ -97,10 +65,9 @@ it('prefers node over actor when IDs collide (post-bridge: node is source of tru
     roles: ['external'],
   });
 
-  const source = resolveEndpointSource('ext-internet-1', [block], [actor]);
+  const source = resolveEndpointSource('ext-internet-1', [block]);
 
   expect(source).not.toBeNull();
-  // Must use the node position (x:-3, z:5) — node is source of truth post-bridge
   expect(source!.position).toEqual({ x: -3, y: 0, z: 5 });
   expect(source!.isExternal).toBe(true);
   expect(source!.category).toBe('delivery');
@@ -108,7 +75,7 @@ it('prefers node over actor when IDs collide (post-bridge: node is source of tru
 
 it('falls back to nodes when no matching actor exists', () => {
   const block = makeBlock({ id: 'regular-block', parentId: 'container-1' });
-  const source = resolveEndpointSource('regular-block', [block], []);
+  const source = resolveEndpointSource('regular-block', [block]);
 
   expect(source).not.toBeNull();
   expect(source!.id).toBe('regular-block');
@@ -116,5 +83,5 @@ it('falls back to nodes when no matching actor exists', () => {
 });
 
 it('returns null when ID matches neither nodes nor actors', () => {
-  expect(resolveEndpointSource('nonexistent', [], [])).toBeNull();
+  expect(resolveEndpointSource('nonexistent', [])).toBeNull();
 });

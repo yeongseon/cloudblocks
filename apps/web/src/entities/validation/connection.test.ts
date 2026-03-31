@@ -3,7 +3,6 @@ import type {
   Connection,
   ConnectionType,
   Endpoint,
-  ExternalActor,
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
@@ -52,20 +51,8 @@ function makeConnection(overrides: Partial<Connection> = {}): Connection {
   };
 }
 
-function makeExternalActor(overrides: Partial<ExternalActor> = {}): ExternalActor {
-  return {
-    id: 'actor-internet',
-    name: 'Internet',
-    type: 'internet',
-    ...overrides,
-    position: { x: -3, y: 0, z: 5 },
-  };
-}
-
-function makeEndpoints(blocks: ResourceBlock[], actors: ExternalActor[] = []): Endpoint[] {
-  return [...blocks.map((block) => block.id), ...actors.map((actor) => actor.id)].flatMap((id) =>
-    generateEndpointsForBlock(id),
-  );
+function makeEndpoints(blocks: ResourceBlock[]): Endpoint[] {
+  return blocks.flatMap((block) => generateEndpointsForBlock(block.id));
 }
 
 describe('validateConnection', () => {
@@ -77,7 +64,7 @@ describe('validateConnection', () => {
     });
     const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toEqual({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-source',
       severity: 'error',
       message: 'Connection source "missing-source" not found',
@@ -94,7 +81,7 @@ describe('validateConnection', () => {
     });
     const blocks = [makeBlock({ id: 'gateway-1', category: 'delivery' })];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toEqual({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-target',
       severity: 'error',
       message: 'Connection target "missing-target" not found',
@@ -111,26 +98,13 @@ describe('validateConnection', () => {
     });
     const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toEqual({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-self',
       severity: 'error',
       message: 'A node cannot connect to itself',
       suggestion: 'Connect to a different node',
       targetId: 'conn-self',
     });
-  });
-
-  it('accepts valid internet -> gateway connection', () => {
-    const connection = makeConnection({
-      from: endpointId('internet-1', 'output', 'data'),
-      to: endpointId('gateway-1', 'input', 'data'),
-    });
-    const blocks = [makeBlock({ id: 'gateway-1', category: 'delivery' })];
-    const actors = [makeExternalActor({ id: 'internet-1' })];
-
-    expect(
-      validateConnection(connection, makeEndpoints(blocks, actors), blocks, actors),
-    ).toBeNull();
   });
 
   it('accepts valid gateway -> compute connection', () => {
@@ -143,7 +117,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid compute -> database connection', () => {
@@ -156,7 +130,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid compute -> storage connection', () => {
@@ -169,7 +143,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'storage-1', category: 'data' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid compute -> analytics connection', () => {
@@ -182,7 +156,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'analytics-1', category: 'operations' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid compute -> identity connection', () => {
@@ -195,7 +169,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'identity-1', category: 'security' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid compute -> observability connection', () => {
@@ -208,7 +182,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'observability-1', category: 'operations' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('rejects invalid connection pairs with rule-conn-invalid', () => {
@@ -218,14 +192,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'db-1', category: 'data' }),
       makeBlock({ id: 'storage-1', category: 'data' }),
     ];
-    const actors = [makeExternalActor({ id: 'internet-1' })];
-
     const invalidConnections: Connection[] = [
-      makeConnection({
-        id: 'conn-invalid-1',
-        from: endpointId('internet-1', 'output', 'data'),
-        to: endpointId('compute-1', 'input', 'data'),
-      }),
       makeConnection({
         id: 'conn-invalid-2',
         from: endpointId('gateway-1', 'output', 'data'),
@@ -244,7 +211,7 @@ describe('validateConnection', () => {
     ];
 
     for (const connection of invalidConnections) {
-      const error = validateConnection(connection, makeEndpoints(blocks, actors), blocks, actors);
+      const error = validateConnection(connection, makeEndpoints(blocks), blocks);
       expect(error).toBeTruthy();
       expect(error).toMatchObject({
         ruleId: 'rule-conn-invalid',
@@ -272,36 +239,17 @@ describe('validateConnection', () => {
       to: endpointId('compute-1', 'input', 'data'),
     });
 
-    expect(validateConnection(dbAsSource, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(dbAsSource, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Invalid connection: data → compute',
       suggestion: 'data cannot initiate a request to compute',
       targetId: 'conn-db-source',
     });
-    expect(validateConnection(storageAsSource, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(storageAsSource, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Invalid connection: data → compute',
       suggestion: 'data cannot initiate a request to compute',
       targetId: 'conn-storage-source',
-    });
-  });
-
-  it('uses external actor type for target endpoint resolution', () => {
-    const connection = makeConnection({
-      id: 'conn-compute-to-internet',
-      from: endpointId('compute-1', 'output', 'data'),
-      to: endpointId('internet-1', 'input', 'data'),
-    });
-    const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
-    const actors = [makeExternalActor({ id: 'internet-1' })];
-
-    expect(
-      validateConnection(connection, makeEndpoints(blocks, actors), blocks, actors),
-    ).toMatchObject({
-      ruleId: 'rule-conn-invalid',
-      message: 'Invalid connection: compute → internet',
-      suggestion: 'compute cannot initiate a request to internet',
-      targetId: 'conn-compute-to-internet',
     });
   });
 
@@ -320,7 +268,7 @@ describe('validateConnection', () => {
       to: orphanEndpoint.id,
     });
 
-    expect(validateConnection(connection, endpoints, blocks, [])).toMatchObject({
+    expect(validateConnection(connection, endpoints, blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Connection endpoints must belong to existing nodes',
       targetId: 'conn-orphan-endpoint',
@@ -338,7 +286,7 @@ describe('validateConnection', () => {
       to: endpointId('compute-1', 'input', 'data'),
     });
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Source endpoint must have output direction',
       targetId: 'conn-source-input',
@@ -356,7 +304,7 @@ describe('validateConnection', () => {
       to: endpointId('compute-1', 'output', 'data'),
     });
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Target endpoint must have input direction',
       targetId: 'conn-target-output',
@@ -374,7 +322,7 @@ describe('validateConnection', () => {
       to: endpointId('compute-1', 'input', 'data'),
     });
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Source and target endpoints must have matching semantics',
       targetId: 'conn-semantic-mismatch',
@@ -392,7 +340,7 @@ describe('validateConnection', () => {
       to: endpointId('data-1', 'input', 'event'),
     });
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       message: 'Invalid semantic for compute → data: event',
       suggestion: 'Use a valid semantic for compute → data',
@@ -410,7 +358,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid function -> storage connection', () => {
@@ -423,7 +371,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'storage-1', category: 'data' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid function -> database connection', () => {
@@ -436,7 +384,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid function -> queue connection', () => {
@@ -449,7 +397,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'queue-1', category: 'messaging' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid queue -> function connection', () => {
@@ -462,7 +410,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('accepts valid event -> function connection', () => {
@@ -475,7 +423,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('rejects invalid function -> gateway connection', () => {
@@ -489,7 +437,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'gateway-1', category: 'delivery' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-func-gw',
     });
@@ -506,7 +454,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-func-compute',
     });
@@ -523,7 +471,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toBeNull();
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toBeNull();
   });
 
   it('rejects invalid event -> database connection', () => {
@@ -537,7 +485,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-event-db',
     });
@@ -554,7 +502,7 @@ describe('validateConnection', () => {
       makeBlock({ id: 'queue-2', category: 'messaging' }),
     ];
 
-    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-queue-queue',
     });

@@ -64,7 +64,7 @@ const publicSubnet: ContainerBlock = {
 
 describe('SidebarPalette', () => {
   const addNodeMock = vi.fn();
-  const addExternalActorMock = vi.fn();
+  const addExternalBlockMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -77,7 +77,7 @@ describe('SidebarPalette', () => {
 
     useArchitectureStore.setState({
       addNode: addNodeMock,
-      addExternalActor: addExternalActorMock,
+      addExternalBlock: addExternalBlockMock,
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
@@ -224,8 +224,8 @@ describe('SidebarPalette', () => {
     await user.click(screen.getByTitle('Add Internet'));
     await user.click(screen.getByTitle('Add Browser'));
 
-    expect(addExternalActorMock).toHaveBeenNthCalledWith(1, 'internet');
-    expect(addExternalActorMock).toHaveBeenNthCalledWith(2, 'browser');
+    expect(addExternalBlockMock).toHaveBeenNthCalledWith(1, 'internet');
+    expect(addExternalBlockMock).toHaveBeenNthCalledWith(2, 'browser');
   });
 
   describe('starter/advanced tier toggle', () => {

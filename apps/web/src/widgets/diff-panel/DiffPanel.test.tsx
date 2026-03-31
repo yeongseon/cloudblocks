@@ -174,45 +174,9 @@ function makeDiffDelta(): DiffDelta {
         },
       ],
     },
-    externalActors: {
-      added: [
-        {
-          id: 'actor-added-1',
-          name: 'Internet',
-          type: 'internet',
-          position: { x: -3, y: 0, z: 5 },
-        },
-      ],
-      removed: [
-        {
-          id: 'actor-removed-1',
-          name: 'Legacy Partner',
-          type: 'internet',
-          position: { x: -3, y: 0, z: 5 },
-        },
-      ],
-      modified: [
-        {
-          id: 'actor-modified-1',
-          before: {
-            id: 'actor-modified-1',
-            name: 'Payment Gateway',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
-          after: {
-            id: 'actor-modified-1',
-            name: 'Payments API',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
-          changes: [{ path: 'name', oldValue: 'Payment Gateway', newValue: 'Payments API' }],
-        },
-      ],
-    },
     rootChanges: [],
     summary: {
-      totalChanges: 12,
+      totalChanges: 9,
       hasBreakingChanges: true,
     },
   };
@@ -250,9 +214,6 @@ describe('DiffPanel', () => {
     delta.connections.added = [];
     delta.connections.removed = [];
     delta.connections.modified = [];
-    delta.externalActors.added = [];
-    delta.externalActors.removed = [];
-    delta.externalActors.modified = [];
 
     useUIStore.setState({ diffDelta: delta });
 
@@ -262,9 +223,9 @@ describe('DiffPanel', () => {
 
   it('shows summary counts correctly', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('+4 added')).toBeInTheDocument();
-    expect(screen.getByText('~4 modified')).toBeInTheDocument();
-    expect(screen.getByText('-4 removed')).toBeInTheDocument();
+    expect(screen.getByText('+3 added')).toBeInTheDocument();
+    expect(screen.getByText('~3 modified')).toBeInTheDocument();
+    expect(screen.getByText('-3 removed')).toBeInTheDocument();
   });
 
   it('shows breaking changes warning when hasBreakingChanges is true', () => {
@@ -322,10 +283,7 @@ describe('DiffPanel', () => {
       delta.blocks.modified.length +
       delta.connections.added.length +
       delta.connections.removed.length +
-      delta.connections.modified.length +
-      delta.externalActors.added.length +
-      delta.externalActors.removed.length +
-      delta.externalActors.modified.length;
+      delta.connections.modified.length;
 
     useUIStore.setState({ diffDelta: delta });
     render(<DiffPanel />);
@@ -359,9 +317,6 @@ describe('DiffPanel', () => {
     delta.connections.added = [];
     delta.connections.removed = [];
     delta.connections.modified = [];
-    delta.externalActors.added = [];
-    delta.externalActors.removed = [];
-    delta.externalActors.modified = [];
     delta.blocks.added = [];
     delta.blocks.removed = [];
     delta.blocks.modified = [
@@ -474,10 +429,7 @@ describe('DiffPanel', () => {
       delta.blocks.modified.length +
       delta.connections.added.length +
       delta.connections.removed.length +
-      delta.connections.modified.length +
-      delta.externalActors.added.length +
-      delta.externalActors.removed.length +
-      delta.externalActors.modified.length;
+      delta.connections.modified.length;
     useUIStore.setState({ diffDelta: delta });
 
     render(<DiffPanel />);
@@ -552,15 +504,12 @@ describe('DiffPanel', () => {
       ],
       connections: [{ id: 'c1' }, { id: 'c2' }, { id: 'c3' }] as ArchitectureModel['connections'],
       endpoints: [],
-      externalActors: [{ id: 'a1' }] as ArchitectureModel['externalActors'],
       createdAt: '',
       updatedAt: '',
     };
     useUIStore.setState({ diffBaseArchitecture: remoteArch });
     render(<DiffPanel />);
-    expect(
-      screen.getByText('Remote: 2 containers · 1 nodes · 3 connections · 1 actors'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Remote: 2 containers · 1 nodes · 3 connections')).toBeInTheDocument();
   });
 
   it('hides remote summary when diffBaseArchitecture is null (#879)', () => {

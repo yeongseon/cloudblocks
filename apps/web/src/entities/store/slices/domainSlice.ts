@@ -3,7 +3,6 @@ import type {
   Connection,
   ContainerCapableResourceType,
   ContainerBlock,
-  ExternalActor,
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
@@ -60,10 +59,8 @@ type DomainSlice = Pick<
   | 'setPlateProfile'
   | 'movePlatePosition'
   | 'moveBlockPosition'
-  | 'moveActorPosition'
   | 'moveExternalBlockPosition'
-  | 'addExternalActor'
-  | 'removeExternalActor'
+  | 'addExternalBlock'
   | 'addExternalBlock'
   | 'addConnection'
   | 'removeConnection'
@@ -844,23 +841,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
-      // Update externalActors[] in the same history write
-      const currentActors = arch.externalActors ?? [];
-      const externalActors: ExternalActor[] = currentActors.map((candidate) => {
-        if (candidate.id !== id) {
-          return candidate;
-        }
-        return {
-          ...candidate,
-          position: {
-            x: candidate.position.x + deltaX,
-            y: candidate.position.y,
-            z: candidate.position.z + deltaZ,
-          },
-        };
-      });
-
-      return withHistory(state, { ...arch, nodes, externalActors });
+      return withHistory(state, { ...arch, nodes });
     });
   },
 
@@ -892,85 +873,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     }
   },
 
-  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
-  moveActorPosition: (id, deltaX, deltaZ) => {
-    set((state) => {
-      const arch = state.workspace.architecture;
-      const currentActors = arch.externalActors ?? [];
-      const actor = currentActors.find((candidate) => candidate.id === id);
-
-      if (!actor) {
-        return state;
-      }
-
-      const externalActors: ExternalActor[] = currentActors.map((candidate) => {
-        if (candidate.id !== id) {
-          return candidate;
-        }
-
-        return {
-          ...candidate,
-          position: {
-            x: candidate.position.x + deltaX,
-            y: candidate.position.y,
-            z: candidate.position.z + deltaZ,
-          },
-        };
-      });
-
-      return withHistory(state, { ...arch, externalActors });
-    });
-  },
-
-  /** @deprecated — will be removed in #1540. Writes to externalActors[] for rendering bridge. */
-  addExternalActor: (type, position) => {
-    set((state) => {
-      const arch = state.workspace.architecture;
-      const currentActors = arch.externalActors ?? [];
-      const actorSuffix = generateId('ext').slice(4);
-      const newActor: ExternalActor = {
-        id: `ext-${type}-${actorSuffix}`,
-        name: type === 'internet' ? 'Internet' : 'Browser',
-        type,
-        position: position ?? { x: -3, y: 0, z: -3 },
-      };
-      return withHistory(state, { ...arch, externalActors: [...currentActors, newActor] });
-    });
-  },
-
-  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
-  removeExternalActor: (id) => {
-    set((state) => {
-      const arch = state.workspace.architecture;
-      const currentActors = arch.externalActors ?? [];
-      const externalActors = currentActors.filter((actor) => actor.id !== id);
-      const connections = arch.connections.filter(
-        (connection) =>
-          connection.metadata['sourceId'] !== id && connection.metadata['targetId'] !== id,
-      );
-      return withHistory(state, { ...arch, externalActors, connections });
-    });
-  },
-
   addConnection: (from, to) => {
     const arch = get().workspace.architecture;
 
-    // Resolve source and target from nodes[] (new path) or externalActors[] (legacy bridge)
+    // Resolve source and target from nodes[]
     const resources = arch.nodes.filter(isResource);
     const sourceBlock = resources.find((block) => block.id === from);
     const targetBlock = resources.find((block) => block.id === to);
-    const sourceActor = (arch.externalActors ?? []).find((actor) => actor.id === from);
-    const targetActor = (arch.externalActors ?? []).find((actor) => actor.id === to);
-    const sourceActorType: EndpointType | null =
-      sourceActor?.type === 'internet' || sourceActor?.type === 'browser' ? sourceActor.type : null;
-    const targetActorType: EndpointType | null =
-      targetActor?.type === 'internet' || targetActor?.type === 'browser' ? targetActor.type : null;
     const sourceType: EndpointType | null = sourceBlock
       ? getEffectiveEndpointType(sourceBlock)
-      : sourceActorType;
+      : null;
     const targetType: EndpointType | null = targetBlock
       ? getEffectiveEndpointType(targetBlock)
-      : targetActorType;
+      : null;
 
     if (!sourceType || !targetType) {
       return false;
@@ -1000,14 +915,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return false;
     }
 
-    // Verify endpoints exist (skip for external actors which may not have stored endpoints)
+    // Verify endpoints exist
     const sourceEndpoint = arch.endpoints.find((endpoint) => endpoint.id === fromEndpointId);
     const targetEndpoint = arch.endpoints.find((endpoint) => endpoint.id === toEndpointId);
 
-    if (!sourceEndpoint && !sourceActor) {
+    if (!sourceEndpoint) {
       return false;
     }
-    if (!targetEndpoint && !targetActor) {
+    if (!targetEndpoint) {
       return false;
     }
 

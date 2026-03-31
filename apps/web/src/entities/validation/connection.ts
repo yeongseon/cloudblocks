@@ -3,7 +3,6 @@ import type {
   ConnectionType,
   Endpoint,
   EndpointSemantic,
-  ExternalActor,
   Block,
   ResourceBlock,
 } from '@cloudblocks/schema';
@@ -80,7 +79,6 @@ export function validateConnection(
   connection: Connection,
   endpoints: Endpoint[],
   nodes: Block[],
-  externalActors: ExternalActor[] = [],
 ): ValidationError | null {
   const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
   if (!fromEndpoint) {
@@ -119,8 +117,8 @@ export function validateConnection(
   }
 
   const resourceNodes = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
-  const fromSource = resolveEndpointSource(fromEndpoint.blockId, resourceNodes, externalActors);
-  const toSource = resolveEndpointSource(toEndpoint.blockId, resourceNodes, externalActors);
+  const fromSource = resolveEndpointSource(fromEndpoint.blockId, resourceNodes);
+  const toSource = resolveEndpointSource(toEndpoint.blockId, resourceNodes);
   const fromType: EndpointType | null = fromSource ? getEffectiveEndpointType(fromSource) : null;
   const toType: EndpointType | null = toSource ? getEffectiveEndpointType(toSource) : null;
 
@@ -196,15 +194,14 @@ export function validateConnection(
 export function validatePortIndices(
   connection: Connection,
   nodes: Block[],
-  externalActors: ExternalActor[] = [],
 ): ValidationError | null {
   const fromParsed = parseEndpointId(connection.from);
   const toParsed = parseEndpointId(connection.to);
   if (!fromParsed || !toParsed) return null;
 
   const resourceNodes = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
-  const fromSource = resolveEndpointSource(fromParsed.blockId, resourceNodes, externalActors);
-  const toSource = resolveEndpointSource(toParsed.blockId, resourceNodes, externalActors);
+  const fromSource = resolveEndpointSource(fromParsed.blockId, resourceNodes);
+  const toSource = resolveEndpointSource(toParsed.blockId, resourceNodes);
 
   if (fromSource) {
     const fromType = getEffectiveEndpointType(fromSource);

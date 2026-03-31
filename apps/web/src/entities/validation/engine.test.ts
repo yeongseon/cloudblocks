@@ -3,7 +3,6 @@ import type {
   ArchitectureModel,
   Connection,
   ContainerBlock,
-  ExternalActor,
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
@@ -54,13 +53,20 @@ function makeConnection(overrides: Partial<Connection> = {}): Connection {
   };
 }
 
-function makeExternalActor(overrides: Partial<ExternalActor> = {}): ExternalActor {
+function makeExternalBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
   return {
     id: 'internet-1',
     name: 'Internet',
-    type: 'internet',
-    ...overrides,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'internet',
+    category: 'delivery',
+    provider: 'azure',
+    parentId: null,
     position: { x: -3, y: 0, z: 5 },
+    metadata: {},
+    roles: ['external'],
+    ...overrides,
   };
 }
 
@@ -104,12 +110,12 @@ describe('validateArchitecture', () => {
     const database = makeBlock({ id: 'database-1', category: 'data', placementId: 'subnet-2' });
     const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-2' });
 
-    const internet = makeExternalActor({ id: 'internet-1' });
+    const internet = makeExternalBlock({ id: 'internet-1' });
 
     const model = makeModel({
       plates: [subnet1, subnet2],
-      blocks: [gateway, compute, database, storage],
-      externalActors: [internet],
+      blocks: [gateway, compute, database, storage, internet],
+      externalActors: [],
       connections: [
         makeConnection({
           id: 'conn-1',

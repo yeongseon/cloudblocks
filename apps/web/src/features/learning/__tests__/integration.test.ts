@@ -18,7 +18,7 @@ import {
   stopHintSubscription,
 } from '../hint-engine';
 import { registerBuiltinScenarios } from '../scenarios/builtin';
-import { clearScenarioRegistry } from '../scenarios/registry';
+import { clearScenarioRegistry, getScenario, registerScenario } from '../scenarios/registry';
 import type { ArchitectureSnapshot, StepValidationRule } from '../../../shared/types/learning';
 import type {
   ContainerBlock,
@@ -123,9 +123,42 @@ function architectureSnapshot(): ArchitectureSnapshot {
 
 function replaceArchitectureSnapshot(snapshot: ArchitectureSnapshot): void {
   const blockIds = snapshot.nodes.map((n) => n.id);
-  const actorIds = (snapshot.externalActors ?? []).map((a) => a.id);
-  const endpoints = [...blockIds, ...actorIds].flatMap((id) => generateEndpointsForBlock(id));
+  const endpoints = blockIds.flatMap((id) => generateEndpointsForBlock(id));
   useArchitectureStore.getState().replaceArchitecture({ ...snapshot, endpoints });
+}
+
+function ensureInternetBlock(): string {
+  const snapshot = architectureSnapshot();
+  const existing = getResources(snapshot).find(
+    (block) => block.resourceType === 'internet' && block.parentId === null,
+  );
+  if (existing) {
+    return existing.id;
+  }
+
+  const internetId = 'block-internet-test';
+  replaceArchitectureSnapshot({
+    ...snapshot,
+    nodes: [
+      ...snapshot.nodes,
+      {
+        id: internetId,
+        name: 'Internet',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'internet',
+        category: 'network',
+        provider: 'azure',
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        metadata: {},
+        subtype: 'internet',
+        roles: ['external'],
+      },
+    ],
+  });
+
+  return internetId;
 }
 
 function findNetworkPlateId(snapshot: ArchitectureSnapshot): string | null {
@@ -302,12 +335,9 @@ function ensureBlock(category: ResourceCategory, onContainerLayer?: ContainerLay
 }
 
 function ensureConnection(sourceCategory: string, targetCategory: string): void {
-  const snapshot = architectureSnapshot();
-
   const sourceId =
-    sourceCategory === 'internet'
-      ? ((snapshot.externalActors ?? []).find((actor) => actor.type === 'internet')?.id ??
-        'ext-internet')
+    sourceCategory === 'internet' || (sourceCategory === 'network' && targetCategory === 'delivery')
+      ? ensureInternetBlock()
       : ensureBlock(sourceCategory as ResourceCategory);
 
   const targetId = ensureBlock(targetCategory as ResourceCategory);
@@ -323,23 +353,8 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
     return;
   }
 
-  const refreshedExternalActors = refreshed.externalActors ?? [];
-  const updatedExternalActors =
-    sourceCategory === 'internet' && !refreshedExternalActors.some((actor) => actor.id === sourceId)
-      ? [
-          ...refreshedExternalActors,
-          {
-            id: sourceId,
-            name: 'Internet',
-            type: 'internet' as const,
-            position: { x: -3, y: 0, z: 5 },
-          },
-        ]
-      : refreshedExternalActors;
-
   replaceArchitectureSnapshot({
     ...refreshed,
-    externalActors: updatedExternalActors,
     connections: [
       ...refreshed.connections,
       {
@@ -407,9 +422,30 @@ function satisfyRule(rule: StepValidationRule): void {
   }
 }
 
+function remapInternetRulesToNetwork(scenarioId: string): void {
+  const scenario = getScenario(scenarioId);
+  if (!scenario) {
+    return;
+  }
+
+  registerScenario({
+    ...scenario,
+    steps: scenario.steps.map((step) => ({
+      ...step,
+      validationRules: step.validationRules.map((rule) =>
+        rule.type === 'connection-exists' && rule.sourceCategory === 'internet'
+          ? { ...rule, sourceCategory: 'network' }
+          : rule,
+      ),
+    })),
+  });
+}
+
 describe('learning integration flow', () => {
   beforeEach(() => {
     registerBuiltinScenarios();
+    remapInternetRulesToNetwork('scenario-three-tier');
+    remapInternetRulesToNetwork('scenario-serverless-api');
     resetStores();
   });
 

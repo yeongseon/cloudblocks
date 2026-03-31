@@ -10,7 +10,6 @@ import type { SoundName } from '../../shared/utils/audioService';
 import { ContainerBlockSprite } from '../../entities/container-block/ContainerBlockSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
-import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
@@ -31,11 +30,6 @@ export function SceneCanvas() {
     (b) =>
       b.parentId === null &&
       (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
-  );
-  // Filter out externalActors that have a matching node (to avoid double rendering)
-  const rootExternalBlockIds = new Set(rootExternalBlocks.map((b) => b.id));
-  const externalActors = (architecture.externalActors ?? []).filter(
-    (actor) => !rootExternalBlockIds.has(actor.id),
   );
   const addNode = useArchitectureStore((s) => s.addNode);
   const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
@@ -279,23 +273,6 @@ export function SceneCanvas() {
             />
           </g>
         </svg>
-
-        <div className="actor-layer">
-          {externalActors.map((actor) => {
-            const { x, y, z } = actor.position;
-            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
-            const zIndex = depthKey(x, z, y, 1);
-            return (
-              <ExternalActorSprite
-                key={actor.id}
-                actor={actor}
-                screenX={screenPos.x}
-                screenY={screenPos.y}
-                zIndex={zIndex}
-              />
-            );
-          })}
-        </div>
 
         <div className="block-layer">
           {containerBlocks.map((block) => {

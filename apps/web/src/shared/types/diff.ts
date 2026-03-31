@@ -1,7 +1,7 @@
 // Architecture Diff Types — Milestone 7
 // ⚠️ MUST be in shared/types/ (FSD: entities layer imports these)
 
-import type { Connection, ContainerBlock, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
+import type { Connection, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 
 export interface EntityDiff<T> {
   added: T[];
@@ -20,7 +20,6 @@ export interface DiffDelta {
   plates: EntityDiff<ContainerBlock>;
   blocks: EntityDiff<ResourceBlock>;
   connections: EntityDiff<Connection>;
-  externalActors: EntityDiff<ExternalActor>;
   rootChanges: PropertyChange[];
   summary: {
     totalChanges: number;

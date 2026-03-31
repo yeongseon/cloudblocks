@@ -92,17 +92,8 @@ export interface ArchitectureState {
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
-  /** @deprecated Use moveNodePosition(id, dx, dz) — will be removed in #1540 */
-  moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** Bridge action: move root external block in both nodes[] and externalActors[] atomically */
   moveExternalBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
-  /** @deprecated Use addExternalBlock(type, position) — will be removed in #1540 */
-  addExternalActor: (
-    type: 'internet' | 'browser',
-    position?: { x: number; y: number; z: number },
-  ) => void;
-  /** @deprecated Use removeNode(id) — will be removed in #1540 */
-  removeExternalActor: (id: string) => void;
   addExternalBlock: (
     type: 'internet' | 'browser',
     position?: { x: number; y: number; z: number },

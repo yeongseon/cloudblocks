@@ -41,7 +41,6 @@ const emptyArch: ArchitectureModel = {
   nodes: [],
   connections: [],
   endpoints: [],
-  externalActors: [],
   createdAt: '',
   updatedAt: '',
 };
@@ -632,7 +631,6 @@ describe('MenuBar', () => {
           nodes: [],
           connections: [],
           endpoints: [],
-          externalActors: [],
         },
       },
       progress: {
@@ -702,7 +700,6 @@ describe('MenuBar', () => {
         plates: { added: [], removed: [], modified: [] },
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
-        externalActors: { added: [], removed: [], modified: [] },
         rootChanges: [],
         summary: { totalChanges: 0, hasBreakingChanges: false },
       },

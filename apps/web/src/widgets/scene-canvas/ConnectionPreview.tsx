@@ -3,14 +3,11 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { worldToScreen } from '../../shared/utils/isometric';
-import {
-  getBlockWorldPosition,
-  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-} from '../../shared/utils/position';
+import { getBlockWorldPosition } from '../../shared/utils/position';
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
-import type { ExternalActor, ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
+import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../entities/validation/connection';
@@ -27,16 +24,11 @@ interface Point {
 
 const MAGNETIC_SNAP_THRESHOLD_PX = 40;
 
-const EMPTY_ACTORS: ExternalActor[] = [];
-
 export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
   const setMagneticSnapTarget = useUIStore((s) => s.setMagneticSnapTarget);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const externalActors = useArchitectureStore(
-    (s) => s.workspace.architecture.externalActors ?? EMPTY_ACTORS,
-  );
   const blocks = useMemo(
     () => nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [nodes],
@@ -54,10 +46,8 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
     if (!connectionSource) return null;
     const sourceBlock = blocks.find((b) => b.id === connectionSource);
     if (sourceBlock) return sourceBlock.category;
-    const sourceActor = externalActors.find((a) => a.id === connectionSource);
-    if (sourceActor) return sourceActor.type;
     return null;
-  }, [blocks, connectionSource, externalActors]);
+  }, [blocks, connectionSource]);
 
   const validTargetAnchors = useMemo(() => {
     if (!connectionSource || !sourceEndpointType) return [];
@@ -179,20 +169,32 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       return { x: screen.x + PORT_OUT_PX, y: screen.y };
     }
 
-    const sourceExternalActor = externalActors.find((actor) => actor.id === connectionSource);
+    const sourceExternalActor = blocks.find(
+      (b) =>
+        b.id === connectionSource &&
+        b.parentId === null &&
+        (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
+    );
     if (!sourceExternalActor) {
       return null;
     }
 
-    const { x: worldX, y: worldY, z: worldZ } = sourceExternalActor.position;
-    return worldToScreen(
-      worldX,
-      worldY + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      worldZ,
-      originX,
-      originY,
+    const worldPos: [number, number, number] = [
+      sourceExternalActor.position.x,
+      sourceExternalActor.position.y,
+      sourceExternalActor.position.z,
+    ];
+    const cu = getBlockDimensions(
+      sourceExternalActor.category,
+      sourceExternalActor.provider,
+      sourceExternalActor.subtype,
     );
-  }, [blocks, connectionSource, externalActors, interactionState, originX, originY, plates]);
+    const anchors = getBlockWorldAnchors(worldPos, cu);
+    const ports = CATEGORY_PORTS[sourceExternalActor.category];
+    const portWorld = anchors.port('outbound', 0, ports.outbound);
+    const screen = worldToScreen(portWorld[0], portWorld[1], portWorld[2], originX, originY);
+    return { x: screen.x + PORT_OUT_PX, y: screen.y };
+  }, [blocks, connectionSource, interactionState, originX, originY, plates]);
 
   useEffect(() => {
     if (!sourceScreen) {
