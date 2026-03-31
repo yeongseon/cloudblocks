@@ -1314,3 +1314,89 @@ describe('serialize — strips externalActors', () => {
     expect(parsed.workspaces[0].id).toBe('ws-1');
   });
 });
+
+it('preserves legacy connection type into metadata.type during v3→v4 migration', () => {
+  const legacyData = {
+    schemaVersion: '3.0.0',
+    workspaces: [
+      {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
+          id: 'arch-1',
+          name: 'Test',
+          version: '1',
+          plates: [
+            {
+              id: 'container-1',
+              name: 'VNet',
+              type: 'region',
+              parentId: null,
+              children: ['block-1', 'block-2'],
+              position: { x: 0, y: 0, z: 0 },
+              size: { width: 16, height: 0.7, depth: 20 },
+              metadata: {},
+            },
+          ],
+          blocks: [
+            {
+              id: 'block-1',
+              name: 'App',
+              category: 'compute',
+              placementId: 'container-1',
+              position: { x: 1, y: 0.5, z: 1 },
+              metadata: {},
+            },
+            {
+              id: 'block-2',
+              name: 'DB',
+              category: 'data',
+              placementId: 'container-1',
+              position: { x: 3, y: 0.5, z: 3 },
+              metadata: {},
+            },
+          ],
+          connections: [
+            {
+              id: 'conn-http',
+              sourceId: 'block-1',
+              targetId: 'block-2',
+              type: 'http',
+            },
+            {
+              id: 'conn-async',
+              sourceId: 'block-2',
+              targetId: 'block-1',
+              type: 'async',
+            },
+            {
+              id: 'conn-data',
+              sourceId: 'block-1',
+              targetId: 'block-2',
+              type: 'data',
+            },
+          ],
+          endpoints: [],
+          externalActors: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  };
+
+  const result = deserialize(JSON.stringify(legacyData));
+  const connections = result[0].architecture.connections;
+
+  // Each legacy connection.type should be preserved in metadata.type
+  const httpConn = connections.find((c) => c.id === 'conn-http');
+  expect(httpConn?.metadata).toEqual({ type: 'http' });
+
+  const asyncConn = connections.find((c) => c.id === 'conn-async');
+  expect(asyncConn?.metadata).toEqual({ type: 'async' });
+
+  const dataConn = connections.find((c) => c.id === 'conn-data');
+  expect(dataConn?.metadata).toEqual({ type: 'data' });
+});

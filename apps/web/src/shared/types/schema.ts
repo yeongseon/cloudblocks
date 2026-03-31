@@ -207,7 +207,9 @@ function migrateConnectionsToV4(connections: unknown): ArchitectureModel['connec
         id: connection.id || `conn-${index}`,
         from: endpointId(connection.sourceId, 'output', semantic),
         to: endpointId(connection.targetId, 'input', semantic),
-        metadata: isRecord(connection.metadata) ? connection.metadata : {},
+        metadata: (isRecord(connection.metadata)
+          ? { ...connection.metadata, type: connection.type }
+          : { type: connection.type }) as Record<string, unknown>,
       };
     })
     .filter(

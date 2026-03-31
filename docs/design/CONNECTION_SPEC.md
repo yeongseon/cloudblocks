@@ -738,3 +738,70 @@ export const SAME_PX_TOLERANCE = 2; // alignment detection
 - [ ] No "pillar through block" artifacts — correct depth ordering
 - [x] All existing interactions preserved (select, hover, delete, diff)
 - [x] Tests pass, lint clean, build succeeds
+
+---
+
+## 13. Typed Connection Visuals (M35)
+
+**Date**: 2026-03-31
+**Related issue**: #1556 (sub-issue of Epic #1554)
+**Status**: Active
+
+### 13.1 Motivation
+
+Prior to this change, all 5 connection types rendered with the same stroke width and solid lines — they were visually distinguished only by color. This made connections hard to identify when colors were similar or when users are color-blind. §13 introduces **per-type stroke widths and dash patterns** as an additional visual channel.
+
+### 13.2 Visual Token Module
+
+A new shared token module (`shared/tokens/connectionVisualTokens.ts`) serves as the single source of truth for connection visual styles:
+
+| ConnectionType | strokeWidth | strokeDasharray   | Visual         |
+| -------------- | ----------- | ----------------- | -------------- |
+| `dataflow`     | 2px         | _(solid)_         | Default flow   |
+| `http`         | 3px         | _(solid)_         | Thicker line   |
+| `internal`     | 2px         | `4 4`             | Short dash     |
+| `data`         | 2px         | `8 4`             | Long dash      |
+| `async`        | 2px         | `8 4 2 4`         | Dot-dash       |
+
+### 13.3 Width Formulas
+
+The renderer computes widths dynamically from the token:
+
+```
+innerWidth  = isHighlighted ? style.strokeWidth + 1 : style.strokeWidth
+casingWidth = isHighlighted ? style.strokeWidth + 3 : style.strokeWidth + 2
+selectionOutline = casingWidth + 2
+```
+
+Constants: `CASING_WIDTH_OFFSET = 2`, `HOVER_WIDTH_OFFSET = 1`.
+
+### 13.4 Runtime Type Resolution
+
+The renderer resolves `connection.metadata.type` with a runtime guard:
+
+```typescript
+const rawType = connection.metadata?.type;
+const connectionType: ConnectionType | undefined =
+  typeof rawType === 'string' && rawType in CONNECTION_VISUAL_STYLES
+    ? (rawType as ConnectionType) : undefined;
+const visualStyle = resolveConnectionVisualStyle(connectionType);
+```
+
+Unrecognized or missing types fall back to `dataflow` (solid, 2px).
+
+### 13.5 Legacy Data Compatibility
+
+Legacy v3 connections (`sourceId`/`targetId`/`type` format) now preserve `connection.type` into `metadata.type` during both:
+
+- **Schema migration** (`shared/types/schema.ts` — `migrateConnectionsToV4`)
+- **Import path** (`entities/store/slices/persistenceSlice.ts` — `importArchitecture`)
+
+This ensures legacy connections render with their original typed visuals after migration.
+
+### 13.6 Draw-in Animation
+
+During the draw-in animation, an inline `style.strokeDasharray` temporarily overrides the SVG attribute. On `animationend`, the inline style is cleared, allowing the SVG `strokeDasharray` attribute (set from the visual token) to take effect.
+
+### 13.7 Module Boundary
+
+The `CONNECTION_VISUAL_STYLES` record and `resolveConnectionVisualStyle()` helper live in `shared/tokens/` alongside other design tokens. The `entities/validation/connection.ts` module re-exports them for backward compatibility.

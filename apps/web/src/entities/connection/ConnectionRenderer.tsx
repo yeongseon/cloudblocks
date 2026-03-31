@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Connection,
+  ConnectionType,
   ContainerBlock,
   Endpoint,
   EndpointSemantic,
@@ -12,15 +13,17 @@ import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import {
-  TRACE_STROKE_PX,
-  TRACE_CASE_PX,
-  TRACE_HOVER_PX,
-  TRACE_HOVER_CASE_PX,
   TRACE_FLASH_PX,
   ARROW_MARKER_W,
   ARROW_MARKER_H,
   ARROW_MARKER_REF_X,
 } from '../../shared/tokens/designTokens';
+import {
+  resolveConnectionVisualStyle,
+  CONNECTION_VISUAL_STYLES,
+  CASING_WIDTH_OFFSET,
+  HOVER_WIDTH_OFFSET,
+} from '../../shared/tokens/connectionVisualTokens';
 import { DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
@@ -134,6 +137,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     el.getBoundingClientRect();
     el.style.animation = `connector-draw-in 400ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards`;
     const handleEnd = () => {
+      // Clear inline overrides so the SVG attribute (type-specific dash) takes effect.
       el.style.strokeDasharray = '';
       el.style.strokeDashoffset = '';
       el.style.animation = '';
@@ -198,8 +202,20 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const colors = getColors(renderSemantic, diffState, isHighlighted);
   const hitPath = surfaceRender.hitPath;
   const labelPos = surfaceRender.labelPos;
-  const innerWidth = isHighlighted ? TRACE_HOVER_PX : TRACE_STROKE_PX;
-  const casingWidth = isHighlighted ? TRACE_HOVER_CASE_PX : TRACE_CASE_PX;
+
+  // Resolve per-type stroke width and dash pattern.
+  const rawType = connection.metadata?.type;
+  const connectionType: ConnectionType | undefined =
+    typeof rawType === 'string' && Object.hasOwn(CONNECTION_VISUAL_STYLES, rawType)
+      ? (rawType as ConnectionType)
+      : undefined;
+  const visualStyle = resolveConnectionVisualStyle(connectionType);
+  const innerWidth = isHighlighted
+    ? visualStyle.strokeWidth + HOVER_WIDTH_OFFSET
+    : visualStyle.strokeWidth;
+  const casingWidth = isHighlighted
+    ? visualStyle.strokeWidth + CASING_WIDTH_OFFSET + HOVER_WIDTH_OFFSET
+    : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${connection.id}`;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -214,10 +230,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
-    <g
-      opacity={colors.opacity}
-      data-connector-type={(connection.metadata?.type as string) ?? semantic}
-    >
+    <g opacity={colors.opacity} data-connector-type={connectionType ?? semantic}>
       {/* Arrow marker definition — one per connection for semantic color */}
       <defs>
         <marker
@@ -260,6 +273,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         stroke={colors.casing}
         strokeWidth={casingWidth}
         strokeOpacity={isHighlighted ? 0.7 : 0.55}
+        strokeDasharray={visualStyle.strokeDasharray}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -275,6 +289,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         stroke={colors.stroke}
         strokeWidth={innerWidth}
         strokeOpacity={isHighlighted ? 1.0 : 0.95}
+        strokeDasharray={visualStyle.strokeDasharray}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -289,7 +304,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         <path
           d={hitPath}
           stroke="var(--connection-selection-glow)"
-          strokeWidth={TRACE_CASE_PX + 2}
+          strokeWidth={casingWidth + 2}
           strokeOpacity={1}
           strokeLinecap="round"
           strokeLinejoin="round"

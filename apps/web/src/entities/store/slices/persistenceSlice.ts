@@ -570,7 +570,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
               id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
               from: endpointId(connection.sourceId, 'output', semantic),
               to: endpointId(connection.targetId, 'input', semantic),
-              metadata: {},
+              metadata: typeof connection.type === 'string' ? { type: connection.type } : {},
             };
           }
 
