@@ -61,8 +61,8 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 | M29       | Mobile Responsive Layout                     | ✅ Done |
 | M30       | Isometric Scene Visual Redesign              | ✅ Done |
 | M31       | Palette Tier Audit & External Actor Restore  | ✅ Done |
-| M32       | UX–Documentation Alignment                   | Open    |
-| M33       | Learning Content Validation                  | Open    |
+| M32       | UX–Documentation Alignment                   | ✅ Done |
+| M33       | Learning Content Validation                  | ✅ Done |
 | M34       | ExternalActor-to-Block Unification           | ✅ Done |
 | M35       | Visual Hierarchy & Presentation Consistency  | ✅ Done |
 
@@ -118,8 +118,8 @@ After v1.0.0, development continues with backward-compatible minor releases (v1.
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 35 (M0–M35, excluding M32/M33 still open)                                                                 |
-| Tests passing            | 2,746                                                                                                     |
+| 0.x milestones completed | 35 (M0–M35, all closed)                                                                                   |
+| Tests passing            | 2,783                                                                                                     |
 | Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
