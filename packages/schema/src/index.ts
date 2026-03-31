@@ -2,7 +2,7 @@
 // Shared between frontend and backend via JSON Schema bridge.
 
 /** Schema version for the ArchitectureModel wire format. */
-export const SCHEMA_VERSION = '4.0.0';
+export const SCHEMA_VERSION = '4.1.0';
 
 // Enumeration types
 export type {
@@ -58,8 +58,10 @@ export {
   RESOURCE_RULES,
   KNOWN_RESOURCE_TYPES,
   CONTAINER_CAPABLE_TYPES,
+  EXTERNAL_RESOURCE_TYPES,
   CATEGORY_PORTS,
   isContainerCapable,
+  isExternalResourceType,
   getAllowedParents,
   getCanvasTier,
   getDefaultCategory,
