@@ -6,6 +6,42 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+---
+
+## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
+
+**Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
+
+This eliminates the dual-path runtime (Block + ExternalActor) by folding actors into the unified block pipeline: schema, store, persistence, connections, rendering, templates, diff, and code generation.
+
+### Migration Summary
+
+| Sub-Issue | Scope          | Key Change                                                                                        |
+| --------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| **#1534** | Resource Rules | Added `internet`/`browser` to `RESOURCE_RULES` with `category: 'delivery'`, `roles: ['external']` |
+| **#1535** | Persistence    | Automatic migration of legacy `externalActors[]` → `ResourceBlock` nodes on workspace load        |
+| **#1536** | Store          | Unified store actions; introduced bridge pattern for transition period                            |
+| **#1537** | Connections    | Shared endpoint resolver normalizing all block types; pure table-lookup `canConnect()`            |
+| **#1538** | Templates      | All 6 templates and blank architecture use `ResourceBlock` entries for externals                  |
+| **#1539** | Rendering      | External blocks render as `BlockSprite` with full block geometry                                  |
+| **#1540** | Cleanup        | Removed all runtime ExternalActor references; deleted `ExternalActorSprite` (−2,258 lines)        |
+| **#1541** | E2E & Docs     | End-to-end verification, ADR-0015, documentation updates                                          |
+
+### Impact
+
+- **38 source files changed** across the migration
+- **2,258 lines removed** in final cleanup alone
+- **3 files deleted**: ExternalActorSprite component, CSS, and tests
+- **Zero user-facing behavior change** — Internet and Browser look and behave identically
+- **Backward compatible** — legacy workspaces migrate transparently on load
+- **All 2,208 tests pass** at ≥90.45% branch coverage
+
+### Architecture Decision
+
+- [ADR-0015: ExternalActor-to-Block Migration](docs/adr/0015-external-actor-to-block-migration.md)
+
+---
+
 ## Positioning Reset — Visual Cloud Learning Tool (2026-03-28)
 
 **Repositioned CloudBlocks from "preset-driven visual architecture design tool" to "visual cloud learning tool for beginners."**

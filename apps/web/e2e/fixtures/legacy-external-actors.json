@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "4.0.0",
+  "workspaces": [
+    {
+      "id": "ws-legacy-actors",
+      "name": "Legacy ExternalActor Test",
+      "provider": "azure",
+      "architecture": {
+        "id": "arch-legacy",
+        "name": "Legacy Architecture",
+        "version": "1",
+        "nodes": [
+          {
+            "id": "vpc-1",
+            "kind": "container",
+            "name": "Network",
+            "provider": "azure",
+            "category": "network",
+            "resourceType": "vpc",
+            "parentId": null,
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "frame": { "width": 12, "height": 8 },
+            "metadata": {}
+          },
+          {
+            "id": "subnet-pub",
+            "kind": "container",
+            "name": "Public Subnet",
+            "provider": "azure",
+            "category": "network",
+            "resourceType": "publicSubnet",
+            "parentId": "vpc-1",
+            "position": { "x": 1, "y": 0, "z": 1 },
+            "frame": { "width": 5, "height": 6 },
+            "metadata": {}
+          },
+          {
+            "id": "gw-1",
+            "kind": "resource",
+            "name": "Gateway",
+            "provider": "azure",
+            "category": "delivery",
+            "resourceType": "gateway",
+            "parentId": "subnet-pub",
+            "position": { "x": 1, "y": 0, "z": 1 },
+            "metadata": {}
+          }
+        ],
+        "endpoints": [
+          { "id": "gw-1:input:http", "blockId": "gw-1", "direction": "input", "semantic": "http" },
+          { "id": "gw-1:output:http", "blockId": "gw-1", "direction": "output", "semantic": "http" }
+        ],
+        "connections": [],
+        "externalActors": [
+          {
+            "id": "ext-internet",
+            "name": "Internet",
+            "type": "internet",
+            "position": { "x": -3, "y": 0, "z": 5 }
+          },
+          {
+            "id": "ext-browser",
+            "name": "Browser",
+            "type": "browser",
+            "position": { "x": -6, "y": 0, "z": 5 }
+          }
+        ],
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ]
+}
