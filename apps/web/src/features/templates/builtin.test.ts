@@ -54,7 +54,7 @@ describe('registerBuiltinTemplates', () => {
 
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(3);
-    expect(resourceNodes).toHaveLength(4);
+    expect(resourceNodes).toHaveLength(6);
     expect(template?.architecture.connections).toHaveLength(5);
   });
 
@@ -70,7 +70,7 @@ describe('registerBuiltinTemplates', () => {
 
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(2);
-    expect(resourceNodes).toHaveLength(2);
+    expect(resourceNodes).toHaveLength(4);
     expect(template?.architecture.connections).toHaveLength(3);
   });
 
@@ -86,7 +86,7 @@ describe('registerBuiltinTemplates', () => {
 
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(3);
-    expect(resourceNodes).toHaveLength(4);
+    expect(resourceNodes).toHaveLength(6);
     expect(template?.architecture.connections).toHaveLength(5);
   });
 
@@ -106,7 +106,7 @@ describe('registerBuiltinTemplates', () => {
     ).toHaveLength(3);
     expect(
       httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
-    ).toHaveLength(4);
+    ).toHaveLength(6);
     expect(httpApiTemplate?.architecture.connections).toHaveLength(5);
 
     expect(eventPipelineTemplate).toBeDefined();
@@ -116,7 +116,7 @@ describe('registerBuiltinTemplates', () => {
     ).toHaveLength(2);
     expect(
       eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
-    ).toHaveLength(6);
+    ).toHaveLength(8);
     expect(eventPipelineTemplate?.architecture.connections).toHaveLength(7);
   });
 
@@ -134,7 +134,7 @@ describe('registerBuiltinTemplates', () => {
       3,
     );
     expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(
-      10,
+      12,
     );
     expect(template?.architecture.connections).toHaveLength(12);
     expect(template?.architecture.externalActors).toHaveLength(2);
@@ -150,6 +150,8 @@ describe('registerBuiltinTemplates', () => {
       'compute',
       'data',
       'data',
+      'delivery',
+      'delivery',
       'delivery',
       'messaging',
       'messaging',

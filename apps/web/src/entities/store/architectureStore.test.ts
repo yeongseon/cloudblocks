@@ -1383,7 +1383,12 @@ describe('architectureStore', () => {
       getState().resetWorkspace();
 
       expect(getArch().plates).toHaveLength(0);
-      expect(getArch().blocks).toHaveLength(0);
+      expect(getArch().blocks).toHaveLength(2);
+      expect(
+        getArch()
+          .blocks.map((block) => block.id)
+          .sort(),
+      ).toEqual(['ext-browser', 'ext-internet']);
       expect(getState().validationResult).toBeNull();
       expect(getState().canUndo).toBe(false);
       expect(getState().canRedo).toBe(false);

@@ -478,9 +478,12 @@ describe('Milestone 12 Integration Tests', () => {
       });
 
       const architecture = useArchitectureStore.getState().workspace.architecture;
-      const block = blocksOf(architecture)[0];
+      const block = blocksOf(architecture).find((candidate) => candidate.parentId === subnetId);
       const parentPlate = platesOf(architecture).find((container) => container.id === subnetId);
 
+      if (!block) {
+        throw new Error('Expected block to be created in subnet');
+      }
       expect(block.provider).toBe('aws');
       expect(block.subtype).toBe('lambda');
       expect(block.config).toEqual({ runtime: 'nodejs20.x', memorySize: 512 });
@@ -496,7 +499,12 @@ describe('Milestone 12 Integration Tests', () => {
 
       state.addBlock('compute', 'Generic Compute', subnetId, 'aws');
 
-      const block = blocksOf(useArchitectureStore.getState().workspace.architecture)[0];
+      const block = blocksOf(useArchitectureStore.getState().workspace.architecture).find(
+        (candidate) => candidate.parentId === subnetId,
+      );
+      if (!block) {
+        throw new Error('Expected block to be created in subnet');
+      }
       expect(block.provider).toBe('aws');
       expect(block.subtype).toBeUndefined();
       expect(block.config).toBeUndefined();

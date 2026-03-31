@@ -676,13 +676,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     const now = new Date().toISOString();
     const clonedArch = JSON.parse(JSON.stringify(template.architecture));
 
-    // Generate endpoints for all nodes and external actors so connections
-    // can resolve their anchors (templates ship with endpoints: []).
     const nodeIds = (clonedArch.nodes ?? []).map((n: { id: string }) => n.id);
-    const actorIds = (clonedArch.externalActors ?? []).map((a: { id: string }) => a.id);
-    clonedArch.endpoints = [...nodeIds, ...actorIds].flatMap((id: string) =>
-      generateEndpointsForBlock(id),
-    );
+    clonedArch.endpoints = nodeIds.flatMap((id: string) => generateEndpointsForBlock(id));
 
     // ─── Remap nodes to active provider ──────────────────────
     const activeProvider = useUIStore.getState().activeProvider;
@@ -690,6 +685,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       for (const node of clonedArch.nodes ?? []) {
         const azureSubtype = node.subtype ?? node.resourceType;
         node.provider = activeProvider;
+        if (node.roles?.includes('external')) {
+          continue;
+        }
         if (node.kind === 'container') {
           // Remap container names (VNet → VPC, etc.)
           const containerLabel = getContainerLabel(node.layer, activeProvider);
