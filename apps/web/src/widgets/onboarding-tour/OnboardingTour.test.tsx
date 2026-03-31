@@ -13,7 +13,7 @@ function createTargetElements() {
     'sidebar-palette',
     'scene-canvas',
     'right-drawer',
-    'menu-bar-nav',
+    'menu-bar-logo',
     'builder-canvas',
     'core-btn-learn',
   ];
