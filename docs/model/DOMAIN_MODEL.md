@@ -1,6 +1,6 @@
 # CloudBlocks Platform — Domain Model
 
-> **Audience**: Beginners / Contributors | **Status**: Stable — V1 Core | **Verified against**: v4.0.0 schema
+> **Audience**: Beginners / Contributors | **Status**: Stable — V1 Core | **Verified against**: v4.1.0 schema
 
 > **Canonical Source Declaration**
 >
@@ -11,7 +11,7 @@
 > - **Shared types**: `apps/web/src/shared/types/index.ts` re-exports from `@cloudblocks/schema`
 > - **Connection rules**: `apps/web/src/entities/validation/connection.ts`
 > - **Placement rules**: `apps/web/src/entities/validation/placement.ts`
-> - **Serialization format**: `apps/web/src/shared/types/schema.ts` — SCHEMA_VERSION `4.0.0`
+> - **Serialization format**: `apps/web/src/shared/types/schema.ts` — SCHEMA_VERSION `4.1.0`
 > - **Version timelines**: `docs/concept/ROADMAP.md`
 > - **Code generation pipeline**: `docs/engine/generator.md`
 
@@ -299,11 +299,11 @@ export function resolveConnectionNodes(conn: { from: string; to: string }): { so
 
 # 6. External Actor
 
-> **@deprecated — Active Migration (Epic #1533)**: ExternalActors are being folded into standard resource blocks. As of #1535 (Persistence Migration):
+> **@deprecated — Active Migration (Epic #1533)**: ExternalActors are being folded into standard resource blocks. Migration progress:
 >
-> - `serialize()` **materializes** any remaining `externalActors` into `ResourceBlock` nodes (with `kind: 'resource'`, `category: 'delivery'`, `roles: ['external']`) and strips the legacy `externalActors` key from saved JSON.
-> - `deserialize()` detects legacy data containing `externalActors[]` and migrates them into block nodes via `migrateExternalActorsToBlocks()`, preserving original actor IDs so existing connections remain valid.
-> - `createBlankArchitecture()` still creates `externalActors` for "Browser" and "Internet" (deferred to #1538 for removal).
+> - **#1534 (Resource Rules)**: Added `internet`/`browser` entries to `RESOURCE_RULES` with `category: 'delivery'`, `roles: ['external']`, `allowedParents: [null]`. Added `isExternalResourceType()` helper and `EXTERNAL_RESOURCE_TYPES` constant.
+> - **#1535 (Persistence Migration)**: `serialize()` materializes remaining `externalActors` into `ResourceBlock` nodes (with `kind: 'resource'`, `category: 'delivery'`, `roles: ['external']`). `deserialize()` migrates legacy `externalActors[]` via `migrateExternalActorsToBlocks()`, preserving actor IDs.
+> - **#1536 (Store Unification)**: Added `addExternalBlock()` store action that creates external blocks as root-level `ResourceBlock` nodes in `nodes[]`. Legacy shims (`addExternalActor`, `removeExternalActor`, `moveActorPosition`) remain operational on `externalActors[]` for rendering compatibility. `addConnection` resolves endpoints from **both** `nodes[]` and `externalActors[]` via a bridge pattern. `getEffectiveEndpointType()` maps external blocks to their `resourceType` as `EndpointType` (not `category`). `createBlankArchitecture()` still creates `externalActors` (deferred to #1538).
 >
 > The `ExternalActor` interface is kept for backward compatibility during the migration window.
 
@@ -321,7 +321,6 @@ export interface ExternalActor {
 
 After persistence migration (#1535), external actors are stored as regular resource blocks:
 
-
 ```typescript
 // Migration helper — converts ExternalActor[] to ResourceBlock[]
 export function migrateExternalActorsToBlocks(
@@ -330,6 +329,32 @@ export function migrateExternalActorsToBlocks(
   provider: 'azure' | 'aws' | 'gcp',
 ): ResourceBlock[];
 ```
+
+### 6.1 Store Bridge Pattern (#1536)
+
+During the migration window, two parallel data paths coexist in the architecture store:
+
+| Path | Collection | APIs | Used By |
+| --- | --- | --- | --- |
+| **Legacy** (active for rendering) | `externalActors[]` | `addExternalActor`, `removeExternalActor`, `moveActorPosition` | `SceneCanvas`, `ExternalActorSprite`, `SidebarPalette` |
+| **New** (forward-looking) | `nodes[]` | `addExternalBlock`, `addNode({parentId: null})`, `moveBlockPosition({parentId: null})` | `BlockSprite` (connect mode), `addConnection` |
+
+**Bridge**: `addConnection` resolves source/target blocks from **both** `nodes[]` and `externalActors[]`. The `getEffectiveEndpointType()` helper maps external `ResourceBlock` nodes to their `resourceType` (`'internet'` or `'browser'`) as `EndpointType`, preserving connection rule semantics.
+
+```typescript
+// Store action — creates external block as root-level ResourceBlock in nodes[]
+addExternalBlock: (type: 'internet' | 'browser', position?: Position) => void;
+
+// Helper — maps external blocks to EndpointType for connection rules
+function getEffectiveEndpointType(block: ResourceBlock): EndpointType {
+  if (isExternalResourceType(block.resourceType)) {
+    return block.resourceType as EndpointType; // 'internet' | 'browser'
+  }
+  return block.category; // ResourceCategory for normal blocks
+}
+```
+
+All legacy shims are annotated `@deprecated` with `#1540` as the removal target. The rendering migration (#1539) will switch `SceneCanvas` to read from `nodes[]`, after which the legacy path can be removed.
 ---
 
 # 7. Rule Engine
@@ -443,14 +468,14 @@ Note: The model uses a flat `nodes[]` array. Containment hierarchy is expressed 
 
 ### Schema Version
 
-The storage format uses `schemaVersion` (currently `"4.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
+The storage format uses `schemaVersion` (currently `"4.1.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
 
 | Field                       | Purpose                                     | Canonical Source                                         |
 | --------------------------- | ------------------------------------------- | -------------------------------------------------------- |
 | `schemaVersion`             | Storage format version — enables migrations | `apps/web/src/shared/types/schema.ts` → `SCHEMA_VERSION` |
 | `ArchitectureModel.version` | User-facing revision counter                | `packages/schema/src/model.ts`                           |
 
-The `schemaVersion` is stored in the serialized `SerializedData` wrapper, not inside `ArchitectureModel` itself. Supported versions for migration: `4.0.0` (current), `3.0.0`, `2.0.0`. Legacy versions `0.1.0` and `0.2.0` are rejected (no migration path).
+The `schemaVersion` is stored in the serialized `SerializedData` wrapper, not inside `ArchitectureModel` itself. Supported versions for migration: `4.1.0` (current), `4.0.0`, `3.0.0`, `2.0.0`. Legacy versions `0.1.0` and `0.2.0` are rejected (no migration path).
 
 ### Migration Policy
 

@@ -29,12 +29,13 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
 
 | Slice                | Responsibility                              | State Owned                | Key Actions                                                                                                                                   |
 | -------------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **domainSlice**      | Container block, block, and connection CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate` |
+| **domainSlice**      | Container block, block, connection, and external block CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate`, `addExternalBlock`, `addExternalActor`\*, `removeExternalActor`\*, `moveActorPosition`\* |
 | **historySlice**     | Undo/redo state management                  | `history`, `historyIndex`  | `undo`, `redo`, `pushHistory`                                                                                                                 |
 | **persistenceSlice** | Local storage and JSON import/export        | (side effects only)        | `save`, `load`, `exportArchitecture`, `importArchitecture`                                                                                    |
 | **validationSlice**  | Architecture validation                     | `validationResult`         | `validate`                                                                                                                                    |
 | **workspaceSlice**   | Multi-workspace lifecycle                   | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo`          |
 
+\* `@deprecated` legacy shims operating on `externalActors[]` — scheduled for removal in #1540.
 ---
 
 ## 3. Dependency Rules

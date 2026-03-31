@@ -73,7 +73,7 @@ export interface ArchitectureState {
   addBlock: (
     category: ResourceCategory,
     name: string,
-    placementId: string,
+    placementId: string | null,
     provider?: ProviderType,
     subtype?: string,
     config?: Record<string, unknown>,
@@ -92,12 +92,19 @@ export interface ArchitectureState {
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
+  /** @deprecated Use moveNodePosition(id, dx, dz) — will be removed in #1540 */
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
+  /** @deprecated Use addExternalBlock(type, position) — will be removed in #1540 */
   addExternalActor: (
     type: 'internet' | 'browser',
     position?: { x: number; y: number; z: number },
   ) => void;
+  /** @deprecated Use removeNode(id) — will be removed in #1540 */
   removeExternalActor: (id: string) => void;
+  addExternalBlock: (
+    type: 'internet' | 'browser',
+    position?: { x: number; y: number; z: number },
+  ) => void;
 
   addConnection: (from: string, to: string) => boolean;
   removeConnection: (id: string) => void;

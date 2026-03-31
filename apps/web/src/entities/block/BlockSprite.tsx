@@ -7,7 +7,7 @@ import type {
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
-import { parseEndpointId } from '@cloudblocks/schema';
+import { isExternalResourceType, parseEndpointId } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -15,6 +15,7 @@ import type { DiffDelta } from '../../shared/types/diff';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canConnect } from '../validation/connection';
+import type { EndpointType } from '../validation/connection';
 import { validatePlacement } from '../validation/placement';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
@@ -62,7 +63,6 @@ export const BlockSprite = memo(function BlockSprite({
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const blocks = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
 
@@ -81,12 +81,21 @@ export const BlockSprite = memo(function BlockSprite({
   const isConnectMode = toolMode === 'connect';
   const sourceBlock =
     isConnectMode && connectionSource ? blocks.find((b) => b.id === connectionSource) : null;
-  const sourceActor =
-    isConnectMode && connectionSource
-      ? externalActors.find((actor) => actor.id === connectionSource)
+  const sourceNode =
+    connectionSource && !sourceBlock
+      ? nodes
+          .filter((node): node is ResourceBlock => node.kind === 'resource')
+          .find((node) => node.id === connectionSource)
+      : undefined;
+  const sourceType: EndpointType | null = sourceBlock
+    ? isExternalResourceType(sourceBlock.resourceType)
+      ? (sourceBlock.resourceType as EndpointType)
+      : sourceBlock.category
+    : sourceNode
+      ? isExternalResourceType(sourceNode.resourceType)
+        ? (sourceNode.resourceType as EndpointType)
+        : sourceNode.category
       : null;
-  const sourceType =
-    sourceBlock?.category ?? (sourceActor?.type === 'internet' ? sourceActor.type : null);
   const isValidConnectTarget =
     sourceType !== null && block.id !== connectionSource && canConnect(sourceType, block.category);
   const isInvalidConnectTarget =

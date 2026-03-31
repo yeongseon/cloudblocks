@@ -17,6 +17,7 @@ import {
   endpointId,
   generateEndpointsForBlock,
   getPortsForResourceType,
+  isExternalResourceType,
   parseEndpointId,
   RESOURCE_RULES,
 } from '@cloudblocks/schema';
@@ -61,6 +62,7 @@ type DomainSlice = Pick<
   | 'moveActorPosition'
   | 'addExternalActor'
   | 'removeExternalActor'
+  | 'addExternalBlock'
   | 'addConnection'
   | 'removeConnection'
   | 'updateConnectionType'
@@ -84,6 +86,20 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceTy
   subnet: 'subnet',
 };
 
+/**
+ * Temporary shim - maps external resource blocks back to their string-literal
+ * EndpointType ('internet' | 'browser') so that canConnect() in connection.ts
+ * continues to work correctly until #1537 rewrites it.
+ *
+ * For all other blocks, returns the block's category.
+ */
+function getEffectiveEndpointType(block: ResourceBlock): EndpointType {
+  if (isExternalResourceType(block.resourceType)) {
+    return block.resourceType as EndpointType;
+  }
+  return block.category;
+}
+
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   // ── Unified Node API ─────────────────────────────────────────────────────
 
@@ -101,7 +117,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       get().addBlock(
         category,
         input.name,
-        input.parentId!,
+        input.parentId,
         input.provider,
         input.subtype ?? input.resourceType,
         input.config,
@@ -317,6 +333,46 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     const prevCount = get().workspace.architecture.nodes.length;
     set((state) => {
       const arch = state.workspace.architecture;
+      const resolvedResourceType = subtype ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category;
+
+      if (!placementId) {
+        const rootResources = arch.nodes.filter(isResource).filter((b) => b.parentId === null);
+        const rootSiblings = rootResources.map((candidate) => ({
+          id: candidate.id,
+          position: { x: candidate.position.x, z: candidate.position.z },
+          frame: { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
+        }));
+        const nonOverlappingPosition = findNonOverlappingPosition(
+          { x: -3, z: -3 },
+          { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
+          rootSiblings,
+        );
+
+        const block: ResourceBlock = {
+          id: generateId('block'),
+          name,
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: resolvedResourceType,
+          category,
+          provider: provider ?? 'azure',
+          parentId: null,
+          position: { x: nonOverlappingPosition.x, y: 0, z: nonOverlappingPosition.z },
+          metadata: {},
+          roles: isExternalResourceType(resolvedResourceType)
+            ? (['external'] as ResourceBlock['roles'])
+            : undefined,
+          ...(subtype ? { subtype } : {}),
+          ...(config ? { config } : {}),
+        };
+
+        return withHistory(state, {
+          ...arch,
+          nodes: [...arch.nodes, block],
+          endpoints: [...arch.endpoints, ...generateEndpointsForBlock(block.id)],
+        });
+      }
+
       const containers = arch.nodes.filter(isContainer);
       const resources = arch.nodes.filter(isResource);
       const container = containers.find((candidate) => candidate.id === placementId);
@@ -332,7 +388,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         name,
         kind: 'resource',
         layer: 'resource',
-        resourceType: subtype ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category,
+        resourceType: resolvedResourceType,
         category,
         provider: provider ?? 'azure',
         parentId: placementId,
@@ -728,6 +784,22 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const parentPlate = containers.find((candidate) => candidate.id === block.parentId);
 
       if (!parentPlate) {
+        if (block.parentId === null) {
+          const nodes = arch.nodes.map((candidate) => {
+            if (candidate.id === id && candidate.kind === 'resource') {
+              return {
+                ...candidate,
+                position: {
+                  x: candidate.position.x + deltaX,
+                  y: candidate.position.y,
+                  z: candidate.position.z + deltaZ,
+                },
+              };
+            }
+            return candidate;
+          });
+          return withHistory(state, { ...arch, nodes });
+        }
         return state;
       }
 
@@ -759,6 +831,35 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
+  addExternalBlock: (type, position) => {
+    const prevCount = get().workspace.architecture.nodes.length;
+    get().addNode({
+      kind: 'resource',
+      resourceType: type,
+      name: type === 'internet' ? 'Internet' : 'Browser',
+      parentId: null,
+    });
+
+    // If a specific position was requested, overwrite the auto-assigned one
+    if (position) {
+      set((state) => {
+        const arch = state.workspace.architecture;
+        if (arch.nodes.length <= prevCount) return state;
+        const lastNode = arch.nodes[arch.nodes.length - 1];
+        if (!lastNode || lastNode.kind !== 'resource') return state;
+        const updatedNodes = [...arch.nodes];
+        updatedNodes[updatedNodes.length - 1] = { ...lastNode, position };
+        return {
+          workspace: {
+            ...state.workspace,
+            architecture: { ...arch, nodes: updatedNodes },
+          },
+        };
+      });
+    }
+  },
+
+  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
   moveActorPosition: (id, deltaX, deltaZ) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -788,6 +889,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
+  /** @deprecated — will be removed in #1540. Writes to externalActors[] for rendering bridge. */
   addExternalActor: (type, position) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -803,6 +905,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
+  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
   removeExternalActor: (id) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -819,18 +922,22 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   addConnection: (from, to) => {
     const arch = get().workspace.architecture;
 
-    // Resolve source and target nodes/actors by node ID
+    // Resolve source and target from nodes[] (new path) or externalActors[] (legacy bridge)
     const resources = arch.nodes.filter(isResource);
     const sourceBlock = resources.find((block) => block.id === from);
     const targetBlock = resources.find((block) => block.id === to);
     const sourceActor = (arch.externalActors ?? []).find((actor) => actor.id === from);
     const targetActor = (arch.externalActors ?? []).find((actor) => actor.id === to);
     const sourceActorType: EndpointType | null =
-      sourceActor?.type === 'internet' ? 'internet' : null;
+      sourceActor?.type === 'internet' || sourceActor?.type === 'browser' ? sourceActor.type : null;
     const targetActorType: EndpointType | null =
-      targetActor?.type === 'internet' ? 'internet' : null;
-    const sourceType: EndpointType | null = sourceBlock?.category ?? sourceActorType;
-    const targetType: EndpointType | null = targetBlock?.category ?? targetActorType;
+      targetActor?.type === 'internet' || targetActor?.type === 'browser' ? targetActor.type : null;
+    const sourceType: EndpointType | null = sourceBlock
+      ? getEffectiveEndpointType(sourceBlock)
+      : sourceActorType;
+    const targetType: EndpointType | null = targetBlock
+      ? getEffectiveEndpointType(targetBlock)
+      : targetActorType;
 
     if (!sourceType || !targetType) {
       return false;
@@ -860,7 +967,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return false;
     }
 
-    // Verify endpoints exist in the model (skip for external actors which may not have stored endpoints)
+    // Verify endpoints exist (skip for external actors which may not have stored endpoints)
     const sourceEndpoint = arch.endpoints.find((endpoint) => endpoint.id === fromEndpointId);
     const targetEndpoint = arch.endpoints.find((endpoint) => endpoint.id === toEndpointId);
 
