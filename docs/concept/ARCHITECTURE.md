@@ -360,7 +360,7 @@ The canonical model types are defined in `packages/schema` (`@cloudblocks/schema
 - **ResourceBlock** — Infrastructure resource (8 categories: network, delivery, compute, data, messaging, security, identity, operations), placed on a container block via `parentId`
 - **Endpoint** — Typed connection point on a block (input/output × http/event/data), with deterministic IDs
 - **Connection** — Endpoint-to-endpoint dataflow (`from` → `to` as endpoint ID strings), initiator model
-- **ExternalActor** — External endpoint (e.g., Internet) — _@deprecated in v4_
+- ~~**ExternalActor**~~ — _Removed in Epic #1533_. Internet and browser are now standard `ResourceBlock` nodes with `roles: ['external']`. See [ADR-0015](../adr/0015-external-actor-to-block-migration.md).
 - **ArchitectureModel** — Root container for all entities (blocks, endpoints, connections)
 
 > For full TypeScript interfaces, field specifications, and endpoint model, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
@@ -388,7 +388,7 @@ The validation engine is split into focused modules:
 apps/web/src/entities/validation/
 ├── engine.ts # validateArchitecture(model): orchestration entrypoint
 ├── placement.ts # validatePlacement(block, containerBlock): placement rule checks
-├── connection.ts # validateConnection(connection, blocks, externalActors): flow rule checks
+├── connection.ts # validateConnection(connection, endpoints, nodes): flow rule checks
 ├── providerValidation.ts # validateProviderRules(block, containerBlock): provider warnings
 ├── aggregation.ts # validateAggregation(model, block): aggregation constraints
 └── role.ts # validateBlockRoles(block): role constraints
@@ -481,7 +481,7 @@ SceneCanvas (root SVG scene)
 | SceneCanvas          | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state.              |
 | ContainerBlockSprite | Renders container block SVG geometry (network/subnet), visual state (hover/selection), ports, and container block labels.       |
 | BlockSprite          | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent container block. |
-| ConnectionRenderer   | Resolves endpoints via surface routing, renders 3D footprint connections; falls back to legacy liftarm for external actors.     |
+| ConnectionRenderer   | Resolves endpoints via surface routing, renders 3D footprint connections using unified block geometry for all node types. |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the full rendering technology rationale.
