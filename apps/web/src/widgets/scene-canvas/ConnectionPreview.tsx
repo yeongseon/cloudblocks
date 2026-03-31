@@ -10,7 +10,7 @@ import {
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
-import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
+import type { ExternalActor, ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../entities/validation/connection';
@@ -27,12 +27,16 @@ interface Point {
 
 const MAGNETIC_SNAP_THRESHOLD_PX = 40;
 
+const EMPTY_ACTORS: ExternalActor[] = [];
+
 export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
   const setMagneticSnapTarget = useUIStore((s) => s.setMagneticSnapTarget);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
+  const externalActors = useArchitectureStore(
+    (s) => s.workspace.architecture.externalActors ?? EMPTY_ACTORS,
+  );
   const blocks = useMemo(
     () => nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [nodes],
