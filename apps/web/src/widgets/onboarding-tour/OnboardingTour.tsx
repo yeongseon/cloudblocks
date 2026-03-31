@@ -30,8 +30,8 @@ const STEPS: TourStep[] = [
     ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
-    selector: '.menu-bar-nav',
-    fallbackSelector: '.menu-bar-nav',
+    selector: '.menu-bar-logo',
+    fallbackSelector: '.menu-bar-logo',
     title: 'Export Terraform Starter Code',
     description:
       'Open Build \u2192 Generate Code to export your architecture as Terraform starter code for learning and prototyping.',
