@@ -304,6 +304,7 @@ export function resolveConnectionNodes(conn: { from: string; to: string }): { so
 > - **#1534 (Resource Rules)**: Added `internet`/`browser` entries to `RESOURCE_RULES` with `category: 'delivery'`, `roles: ['external']`, `allowedParents: [null]`. Added `isExternalResourceType()` helper and `EXTERNAL_RESOURCE_TYPES` constant.
 > - **#1535 (Persistence Migration)**: `serialize()` materializes remaining `externalActors` into `ResourceBlock` nodes (with `kind: 'resource'`, `category: 'delivery'`, `roles: ['external']`). `deserialize()` migrates legacy `externalActors[]` via `migrateExternalActorsToBlocks()`, preserving actor IDs.
 > - **#1536 (Store Unification)**: Added `addExternalBlock()` store action that creates external blocks as root-level `ResourceBlock` nodes in `nodes[]`. Legacy shims (`addExternalActor`, `removeExternalActor`, `moveActorPosition`) remain operational on `externalActors[]` for rendering compatibility. `addConnection` resolves endpoints from **both** `nodes[]` and `externalActors[]` via a bridge pattern. `getEffectiveEndpointType()` maps external blocks to their `resourceType` as `EndpointType` (not `category`). `createBlankArchitecture()` still creates `externalActors` (deferred to #1538).
+> - **#1537 (Connection System Unification)**: Introduced shared `endpointResolver.ts` with `resolveEndpointSource()` (normalizes both `nodes[]` and `externalActors[]` into uniform `EndpointSource` shape) and `getEffectiveEndpointType()` (single source of truth, moved from domainSlice). Removed hardcoded actor-specific branches from `canConnect()` — now pure `ALLOWED_CONNECTIONS` table lookup. Bridge-period safety: resolver prefers `externalActors[]` over `nodes[]` when IDs collide (since `moveActorPosition()` only updates actors). Root-level positioning guards tightened to `parentId === null && isExternal`. `ConnectionRenderer` reads `externalActors` from store instead of prop.
 >
 > The `ExternalActor` interface is kept for backward compatibility during the migration window.
 
@@ -330,7 +331,7 @@ export function migrateExternalActorsToBlocks(
 ): ResourceBlock[];
 ```
 
-### 6.1 Store Bridge Pattern (#1536)
+### 6.1 Store Bridge Pattern (#1536, updated #1537)
 
 During the migration window, two parallel data paths coexist in the architecture store:
 
@@ -339,20 +340,21 @@ During the migration window, two parallel data paths coexist in the architecture
 | **Legacy** (active for rendering) | `externalActors[]` | `addExternalActor`, `removeExternalActor`, `moveActorPosition` | `SceneCanvas`, `ExternalActorSprite`, `SidebarPalette` |
 | **New** (forward-looking) | `nodes[]` | `addExternalBlock`, `addNode({parentId: null})`, `moveBlockPosition({parentId: null})` | `BlockSprite` (connect mode), `addConnection` |
 
-**Bridge**: `addConnection` resolves source/target blocks from **both** `nodes[]` and `externalActors[]`. The `getEffectiveEndpointType()` helper maps external `ResourceBlock` nodes to their `resourceType` (`'internet'` or `'browser'`) as `EndpointType`, preserving connection rule semantics.
+**Shared Endpoint Resolver** (`entities/connection/endpointResolver.ts`, introduced in #1537): All connection-related functions (`canConnect`, `validateConnection`, `validatePortIndices`, `resolveEndpoint`, `getConnectionSurfaceRoute`) use `resolveEndpointSource()` to normalize both collections into a uniform `EndpointSource` shape. During the bridge period, the resolver prefers `externalActors[]` over `nodes[]` when IDs collide, because `moveActorPosition()` only updates the actor copy.
 
 ```typescript
-// Store action — creates external block as root-level ResourceBlock in nodes[]
-addExternalBlock: (type: 'internet' | 'browser', position?: Position) => void;
+// Shared resolver — normalizes blocks and legacy actors into EndpointSource
+export function resolveEndpointSource(
+  blockId: string, nodes: ResourceBlock[], externalActors?: ExternalActor[],
+): EndpointSource | null;
 
-// Helper — maps external blocks to EndpointType for connection rules
-function getEffectiveEndpointType(block: ResourceBlock): EndpointType {
-  if (isExternalResourceType(block.resourceType)) {
-    return block.resourceType as EndpointType; // 'internet' | 'browser'
-  }
-  return block.category; // ResourceCategory for normal blocks
-}
+// Maps external blocks to EndpointType for connection rules
+export function getEffectiveEndpointType(
+  source: Pick<EndpointSource, 'category' | 'resourceType'>,
+): EndpointType;  // ResourceCategory | 'internet' | 'browser'
 ```
+
+**Root-level positioning**: Blocks with `parentId === null && isExternal` use world coordinates directly (no container lookup). The `EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET` applies a -4 CU Y-shift so connection endpoints land on the visual center of the sprite.
 
 All legacy shims are annotated `@deprecated` with `#1540` as the removal target. The rendering migration (#1539) will switch `SceneCanvas` to read from `nodes[]`, after which the legacy path can be removed.
 ---
