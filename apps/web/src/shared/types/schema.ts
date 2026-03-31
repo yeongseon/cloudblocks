@@ -2,6 +2,7 @@ import type {
   ArchitectureModel,
   ContainerBlock,
   Endpoint,
+  ExternalActor,
   LegacyConnection,
   ResourceBlock,
   ContainerLayer,
@@ -24,6 +25,39 @@ import {
 
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
 
+/**
+ * Migrate ExternalActor[] entries into ResourceBlock nodes.
+ * Preserves original actor IDs so existing connection endpoints remain valid.
+ * Idempotent: skips actors whose ID already exists in the nodes array.
+ *
+ * @param externalActors - legacy ExternalActor array from persisted data
+ * @param existingNodeIds - Set of node IDs already in the architecture
+ * @param provider - workspace provider to assign to migrated blocks
+ * @returns array of ResourceBlock nodes created from external actors
+ */
+export function migrateExternalActorsToBlocks(
+  externalActors: ExternalActor[],
+  existingNodeIds: ReadonlySet<string>,
+  provider: 'azure' | 'aws' | 'gcp',
+): ResourceBlock[] {
+  return externalActors
+    .filter((actor) => !existingNodeIds.has(actor.id))
+    .map(
+      (actor): ResourceBlock => ({
+        id: actor.id,
+        name: actor.name,
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: actor.type,
+        category: 'delivery',
+        provider,
+        parentId: null,
+        position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+        metadata: {},
+        roles: ['external'],
+      }),
+    );
+}
 /**
  * SCHEMA_VERSION: Controls the serialization/storage format.
  * Bump when the shape of SerializedData or Workspace changes.
@@ -190,9 +224,55 @@ export interface SerializedData {
  * Create a serializable snapshot of workspaces.
  */
 export function serialize(workspaces: Workspace[]): string {
+  // Materialize externalActors into nodes and strip the legacy field.
+  // This ensures saved JSON is self-contained: external actors survive
+  // a save→load roundtrip as regular block nodes without needing the
+  // externalActors key on reload.  Runtime still keeps externalActors
+  // in memory for backward compat until #1536 removes all actor paths.
+  const normalized = workspaces.map((ws) => {
+    if (!ws.architecture) return ws;
+    const arch = ws.architecture;
+    const hasActors =
+      'externalActors' in arch &&
+      Array.isArray(arch.externalActors) &&
+      arch.externalActors.length > 0;
+    if (!hasActors) {
+      // Still strip the key if it exists (e.g. empty array)
+      if ('externalActors' in arch) {
+        const { externalActors: _ea, ...archWithout } = arch;
+        return { ...ws, architecture: archWithout as ArchitectureModel };
+      }
+      return ws;
+    }
+    // Materialize actors into nodes (idempotent — skips already-present IDs)
+    const existingNodeIds = new Set(arch.nodes.map((n) => n.id));
+    const provider = ws.provider ?? 'azure';
+    const materialized = migrateExternalActorsToBlocks(
+      arch.externalActors!,
+      existingNodeIds,
+      provider,
+    );
+    const mergedNodes = materialized.length > 0 ? [...arch.nodes, ...materialized] : arch.nodes;
+    // Generate endpoints for newly-materialized blocks
+    const existingEpBlockIds = new Set(arch.endpoints.map((ep) => ep.blockId));
+    const newEndpoints = materialized
+      .filter((b) => !existingEpBlockIds.has(b.id))
+      .flatMap((b) => generateEndpointsForBlock(b.id));
+    const mergedEndpoints =
+      newEndpoints.length > 0 ? [...arch.endpoints, ...newEndpoints] : arch.endpoints;
+    const { externalActors: _ea, ...archWithout } = arch;
+    return {
+      ...ws,
+      architecture: {
+        ...archWithout,
+        nodes: mergedNodes,
+        endpoints: mergedEndpoints,
+      } as ArchitectureModel,
+    };
+  });
   const data: SerializedData = {
     schemaVersion: SCHEMA_VERSION,
-    workspaces,
+    workspaces: normalized,
   };
   return JSON.stringify(data, null, 2);
 }
@@ -329,6 +409,27 @@ export function deserialize(json: string): Workspace[] {
         }
       }
 
+      // ── Migrate externalActors → block nodes (v3→v4 unification) ──────
+      // Runs after plates→nodes and category remap, before endpoint generation.
+      // Preserves actor IDs as block IDs so existing connection endpoints stay valid.
+      if (Array.isArray(architectureUnknown.externalActors)) {
+        const existingNodeIds = new Set<string>(
+          (architectureUnknown.nodes as Array<Record<string, unknown>>)
+            .filter(isRecord)
+            .map((n) => n.id as string)
+            .filter((id): id is string => typeof id === 'string'),
+        );
+        const wsProvider = (ws.provider as 'azure' | 'aws' | 'gcp') ?? 'azure';
+        const migratedBlocks = migrateExternalActorsToBlocks(
+          architectureUnknown.externalActors as ExternalActor[],
+          existingNodeIds,
+          wsProvider,
+        );
+        if (migratedBlocks.length > 0) {
+          (architectureUnknown.nodes as unknown[]).push(...migratedBlocks);
+        }
+      }
+
       const nodeIds = architectureUnknown.nodes
         .filter(isRecord)
         .map((node) => node.id)
@@ -338,6 +439,20 @@ export function deserialize(json: string): Workspace[] {
         architectureUnknown.endpoints = nodeIds.flatMap((nodeId) =>
           generateEndpointsForBlock(nodeId),
         );
+      } else {
+        // When endpoints array already exists, generate endpoints for any
+        // newly-migrated blocks whose IDs aren't already covered
+        const existingEndpointBlockIds = new Set<string>(
+          (architectureUnknown.endpoints as unknown as Array<Record<string, unknown>>)
+            .filter(isRecord)
+            .map((ep) => (ep.blockId as string) ?? (ep.nodeId as string))
+            .filter((bid): bid is string => typeof bid === 'string'),
+        );
+        for (const nid of nodeIds) {
+          if (!existingEndpointBlockIds.has(nid)) {
+            (architectureUnknown.endpoints as unknown[]).push(...generateEndpointsForBlock(nid));
+          }
+        }
       }
 
       architectureUnknown.connections = migrateConnectionsToV4(architectureUnknown.connections);

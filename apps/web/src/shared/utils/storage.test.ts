@@ -39,16 +39,17 @@ describe('storage utilities', () => {
 
     saveWorkspaces(workspaces);
 
-    const expectedJson = JSON.stringify(
-      {
-        schemaVersion: SCHEMA_VERSION,
-        workspaces,
-      },
-      null,
-      2,
-    );
-
-    expect(setItemSpy).toHaveBeenCalledWith('cloudblocks:workspaces', expectedJson);
+    // serialize() materializes externalActors into nodes and strips the key
+    expect(setItemSpy).toHaveBeenCalledTimes(1);
+    const storedJson = setItemSpy.mock.calls[0][1] as string;
+    const parsed = JSON.parse(storedJson);
+    expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
+    // ext-internet materialized as a node
+    expect(parsed.workspaces[0].architecture.nodes).toHaveLength(1);
+    expect(parsed.workspaces[0].architecture.nodes[0].id).toBe('ext-internet');
+    // Endpoints generated for the materialized block
+    expect(parsed.workspaces[0].architecture.endpoints.length).toBeGreaterThan(0);
   });
 
   it('saveWorkspaces logs an error when localStorage throws', () => {
@@ -73,7 +74,12 @@ describe('storage utilities', () => {
 
     const loaded = loadWorkspaces();
 
-    expect(loaded).toEqual(workspaces);
+    // deserialize migrates externalActors into nodes and generates endpoints
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0].id).toBe('w1');
+    // The migrated internet actor should now be a node
+    expect(loaded[0].architecture.nodes).toHaveLength(1);
+    expect(loaded[0].architecture.nodes[0].id).toBe('ext-internet');
   });
 
   it('loadWorkspaces returns empty array when storage key is missing', () => {

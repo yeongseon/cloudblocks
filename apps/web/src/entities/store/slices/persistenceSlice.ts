@@ -12,9 +12,11 @@ import {
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
+  isExternalResourceType,
   parseEndpointId,
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
+import { migrateExternalActorsToBlocks } from '../../../shared/types/schema';
 import {
   saveWorkspaces,
   loadWorkspaces,
@@ -147,8 +149,16 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
           `${context}: category must be one of network, security, delivery, compute, data, messaging, identity, operations`,
         );
       }
-      if (typeof node.parentId !== 'string') {
-        throw new Error(`${context}: resource node parentId must be a string`);
+      if (typeof node.parentId !== 'string' && node.parentId !== null) {
+        throw new Error(`${context}: resource node parentId must be a string or null`);
+      }
+      // Non-external resources must have a parent container
+      if (
+        node.parentId === null &&
+        (typeof node.resourceType !== 'string' ||
+          !isExternalResourceType(node.resourceType as string))
+      ) {
+        throw new Error(`${context}: non-external resource node parentId must be a string`);
       }
       resourceIds.add(node.id);
     });
@@ -521,6 +531,19 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
         nodes = [...containerNodes, ...leafNodes];
       } else {
         nodes = [];
+      }
+
+      // Migrate externalActors into block nodes (same helper as deserialize)
+      const importedExternalActors = imported.externalActors as ArchitectureModel['externalActors'];
+      if (Array.isArray(importedExternalActors) && importedExternalActors.length > 0) {
+        const existingNodeIds = new Set(nodes.map((n) => n.id));
+        const importProvider = useUIStore.getState().activeProvider;
+        const migratedBlocks = migrateExternalActorsToBlocks(
+          importedExternalActors,
+          existingNodeIds,
+          importProvider,
+        );
+        nodes.push(...migratedBlocks);
       }
 
       const endpoints = nodes.flatMap((node) => generateEndpointsForBlock(node.id));
