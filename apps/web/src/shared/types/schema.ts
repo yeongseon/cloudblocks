@@ -224,16 +224,55 @@ export interface SerializedData {
  * Create a serializable snapshot of workspaces.
  */
 export function serialize(workspaces: Workspace[]): string {
-  // Strip externalActors from persisted JSON — v4 uses block nodes instead.
-  // Runtime still keeps externalActors in memory for backward compat (#1536).
-  const stripped = workspaces.map((ws) => {
-    if (!ws.architecture || !('externalActors' in ws.architecture)) return ws;
-    const { externalActors: _ea, ...archWithout } = ws.architecture;
-    return { ...ws, architecture: archWithout as ArchitectureModel };
+  // Materialize externalActors into nodes and strip the legacy field.
+  // This ensures saved JSON is self-contained: external actors survive
+  // a save→load roundtrip as regular block nodes without needing the
+  // externalActors key on reload.  Runtime still keeps externalActors
+  // in memory for backward compat until #1536 removes all actor paths.
+  const normalized = workspaces.map((ws) => {
+    if (!ws.architecture) return ws;
+    const arch = ws.architecture;
+    const hasActors =
+      'externalActors' in arch &&
+      Array.isArray(arch.externalActors) &&
+      arch.externalActors.length > 0;
+    if (!hasActors) {
+      // Still strip the key if it exists (e.g. empty array)
+      if ('externalActors' in arch) {
+        const { externalActors: _ea, ...archWithout } = arch;
+        return { ...ws, architecture: archWithout as ArchitectureModel };
+      }
+      return ws;
+    }
+    // Materialize actors into nodes (idempotent — skips already-present IDs)
+    const existingNodeIds = new Set(arch.nodes.map((n) => n.id));
+    const provider = ws.provider ?? 'azure';
+    const materialized = migrateExternalActorsToBlocks(
+      arch.externalActors!,
+      existingNodeIds,
+      provider,
+    );
+    const mergedNodes = materialized.length > 0 ? [...arch.nodes, ...materialized] : arch.nodes;
+    // Generate endpoints for newly-materialized blocks
+    const existingEpBlockIds = new Set(arch.endpoints.map((ep) => ep.blockId));
+    const newEndpoints = materialized
+      .filter((b) => !existingEpBlockIds.has(b.id))
+      .flatMap((b) => generateEndpointsForBlock(b.id));
+    const mergedEndpoints =
+      newEndpoints.length > 0 ? [...arch.endpoints, ...newEndpoints] : arch.endpoints;
+    const { externalActors: _ea, ...archWithout } = arch;
+    return {
+      ...ws,
+      architecture: {
+        ...archWithout,
+        nodes: mergedNodes,
+        endpoints: mergedEndpoints,
+      } as ArchitectureModel,
+    };
   });
   const data: SerializedData = {
     schemaVersion: SCHEMA_VERSION,
-    workspaces: stripped,
+    workspaces: normalized,
   };
   return JSON.stringify(data, null, 2);
 }

@@ -39,21 +39,17 @@ describe('storage utilities', () => {
 
     saveWorkspaces(workspaces);
 
-    // serialize() strips externalActors from persisted output
-    const strippedWorkspaces = workspaces.map((ws) => {
-      const { externalActors: _ea, ...archWithout } = ws.architecture;
-      return { ...ws, architecture: archWithout };
-    });
-    const expectedJson = JSON.stringify(
-      {
-        schemaVersion: SCHEMA_VERSION,
-        workspaces: strippedWorkspaces,
-      },
-      null,
-      2,
-    );
-
-    expect(setItemSpy).toHaveBeenCalledWith('cloudblocks:workspaces', expectedJson);
+    // serialize() materializes externalActors into nodes and strips the key
+    expect(setItemSpy).toHaveBeenCalledTimes(1);
+    const storedJson = setItemSpy.mock.calls[0][1] as string;
+    const parsed = JSON.parse(storedJson);
+    expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
+    // ext-internet materialized as a node
+    expect(parsed.workspaces[0].architecture.nodes).toHaveLength(1);
+    expect(parsed.workspaces[0].architecture.nodes[0].id).toBe('ext-internet');
+    // Endpoints generated for the materialized block
+    expect(parsed.workspaces[0].architecture.endpoints.length).toBeGreaterThan(0);
   });
 
   it('saveWorkspaces logs an error when localStorage throws', () => {

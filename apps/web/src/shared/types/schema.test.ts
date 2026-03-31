@@ -45,12 +45,19 @@ describe('schema utilities', () => {
     const parsed = JSON.parse(json) as { schemaVersion: string; workspaces: Workspace[] };
 
     expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
-    // serialize strips externalActors from persisted output (v4 migration)
-    const expected = workspaces.map((ws) => {
-      const { externalActors: _ea, ...archWithout } = ws.architecture;
-      return { ...ws, architecture: archWithout };
-    });
-    expect(parsed.workspaces).toEqual(expected);
+    // serialize materializes externalActors into nodes and strips the legacy field
+    expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
+    // ext-internet should now appear as a block node
+    const nodes = parsed.workspaces[0].architecture.nodes;
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].id).toBe('ext-internet');
+    expect(nodes[0].kind).toBe('resource');
+    expect(nodes[0].resourceType).toBe('internet');
+    expect(nodes[0].category).toBe('delivery');
+    expect(nodes[0].parentId).toBeNull();
+    expect(nodes[0].roles).toEqual(['external']);
+    // Endpoints should be generated for the materialized block
+    expect(parsed.workspaces[0].architecture.endpoints.length).toBeGreaterThan(0);
   });
 
   it('deserialize parses valid data', () => {
@@ -639,21 +646,65 @@ describe('schema utilities', () => {
       updatedAt: '2026-02-03T04:05:06.000Z',
     });
   });
+});
 
-  it('roundtrips with serialize and deserialize', () => {
-    const workspaces = [createWorkspace('w1'), createWorkspace('w2')];
+it('roundtrips with serialize and deserialize', () => {
+  const workspaces = [createWorkspace('w1'), createWorkspace('w2')];
 
-    const json = serialize(workspaces);
-    const parsed = deserialize(json);
+  const json = serialize(workspaces);
+  const parsed = deserialize(json);
 
-    // serialize() strips externalActors, so the roundtripped data
-    // won't include them — compare against the stripped version
-    const expected = workspaces.map((ws) => {
-      const { externalActors: _ea, ...archWithout } = ws.architecture;
-      return { ...ws, architecture: archWithout };
-    });
-    expect(parsed).toEqual(expected);
-  });
+  // serialize() materializes externalActors into nodes.
+  // After roundtrip, each workspace should have ext-internet as a node.
+  expect(parsed).toHaveLength(2);
+  for (const ws of parsed) {
+    expect(ws.architecture.externalActors).toBeUndefined();
+    const internetNode = ws.architecture.nodes.find((n) => n.id === 'ext-internet');
+    expect(internetNode).toBeDefined();
+    expect(internetNode?.kind).toBe('resource');
+    expect(internetNode?.resourceType).toBe('internet');
+    expect(internetNode?.roles).toEqual(['external']);
+    // Endpoints should be present for the materialized block
+    const internetEndpoints = ws.architecture.endpoints.filter((ep) =>
+      ep.id.includes('ext-internet'),
+    );
+    expect(internetEndpoints).toHaveLength(6);
+  }
+});
+
+it('roundtrips createBlankArchitecture through serialize and deserialize', () => {
+  const blankWs: Workspace = {
+    id: 'ws-blank',
+    name: 'Blank',
+    provider: 'azure',
+    architecture: createBlankArchitecture('arch-blank', 'Blank Arch'),
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const json = serialize([blankWs]);
+  const [loaded] = deserialize(json);
+
+  // ext-browser and ext-internet must survive the roundtrip as block nodes
+  const browserNode = loaded.architecture.nodes.find((n) => n.id === 'ext-browser');
+  const internetNode = loaded.architecture.nodes.find((n) => n.id === 'ext-internet');
+  expect(browserNode).toBeDefined();
+  expect(internetNode).toBeDefined();
+  expect(browserNode?.resourceType).toBe('browser');
+  expect(internetNode?.resourceType).toBe('internet');
+  expect(browserNode?.roles).toEqual(['external']);
+  expect(internetNode?.roles).toEqual(['external']);
+
+  // Endpoints should include both blocks (6 each = 12 total)
+  const browserEps = loaded.architecture.endpoints.filter((ep) => ep.id.includes('ext-browser'));
+  const internetEps = loaded.architecture.endpoints.filter((ep) => ep.id.includes('ext-internet'));
+  expect(browserEps).toHaveLength(6);
+  expect(internetEps).toHaveLength(6);
+
+  // Connection should still resolve
+  expect(loaded.architecture.connections).toHaveLength(1);
+  expect(loaded.architecture.connections[0].from).toContain('ext-browser');
+  expect(loaded.architecture.connections[0].to).toContain('ext-internet');
 });
 
 it('remaps legacy 10-category names to 7-category names during plates+blocks migration', () => {
@@ -1171,8 +1222,12 @@ describe('serialize — strips externalActors', () => {
 
     // externalActors should not be present in the persisted JSON
     expect(parsed.workspaces[0].architecture.externalActors).toBeUndefined();
-    // Other fields should be preserved
-    expect(parsed.workspaces[0].architecture.nodes).toEqual([]);
+    // externalActors are materialized into nodes during serialize
+    expect(parsed.workspaces[0].architecture.nodes).toHaveLength(1);
+    expect(parsed.workspaces[0].architecture.nodes[0].id).toBe('ext-internet');
+    expect(parsed.workspaces[0].architecture.nodes[0].resourceType).toBe('internet');
+    // Endpoints are generated for the materialized node
+    expect(parsed.workspaces[0].architecture.endpoints).toHaveLength(6);
     expect(parsed.workspaces[0].architecture.connections).toEqual([]);
   });
 
