@@ -3,6 +3,7 @@ import type {
   Connection,
   ContainerCapableResourceType,
   ContainerBlock,
+  ExternalActor,
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
@@ -858,30 +859,85 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     }
   },
 
+  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
   moveActorPosition: (id, deltaX, deltaZ) => {
-    get().moveNodePosition(id, deltaX, deltaZ);
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const currentActors = arch.externalActors ?? [];
+      const actor = currentActors.find((candidate) => candidate.id === id);
+
+      if (!actor) {
+        return state;
+      }
+
+      const externalActors: ExternalActor[] = currentActors.map((candidate) => {
+        if (candidate.id !== id) {
+          return candidate;
+        }
+
+        return {
+          ...candidate,
+          position: {
+            x: candidate.position.x + deltaX,
+            y: candidate.position.y,
+            z: candidate.position.z + deltaZ,
+          },
+        };
+      });
+
+      return withHistory(state, { ...arch, externalActors });
+    });
   },
 
+  /** @deprecated — will be removed in #1540. Writes to externalActors[] for rendering bridge. */
   addExternalActor: (type, position) => {
-    get().addExternalBlock(type, position);
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const currentActors = arch.externalActors ?? [];
+      const actorSuffix = generateId('ext').slice(4);
+      const newActor: ExternalActor = {
+        id: `ext-${type}-${actorSuffix}`,
+        name: type === 'internet' ? 'Internet' : 'Browser',
+        type,
+        position: position ?? { x: -3, y: 0, z: -3 },
+      };
+      return withHistory(state, { ...arch, externalActors: [...currentActors, newActor] });
+    });
   },
 
+  /** @deprecated — will be removed in #1540. Operates on externalActors[] for rendering bridge. */
   removeExternalActor: (id) => {
-    get().removeNode(id);
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const currentActors = arch.externalActors ?? [];
+      const externalActors = currentActors.filter((actor) => actor.id !== id);
+      const connections = arch.connections.filter(
+        (connection) =>
+          connection.metadata['sourceId'] !== id && connection.metadata['targetId'] !== id,
+      );
+      return withHistory(state, { ...arch, externalActors, connections });
+    });
   },
 
   addConnection: (from, to) => {
     const arch = get().workspace.architecture;
 
+    // Resolve source and target from nodes[] (new path) or externalActors[] (legacy bridge)
     const resources = arch.nodes.filter(isResource);
     const sourceBlock = resources.find((block) => block.id === from);
     const targetBlock = resources.find((block) => block.id === to);
+    const sourceActor = (arch.externalActors ?? []).find((actor) => actor.id === from);
+    const targetActor = (arch.externalActors ?? []).find((actor) => actor.id === to);
+    const sourceActorType: EndpointType | null =
+      sourceActor?.type === 'internet' || sourceActor?.type === 'browser' ? sourceActor.type : null;
+    const targetActorType: EndpointType | null =
+      targetActor?.type === 'internet' || targetActor?.type === 'browser' ? targetActor.type : null;
     const sourceType: EndpointType | null = sourceBlock
       ? getEffectiveEndpointType(sourceBlock)
-      : null;
+      : sourceActorType;
     const targetType: EndpointType | null = targetBlock
       ? getEffectiveEndpointType(targetBlock)
-      : null;
+      : targetActorType;
 
     if (!sourceType || !targetType) {
       return false;
@@ -911,16 +967,27 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return false;
     }
 
+    // Verify endpoints exist (skip for external actors which may not have stored endpoints)
     const sourceEndpoint = arch.endpoints.find((endpoint) => endpoint.id === fromEndpointId);
     const targetEndpoint = arch.endpoints.find((endpoint) => endpoint.id === toEndpointId);
 
-    if (!sourceEndpoint || !targetEndpoint) {
+    if (!sourceEndpoint && !sourceActor) {
+      return false;
+    }
+    if (!targetEndpoint && !targetActor) {
       return false;
     }
 
     // Port capacity check
-    const sourcePorts = getPortsForResourceType(sourceBlock?.resourceType ?? '');
-    const targetPorts = getPortsForResourceType(targetBlock?.resourceType ?? '');
+    const sourceResourceType = sourceBlock?.resourceType;
+    const targetResourceType = targetBlock?.resourceType;
+
+    const sourcePorts = sourceResourceType
+      ? getPortsForResourceType(sourceResourceType)
+      : { inbound: 1, outbound: 1 };
+    const targetPorts = targetResourceType
+      ? getPortsForResourceType(targetResourceType)
+      : { inbound: 1, outbound: 1 };
 
     const usedOutbound = arch.connections.filter((connection) => {
       const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.from);

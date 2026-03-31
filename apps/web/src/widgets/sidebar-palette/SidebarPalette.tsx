@@ -195,6 +195,7 @@ function PaletteResourceItem({
 export function SidebarPalette() {
   const techTree = useTechTree();
   const addNode = useArchitectureStore((s) => s.addNode);
+  const addExternalActor = useArchitectureStore((s) => s.addExternalActor);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -418,12 +419,7 @@ export function SidebarPalette() {
                 type="button"
                 className="sidebar-palette-actor-btn"
                 onClick={() => {
-                  addNode({
-                    kind: 'resource',
-                    resourceType: actor.type,
-                    name: actor.type === 'internet' ? 'Internet' : 'Browser',
-                    parentId: null,
-                  });
+                  addExternalActor(actor.type);
                   playSound('block-snap');
                 }}
                 title={`Add ${actor.name}`}

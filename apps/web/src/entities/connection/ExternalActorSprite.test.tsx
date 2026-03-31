@@ -93,7 +93,7 @@ const databaseNode: ResourceBlock = {
 
 describe('ExternalActorSprite', () => {
   const addConnectionMock = vi.fn();
-  const moveNodePositionMock = vi.fn();
+  const moveActorPositionMock = vi.fn();
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
 
@@ -111,7 +111,7 @@ describe('ExternalActorSprite', () => {
     });
     useArchitectureStore.setState({
       addConnection: addConnectionMock,
-      moveNodePosition: moveNodePositionMock,
+      moveActorPosition: moveActorPositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: {
@@ -284,7 +284,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.start({ target });
     draggableConfig.listeners.move({ dx: 20, dy: 10, target });
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('actor-1', 0.3125, 0);
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.3125, 0);
   });
 
   it('uses default zoom when scene-world transform is missing', () => {
@@ -301,7 +301,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.start({ target });
     draggableConfig.listeners.move({ dx: 10, dy: 10, target });
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
   });
 
   it('keeps zoom fallback when transform has no usable scale value', () => {
@@ -322,7 +322,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.start({ target });
     draggableConfig.listeners.move({ dx: 10, dy: 10, target });
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
   });
 
   it('ignores click while dragging', async () => {
@@ -350,7 +350,7 @@ describe('ExternalActorSprite', () => {
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
     useUIStore.setState({ isSoundMuted: false });
     useArchitectureStore.setState({
-      moveNodePosition: moveNodePositionMock,
+      moveActorPosition: moveActorPositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: {
@@ -372,7 +372,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('actor-1', 0.8, 0.6);
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.8, 0.6);
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
@@ -401,7 +401,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledTimes(1);
+    expect(moveActorPositionMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not apply snap movement when already on grid', () => {
@@ -429,7 +429,7 @@ describe('ExternalActorSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledTimes(1);
+    expect(moveActorPositionMock).toHaveBeenCalledTimes(1);
     snapSpy.mockRestore();
   });
 
