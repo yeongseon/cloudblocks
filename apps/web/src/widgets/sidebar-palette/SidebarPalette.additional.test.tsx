@@ -135,7 +135,8 @@ describe('SidebarPalette additional coverage', () => {
 
     render(<SidebarPalette />);
 
-    await user.click(screen.getByTitle('Create Azure Virtual Network'));
+    // blockPresentation resolves 'network' → displayLabel 'Virtual Network'
+    await user.click(screen.getByTitle('Create Virtual Network'));
 
     expect(addNode).toHaveBeenCalledWith({
       kind: 'container',
@@ -193,7 +194,8 @@ describe('SidebarPalette additional coverage', () => {
     const { unmount } = render(<SidebarPalette />);
 
     // Use a starter-tier resource so drag listeners are registered on first render
-    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    // blockPresentation resolves 'app-service' → displayLabel 'App Service'
+    const appServiceButton = screen.getByTitle('Create App Service');
 
     interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
     await user.click(appServiceButton);
@@ -267,13 +269,14 @@ describe('SidebarPalette additional coverage', () => {
 
     render(<SidebarPalette />);
 
-    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    // blockPresentation resolves 'app-service' → displayLabel 'App Service'
+    const appServiceButton = screen.getByTitle('Create App Service');
 
     interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
 
     expect(startPlacing).toHaveBeenCalledWith(
       'compute',
-      'Azure App Service',
+      'App Service',
       'app_service',
       'app-service',
     );
@@ -293,7 +296,8 @@ describe('SidebarPalette additional coverage', () => {
 
     render(<SidebarPalette />);
 
-    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    // blockPresentation resolves 'app-service' → displayLabel 'App Service'
+    const appServiceButton = screen.getByTitle('Create App Service');
     appServiceButton.removeAttribute('data-resource-type');
     interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
 
@@ -314,7 +318,8 @@ describe('SidebarPalette additional coverage', () => {
 
     render(<SidebarPalette />);
 
-    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    // blockPresentation resolves 'app-service' → displayLabel 'App Service'
+    const appServiceButton = screen.getByTitle('Create App Service');
     appServiceButton.dataset.resourceType = 'non-existent-resource';
     interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
 
@@ -341,7 +346,9 @@ describe('SidebarPalette additional coverage', () => {
     // Enable advanced tier so VM/EC2 is visible
     await user.click(screen.getByRole('checkbox'));
 
-    await user.click(screen.getByTitle('Create EC2'));
+    // Both vm and app-service resolve to 'EC2' in AWS; select by data-resource-type
+    const vmButton = document.querySelector('button[data-resource-type="vm"]') as HTMLElement;
+    await user.click(vmButton);
     expect(addNode).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'resource',
@@ -349,5 +356,15 @@ describe('SidebarPalette additional coverage', () => {
         provider: 'aws',
       }),
     );
+  });
+
+  it('plays sound when adding external block', async () => {
+    const user = userEvent.setup();
+    render(<SidebarPalette />);
+
+    await user.click(screen.getByTitle('Add Internet'));
+
+    expect(addExternalBlock).toHaveBeenCalledWith('internet');
+    expect(playSoundMock).toHaveBeenCalledWith('block-snap');
   });
 });
