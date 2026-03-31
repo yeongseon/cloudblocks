@@ -772,7 +772,7 @@ describe('persistenceSlice branches', () => {
           id: 'conn-v3-typed',
           from: endpointId('block-1', 'output', 'event'),
           to: endpointId('block-2', 'input', 'event'),
-          metadata: {},
+          metadata: { type: 'async' },
         },
         {
           id: 'conn-v3-untyped',

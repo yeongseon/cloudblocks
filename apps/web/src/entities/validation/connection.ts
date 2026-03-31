@@ -1,6 +1,5 @@
 import type {
   Connection,
-  ConnectionType,
   Endpoint,
   EndpointSemantic,
   Block,
@@ -50,30 +49,10 @@ const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
 const SEMANTIC_ORDER: EndpointSemantic[] = ['http', 'event', 'data'];
 
 // ─── Visual Style Constants (v2.0) ──────────────────────────
-
-/**
- * Visual style for each connection type.
- * Used by ConnectionRenderer.tsx for rendering differentiation.
- *
- * Spec §11.1:
- *   dataflow → solid line (default)
- *   http    → thicker solid line
- *   internal → short dash
- *   data    → long dash
- *   async   → dot-dash
- */
-export interface ConnectionVisualStyle {
-  strokeWidth: number;
-  strokeDasharray?: string;
-}
-
-export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualStyle> = {
-  dataflow: { strokeWidth: 2 },
-  http: { strokeWidth: 3 },
-  internal: { strokeWidth: 2, strokeDasharray: '4 4' },
-  data: { strokeWidth: 2, strokeDasharray: '8 4' },
-  async: { strokeWidth: 2, strokeDasharray: '8 4 2 4' },
-};
+// Re-exported from shared tokens — single source of truth.
+// See shared/tokens/connectionVisualTokens.ts for definitions.
+export type { ConnectionVisualStyle } from '../../shared/tokens/connectionVisualTokens';
+export { CONNECTION_VISUAL_STYLES } from '../../shared/tokens/connectionVisualTokens';
 
 export function validateConnection(
   connection: Connection,

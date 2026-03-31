@@ -19,10 +19,6 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   TILE_H: 32,
   TILE_Z: 32,
   RENDER_SCALE: 32,
-  TRACE_STROKE_PX: 2,
-  TRACE_CASE_PX: 4,
-  TRACE_HOVER_PX: 3,
-  TRACE_HOVER_CASE_PX: 5,
   TRACE_FLASH_PX: 2,
   ARROW_MARKER_W: 6,
   ARROW_MARKER_H: 6,
@@ -206,14 +202,14 @@ describe('ConnectionRenderer', () => {
     expect(trace?.getAttribute('marker-end')).toBe(`url(#arrow-${connection.id})`);
   });
 
-  it('hover increases casing width from 4 to 5 and trace width from 2 to 3', () => {
+  it('hover increases casing and trace widths by +1 (dataflow default)', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    // Default state
+    // Default state: dataflow strokeWidth=2, casing=2+2=4, trace=2
     expect(casing?.getAttribute('stroke-width')).toBe('4');
     expect(trace?.getAttribute('stroke-width')).toBe('2');
-    // Hover
+    // Hover: casing=2+2+1=5, trace=2+1=3
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
     expect(casing?.getAttribute('stroke-width')).toBe('5');
     expect(trace?.getAttribute('stroke-width')).toBe('3');
@@ -340,6 +336,113 @@ describe('ConnectionRenderer', () => {
         expect(rootGroup?.getAttribute('data-connector-type')).toBe(expected);
       });
     }
+  });
+
+  describe('typed connection visuals', () => {
+    const typedSpecs: Array<{
+      type: ConnectionType;
+      baseWidth: number;
+      dash?: string;
+    }> = [
+      { type: 'dataflow', baseWidth: 2 },
+      { type: 'http', baseWidth: 3 },
+      { type: 'internal', baseWidth: 2, dash: '4 4' },
+      { type: 'data', baseWidth: 2, dash: '8 4' },
+      { type: 'async', baseWidth: 2, dash: '8 4 2 4' },
+    ];
+
+    for (const spec of typedSpecs) {
+      it(`renders ${spec.type} with strokeWidth=${spec.baseWidth} and dash=${spec.dash ?? 'none'}`, () => {
+        const conn: Connection = {
+          ...connection,
+          id: `conn-${spec.type}`,
+          metadata: { ...connection.metadata, type: spec.type },
+        };
+
+        const { container } = renderConnector(conn);
+        const trace = container.querySelector('[data-testid="connection-trace"]');
+        const casing = container.querySelector('[data-testid="connection-casing"]');
+
+        // Base stroke widths
+        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 2));
+
+        // Dash pattern
+        if (spec.dash) {
+          expect(trace?.getAttribute('stroke-dasharray')).toBe(spec.dash);
+          expect(casing?.getAttribute('stroke-dasharray')).toBe(spec.dash);
+        } else {
+          expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+          expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
+        }
+      });
+
+      it(`hover on ${spec.type} increases widths proportionally`, () => {
+        const conn: Connection = {
+          ...connection,
+          id: `conn-hover-${spec.type}`,
+          metadata: { ...connection.metadata, type: spec.type },
+        };
+
+        const { container } = renderConnector(conn);
+        fireEvent.mouseEnter(
+          container.querySelector('[data-testid="connection-hit-area"]') as Element,
+        );
+
+        const trace = container.querySelector('[data-testid="connection-trace"]');
+        const casing = container.querySelector('[data-testid="connection-casing"]');
+
+        // Hover: trace = base + 1, casing = base + 2 + 1
+        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 1));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3));
+      });
+    }
+
+    it('falls back to dataflow style when metadata.type is undefined', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-no-type',
+        metadata: {},
+      };
+
+      const { container } = renderConnector(conn);
+      const trace = container.querySelector('[data-testid="connection-trace"]');
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+
+      // dataflow defaults: trace=2, casing=4
+      expect(trace?.getAttribute('stroke-width')).toBe('2');
+      expect(casing?.getAttribute('stroke-width')).toBe('4');
+      expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+      expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
+    });
+
+    it('falls back to dataflow style when metadata is missing', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-no-metadata',
+      };
+
+      const { container } = renderConnector(conn);
+      const trace = container.querySelector('[data-testid="connection-trace"]');
+
+      expect(trace?.getAttribute('stroke-width')).toBe('2');
+      expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+    });
+
+    it('selection outline width scales with type-specific casing width', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-http-selected',
+        metadata: { ...connection.metadata, type: 'http' as ConnectionType },
+      };
+      useUIStore.setState({ selectedId: conn.id });
+
+      const { container } = renderConnector(conn);
+      const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
+      expect(selectionOutline).toBeInTheDocument();
+      // http: selected=highlighted, casing = 3+2+1 = 6, selection = 6+2 = 8
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('8');
+    });
   });
 
   describe('validation overlay', () => {

@@ -341,7 +341,7 @@ describe('schema deserialize additional branch coverage', () => {
         id: 'conn-0',
         from: endpointId('blk-1', 'output', 'event'),
         to: endpointId('blk-2', 'input', 'event'),
-        metadata: {},
+        metadata: { type: 'async' },
       },
     ]);
   });
