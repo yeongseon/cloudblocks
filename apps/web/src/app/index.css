@@ -41,6 +41,10 @@
   --cat-messaging: #eab308;
   --cat-identity: #0078d4;
   --cat-operations: #64748b;
+
+  /* ── Label chip tokens (shared by block + container chips) ── */
+  --cb-label-chip-font-size: 10px;
+  --cb-label-chip-font-weight: 600;
 }
 
 :root,

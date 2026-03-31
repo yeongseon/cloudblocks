@@ -8,6 +8,8 @@ import {
   EDGE_HIGHLIGHT_COLOR,
   EDGE_HIGHLIGHT_OPACITY,
   EDGE_HIGHLIGHT_STROKE_WIDTH,
+  LABEL_FACE_MIN_PX,
+  LABEL_FACE_SCALE,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
@@ -184,7 +186,7 @@ export const BlockSvg = memo(function BlockSvg({
           y={0}
           transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
           fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize={Math.max(8, Math.round(sideWallPx * 0.28))}
+          fontSize={Math.max(LABEL_FACE_MIN_PX, Math.round(sideWallPx * LABEL_FACE_SCALE))}
           fontWeight="700"
           fill="rgba(255,255,255,0.85)"
           textAnchor="middle"
