@@ -338,4 +338,51 @@ describe('bicep generator', () => {
     expect(mainBicep).not.toContain('publicIPAddresses');
     expect(mainBicep).not.toContain('networkInterfaces');
   });
+
+  it('excludes external blocks (internet/browser) from normalization and generation', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
+      blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute', placementId: 'net1' })],
+    });
+    model.nodes.push(
+      {
+        id: 'ext-browser',
+        name: 'Browser',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'browser',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -6, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'internet',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+    );
+
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+
+    expect(normalized.resourceNames.has('ext-browser')).toBe(false);
+    expect(normalized.resourceNames.has('ext-internet')).toBe(false);
+    expect(normalized.resourceNames.has('web1')).toBe(true);
+
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).not.toContain('browser');
+    expect(mainBicep).not.toContain('ext-internet');
+    expect(mainBicep).toContain('webappApp');
+  });
 });

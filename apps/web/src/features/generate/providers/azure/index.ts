@@ -6,6 +6,7 @@ import type {
   TerraformContainerContext,
 } from '../../types';
 import { resolveBlockMapping } from '../../types';
+import { isExternalResourceType } from '@cloudblocks/schema';
 
 function buildAzureContainerBody(ctx: TerraformContainerContext): string[] {
   const lines: string[] = [];
@@ -330,7 +331,7 @@ export const azureProviderDefinition: ProviderDefinition = {
       renderSharedResources: (ctx) => {
         const lines: string[] = [];
         const resources = ctx.normalized.architecture.nodes.filter(
-          (node) => node.kind === 'resource',
+          (node) => node.kind === 'resource' && !isExternalResourceType(node.resourceType),
         );
 
         lines.push('resource "azurerm_resource_group" "main" {');

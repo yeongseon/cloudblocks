@@ -1,4 +1,5 @@
 import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
+import { isExternalResourceType } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   GeneratorPlugin,
@@ -49,7 +50,9 @@ export function normalizeBicep(
   provider: ProviderDefinition,
 ): NormalizedModel {
   const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+  const resources = architecture.nodes.filter(
+    (n): n is ResourceBlock => n.kind === 'resource' && !isExternalResourceType(n.resourceType),
+  );
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
 
@@ -289,7 +292,9 @@ export function generateMainBicep(
 ): string {
   const { architecture, resourceNames } = normalized;
   const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+  const resources = architecture.nodes.filter(
+    (n): n is ResourceBlock => n.kind === 'resource' && !isExternalResourceType(n.resourceType),
+  );
   const sections: string[] = [];
 
   // Header

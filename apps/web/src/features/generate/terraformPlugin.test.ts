@@ -142,4 +142,68 @@ describe('terraformPlugin', () => {
     expect(mainTf).toContain('resource "azurerm_subnet" "subnet_subnet_1"');
     expect(mainTf).toContain('resource "azurerm_linux_web_app" "webapp_frontend"');
   });
+
+  it('excludes external blocks (internet/browser) from normalize and generate', () => {
+    const archWithExternalBlocks: ArchitectureModel = {
+      ...testArchitecture,
+      nodes: [
+        ...testArchitecture.nodes,
+        {
+          id: 'ext-browser',
+          name: 'Browser',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'browser',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          position: { x: -6, y: 0, z: 5 },
+          metadata: {},
+          roles: ['external'],
+        },
+        {
+          id: 'ext-internet',
+          name: 'Internet',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'internet',
+          category: 'delivery',
+          provider: 'azure',
+          parentId: null,
+          position: { x: -3, y: 0, z: 5 },
+          metadata: {},
+          roles: ['external'],
+        },
+      ],
+    };
+
+    const normalized = terraformPlugin.normalize(archWithExternalBlocks, {
+      provider: azureProviderDefinition,
+      mode: 'draft',
+    });
+
+    // External blocks should NOT be in the resourceNames map
+    expect(normalized.resourceNames.has('ext-browser')).toBe(false);
+    expect(normalized.resourceNames.has('ext-internet')).toBe(false);
+    // Real resources should still be present
+    expect(normalized.resourceNames.has('block-compute')).toBe(true);
+
+    const output = terraformPlugin.generate(normalized, {
+      provider: azureProviderDefinition,
+      mode: 'draft',
+      options: defaultOptions,
+    });
+
+    const mainTf = output.files.find((file) => file.path === 'main.tf')?.content ?? '';
+    const outputsTf = output.files.find((file) => file.path === 'outputs.tf')?.content ?? '';
+
+    // External blocks should NOT appear in generated HCL
+    expect(mainTf).not.toContain('browser');
+    expect(mainTf).not.toContain('ext-internet');
+    expect(outputsTf).not.toContain('browser');
+    expect(outputsTf).not.toContain('ext-internet');
+
+    // Real resources should still be generated
+    expect(mainTf).toContain('resource "azurerm_linux_web_app" "webapp_frontend"');
+  });
 });

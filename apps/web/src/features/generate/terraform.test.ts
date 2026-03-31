@@ -156,6 +156,48 @@ describe('normalize', () => {
     expect(normalized.resourceNames.get('sub-1')).toBe('subnet_public_subnet');
     expect(normalized.resourceNames.get('ecs-1')).toBe('ec2_compute_service');
   });
+
+  it('excludes external blocks (internet/browser) from resourceNames map', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net-1', name: 'VNet', type: 'region' })],
+      blocks: [createBlock({ id: 'web-1', name: 'App', category: 'compute' })],
+    });
+    model.nodes.push(
+      {
+        id: 'ext-browser',
+        name: 'Browser',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'browser',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -6, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'internet',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+    );
+
+    const normalized = normalize(model, azureProviderDefinition);
+
+    expect(normalized.resourceNames.has('ext-browser')).toBe(false);
+    expect(normalized.resourceNames.has('ext-internet')).toBe(false);
+    expect(normalized.resourceNames.has('net-1')).toBe(true);
+    expect(normalized.resourceNames.has('web-1')).toBe(true);
+  });
 });
 
 describe('generateMainTf', () => {
@@ -557,6 +599,50 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('username             = var.db_admin_username');
     expect(hcl).toContain('password             = var.db_admin_password');
   });
+
+  it('excludes external blocks from generated main.tf HCL', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
+      blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute', placementId: 'net1' })],
+    });
+    model.nodes.push(
+      {
+        id: 'ext-browser',
+        name: 'Browser',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'browser',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -6, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'internet',
+        category: 'delivery' as const,
+        provider: 'azure' as const,
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+    );
+
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
+
+    // External blocks should NOT appear in HCL output
+    expect(hcl).not.toContain('browser');
+    expect(hcl).not.toContain('ext-internet');
+    // Real resources should still be present
+    expect(hcl).toContain('resource "azurerm_linux_web_app" "webapp_app"');
+  });
 });
 
 describe('generateVariablesTf', () => {
@@ -618,6 +704,31 @@ describe('generateOutputsTf', () => {
     expect(hcl).not.toContain('output "resource_group_name" {');
     expect(hcl).toContain('output "ec2_compute_id" {');
     expect(hcl).toContain('value = aws_instance.ec2_compute.id');
+  });
+
+  it('excludes external blocks from outputs', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'cmp', name: 'Compute', category: 'compute' })],
+    });
+    model.nodes.push({
+      id: 'ext-internet',
+      name: 'Internet',
+      kind: 'resource' as const,
+      layer: 'resource' as const,
+      resourceType: 'internet',
+      category: 'delivery' as const,
+      provider: 'azure' as const,
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      roles: ['external'],
+    });
+
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateOutputsTf(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(hcl).not.toContain('internet');
+    expect(hcl).toContain('output "webapp_compute_id"');
   });
 });
 
