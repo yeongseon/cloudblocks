@@ -1064,6 +1064,7 @@ describe('persistenceSlice branches', () => {
               position: { x: -6, y: 0, z: 5 },
               metadata: {},
               roles: ['external'],
+              subtype: 'custom-browser',
             },
             {
               id: 'ext-internet',
@@ -1098,6 +1099,7 @@ describe('persistenceSlice branches', () => {
         provider: 'aws',
         resourceType: 'browser',
         roles: ['external'],
+        subtype: 'custom-browser',
       });
       expect(internet).toMatchObject({
         name: 'Internet',

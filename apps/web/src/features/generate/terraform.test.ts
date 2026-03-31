@@ -903,3 +903,66 @@ describe('GCP compute with Debian image data source', () => {
     expect(dataIndex).toBeLessThan(resourceIndex);
   });
 });
+
+describe('GCP external block exclusion', () => {
+  it('excludes external blocks from GCP shared resources and main.tf', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Core VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'App Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'run-1',
+          name: 'App Service',
+          category: 'compute',
+          subtype: 'cloud-run',
+          placementId: 'sub-1',
+        }),
+      ],
+    });
+    model.nodes.push(
+      {
+        id: 'ext-browser',
+        name: 'Browser',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'browser',
+        category: 'delivery' as const,
+        provider: 'gcp' as const,
+        parentId: null,
+        position: { x: -6, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: 'internet',
+        category: 'delivery' as const,
+        provider: 'gcp' as const,
+        parentId: null,
+        position: { x: -3, y: 0, z: 5 },
+        metadata: {},
+        roles: ['external'],
+      },
+    );
+
+    const normalized = normalize(model, gcpProviderDefinition);
+    const hcl = generateMainTf(normalized, gcpProviderDefinition, gcpOptions);
+
+    // External blocks should NOT appear in resource names
+    expect(normalized.resourceNames.has('ext-browser')).toBe(false);
+    expect(normalized.resourceNames.has('ext-internet')).toBe(false);
+
+    // External blocks should NOT generate GCP API enablements or resources
+    expect(hcl).not.toContain('browser');
+    expect(hcl).not.toContain('ext-internet');
+
+    // Real resources should still be present
+    expect(hcl).toContain('resource "google_cloud_run_v2_service"');
+    expect(hcl).toContain('resource "google_project_service"');
+  });
+});

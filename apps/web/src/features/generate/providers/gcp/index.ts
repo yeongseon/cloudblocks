@@ -6,6 +6,8 @@ import type {
   TerraformRenderContext,
 } from '../../types';
 
+import { isExternalResourceType } from '@cloudblocks/schema';
+
 // ─── Shared Resources ──────────────────────────────────────────
 
 function inferGcpApiShortName(resourceType: string): string | null {
@@ -102,6 +104,9 @@ function buildGcpSharedResources(ctx: TerraformRenderContext): string[] {
   const requiredApis = new Set<string>();
 
   for (const node of ctx.normalized.architecture.nodes) {
+    if (isExternalResourceType(node.resourceType)) {
+      continue;
+    }
     const resourceType = getGcpResourceTypeForBlock(ctx, node.id);
     if (!resourceType) {
       continue;
