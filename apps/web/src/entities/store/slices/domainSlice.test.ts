@@ -281,130 +281,6 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
-  // ── moveActorPosition: multiple actors, non-matching skip (line 642) ──
-
-  describe('moveActorPosition – multiple actors with non-matching skip', () => {
-    it('moves target actor and leaves other actors unchanged', () => {
-      seedState({
-        externalActors: [
-          { id: 'actor-1', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } },
-          { id: 'actor-2', name: 'Internet', type: 'internet', position: { x: 5, y: 0, z: 5 } },
-        ],
-      });
-
-      getState().moveActorPosition('actor-1', 2, -3);
-
-      const actors = getArch().externalActors ?? [];
-      const moved = actors.find((actor) => actor.id === 'actor-1')!;
-      const unmoved = actors.find((actor) => actor.id === 'actor-2')!;
-
-      expect(moved.position).toEqual({ x: 2, y: 0, z: -3 });
-      expect(unmoved.position).toEqual({ x: 5, y: 0, z: 5 });
-    });
-  });
-
-  describe('external actor add/remove actions', () => {
-    it('adds an internet actor with generated id and default position', () => {
-      seedState({ externalActors: [], nodes: [] });
-
-      getState().addExternalActor('internet');
-
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0]).toMatchObject({
-        id: 'ext-internet-00000001',
-        name: 'Internet',
-        type: 'internet',
-        position: { x: -3, y: 0, z: -3 },
-      });
-    });
-
-    it('adds a browser actor with custom position', () => {
-      seedState({ externalActors: [], nodes: [] });
-
-      getState().addExternalActor('browser', { x: 1, y: 0, z: 1 });
-
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0]).toMatchObject({
-        id: 'ext-browser-00000001',
-        name: 'Browser',
-        type: 'browser',
-        position: { x: 1, y: 0, z: 1 },
-      });
-    });
-
-    it('removes an external actor by id', () => {
-      seedState({
-        externalActors: [
-          {
-            id: 'ext-browser-1',
-            name: 'Browser',
-            type: 'browser',
-            position: { x: -6, y: 0, z: 5 },
-          },
-          {
-            id: 'ext-internet-1',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
-        ],
-      });
-
-      getState().removeExternalActor('ext-browser-1');
-
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0].id).toBe('ext-internet-1');
-    });
-
-    it('removes connections that reference the removed actor', () => {
-      seedState({
-        externalActors: [
-          {
-            id: 'ext-browser-1',
-            name: 'Browser',
-            type: 'browser',
-            position: { x: -6, y: 0, z: 5 },
-          },
-          {
-            id: 'ext-internet-1',
-            name: 'Internet',
-            type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
-          },
-        ],
-        connections: [
-          makeLegacyConnection('conn-remove', 'ext-browser-1', 'gw1', 'http'),
-          makeLegacyConnection('conn-keep', 'ext-internet-1', 'gw1', 'dataflow'),
-        ],
-      });
-
-      getState().removeExternalActor('ext-browser-1');
-
-      expect(getArch().connections).toHaveLength(1);
-      expect(getArch().connections[0].id).toBe('conn-keep');
-    });
-
-    it('supports undo/redo after addExternalActor', () => {
-      seedState({ externalActors: [], nodes: [] });
-
-      expect(getState().canUndo).toBe(false);
-      getState().addExternalActor('internet');
-      expect(getState().canUndo).toBe(true);
-      expect((getArch().externalActors ?? []).length).toBe(1);
-
-      getState().undo();
-      expect((getArch().externalActors ?? []).length).toBe(0);
-
-      getState().redo();
-      const actors = getArch().externalActors ?? [];
-      expect(actors).toHaveLength(1);
-      expect(actors[0].id).toBe('ext-internet-00000001');
-    });
-  });
-
   describe('addExternalBlock – new forward-looking API', () => {
     it('creates an external block in nodes[] with default position', () => {
       seedState({ externalActors: [], nodes: [] });
@@ -478,7 +354,7 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getArch()).toBe(archBefore);
     });
 
-    it('moves both node and mirrored external actor positions for root-level block', () => {
+    it('moves only root-level external block node position', () => {
       seedState({ externalActors: [], nodes: [] });
       getState().addExternalBlock('internet', { x: -3, y: 0, z: 5 });
 
@@ -517,33 +393,20 @@ describe('domainSlice – targeted branch coverage', () => {
           },
         },
       }));
-      const beforeActor = (getArch().externalActors ?? []).find((actor) => actor.id === movedId)!;
       const beforeOtherNode = getBlocks().find((block) => block.id === 'ext-other')!;
-      const beforeOtherActor = (getArch().externalActors ?? []).find(
-        (actor) => actor.id === 'ext-other',
-      )!;
 
       getState().moveExternalBlockPosition(movedId!, 2, 3);
 
       const afterNode = getBlocks().find((block) => block.id === movedId)!;
-      const afterActor = (getArch().externalActors ?? []).find((actor) => actor.id === movedId)!;
 
       expect(afterNode.position).toEqual({
         x: beforeNode.position.x + 2,
         y: beforeNode.position.y,
         z: beforeNode.position.z + 3,
       });
-      expect(afterActor.position).toEqual({
-        x: beforeActor.position.x + 2,
-        y: beforeActor.position.y,
-        z: beforeActor.position.z + 3,
-      });
       expect(getBlocks().find((block) => block.id === 'ext-other')!.position).toEqual(
         beforeOtherNode.position,
       );
-      expect(
-        (getArch().externalActors ?? []).find((actor) => actor.id === 'ext-other')!.position,
-      ).toEqual(beforeOtherActor.position);
     });
   });
 

@@ -341,7 +341,7 @@ export function generateVariablesTf(
         nodes: [],
         connections: [],
         endpoints: [],
-        externalActors: [],
+        externalActors: [], // Legacy migration field — required by schema
         createdAt: '1970-01-01T00:00:00.000Z',
         updatedAt: '1970-01-01T00:00:00.000Z',
       },

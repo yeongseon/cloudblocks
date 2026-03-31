@@ -4,7 +4,6 @@ import type {
   ContainerBlock,
   Endpoint,
   EndpointSemantic,
-  ExternalActor,
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
@@ -27,8 +26,6 @@ import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import { getConnectionColors } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
-
-const EMPTY_ACTORS: ExternalActor[] = [];
 
 interface ConnectionRendererProps {
   connection: Connection;
@@ -154,9 +151,6 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
-  const externalActors = useArchitectureStore(
-    (s) => s.workspace.architecture.externalActors ?? EMPTY_ACTORS,
-  );
 
   const fromEndpoint: Endpoint | undefined = useMemo(
     () => endpointsList.find((endpoint) => endpoint.id === connection.from),
@@ -181,8 +175,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const hasValidationError = connectionErrors.length > 0;
 
   const surfaceRoute = useMemo(
-    () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList, externalActors),
-    [connection, blocks, plates, endpointsList, externalActors],
+    () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList),
+    [connection, blocks, plates, endpointsList],
   );
 
   const surfaceRender = useMemo(() => {

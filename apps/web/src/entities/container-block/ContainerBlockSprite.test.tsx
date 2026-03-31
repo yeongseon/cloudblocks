@@ -394,7 +394,6 @@ describe('PlateSprite', () => {
       },
       blocks: { added: [], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
-      externalActors: { added: [], removed: [], modified: [] },
       rootChanges: [],
       summary: { totalChanges: 1, hasBreakingChanges: false },
     });

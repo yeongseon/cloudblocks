@@ -1,16 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import type {
-  Connection,
-  ContainerBlock,
-  Endpoint,
-  ExternalActor,
-  ResourceBlock,
-} from '@cloudblocks/schema';
+import type { Connection, ContainerBlock, Endpoint, ResourceBlock } from '@cloudblocks/schema';
 import { CATEGORY_PORTS, endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
-import {
-  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-  EXTERNAL_ACTOR_POSITION,
-} from '../../../shared/utils/position';
 import {
   findLCA,
   getConnectionSurfaceRoute,
@@ -53,20 +43,6 @@ function makeConnection(overrides?: Partial<Connection>): Connection {
     to: endpointId('block-b', 'input', 'data'),
     ...overrides,
   } as Connection;
-}
-
-function makeExternalActor(overrides?: Partial<ExternalActor>): ExternalActor {
-  return {
-    id: 'external-1',
-    name: 'External Actor',
-    type: 'internet',
-    position: {
-      x: EXTERNAL_ACTOR_POSITION[0],
-      y: EXTERNAL_ACTOR_POSITION[1],
-      z: EXTERNAL_ACTOR_POSITION[2],
-    },
-    ...overrides,
-  } as ExternalActor;
 }
 
 function makeEndpoints(blockIds: string[]): Endpoint[] {
@@ -253,8 +229,6 @@ describe('routeSameSurface', () => {
 });
 
 describe('getConnectionSurfaceRoute', () => {
-  const externalActors: ExternalActor[] = [];
-
   it('returns same-container route with surface segments and resolved ports', () => {
     const container = makeContainerBlock({
       id: 'container-a',
@@ -279,13 +253,7 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId(blockB.id, 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRoute(
-      connection,
-      [blockA, blockB],
-      [container],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRoute(connection, [blockA, blockB], [container], endpoints);
 
     expect(route).not.toBeNull();
     expect(route!.srcPort.containerId).toBe('container-a');
@@ -322,7 +290,6 @@ describe('getConnectionSurfaceRoute', () => {
       [blockA, blockB],
       [containerA, containerB],
       endpoints,
-      externalActors,
     );
 
     expect(route).not.toBeNull();
@@ -358,13 +325,7 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId(blockB.id, 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRoute(
-      connection,
-      [blockB],
-      [container],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRoute(connection, [blockB], [container], endpoints);
 
     expect(route).toBeNull();
   });
@@ -378,13 +339,7 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId(blockB.id, 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRoute(
-      connection,
-      [blockB],
-      [container],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRoute(connection, [blockB], [container], endpoints);
 
     expect(route).toBeNull();
   });
@@ -398,13 +353,7 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId(blockB.id, 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRoute(
-      connection,
-      [blockA, blockB],
-      [],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRoute(connection, [blockA, blockB], [], endpoints);
 
     expect(route).toBeNull();
   });
@@ -419,167 +368,9 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId(blockB.id, 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRoute(
-      connection,
-      [blockA, blockB],
-      [container],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRoute(connection, [blockA, blockB], [container], endpoints);
 
     expect(route).toBeNull();
-  });
-
-  it('routes external actor -> block connection via ground plane', () => {
-    const ctr = makeContainerBlock({ id: 'container-a', position: { x: 10, y: 2, z: 10 } });
-    const block = makeBlock({ id: 'block-a', parentId: ctr.id, position: { x: 2, y: 0, z: 2 } });
-    const actor = makeExternalActor({ id: 'external-a' });
-    const endpoints = [
-      ...makeEndpoints([block.id]),
-      {
-        id: endpointId(actor.id, 'output', 'data'),
-        blockId: actor.id,
-        direction: 'output',
-        semantic: 'data',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(actor.id, 'output', 'data'),
-      to: endpointId(block.id, 'input', 'data'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [block], [ctr], endpoints, [actor]);
-
-    expect(route).not.toBeNull();
-    expect(route!.srcPort.containerId).toBe('ground');
-    expect(route!.tgtPort.containerId).toBe(ctr.id);
-    expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
-    expect(route!.segments.some((segment) => segment.surfaceId === 'ground')).toBe(true);
-  });
-
-  it('routes block -> external actor connection', () => {
-    const ctr = makeContainerBlock({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
-    const block = makeBlock({ id: 'block-a', parentId: ctr.id, position: { x: 2, y: 0, z: 2 } });
-    const actor = makeExternalActor({ id: 'external-b' });
-    const endpoints = [
-      ...makeEndpoints([block.id]),
-      {
-        id: endpointId(actor.id, 'input', 'data'),
-        blockId: actor.id,
-        direction: 'input',
-        semantic: 'data',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(block.id, 'output', 'data'),
-      to: endpointId(actor.id, 'input', 'data'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [block], [ctr], endpoints, [actor]);
-
-    expect(route).not.toBeNull();
-    expect(route!.srcPort.containerId).toBe(ctr.id);
-    expect(route!.tgtPort.containerId).toBe('ground');
-    expect(route!.segments[0].kind).toBe('exit');
-    expect(route!.segments[route!.segments.length - 1].kind).toBe('exit');
-  });
-
-  it('routes external actor -> external actor connection', () => {
-    const srcActor = makeExternalActor({ id: 'external-src' });
-    const tgtActor = makeExternalActor({ id: 'external-tgt', position: { x: 8, y: 2, z: 10 } });
-    const endpoints: Endpoint[] = [
-      {
-        id: endpointId(srcActor.id, 'output', 'http'),
-        blockId: srcActor.id,
-        direction: 'output',
-        semantic: 'http',
-      } as Endpoint,
-      {
-        id: endpointId(tgtActor.id, 'input', 'http'),
-        blockId: tgtActor.id,
-        direction: 'input',
-        semantic: 'http',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(srcActor.id, 'output', 'http'),
-      to: endpointId(tgtActor.id, 'input', 'http'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [], [], endpoints, [srcActor, tgtActor]);
-
-    expect(route).not.toBeNull();
-    expect(route!.srcPort.containerId).toBe('ground');
-    expect(route!.tgtPort.containerId).toBe('ground');
-    expect(
-      route!.segments.every((segment) => segment.kind === 'exit' || segment.kind === 'surface'),
-    ).toBe(true);
-  });
-
-  it('resolves external actor with custom position', () => {
-    const actor = makeExternalActor({
-      id: 'external-custom',
-      position: { x: 11, y: 6, z: -3 },
-    });
-    const blockContainer = makeContainerBlock({ id: 'container-a' });
-    const block = makeBlock({ id: 'block-a', parentId: blockContainer.id });
-    const endpoints = [
-      ...makeEndpoints([block.id]),
-      {
-        id: endpointId(actor.id, 'output', 'data'),
-        blockId: actor.id,
-        direction: 'output',
-        semantic: 'data',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(actor.id, 'output', 'data'),
-      to: endpointId(block.id, 'input', 'data'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [block], [blockContainer], endpoints, [
-      actor,
-    ]);
-
-    expect(route).not.toBeNull();
-    const expectedY = actor.position!.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
-    expect(route!.srcPort.surfaceBase).toEqual([actor.position!.x, expectedY, actor.position!.z]);
-    expect(route!.srcPort.surfaceExit).toEqual([
-      actor.position!.x,
-      expectedY,
-      actor.position!.z - SURFACE_EXIT_OFFSET_CU,
-    ]);
-  });
-
-  it('resolves external actor using default position when actor position is absent', () => {
-    const actor = makeExternalActor({ id: 'external-default', position: undefined });
-    const blockContainer = makeContainerBlock({ id: 'container-a' });
-    const block = makeBlock({ id: 'block-a', parentId: blockContainer.id });
-    const endpoints = [
-      ...makeEndpoints([block.id]),
-      {
-        id: endpointId(actor.id, 'output', 'data'),
-        blockId: actor.id,
-        direction: 'output',
-        semantic: 'data',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(actor.id, 'output', 'data'),
-      to: endpointId(block.id, 'input', 'data'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [block], [blockContainer], endpoints, [
-      actor,
-    ]);
-
-    expect(route).not.toBeNull();
-    const expectedY = EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
-    expect(route!.srcPort.surfaceBase).toEqual([
-      EXTERNAL_ACTOR_POSITION[0],
-      expectedY,
-      EXTERNAL_ACTOR_POSITION[2],
-    ]);
   });
 
   it('routes root-level external blocks on the ground plane', () => {
@@ -608,7 +399,6 @@ describe('getConnectionSurfaceRoute', () => {
       [rootBlock, innerBlock],
       [container],
       endpoints,
-      [],
     );
 
     expect(route).not.toBeNull();
@@ -643,48 +433,12 @@ describe('getConnectionSurfaceRoute', () => {
       [innerBlock, rootBlock],
       [container],
       endpoints,
-      [],
     );
 
     expect(route).not.toBeNull();
     expect(route!.tgtPort.containerId).toBe('ground');
     expect(route!.tgtPort.normal).toBe('neg-x');
     expect(route!.segments.some((segment) => segment.kind === 'transition')).toBe(true);
-  });
-
-  it('uses legacy actor-only fallback when actor endpoint has no matching node block', () => {
-    const container = makeContainerBlock({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
-    const innerBlock = makeBlock({
-      id: 'block-a',
-      parentId: container.id,
-      position: { x: 2, y: 0, z: 2 },
-    });
-    const actor = makeExternalActor({ id: 'external-legacy', position: { x: -6, y: 1, z: 9 } });
-    const endpoints = [
-      ...makeEndpoints([innerBlock.id]),
-      {
-        id: endpointId(actor.id, 'input', 'data'),
-        blockId: actor.id,
-        direction: 'input',
-        semantic: 'data',
-      } as Endpoint,
-    ];
-    const connection = makeConnection({
-      from: endpointId(innerBlock.id, 'output', 'data'),
-      to: endpointId(actor.id, 'input', 'data'),
-    });
-
-    const route = getConnectionSurfaceRoute(connection, [innerBlock], [container], endpoints, [
-      actor,
-    ]);
-
-    expect(route).not.toBeNull();
-    expect(route!.tgtPort.containerId).toBe('ground');
-    expect(route!.tgtPort.surfaceBase).toEqual([
-      actor.position.x,
-      actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      actor.position.z,
-    ]);
   });
 
   it('returns null when source resolves as non-external but source block is absent from blocks list', async () => {
@@ -723,13 +477,7 @@ describe('getConnectionSurfaceRoute', () => {
       to: endpointId('block-b', 'input', 'data'),
     });
 
-    const route = getConnectionSurfaceRouteWithMock(
-      connection,
-      [],
-      [container],
-      endpoints,
-      externalActors,
-    );
+    const route = getConnectionSurfaceRouteWithMock(connection, [], [container], endpoints);
 
     expect(route).toBeNull();
 
@@ -763,7 +511,6 @@ describe('getConnectionSurfaceRoute', () => {
       [rootBlock, innerBlock],
       [container],
       endpoints,
-      [],
     );
 
     expect(route).toBeNull();

@@ -30,7 +30,6 @@ function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): Arc
     nodes: [...plates, ...blocks],
     connections: model.connections,
     endpoints: [],
-    externalActors: model.externalActors,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
   };
@@ -101,9 +100,6 @@ function createBaseArchitecture(): LegacyArchitecture {
       },
     ],
     endpoints: [],
-    externalActors: [
-      { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-    ],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   });
@@ -121,7 +117,6 @@ function createEmptyArchitecture(id: string): LegacyArchitecture {
     blocks,
     connections: [],
     endpoints: [],
-    externalActors: [],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   });
@@ -156,7 +151,6 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.blocks).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.connections).toEqual({ added: [], removed: [], modified: [] });
-    expect(delta.externalActors).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.rootChanges).toEqual([]);
     expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
   });
@@ -183,13 +177,11 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates.added).toHaveLength(2);
     expect(delta.blocks.added).toHaveLength(2);
     expect(delta.connections.added).toHaveLength(1);
-    expect(delta.externalActors.added).toHaveLength(1);
     expect(delta.plates.removed).toHaveLength(0);
     expect(delta.blocks.removed).toHaveLength(0);
     expect(delta.connections.removed).toHaveLength(0);
-    expect(delta.externalActors.removed).toHaveLength(0);
     expect(delta.rootChanges).toHaveLength(2);
-    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 7, hasBreakingChanges: false });
   });
 
   it('marks all entities as removed when head is empty', () => {
@@ -201,13 +193,11 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates.removed).toHaveLength(2);
     expect(delta.blocks.removed).toHaveLength(2);
     expect(delta.connections.removed).toHaveLength(1);
-    expect(delta.externalActors.removed).toHaveLength(1);
     expect(delta.plates.added).toHaveLength(0);
     expect(delta.blocks.added).toHaveLength(0);
     expect(delta.connections.added).toHaveLength(0);
-    expect(delta.externalActors.added).toHaveLength(0);
     expect(delta.rootChanges).toHaveLength(2);
-    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 7, hasBreakingChanges: true });
   });
 
   it('detects added entities across all entity types', () => {
@@ -247,10 +237,6 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [
-        ...(base.externalActors ?? []),
-        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-      ],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -258,8 +244,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates.added.map((container) => container.id)).toEqual(['container-3']);
     expect(delta.blocks.added.map((block) => block.id)).toEqual(['block-3']);
     expect(delta.connections.added.map((connection) => connection.id)).toEqual(['conn-2']);
-    expect(delta.externalActors.added.map((actor) => actor.id)).toEqual(['ext-2']);
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 3, hasBreakingChanges: false });
   });
 
   it('detects removed entities across all entity types', () => {
@@ -270,7 +255,6 @@ describe('computeArchitectureDiff', () => {
       blocks: base.blocks.filter((block) => block.id !== 'block-2'),
       connections: base.connections.filter((connection) => connection.id !== 'conn-1'),
       endpoints: [],
-      externalActors: (base.externalActors ?? []).filter((actor) => actor.id !== 'ext-1'),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -278,8 +262,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates.removed.map((container) => container.id)).toEqual(['container-2']);
     expect(delta.blocks.removed.map((block) => block.id)).toEqual(['block-2']);
     expect(delta.connections.removed.map((connection) => connection.id)).toEqual(['conn-1']);
-    expect(delta.externalActors.removed.map((actor) => actor.id)).toEqual(['ext-1']);
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 3, hasBreakingChanges: true });
   });
 
   it('detects modified entities across all entity types', () => {
@@ -303,10 +286,6 @@ describe('computeArchitectureDiff', () => {
         ...connection,
         metadata: { ...connection.metadata, protocol: 'https' },
       })),
-      externalActors: (base.externalActors ?? []).map((actor) => ({
-        ...actor,
-        name: 'Public Internet',
-      })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -314,7 +293,6 @@ describe('computeArchitectureDiff', () => {
     expect(delta.plates.modified).toHaveLength(1);
     expect(delta.blocks.modified).toHaveLength(1);
     expect(delta.connections.modified).toHaveLength(1);
-    expect(delta.externalActors.modified).toHaveLength(1);
 
     expect(
       requireModified(delta.plates.modified, 'container-1').changes.map((change) => change.path),
@@ -325,9 +303,6 @@ describe('computeArchitectureDiff', () => {
     expect(
       requireModified(delta.connections.modified, 'conn-1').changes.map((change) => change.path),
     ).toContain('metadata.protocol');
-    expect(
-      requireModified(delta.externalActors.modified, 'ext-1').changes.map((change) => change.path),
-    ).toContain('name');
   });
 
   it('produces property-level changes with paths and values', () => {
@@ -441,7 +416,6 @@ describe('computeArchitectureDiff', () => {
       blocks: [...base.blocks].reverse(),
       connections: [...base.connections].reverse(),
       endpoints: [],
-      externalActors: [...(base.externalActors ?? [])].reverse(),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -466,15 +440,11 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [
-        ...(base.externalActors ?? []),
-        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-      ],
     };
 
     const delta = computeLegacyDiff(base, head);
 
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 3, hasBreakingChanges: true });
   });
 
   it('flags breaking changes when blocks are removed', () => {
@@ -516,10 +486,6 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         }),
       ],
-      externalActors: (base.externalActors ?? []).map((actor) => ({
-        ...actor,
-        name: 'Public Internet',
-      })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -543,17 +509,12 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         }),
       ],
-      externalActors: (base.externalActors ?? []).map((actor) => ({
-        ...actor,
-        name: 'Internet Edge',
-      })),
     };
 
     const delta = computeLegacyDiff(base, head);
 
     expect(getDiffState('block-3', delta)).toBe('added');
     expect(getDiffState('container-2', delta)).toBe('removed');
-    expect(getDiffState('ext-1', delta)).toBe('modified');
     expect(getDiffState('block-1', delta)).toBe('unchanged');
   });
 
@@ -594,10 +555,6 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [
-        { ...(base.externalActors ?? [])[0]!, name: 'Public Internet' },
-        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-      ],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -609,9 +566,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.modified).toHaveLength(1);
     expect(delta.connections.added).toHaveLength(1);
     expect(delta.connections.removed).toHaveLength(1);
-    expect(delta.externalActors.added).toHaveLength(1);
-    expect(delta.externalActors.modified).toHaveLength(1);
-    expect(delta.summary).toEqual({ totalChanges: 10, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true });
   });
 
   it('detects container metadata changes', () => {
@@ -779,10 +734,6 @@ describe('normalizeArchitecture', () => {
         },
         base.connections[0],
       ],
-      externalActors: [
-        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-        (base.externalActors ?? [])[0]!,
-      ],
     };
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
@@ -799,7 +750,6 @@ describe('normalizeArchitecture', () => {
     ]);
     expect(normalizedBlocks.map((block) => block.id)).toEqual(['block-1', 'block-2']);
     expect(normalized.connections.map((connection) => connection.id)).toEqual(['conn-1', 'conn-2']);
-    expect((normalized.externalActors ?? []).map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
 
     expect((unsorted.blocks ?? []).map((block) => block.id)).toEqual(['block-2', 'block-1']);
   });

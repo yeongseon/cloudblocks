@@ -51,6 +51,20 @@ const createTestModel = (): ArchitectureModel => ({
       metadata: {},
     },
     {
+      id: 'ext-internet',
+      name: 'Internet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'internet',
+      category: 'network',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      subtype: 'internet',
+      roles: ['external'],
+    },
+    {
       id: 'block-gw',
       name: 'Gateway',
       kind: 'resource',
@@ -116,9 +130,7 @@ const createTestModel = (): ArchitectureModel => ({
     ...generateEndpointsForBlock('block-db'),
     ...generateEndpointsForBlock('ext-internet'),
   ],
-  externalActors: [
-    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
-  ],
+  externalActors: [],
 });
 
 const getContainers = (model: ArchitectureModel): ContainerBlock[] =>
@@ -223,7 +235,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'connection-exists',
-        sourceCategory: 'internet',
+        sourceCategory: 'network',
         targetCategory: 'delivery',
       };
       expect(evaluateRule(rule, model)).toBe(true);
@@ -276,7 +288,7 @@ describe('evaluateRule', () => {
 
       const rule: StepValidationRule = {
         type: 'connection-exists',
-        sourceCategory: 'internet',
+        sourceCategory: 'network',
         targetCategory: 'compute',
       };
 

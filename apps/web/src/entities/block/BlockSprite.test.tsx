@@ -689,7 +689,6 @@ describe('BlockSprite', () => {
             : [],
       },
       connections: { added: [], removed: [], modified: [] },
-      externalActors: { added: [], removed: [], modified: [] },
       rootChanges: [],
       summary: { totalChanges: 1, hasBreakingChanges: false },
     });

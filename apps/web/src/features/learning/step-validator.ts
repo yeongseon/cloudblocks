@@ -81,8 +81,5 @@ function getEndpointType(id: string, model: ArchitectureModel): string | null {
   const block = model.nodes.find((n) => n.kind === 'resource' && n.id === id);
   if (block) return block.category;
 
-  const actor = (model.externalActors ?? []).find((a) => a.id === id);
-  if (actor) return actor.type;
-
   return null;
 }

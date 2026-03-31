@@ -6,7 +6,7 @@
  *
  * Design decisions:
  * - Returns world-space points (projected to screen downstream by routing).
- * - External actors always use their existing position (no ports).
+ * - Root external blocks use block geometry for proper port anchors.
  * - Missing/invalid port → fallback to center (backward compat).
  */
 
@@ -15,14 +15,10 @@ import type {
   ContainerBlock,
   Endpoint,
   EndpointSemantic,
-  ExternalActor,
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import {
-  getBlockWorldPosition,
-  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-} from '../../shared/utils/position';
+import { getBlockWorldPosition } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { getBlockWorldAnchors } from '../block/blockGeometry';
 import type { PortSide, WorldPoint } from '../block/blockGeometry';
@@ -48,19 +44,11 @@ export function getConnectionEndpointWorldAnchors(
   blocks: ResourceBlock[],
   plates: ContainerBlock[],
   endpoints: Endpoint[],
-  externalActors: ExternalActor[] = [],
 ): EndpointAnchors | null {
-  const src = resolveEndpoint(
-    connection.from,
-    'outbound',
-    blocks,
-    plates,
-    endpoints,
-    externalActors,
-  );
+  const src = resolveEndpoint(connection.from, 'outbound', blocks, plates, endpoints);
   if (!src) return null;
 
-  const tgt = resolveEndpoint(connection.to, 'inbound', blocks, plates, endpoints, externalActors);
+  const tgt = resolveEndpoint(connection.to, 'inbound', blocks, plates, endpoints);
   if (!tgt) return null;
 
   return {
@@ -89,7 +77,6 @@ function resolveEndpoint(
   blocks: ResourceBlock[],
   plates: ContainerBlock[],
   endpoints: Endpoint[],
-  externalActors: ExternalActor[],
 ): ResolvedEndpoint | null {
   const endpoint = endpoints.find((candidate) => candidate.id === endpointId);
   if (!endpoint) {
@@ -101,7 +88,7 @@ function resolveEndpoint(
     return null;
   }
 
-  const source = resolveEndpointSource(endpoint.blockId, blocks, externalActors);
+  const source = resolveEndpointSource(endpoint.blockId, blocks);
   if (!source) {
     return null;
   }
@@ -124,16 +111,8 @@ function resolveEndpoint(
       }
       return { point: anchors.center, floorY: worldPos[1] };
     }
-
-    // Legacy actor-only fallback
-    const rootPoint: WorldPoint = [
-      source.position.x,
-      source.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-      source.position.z,
-    ];
-    return { point: rootPoint, floorY: rootPoint[1] };
+    return null;
   }
-
   const block = blocks.find((candidate) => candidate.id === source.id);
   if (!block) {
     return null;

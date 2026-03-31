@@ -13,17 +13,15 @@ function summarizeArchitecture(arch: ArchitectureModel) {
     plates,
     blocks,
     connections: arch.connections.length,
-    externalActors: arch.externalActors?.length ?? 0,
   };
 }
 
-type SectionKey = 'plates' | 'blocks' | 'connections' | 'externalActors';
+type SectionKey = 'plates' | 'blocks' | 'connections';
 
 const SECTION_CONFIG: Array<{ key: SectionKey; label: string }> = [
   { key: 'plates', label: 'Containers' },
   { key: 'blocks', label: 'Nodes' },
   { key: 'connections', label: 'Connections' },
-  { key: 'externalActors', label: 'External Actors' },
 ];
 
 function formatValue(value: unknown): string {
@@ -141,7 +139,6 @@ export function DiffPanelContent({
     plates: false,
     blocks: false,
     connections: false,
-    externalActors: false,
   });
   const [expandedModified, setExpandedModified] = useState<Record<string, boolean>>({});
 
@@ -157,7 +154,6 @@ export function DiffPanelContent({
     diffDelta.plates,
     diffDelta.blocks,
     diffDelta.connections,
-    diffDelta.externalActors,
   ];
   const summaryCounts = entities.reduce(
     (acc, section) => ({
@@ -191,8 +187,7 @@ export function DiffPanelContent({
           const s = summarizeArchitecture(diffBaseArchitecture);
           return (
             <div className="diff-panel-remote-summary">
-              Remote: {s.plates} containers · {s.blocks} nodes · {s.connections} connections ·{' '}
-              {s.externalActors} actors
+              Remote: {s.plates} containers · {s.blocks} nodes · {s.connections} connections
             </div>
           );
         })()}
