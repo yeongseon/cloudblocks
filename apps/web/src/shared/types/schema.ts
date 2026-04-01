@@ -23,7 +23,7 @@ import {
   generateEndpointsForBlock,
 } from '@cloudblocks/schema';
 
-const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
+const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: -3 };
 
 /**
  * Migrate ExternalActor[] entries into ResourceBlock nodes.
@@ -496,7 +496,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -509,7 +509,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -526,8 +526,8 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
     createdAt: now,
     updatedAt: now,

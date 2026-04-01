@@ -135,7 +135,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -148,7 +148,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -185,8 +185,8 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };
@@ -267,7 +267,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -280,7 +280,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -305,8 +305,8 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };
@@ -426,7 +426,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -439,7 +439,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -476,8 +476,8 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };
@@ -601,7 +601,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -614,7 +614,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -651,8 +651,8 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };
@@ -786,7 +786,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -799,7 +799,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -848,8 +848,8 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };
@@ -1066,7 +1066,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: 5 },
+        position: { x: -6, y: 0, z: -3 },
         metadata: {},
       },
       {
@@ -1079,7 +1079,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: 5 },
+        position: { x: -3, y: 0, z: -3 },
         metadata: {},
       },
     ],
@@ -1169,8 +1169,8 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
 };

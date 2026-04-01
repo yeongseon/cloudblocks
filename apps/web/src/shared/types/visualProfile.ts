@@ -56,9 +56,9 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
-// Per-category silhouette differentiation (Phase 3, #1580).
-// data→cylinder, delivery→gateway, security→shield, messaging→hex, others→rect.
-// All blocks use medium tier and 3×4 footprint. Only shape, color, and icon differ.
+// All resource blocks use uniform rect (cube) silhouette.
+// Silhouette differentiation was removed — all blocks are cubes.
+// All blocks use medium tier and 3×4 footprint. Only color and icon differ.
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
   network: {
     tier: 'medium',
@@ -71,7 +71,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   security: {
     tier: 'medium',
     surface: 'ported',
-    silhouette: 'shield',
+    silhouette: 'rect',
     footprint: [3, 4],
     hostable: false,
     appCapacity: 0,
@@ -79,7 +79,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   delivery: {
     tier: 'medium',
     surface: 'ported',
-    silhouette: 'gateway',
+    silhouette: 'rect',
     footprint: [3, 4],
     hostable: false,
     appCapacity: 0,
@@ -95,7 +95,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   data: {
     tier: 'medium',
     surface: 'ported',
-    silhouette: 'cylinder',
+    silhouette: 'rect',
     footprint: [3, 4],
     hostable: false,
     appCapacity: 0,
@@ -103,7 +103,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   messaging: {
     tier: 'medium',
     surface: 'ported',
-    silhouette: 'hex',
+    silhouette: 'rect',
     footprint: [3, 4],
     hostable: false,
     appCapacity: 0,
