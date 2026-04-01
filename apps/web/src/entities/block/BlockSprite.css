@@ -22,19 +22,17 @@
   transition:
     filter 0.2s ease,
     transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2));
+  filter: var(--shadow-block-base);
 }
 
 .block-button:hover .block-img,
 .block-img:hover {
-  filter: drop-shadow(2px 8px 0px rgba(0, 0, 0, 0.3)) drop-shadow(0px 12px 18px rgba(0, 0, 0, 0.25))
-    brightness(1.08);
+  filter: var(--shadow-block-hover) brightness(1.08);
   transform: translateY(-3px);
 }
 
 .block-img.is-dragging {
-  filter: drop-shadow(4px 12px 0px rgba(0, 0, 0, 0.35))
-    drop-shadow(0px 16px 24px rgba(0, 0, 0, 0.25));
+  filter: var(--shadow-block-drag);
   transform: translateY(-6px) scale(1.05);
   cursor: grabbing;
   z-index: 9999;
@@ -42,12 +40,12 @@
 
 .block-sprite.is-selected .block-img {
   filter: drop-shadow(0 0 8px var(--state-selection-stroke))
-    drop-shadow(0 0 16px var(--state-selection-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 0 16px var(--state-selection-glow)) var(--shadow-block-glow);
 }
 
 .block-sprite.is-connection-source .block-img {
   filter: drop-shadow(0 0 10px var(--state-snap-stroke))
-    drop-shadow(0 0 20px var(--state-snap-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 0 20px var(--state-snap-glow)) var(--shadow-block-glow);
 }
 
 .block-sprite.is-delete-mode .block-img {
@@ -56,30 +54,29 @@
 
 .block-sprite.is-delete-mode .block-button:hover .block-img,
 .block-sprite.is-delete-mode .block-img:hover {
-  filter: drop-shadow(0 0 10px var(--state-delete-stroke))
-    drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) sepia(1) hue-rotate(-50deg) saturate(3)
-    brightness(1.1);
+  filter: drop-shadow(0 0 10px var(--state-delete-stroke)) var(--shadow-block-glow) sepia(1)
+    hue-rotate(-50deg) saturate(3) brightness(1.1);
 }
 
 .block-sprite.is-valid-target .block-img {
   filter: drop-shadow(0 0 8px var(--state-snap-stroke)) drop-shadow(0 0 16px var(--state-snap-glow))
-    drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    var(--shadow-block-glow);
   animation: pulse-valid 1.5s ease-in-out infinite;
 }
 
 .block-sprite.is-invalid-target .block-img {
-  filter: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) brightness(0.6) saturate(0.3);
+  filter: var(--shadow-block-glow) brightness(0.6) saturate(0.3);
   cursor: not-allowed;
 }
 
 .block-sprite.is-connected .block-img {
   filter: drop-shadow(0 0 6px var(--state-connected-stroke))
-    drop-shadow(0 0 12px var(--state-connected-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 0 12px var(--state-connected-glow)) var(--shadow-block-glow);
 }
 
 .block-sprite.is-warning .block-img {
   filter: drop-shadow(0 0 8px var(--state-warning-stroke))
-    drop-shadow(0 0 16px var(--state-warning-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 0 16px var(--state-warning-glow)) var(--shadow-block-glow);
   animation: pulse-warning 1.5s ease-in-out infinite;
 }
 
@@ -87,11 +84,11 @@
   0%,
   100% {
     filter: drop-shadow(0 0 8px var(--state-snap-stroke))
-      drop-shadow(0 0 16px var(--state-snap-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      drop-shadow(0 0 16px var(--state-snap-glow)) var(--shadow-block-glow);
   }
   50% {
     filter: drop-shadow(0 0 12px var(--state-snap-stroke))
-      drop-shadow(0 0 24px var(--state-snap-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      drop-shadow(0 0 24px var(--state-snap-glow)) var(--shadow-block-glow);
   }
 }
 
@@ -99,28 +96,28 @@
   0%,
   100% {
     filter: drop-shadow(0 0 8px var(--state-warning-stroke))
-      drop-shadow(0 0 16px var(--state-warning-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      drop-shadow(0 0 16px var(--state-warning-glow)) var(--shadow-block-glow);
   }
   50% {
     filter: drop-shadow(0 0 12px var(--state-warning-stroke))
-      drop-shadow(0 0 24px var(--state-warning-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      drop-shadow(0 0 24px var(--state-warning-glow)) var(--shadow-block-glow);
   }
 }
 
 .block-sprite.diff-added .block-img {
   filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px rgba(34, 197, 94, 0.5))
-    drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    var(--shadow-block-glow);
   animation: pulse-diff-added 2s ease-in-out infinite;
 }
 
 .block-sprite.diff-modified .block-img {
   filter: drop-shadow(0 0 8px #eab308) drop-shadow(0 0 16px rgba(234, 179, 8, 0.5))
-    drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    var(--shadow-block-glow);
   animation: pulse-diff-modified 2s ease-in-out infinite;
 }
 
 .block-sprite.diff-removed .block-img {
-  filter: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) brightness(0.5) saturate(0.2);
+  filter: var(--shadow-block-glow) brightness(0.5) saturate(0.2);
   opacity: 0.5;
   pointer-events: none;
 }
@@ -129,11 +126,11 @@
   0%,
   100% {
     filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px rgba(34, 197, 94, 0.5))
-      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      var(--shadow-block-glow);
   }
   50% {
     filter: drop-shadow(0 0 14px #22c55e) drop-shadow(0 0 28px rgba(34, 197, 94, 0.7))
-      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      var(--shadow-block-glow);
   }
 }
 
@@ -141,11 +138,11 @@
   0%,
   100% {
     filter: drop-shadow(0 0 8px #eab308) drop-shadow(0 0 16px rgba(234, 179, 8, 0.5))
-      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      var(--shadow-block-glow);
   }
   50% {
     filter: drop-shadow(0 0 14px #eab308) drop-shadow(0 0 28px rgba(234, 179, 8, 0.7))
-      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+      var(--shadow-block-glow);
   }
 }
 
@@ -170,7 +167,7 @@
 
 .block-sprite.is-building .block-img {
   opacity: calc(0.3 + 0.7 * var(--build-progress, 1));
-  filter: saturate(var(--build-progress, 1)) drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
+  filter: saturate(var(--build-progress, 1)) var(--shadow-block-glow);
   transition:
     opacity 0.3s ease,
     filter 0.3s ease;
@@ -179,11 +176,11 @@
 @keyframes block-upgrade-glow {
   0%,
   100% {
-    filter: drop-shadow(0 0 6px var(--state-success-glow)) drop-shadow(2px 6px 0 rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 6px var(--state-success-glow)) var(--shadow-block-glow);
   }
   50% {
     filter: drop-shadow(0 0 14px var(--state-success-stroke))
-      drop-shadow(0 0 24px var(--state-success-glow)) drop-shadow(2px 6px 0 rgba(0, 0, 0, 0.3));
+      drop-shadow(0 0 24px var(--state-success-glow)) var(--shadow-block-glow);
   }
 }
 
@@ -195,16 +192,15 @@
 @keyframes port-snap-pulse {
   0% {
     transform: scale(1);
-    filter: drop-shadow(0 0 0 transparent) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 0 transparent) var(--shadow-block-glow);
   }
   30% {
     transform: scale(1.08);
-    filter: drop-shadow(0 0 12px var(--state-success-stroke, #22c55e))
-      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 12px var(--state-success-stroke, #22c55e)) var(--shadow-block-glow);
   }
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 0 transparent) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 0 transparent) var(--shadow-block-glow);
   }
 }
 
@@ -215,7 +211,7 @@
 /* ── Pre-drop affordance: enlarge valid target during drag ─ */
 .block-sprite.is-drag-hover-valid .block-img {
   filter: drop-shadow(0 0 10px var(--state-snap-stroke))
-    drop-shadow(0 0 20px var(--state-snap-glow)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 0 20px var(--state-snap-glow)) var(--shadow-block-glow);
   transform: translateY(-2px) scale(1.03);
   transition:
     filter 150ms ease,

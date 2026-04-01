@@ -100,6 +100,19 @@
   /* ── Connection neutral (base wire color, recedes behind blocks) ── */
   --connection-neutral-stroke: #64748b;
   --connection-neutral-casing: #334155;
+
+  /* ── Block shadow tokens (systematized #1580) ── */
+  --shadow-block-base: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3))
+    drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2));
+  --shadow-block-hover: drop-shadow(2px 8px 0px rgba(0, 0, 0, 0.3))
+    drop-shadow(0px 12px 18px rgba(0, 0, 0, 0.25));
+  --shadow-block-drag: drop-shadow(4px 12px 0px rgba(0, 0, 0, 0.35))
+    drop-shadow(0px 16px 24px rgba(0, 0, 0, 0.25));
+  --shadow-block-glow: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  --shadow-container-base: drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
+  --shadow-container-hover: drop-shadow(2px 4px 0px rgba(0, 0, 0, 0.15));
+  --shadow-container-drag: drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.18))
+    drop-shadow(0px 8px 14px rgba(0, 0, 0, 0.14));
 }
 
 [data-theme='workshop'] {
@@ -154,6 +167,19 @@
   /* ── Connection neutral (base wire color, recedes behind blocks) ── */
   --connection-neutral-stroke: #94a3b8;
   --connection-neutral-casing: #64748b;
+
+  /* ── Block shadow tokens (systematized #1580) ── */
+  --shadow-block-base: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08))
+    drop-shadow(0px 6px 10px rgba(0, 0, 0, 0.06));
+  --shadow-block-hover: drop-shadow(1px 5px 0px rgba(0, 0, 0, 0.1))
+    drop-shadow(0px 8px 14px rgba(0, 0, 0, 0.08));
+  --shadow-block-drag: drop-shadow(2px 8px 0px rgba(0, 0, 0, 0.12))
+    drop-shadow(0px 12px 18px rgba(0, 0, 0, 0.1));
+  --shadow-block-glow: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08));
+  --shadow-container-base: drop-shadow(1px 2px 0px rgba(0, 0, 0, 0.06));
+  --shadow-container-hover: drop-shadow(1px 3px 0px rgba(0, 0, 0, 0.08));
+  --shadow-container-drag: drop-shadow(2px 4px 0px rgba(0, 0, 0, 0.1))
+    drop-shadow(0px 6px 10px rgba(0, 0, 0, 0.07));
 }
 
 * {

@@ -56,26 +56,74 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
-// Unified: all resource blocks use the same rect silhouette, medium tier,
-// and 3×4 footprint. Only color and icon distinguish resources.
-const UNIFORM_BLOCK_PROFILE: BlockVisualProfile = {
-  tier: 'medium',
-  surface: 'ported',
-  silhouette: 'rect',
-  footprint: [3, 4],
-  hostable: false,
-  appCapacity: 0,
-};
-
+// Per-category silhouette differentiation (Phase 3, #1580).
+// data→cylinder, delivery→gateway, security→shield, messaging→hex, others→rect.
+// All blocks use medium tier and 3×4 footprint. Only shape, color, and icon differ.
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
-  network: { ...UNIFORM_BLOCK_PROFILE },
-  security: { ...UNIFORM_BLOCK_PROFILE },
-  delivery: { ...UNIFORM_BLOCK_PROFILE },
-  compute: { ...UNIFORM_BLOCK_PROFILE, hostable: true, appCapacity: 4 },
-  data: { ...UNIFORM_BLOCK_PROFILE },
-  messaging: { ...UNIFORM_BLOCK_PROFILE },
-  identity: { ...UNIFORM_BLOCK_PROFILE },
-  operations: { ...UNIFORM_BLOCK_PROFILE },
+  network: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'rect',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  security: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'shield',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  delivery: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'gateway',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  compute: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'rect',
+    footprint: [3, 4],
+    hostable: true,
+    appCapacity: 4,
+  },
+  data: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'cylinder',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  messaging: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'hex',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  identity: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'rect',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  operations: {
+    tier: 'medium',
+    surface: 'ported',
+    silhouette: 'rect',
+    footprint: [3, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
 };
 
 export function getBlockVisualProfile(category: ResourceCategory): BlockVisualProfile {
