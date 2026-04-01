@@ -8,7 +8,190 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
-## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
+## [v0.35.0] — 2026-04-01
+
+**Milestone 35 — Visual Hierarchy and Presentation Consistency**
+
+Established canonical block presentation metadata, applied typed connection visuals, softened container block palette, standardized label tokens, and unified resource palette layout.
+
+### Features
+
+- Defined canonical block presentation resolver module with visual metadata (#1555, PR #1560)
+- Applied typed connection visuals in renderer — color-coded by connection type (#1556, PR #1561)
+- Unified resource palette layout and iconography (#1559)
+
+### Visual Polish
+
+- Softened container block palette with HSL desaturation for layer contrast (#1557, PR #1562)
+- Standardized block and container label tokens (#1558, PR #1563)
+
+### Statistics
+
+- 9 issues closed
+
+## [v0.27.0] — 2026-03-28
+
+**Milestone 27 — Positioning Documentation Completion**
+
+Aligned all user-facing text and documentation with the "visual cloud learning tool" positioning, and fixed documentation–code discrepancies against the v4 schema.
+
+### Positioning Alignment (Epic #1492, PR #1487)
+
+- Updated `index.html` title, meta tags, and OG tags to learning-tool positioning (#1468)
+- Updated `pyproject.toml` descriptions to learning-tool positioning (#1469)
+- Updated `LandingPage.tsx` stale positioning strings (#1470)
+- Updated stale concept docs to learning-tool positioning (#1471)
+- Enriched user-guide files with learning-first context (#1472)
+- Updated `DOMAIN_MODEL.md` framing for learning-tool positioning (#1473)
+
+### Documentation-Code Alignment (Epic #1503, PR #1506)
+
+- Fixed `DOMAIN_MODEL.md`: 16 v4 schema discrepancies corrected (#1504)
+- Fixed `ARCHITECTURE.md`: 11 v4 terminology and structure discrepancies corrected (#1505)
+
+### Statistics
+
+- 12 issues closed, 2 PRs merged
+- Documentation-only milestone — no runtime code changes
+
+## [v0.28.0] — 2026-03-29
+
+**Milestone 28 — UX Polish & Accessibility**
+
+Added keyboard shortcut cheat sheet, skip-to-content accessibility link, landing page footer polish, and cleaned up external actor surface routing fallback. Standardized backend-dependent TODO markers with ADR-0014.
+
+### Features
+
+- Keyboard shortcut cheat sheet overlay (#1430)
+- Skip-to-content link and ARIA hardening for screen readers (#1429)
+- Landing page footer polish — links, copyright, social icons (#1431)
+
+### Refactoring
+
+- Extended surface routing to external actors and removed legacy connection fallback (#1432, #1438)
+- Standardized `TODO(backend)` markers and added ADR-0014 for backend-dependent code (#1433, #1437)
+
+### Statistics
+
+- 8 issues closed (Epic #1428)
+
+## [v0.29.0] — 2026-03-29
+
+**Milestone 29 — Mobile Responsive Layout**
+
+Made the visual builder usable on mobile viewports with auto-collapsing sidebar, bottom-sheet palette, compact toolbar, and mobile-friendly canvas.
+
+### Features
+
+- Auto-collapse sidebar on mobile with full-width canvas grid (#1440)
+- Bottom-sheet palette overlay with mobile trigger button (#1441)
+- Fixed canvas padding and toolbar horizontal scroll on mobile (#1442)
+- Disabled drag-to-create on mobile with creation messaging fallback (#1443)
+- Combined mobile responsive layout implementation (PR #1444)
+
+### Statistics
+
+- 6 issues closed (Epic #1439)
+
+## [v0.30.0] — 2026-03-30
+
+**Milestone 30 — Isometric Scene Visual Redesign**
+
+Overhauled the visual language of the isometric canvas: replaced 3D beam connections with 2-layer SVG paths, added container hierarchy contrast system, quieted resource block materials, moved labels to screen-aligned chips, and compacted validation toasts.
+
+### Visual Changes
+
+- Connection trace redesign — replaced 3D beam with clean 2-layer SVG path (#1446)
+- Container hierarchy visual system — structural navy ramp with inset effect (#1447)
+- Resource block material quieting — reduced grid and stroke opacity (#1448)
+- Screen-aligned label chips — moved labels out of isometric transform (#1449)
+- Validation toast downshift — compact bottom-right positioning (#1450)
+- Test updates for scene visual redesign (#1451)
+- Combined scene visual redesign implementation (PR #1452)
+
+### Statistics
+
+- 8 issues closed (Epic #1445)
+
+## [v0.31.0] — 2026-03-30
+
+**Milestone 31 — Palette Tier Audit & External Actor Restoration**
+
+Reclassified resource tier assignments, added missing resource types to the palette, restored Browser external actor, added External Actors section to sidebar palette with mobile support, and synchronized documentation.
+
+### Palette Tier Classification (Epic #1453)
+
+- Defined tier classification criteria in `RESOURCE_CATEGORY_STRATEGY.md` (#1455)
+- Reclassified resource tier assignments in `RESOURCE_DEFINITIONS` (#1456)
+- Added missing resource types to palette definitions (#1457)
+- Set explicit `blockCategory` for VNet and Subnet (#1458)
+- Updated `PROVIDER_RESOURCES.md` and `DOMAIN_MODEL.md` for 8-category system (#1459)
+
+### External Actor Restoration (Epic #1454)
+
+- Restored missing `browser.svg` external actor asset (#1460)
+- Added `addExternalActor` and `removeExternalActor` store actions (#1461)
+- Added External Actors section to sidebar palette (#1462)
+- Added external actor support in mobile palette sheet (#1463)
+- External actor store actions and palette integration tests (#1464)
+- Combined palette and external actor implementation (PR #1465)
+
+### Statistics
+
+- 13 issues closed (Epics #1453, #1454)
+
+## [v0.32.0] — 2026-03-30
+
+**Milestone 32 — UX–Documentation Alignment**
+
+Aligned the frontend UX with learning-tool positioning: updated landing page, enhanced empty canvas CTA for beginners, removed Experimental badge from Terraform export, updated onboarding tour, and added learning mode entry point.
+
+### Features
+
+- Enhanced `EmptyCanvasCTA` for beginner-first onboarding (#1479)
+- Added learning mode entry point to MenuBar (#1482)
+- Reviewed and updated onboarding tour for learning-first flow (#1481)
+
+### Bug Fixes
+
+- Updated `LandingPage` content and layout for learning-tool positioning (#1480)
+- Removed Experimental badge from Terraform export in Generate Code (#1478)
+
+### Related Epics
+
+- Epic #1493 (UX–Documentation Alignment)
+- Epic #1508 (Visual & UX Consistency Redesign)
+- Combined implementation (PR #1488)
+
+### Statistics
+
+- 8 issues closed
+
+## [v0.33.0] — 2026-03-31
+
+**Milestone 33 — Learning Content Validation**
+
+Validated all learning content end-to-end: tested guided scenarios, verified template→edit→export flows, reviewed scenario content for beginner-appropriate language, and created Gate 6 analytics instrumentation plan.
+
+### Testing
+
+- End-to-end validation of all 6 guided scenarios (#1483)
+- Verified template → edit → export flow for all templates (#1484)
+- Added template→edit→export flow integration tests (PR #1567)
+
+### Documentation
+
+- Reviewed scenario content for beginner-appropriate language (#1486)
+- Created Gate 6 analytics instrumentation plan (#1485)
+- Combined learning content validation implementation (PR #1489)
+
+### Statistics
+
+- 7 issues closed (Epic #1494)
+
+## [v0.34.0] — 2026-03-31
+
+**Milestone 34 — ExternalActor-to-Block Unification**
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
 
@@ -892,6 +1075,15 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
+[v0.34.0]: https://github.com/yeongseon/cloudblocks/compare/v0.33.0...v0.34.0
+[v0.33.0]: https://github.com/yeongseon/cloudblocks/compare/v0.32.0...v0.33.0
+[v0.32.0]: https://github.com/yeongseon/cloudblocks/compare/v0.31.0...v0.32.0
+[v0.31.0]: https://github.com/yeongseon/cloudblocks/compare/v0.30.0...v0.31.0
+[v0.30.0]: https://github.com/yeongseon/cloudblocks/compare/v0.29.0...v0.30.0
+[v0.29.0]: https://github.com/yeongseon/cloudblocks/compare/v0.28.0...v0.29.0
+[v0.28.0]: https://github.com/yeongseon/cloudblocks/compare/v0.27.0...v0.28.0
+[v0.27.0]: https://github.com/yeongseon/cloudblocks/compare/v0.26.0...v0.27.0
 [v0.26.0]: https://github.com/yeongseon/cloudblocks/compare/v0.22.0...v0.26.0
 [v0.25.0]: https://github.com/yeongseon/cloudblocks/compare/v0.24.0...v0.25.0
 [v0.24.0]: https://github.com/yeongseon/cloudblocks/compare/v0.23.0...v0.24.0
