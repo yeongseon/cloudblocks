@@ -299,13 +299,13 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         markerEnd={`url(#${markerId})`}
       />
 
-      {/* Selection glow: wider stroke behind the trace */}
-      {isSelected && (
+      {/* Provider-accent glow: hover = subtle, selection = stronger */}
+      {isHighlighted && (
         <path
           d={hitPath}
-          stroke="var(--connection-selection-glow)"
-          strokeWidth={casingWidth + 2}
-          strokeOpacity={1}
+          stroke="var(--provider-accent-glow)"
+          strokeWidth={isSelected ? casingWidth + 4 : casingWidth + 2}
+          strokeOpacity={isSelected ? 1 : 0.7}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"

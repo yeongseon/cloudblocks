@@ -69,13 +69,12 @@
   --canvas-glow: rgba(30, 41, 59, 0.55);
   --canvas-grid-major-color: rgba(255, 255, 255, 0.12);
   --canvas-grid-minor-color: rgba(255, 255, 255, 0.06);
-  --connection-http-stroke: #6f87b6;
-  --connection-http-casing: #4e5f7f;
-  --connection-event-stroke: #c97a63;
-  --connection-event-casing: #8d5545;
-  --connection-data-stroke: #5fa59b;
-  --connection-data-casing: #43746d;
-  --connection-selection-glow: rgba(241, 245, 249, 0.35);
+  --connection-http-stroke: #667894;
+  --connection-http-casing: #37465b;
+  --connection-event-stroke: #787583;
+  --connection-event-casing: #404453;
+  --connection-data-stroke: #637e8e;
+  --connection-data-casing: #354959;
   --connection-error-label-text: #0f172a;
 
   /* ── Provider accent (provider-neutral highlight for ports & connections) ── */
@@ -124,13 +123,12 @@
   --canvas-glow: rgba(241, 245, 249, 0.06);
   --canvas-grid-major-color: rgba(0, 0, 0, 0.12);
   --canvas-grid-minor-color: rgba(0, 0, 0, 0.06);
-  --connection-http-stroke: #6f87b6;
-  --connection-http-casing: #4e5f7f;
-  --connection-event-stroke: #c97a63;
-  --connection-event-casing: #8d5545;
-  --connection-data-stroke: #4f948a;
-  --connection-data-casing: #376861;
-  --connection-selection-glow: rgba(15, 23, 42, 0.22);
+  --connection-http-stroke: #8d9db8;
+  --connection-http-casing: #617189;
+  --connection-event-stroke: #9f9ba7;
+  --connection-event-casing: #6a6f80;
+  --connection-data-stroke: #86a0af;
+  --connection-data-casing: #5d7285;
   --connection-error-label-text: #0f172a;
 
   /* ── Provider accent (provider-neutral highlight for ports & connections) ── */

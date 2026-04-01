@@ -172,14 +172,28 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
-  it('renders selection outline when connection is selected', () => {
+  it('renders provider-accent glow outline when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
     const { container } = renderConnector();
     const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(selectionOutline).toBeInTheDocument();
     expect(selectionOutline?.tagName.toLowerCase()).toBe('path');
-    expect(selectionOutline?.getAttribute('stroke')).toBe('var(--connection-selection-glow)');
+    expect(selectionOutline?.getAttribute('stroke')).toBe('var(--provider-accent-glow)');
     expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('1');
+  });
+
+  it('renders provider-accent glow outline on hover with reduced opacity', () => {
+    const { container } = renderConnector();
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+    const hoverOutline = container.querySelector('[data-layer="selection-outline"]');
+    expect(hoverOutline).toBeInTheDocument();
+    expect(hoverOutline?.getAttribute('stroke')).toBe('var(--provider-accent-glow)');
+    expect(hoverOutline?.getAttribute('stroke-opacity')).toBe('0.7');
+  });
+
+  it('does not render glow outline when not hovered and not selected', () => {
+    const { container } = renderConnector();
+    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
   });
 
   it('renders arrow marker definition with correct attributes', () => {
@@ -457,8 +471,8 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      // http: selected=highlighted, casing = 3+2+1 = 6, selection = 6+2 = 8
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('8');
+      // http: selected=highlighted, casing = 3+2+1 = 6, selection = 6+4 = 10
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('10');
     });
   });
 

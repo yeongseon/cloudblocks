@@ -12,11 +12,13 @@ import type { EndpointSemantic } from '@cloudblocks/schema';
 export type ConnectionRenderSemantic = Extract<EndpointSemantic, 'http' | 'event' | 'data'>;
 
 // ─── Base Color Palette (reference hex for tests & documentation) ───
-
+// Neutralized toward slate so wires recede behind blocks.
+// Each semantic retains a faint hue bias as a secondary cue;
+// primary differentiation comes from dash patterns (connectionVisualTokens).
 export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, string> = {
-  http: '#6F87B6', // Muted steel blue
-  event: '#C97A63', // Muted terracotta
-  data: '#5FA59B', // Muted teal
+  http: '#667894', // Faint blue-slate (80% neutralized)
+  event: '#787583', // Faint warm-slate (80% neutralized)
+  data: '#637e8e', // Faint teal-slate (80% neutralized)
 };
 
 // ─── CSS Variable Mapping ───────────────────────────────────
@@ -25,16 +27,16 @@ export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, s
 
 const CONNECTION_CSS_VARS: Record<ConnectionRenderSemantic, { stroke: string; casing: string }> = {
   http: {
-    stroke: 'var(--connection-http-stroke, #6F87B6)',
-    casing: 'var(--connection-http-casing, #4E5F7F)',
+    stroke: 'var(--connection-http-stroke, #667894)',
+    casing: 'var(--connection-http-casing, #37465b)',
   },
   event: {
-    stroke: 'var(--connection-event-stroke, #C97A63)',
-    casing: 'var(--connection-event-casing, #8D5545)',
+    stroke: 'var(--connection-event-stroke, #787583)',
+    casing: 'var(--connection-event-casing, #404453)',
   },
   data: {
-    stroke: 'var(--connection-data-stroke, #5FA59B)',
-    casing: 'var(--connection-data-casing, #43746D)',
+    stroke: 'var(--connection-data-stroke, #637e8e)',
+    casing: 'var(--connection-data-casing, #354959)',
   },
 };
 
