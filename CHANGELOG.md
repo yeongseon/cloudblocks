@@ -119,6 +119,33 @@ Reclassified resource tier assignments, added missing resource types to the pale
 
 - 13 issues closed (Epics #1453, #1454)
 
+## [v0.32.0] — 2026-03-30
+
+**Milestone 32 — UX–Documentation Alignment**
+
+Aligned the frontend UX with learning-tool positioning: updated landing page, enhanced empty canvas CTA for beginners, removed Experimental badge from Terraform export, updated onboarding tour, and added learning mode entry point.
+
+### Features
+
+- Enhanced `EmptyCanvasCTA` for beginner-first onboarding (#1479)
+- Added learning mode entry point to MenuBar (#1482)
+- Reviewed and updated onboarding tour for learning-first flow (#1481)
+
+### Bug Fixes
+
+- Updated `LandingPage` content and layout for learning-tool positioning (#1480)
+- Removed Experimental badge from Terraform export in Generate Code (#1478)
+
+### Related Epics
+
+- Epic #1493 (UX–Documentation Alignment)
+- Epic #1508 (Visual & UX Consistency Redesign)
+- Combined implementation (PR #1488)
+
+### Statistics
+
+- 8 issues closed
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
