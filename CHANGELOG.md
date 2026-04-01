@@ -146,6 +146,28 @@ Aligned the frontend UX with learning-tool positioning: updated landing page, en
 
 - 8 issues closed
 
+## [v0.33.0] — 2026-03-31
+
+**Milestone 33 — Learning Content Validation**
+
+Validated all learning content end-to-end: tested guided scenarios, verified template→edit→export flows, reviewed scenario content for beginner-appropriate language, and created Gate 6 analytics instrumentation plan.
+
+### Testing
+
+- End-to-end validation of all 6 guided scenarios (#1483)
+- Verified template → edit → export flow for all templates (#1484)
+- Added template→edit→export flow integration tests (PR #1567)
+
+### Documentation
+
+- Reviewed scenario content for beginner-appropriate language (#1486)
+- Created Gate 6 analytics instrumentation plan (#1485)
+- Combined learning content validation implementation (PR #1489)
+
+### Statistics
+
+- 7 issues closed (Epic #1494)
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
