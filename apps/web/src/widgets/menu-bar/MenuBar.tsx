@@ -46,6 +46,7 @@ import {
   LogOut,
   LayoutGrid,
   Keyboard,
+  Type,
 } from 'lucide-react';
 import './MenuBar.css';
 
@@ -86,6 +87,8 @@ export function MenuBar() {
   const themeVariant = useUIStore((s) => s.themeVariant);
   const gridStyle = useUIStore((s) => s.gridStyle);
   const cycleGridStyle = useUIStore((s) => s.cycleGridStyle);
+  const cycleLabelMode = useUIStore((s) => s.cycleLabelMode);
+  const labelModeOverride = useUIStore((s) => s.labelModeOverride);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
@@ -516,6 +519,18 @@ export function MenuBar() {
             </span>
           </button>
           <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(cycleLabelMode)}
+            >
+              <span className="menu-item-left">
+                <Type size={14} /> Labels:{' '}
+                {labelModeOverride === 'auto'
+                  ? 'Auto'
+                  : labelModeOverride.charAt(0).toUpperCase() + labelModeOverride.slice(1)}
+              </span>
+            </button>
             <span className="menu-item-left">
               <LayoutGrid size={14} /> Grid:{' '}
               {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}
