@@ -189,6 +189,12 @@ export function resolveContainerPresentation(
 
 // ─── External Block Presentation ─────────────────────────────
 
+/** Resolve a public asset path with Vite base URL prefix. */
+function resolvePublicUrl(rawPath: string): string {
+  const base = import.meta.env.BASE_URL ?? '/';
+  return base + rawPath.replace(/^\//, '');
+}
+
 const EXTERNAL_PRESENTATIONS: Record<
   string,
   { shortLabel: string; displayLabel: string; iconUrl: string }
@@ -196,12 +202,12 @@ const EXTERNAL_PRESENTATIONS: Record<
   internet: {
     shortLabel: 'Internet',
     displayLabel: 'Internet',
-    iconUrl: '/actor-sprites/internet.svg',
+    iconUrl: resolvePublicUrl('/actor-sprites/internet.svg'),
   },
   browser: {
     shortLabel: 'Browser',
     displayLabel: 'Browser',
-    iconUrl: '/actor-sprites/browser.svg',
+    iconUrl: resolvePublicUrl('/actor-sprites/browser.svg'),
   },
 };
 
