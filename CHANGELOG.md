@@ -168,7 +168,9 @@ Validated all learning content end-to-end: tested guided scenarios, verified tem
 
 - 7 issues closed (Epic #1494)
 
-## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
+## [v0.34.0] — 2026-03-31
+
+**Milestone 34 — ExternalActor-to-Block Unification**
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
 
