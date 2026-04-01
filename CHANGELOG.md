@@ -33,6 +33,27 @@ Aligned all user-facing text and documentation with the "visual cloud learning t
 - 12 issues closed, 2 PRs merged
 - Documentation-only milestone — no runtime code changes
 
+## [v0.28.0] — 2026-03-29
+
+**Milestone 28 — UX Polish & Accessibility**
+
+Added keyboard shortcut cheat sheet, skip-to-content accessibility link, landing page footer polish, and cleaned up external actor surface routing fallback. Standardized backend-dependent TODO markers with ADR-0014.
+
+### Features
+
+- Keyboard shortcut cheat sheet overlay (#1430)
+- Skip-to-content link and ARIA hardening for screen readers (#1429)
+- Landing page footer polish — links, copyright, social icons (#1431)
+
+### Refactoring
+
+- Extended surface routing to external actors and removed legacy connection fallback (#1432, #1438)
+- Standardized `TODO(backend)` markers and added ADR-0014 for backend-dependent code (#1433, #1437)
+
+### Statistics
+
+- 8 issues closed (Epic #1428)
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
