@@ -141,7 +141,7 @@
 
 .github-pr-result-info code {
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 11px;
@@ -174,7 +174,7 @@
 
 .github-pr-baseline code {
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 11px;
@@ -231,7 +231,7 @@
 
 .github-pr-recent-pr code {
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 11px;

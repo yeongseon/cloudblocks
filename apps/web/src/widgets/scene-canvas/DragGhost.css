@@ -3,8 +3,8 @@
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -120%);
-  background: rgba(255, 213, 0, 0.95);
-  border: 3px solid #d4b200;
+  background: color-mix(in srgb, var(--state-selection-stroke) 95%, transparent);
+  border: 3px solid color-mix(in srgb, var(--state-selection-stroke) 80%, black);
   border-radius: 10px;
   padding: 8px 14px;
   font-family: var(--font-ui);
@@ -25,7 +25,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #222;
+  color: var(--text-inverse);
   line-height: 1;
 }
 
