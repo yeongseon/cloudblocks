@@ -290,6 +290,36 @@ describe('PropertiesDrawerPanel', () => {
       expect(screen.getByText('Compute')).toBeDefined();
     });
 
+    it('displays semantic display label in connection properties', () => {
+      const container = makePlate();
+      const blockA = makeBlock({ id: 'block-a', name: 'Gateway' });
+      const blockB = makeBlock({ id: 'block-b', name: 'Compute' });
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            nodes: [container, blockA, blockB],
+            connections: [
+              {
+                id: 'conn-1',
+                from: 'endpoint-block-a-output-http',
+                to: 'endpoint-block-b-input-http',
+                metadata: {},
+              },
+            ],
+            endpoints: [],
+          },
+        },
+      });
+      useUIStore.setState({ selectedId: 'conn-1' });
+
+      render(<PropertiesDrawerPanel />);
+      expect(screen.getByTestId('props-connection')).toBeDefined();
+      // Should display "HTTP" (display label) not "http" (raw semantic)
+      expect(screen.getByText('HTTP')).toBeDefined();
+    });
+
     it('connection delete requires double-click', async () => {
       const user = userEvent.setup();
       const container = makePlate();

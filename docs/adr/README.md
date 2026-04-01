@@ -21,6 +21,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0013](0013-block-unification.md)                       | Block Unification — Unified Block Model   | Accepted           | 2026-03 |
 | [0014](0014-promote-rollback-static-data.md)            | Promote/Rollback Static Data Placeholders | Accepted           | 2026-03 |
 | [0015](0015-external-actor-to-block-migration.md)       | ExternalActor-to-Block Migration          | Accepted           | 2026-03 |
+| [0016](0016-connection-type-taxonomy-alignment.md)     | Connection Type Taxonomy Alignment        | Accepted           | 2026-04 |
 
 ## ADR Template
 

@@ -5,6 +5,7 @@ import { useArchitectureStore } from '../../../entities/store/architectureStore'
 import { useUIStore } from '../../../entities/store/uiStore';
 import { audioService } from '../../../shared/utils/audioService';
 import { BLOCK_FRIENDLY_NAMES } from '../../../shared/types';
+import { resolveSemanticLabel } from '../../../shared/tokens/connectionTypeLabels';
 import './PropertiesDrawerPanel.css';
 
 // ── Main Panel ───────────────────────────────────────────────────────────
@@ -270,7 +271,9 @@ function ConnectionProperties({ connection }: { connection: Connection }) {
             value={sourceNode?.name ?? fromParsed?.blockId ?? 'Unknown'}
           />
           <ReadOnlyField label="To" value={targetNode?.name ?? toParsed?.blockId ?? 'Unknown'} />
-          {fromParsed && <ReadOnlyField label="Semantic" value={fromParsed.semantic} />}
+          {fromParsed && (
+            <ReadOnlyField label="Semantic" value={resolveSemanticLabel(fromParsed.semantic)} />
+          )}
           {fromParsed && (
             <ReadOnlyField
               label="Direction"
@@ -313,7 +316,7 @@ function ConnectionSummaryItem({
   const otherNodeId =
     fromParsed?.blockId === currentNodeId ? toParsed?.blockId : fromParsed?.blockId;
   const direction = fromParsed?.blockId === currentNodeId ? 'outbound' : 'inbound';
-  const semantic = fromParsed?.semantic ?? '?';
+  const semantic = resolveSemanticLabel(fromParsed?.semantic);
 
   const otherNode = otherNodeId
     ? (architecture.nodes.find((n) => n.id === otherNodeId) ?? null)
