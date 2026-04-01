@@ -13,6 +13,7 @@ export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavai
 export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
 export type AppView = 'landing' | 'builder';
 export type InspectorTabId = 'properties' | 'code' | 'connections';
+export type LabelMode = 'compact' | 'learning' | 'inspect';
 export type RightOverlayId =
   | 'githubLogin'
   | 'githubRepos'
@@ -198,6 +199,11 @@ interface UIState {
 
   gridStyle: 'paper' | 'dot' | 'none';
   setGridStyle: (style: 'paper' | 'dot' | 'none') => void;
+
+  // ── Label presentation mode ──
+  labelMode: LabelMode;
+  setLabelMode: (mode: LabelMode) => void;
+  cycleLabelMode: () => void;
   cycleGridStyle: () => void;
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
@@ -602,6 +608,15 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   magneticSnapTargetId: null,
   setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
+
+  labelMode: 'compact' as LabelMode,
+  setLabelMode: (mode) => set({ labelMode: mode }),
+  cycleLabelMode: () => {
+    const order: LabelMode[] = ['compact', 'learning', 'inspect'];
+    const current = get().labelMode;
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    set({ labelMode: next });
+  },
 }));
 
 // One-time cleanup of legacy persona localStorage key

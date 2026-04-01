@@ -22,6 +22,7 @@ import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
+import { getSubtypeDisplayLabel } from '../../shared/utils/iconResolver';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -300,6 +301,7 @@ export const BlockSprite = memo(function BlockSprite({
           top: `-${blockSize.height / 2}px`,
         }}
         aria-label={`Node: ${block.name}`}
+        title={getSubtypeDisplayLabel(block.provider ?? 'azure', block.subtype) ?? block.name}
       >
         <div className="block-img" draggable={false}>
           <BlockSvg

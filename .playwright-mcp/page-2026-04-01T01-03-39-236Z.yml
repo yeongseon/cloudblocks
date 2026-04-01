@@ -1,0 +1,226 @@
+- generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+        - /url: '#main-content'
+    - generic [ref=e5]:
+        - generic [ref=e6]: Visual builder, templates, and code generation work instantly — no backend required. Connect the backend to unlock AI and GitHub features.
+        - button "Dismiss" [ref=e7] [cursor=pointer]
+    - generic [ref=e108]:
+        - generic [ref=e110]:
+            - button "Menu" [ref=e112] [cursor=pointer]:
+                - img [ref=e113]
+            - button "Workspaces" [ref=e118] [cursor=pointer]
+            - tablist "Cloud provider" [ref=e120]:
+                - tab "Azure" [selected] [ref=e121] [cursor=pointer]
+                - tab "AWS" [ref=e122] [cursor=pointer]
+                - tab "GCP" [ref=e123] [cursor=pointer]
+            - generic [ref=e125]:
+                - button "Browse guided scenarios" [ref=e126] [cursor=pointer]:
+                    - img [ref=e127]
+                    - generic [ref=e130]: Learn
+                - button "Templates" [active] [ref=e131] [cursor=pointer]:
+                    - img [ref=e132]
+                    - generic [ref=e136]: Templates
+                - button "Validate" [ref=e137] [cursor=pointer]:
+                    - img [ref=e138]
+                    - generic [ref=e141]: Validate
+            - generic [ref=e143]:
+                - button "Undo (Ctrl+Z)" [disabled] [ref=e144]:
+                    - img [ref=e145]
+                - button "Redo (Ctrl+Shift+Z)" [disabled] [ref=e148]:
+                    - img [ref=e149]
+                - button "Save Workspace (Ctrl+S)" [ref=e152] [cursor=pointer]:
+                    - img [ref=e153]
+                - button "Keyboard Shortcuts (?)" [ref=e157] [cursor=pointer]:
+                    - img [ref=e158]
+            - button "GitHub Requires Backend" [disabled] [ref=e162] [cursor=pointer]:
+                - img [ref=e163]
+                - text: GitHub
+                - generic [ref=e166]: Requires Backend
+        - complementary [ref=e167]:
+            - generic [ref=e169]:
+                - generic [ref=e170]:
+                    - generic [ref=e171]:
+                        - img [ref=e173]
+                        - searchbox [ref=e176]
+                    - paragraph [ref=e177]: Showing 15 of 30
+                - generic [ref=e178] [cursor=pointer]:
+                    - checkbox "Show Advanced" [ref=e179]
+                    - generic [ref=e180]: Show Advanced
+                - generic [ref=e181]:
+                    - region "External resources" [ref=e182]:
+                        - button "Collapse External" [expanded] [ref=e183] [cursor=pointer]:
+                            - generic [ref=e184]:
+                                - generic [ref=e185]: 🔌
+                                - generic [ref=e186]: External
+                            - generic [ref=e187]: '2'
+                        - generic [ref=e188]:
+                            - button "Internet Internet" [ref=e189] [cursor=pointer]:
+                                - generic [ref=e191]:
+                                    - generic [ref=e192]: Internet
+                                    - generic [ref=e193]: Internet
+                            - button "Browser Browser" [ref=e194] [cursor=pointer]:
+                                - generic [ref=e196]:
+                                    - generic [ref=e197]: Browser
+                                    - generic [ref=e198]: Browser
+                    - region "Network resources" [ref=e199]:
+                        - button "Collapse Network" [expanded] [ref=e200] [cursor=pointer]:
+                            - generic [ref=e201]:
+                                - generic [ref=e202]: 🌐
+                                - generic [ref=e203]: Network
+                            - generic [ref=e204]: '2'
+                        - generic [ref=e205]:
+                            - button "Subnet Subnet" [ref=e206]:
+                                - generic [ref=e208]:
+                                    - generic [ref=e209]: Subnet
+                                    - generic [ref=e210]: Subnet
+                            - button "VNet Virtual Network" [ref=e211]:
+                                - generic [ref=e213]:
+                                    - generic [ref=e214]: VNet
+                                    - generic [ref=e215]: Virtual Network
+                    - region "Delivery resources" [ref=e216]:
+                        - button "Collapse Delivery" [expanded] [ref=e217] [cursor=pointer]:
+                            - generic [ref=e218]:
+                                - generic [ref=e219]: 🚀
+                                - generic [ref=e220]: Delivery
+                            - generic [ref=e221]: '2'
+                        - generic [ref=e222]:
+                            - button "CDN CDN Profile" [ref=e223]:
+                                - generic [ref=e225]:
+                                    - generic [ref=e226]: CDN
+                                    - generic [ref=e227]: CDN Profile
+                            - button "Front Door Front Door" [ref=e228]:
+                                - generic [ref=e230]:
+                                    - generic [ref=e231]: Front Door
+                                    - generic [ref=e232]: Front Door
+                    - region "Compute resources" [ref=e233]:
+                        - button "Collapse Compute" [expanded] [ref=e234] [cursor=pointer]:
+                            - generic [ref=e235]:
+                                - generic [ref=e236]: 🖥️
+                                - generic [ref=e237]: Compute
+                            - generic [ref=e238]: '3'
+                        - generic [ref=e239]:
+                            - button "App Service App Service" [ref=e240]:
+                                - generic [ref=e242]:
+                                    - generic [ref=e243]: App Service
+                                    - generic [ref=e244]: App Service
+                            - button "Functions Functions" [ref=e245]:
+                                - generic [ref=e247]:
+                                    - generic [ref=e248]: Functions
+                                    - generic [ref=e249]: Functions
+                            - button "VM Virtual Machine" [ref=e250]:
+                                - generic [ref=e252]:
+                                    - generic [ref=e253]: VM
+                                    - generic [ref=e254]: Virtual Machine
+                    - region "Data resources" [ref=e255]:
+                        - button "Collapse Data" [expanded] [ref=e256] [cursor=pointer]:
+                            - generic [ref=e257]:
+                                - generic [ref=e258]: 🗄️
+                                - generic [ref=e259]: Data
+                            - generic [ref=e260]: '2'
+                        - generic [ref=e261]:
+                            - button "SQL SQL Database" [ref=e262]:
+                                - generic [ref=e264]:
+                                    - generic [ref=e265]: SQL
+                                    - generic [ref=e266]: SQL Database
+                            - button "Storage Storage Account" [ref=e267]:
+                                - generic [ref=e269]:
+                                    - generic [ref=e270]: Storage
+                                    - generic [ref=e271]: Storage Account
+                    - region "Messaging resources" [ref=e272]:
+                        - button "Collapse Messaging" [expanded] [ref=e273] [cursor=pointer]:
+                            - generic [ref=e274]:
+                                - generic [ref=e275]: 📨
+                                - generic [ref=e276]: Messaging
+                            - generic [ref=e277]: '1'
+                        - button "Service Bus Service Bus" [ref=e279]:
+                            - generic [ref=e281]:
+                                - generic [ref=e282]: Service Bus
+                                - generic [ref=e283]: Service Bus
+                    - region "Security resources" [ref=e284]:
+                        - button "Collapse Security" [expanded] [ref=e285] [cursor=pointer]:
+                            - generic [ref=e286]:
+                                - generic [ref=e287]: 🔒
+                                - generic [ref=e288]: Security
+                            - generic [ref=e289]: '1'
+                        - button "Key Vault Key Vault" [ref=e291]:
+                            - generic [ref=e293]:
+                                - generic [ref=e294]: Key Vault
+                                - generic [ref=e295]: Key Vault
+                    - region "Identity resources" [ref=e296]:
+                        - button "Collapse Identity" [expanded] [ref=e297] [cursor=pointer]:
+                            - generic [ref=e298]:
+                                - generic [ref=e299]: 🪪
+                                - generic [ref=e300]: Identity
+                            - generic [ref=e301]: '1'
+                        - button "Managed ID Managed Identity" [ref=e303]:
+                            - generic [ref=e305]:
+                                - generic [ref=e306]: Managed ID
+                                - generic [ref=e307]: Managed Identity
+                    - region "Operations resources" [ref=e308]:
+                        - button "Collapse Operations" [expanded] [ref=e309] [cursor=pointer]:
+                            - generic [ref=e310]:
+                                - generic [ref=e311]: 🔧
+                                - generic [ref=e312]: Operations
+                            - generic [ref=e313]: '1'
+                        - button "Monitor Monitor" [ref=e315]:
+                            - generic [ref=e317]:
+                                - generic [ref=e318]: Monitor
+                                - generic [ref=e319]: Monitor
+        - application "Architecture builder canvas" [ref=e320]:
+            - generic [ref=e322]:
+                - generic:
+                    - generic:
+                        - 'button "Container: VNet" [ref=e323] [cursor=pointer]':
+                            - generic:
+                                - img:
+                                    - generic: VNet
+                        - 'button "Container: Subnet 1" [ref=e324] [cursor=pointer]':
+                            - generic:
+                                - img:
+                                    - generic: Subnet 1
+                        - 'button "Container: Subnet 2" [ref=e325] [cursor=pointer]':
+                            - generic:
+                                - img:
+                                    - generic: Subnet 2
+                    - img "Connections" [ref=e326]:
+                        - link [ref=e328] [cursor=pointer]:
+                            - /url: /connections/conn-browser-internet
+                        - link [ref=e331] [cursor=pointer]:
+                            - /url: /connections/conn-tmpl-inet-gw
+                        - link [ref=e334] [cursor=pointer]:
+                            - /url: /connections/conn-tmpl-gw-compute
+                        - link [ref=e337] [cursor=pointer]:
+                            - /url: /connections/conn-tmpl-compute-db
+                        - link [ref=e340] [cursor=pointer]:
+                            - /url: /connections/conn-tmpl-compute-storage
+                    - img "Interaction Overlay" [ref=e342]
+                    - generic:
+                        - generic:
+                            - 'button "Node: Azure Application Gateway"':
+                                - img [ref=e344] [cursor=pointer]:
+                                    - generic: AGW
+                        - generic:
+                            - 'button "Node: Azure VM"':
+                                - img [ref=e356] [cursor=pointer]:
+                                    - generic: VM
+                        - generic:
+                            - 'button "Node: Azure Database for PostgreSQL"':
+                                - img [ref=e368] [cursor=pointer]:
+                                    - generic: SQL
+                        - generic:
+                            - 'button "Node: Azure Blob Storage"':
+                                - img [ref=e380] [cursor=pointer]:
+                                    - generic: Storage
+                        - generic:
+                            - 'button "Node: Browser"':
+                                - img [ref=e392] [cursor=pointer]:
+                                    - generic [ref=e406]: ⇒
+                        - generic:
+                            - 'button "Node: Internet"':
+                                - img [ref=e408] [cursor=pointer]:
+                                    - generic [ref=e422]: ⇒
+    - generic:
+        - status [ref=e423]:
+            - paragraph [ref=e424]: Everything looks good — your architecture is valid!
+            - button "Dismiss" [ref=e426] [cursor=pointer]
+        - button "Toggle helper" [ref=e427] [cursor=pointer]: '?'

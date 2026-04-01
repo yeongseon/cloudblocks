@@ -427,7 +427,7 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     storage: { label: 'Cloud Storage', shortLabel: 'GCS' },
     dns: { label: 'Cloud DNS', shortLabel: 'DNS' },
     cdn: { label: 'Cloud CDN', shortLabel: 'CDN' },
-    'front-door': { label: 'Cloud Load Balancing', shortLabel: 'CLB' },
+    'front-door': { label: 'Cloud Load Balancing', shortLabel: 'LB' },
     sql: { label: 'Cloud SQL', shortLabel: 'CloudSQL' },
     function: { label: 'Cloud Functions', shortLabel: 'GCF' },
     queue: { label: 'Cloud Tasks', shortLabel: 'Tasks' },
