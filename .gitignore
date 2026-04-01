@@ -76,6 +76,7 @@ infra/plausible/plausible.env
 apps/web/coverage/
 
 # ─── Playwright / Demo recordings ─────────────────────────────
+.playwright-mcp/
 test-results/
 playwright-report/
 docs/demo/

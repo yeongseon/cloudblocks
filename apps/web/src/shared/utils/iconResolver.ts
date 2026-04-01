@@ -335,7 +335,7 @@ const SUBTYPE_LABELS: Record<string, Record<string, string>> = {
     'cloud-spanner': 'Spanner',
     'cloud-storage': 'GCS',
     memorystore: 'Memorystore',
-    'cloud-load-balancing': 'Load Bal.',
+    'cloud-load-balancing': 'Cloud Load Balancing',
     'cloud-cdn': 'CDN',
     'cloud-armor': 'Armor',
     vpc: 'VPC',
