@@ -8,8 +8,8 @@ const TOAST_TRANSITION_MS = 180;
 const BASE_TOAST_STYLE: CSSProperties = {
   borderRadius: '6px',
   boxShadow: '0 6px 16px rgba(0, 0, 0, 0.18)',
-  color: '#f0f0f0',
-  background: 'rgba(15, 23, 42, 0.92)',
+  color: 'var(--text-primary)',
+  background: 'var(--bg-surface)',
   fontSize: '0.875rem',
   lineHeight: 1.4,
   maxWidth: '320px',
