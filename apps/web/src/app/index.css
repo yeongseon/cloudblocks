@@ -77,6 +77,30 @@
   --connection-data-casing: #43746d;
   --connection-selection-glow: rgba(241, 245, 249, 0.35);
   --connection-error-label-text: #0f172a;
+
+  /* ── Provider accent (provider-neutral highlight for ports & connections) ── */
+  --provider-accent: #60a5fa;
+  --provider-accent-glow: rgba(96, 165, 250, 0.42);
+
+  /* ── Interaction state colors ── */
+  --state-selection-stroke: #ffd500;
+  --state-selection-glow: rgba(255, 213, 0, 0.5);
+  --state-snap-stroke: #16a34a;
+  --state-snap-glow: rgba(22, 163, 74, 0.44);
+  --state-invalid-stroke: #f97316;
+  --state-invalid-glow: rgba(249, 115, 22, 0.42);
+  --state-success-stroke: #22c55e;
+  --state-success-glow: rgba(34, 197, 94, 0.46);
+  --state-warning-stroke: #f59e0b;
+  --state-warning-glow: rgba(245, 158, 11, 0.44);
+  --state-connected-stroke: #60a5fa;
+  --state-connected-glow: rgba(96, 165, 250, 0.42);
+  --state-delete-stroke: #ef4444;
+  --state-delete-glow: rgba(239, 68, 68, 0.44);
+
+  /* ── Connection neutral (base wire color, recedes behind blocks) ── */
+  --connection-neutral-stroke: #64748b;
+  --connection-neutral-casing: #334155;
 }
 
 [data-theme='workshop'] {
@@ -108,6 +132,30 @@
   --connection-data-casing: #376861;
   --connection-selection-glow: rgba(15, 23, 42, 0.22);
   --connection-error-label-text: #0f172a;
+
+  /* ── Provider accent (provider-neutral highlight for ports & connections) ── */
+  --provider-accent: #2563eb;
+  --provider-accent-glow: rgba(37, 99, 235, 0.22);
+
+  /* ── Interaction state colors ── */
+  --state-selection-stroke: #b8860b;
+  --state-selection-glow: rgba(184, 134, 11, 0.2);
+  --state-snap-stroke: #166534;
+  --state-snap-glow: rgba(22, 101, 52, 0.18);
+  --state-invalid-stroke: #c2410c;
+  --state-invalid-glow: rgba(194, 65, 12, 0.2);
+  --state-success-stroke: #16a34a;
+  --state-success-glow: rgba(22, 163, 74, 0.22);
+  --state-warning-stroke: #ca8a04;
+  --state-warning-glow: rgba(202, 138, 4, 0.2);
+  --state-connected-stroke: #2563eb;
+  --state-connected-glow: rgba(37, 99, 235, 0.22);
+  --state-delete-stroke: #dc2626;
+  --state-delete-glow: rgba(220, 38, 38, 0.22);
+
+  /* ── Connection neutral (base wire color, recedes behind blocks) ── */
+  --connection-neutral-stroke: #94a3b8;
+  --connection-neutral-casing: #64748b;
 }
 
 * {
