@@ -23,6 +23,9 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   ARROW_MARKER_W: 6,
   ARROW_MARKER_H: 6,
   ARROW_MARKER_REF_X: 5.5,
+  PORT_DOT_RX: 4,
+  PORT_DOT_RY: 2.5,
+  PORT_DOT_STROKE_WIDTH: 1.5,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -360,9 +363,9 @@ describe('ConnectionRenderer', () => {
     }> = [
       { type: 'dataflow', baseWidth: 2 },
       { type: 'http', baseWidth: 3 },
-      { type: 'internal', baseWidth: 2, dash: '4 4' },
-      { type: 'data', baseWidth: 2, dash: '8 4' },
-      { type: 'async', baseWidth: 2, dash: '8 4 2 4' },
+      { type: 'internal', baseWidth: 2.5 },
+      { type: 'data', baseWidth: 1.5, dash: '6 3' },
+      { type: 'async', baseWidth: 2, dash: '2 3' },
     ];
 
     for (const spec of typedSpecs) {

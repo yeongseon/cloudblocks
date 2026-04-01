@@ -28,19 +28,19 @@ describe('connectionVisualTokens', () => {
       expect(CONNECTION_VISUAL_STYLES.http.strokeDasharray).toBeUndefined();
     });
 
-    it('internal has short dash pattern', () => {
-      expect(CONNECTION_VISUAL_STYLES.internal.strokeWidth).toBe(2);
-      expect(CONNECTION_VISUAL_STYLES.internal.strokeDasharray).toBe('4 4');
+    it('internal is solid with strokeWidth 2.5', () => {
+      expect(CONNECTION_VISUAL_STYLES.internal.strokeWidth).toBe(2.5);
+      expect(CONNECTION_VISUAL_STYLES.internal.strokeDasharray).toBeUndefined();
     });
 
-    it('data has long dash pattern', () => {
-      expect(CONNECTION_VISUAL_STYLES.data.strokeWidth).toBe(2);
-      expect(CONNECTION_VISUAL_STYLES.data.strokeDasharray).toBe('8 4');
+    it('data has thin dash pattern', () => {
+      expect(CONNECTION_VISUAL_STYLES.data.strokeWidth).toBe(1.5);
+      expect(CONNECTION_VISUAL_STYLES.data.strokeDasharray).toBe('6 3');
     });
 
-    it('async has dot-dash pattern', () => {
+    it('async has dotted pattern', () => {
       expect(CONNECTION_VISUAL_STYLES.async.strokeWidth).toBe(2);
-      expect(CONNECTION_VISUAL_STYLES.async.strokeDasharray).toBe('8 4 2 4');
+      expect(CONNECTION_VISUAL_STYLES.async.strokeDasharray).toBe('2 3');
     });
   });
 

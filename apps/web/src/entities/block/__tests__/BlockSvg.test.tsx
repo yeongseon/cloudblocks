@@ -244,7 +244,7 @@ describe('BlockSvg subtype size overrides', () => {
 // ─── SVG Structure Tests ──────────────────────────────────────
 
 describe('BlockSvg SVG structure', () => {
-  it('renders 3 face polygons plus port dot polygons even when showPorts is not enabled', () => {
+  it('renders 3+ face polygons (port dots in separate group)', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const polygons = getPolygons(container);
     expect(polygons.length).toBeGreaterThanOrEqual(3);

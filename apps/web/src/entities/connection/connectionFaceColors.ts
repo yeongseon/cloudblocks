@@ -58,3 +58,24 @@ export function getConnectionColors(semantic: ConnectionRenderSemantic): Connect
 }
 
 export const DEFAULT_CONNECTION_SEMANTIC: ConnectionRenderSemantic = 'http';
+
+// ─── Neutral Colors (dataflow / untyped connections) ────────
+// Consumed via --connection-neutral-* CSS tokens in index.css.
+// These recede maximally behind blocks — pure slate, no hue bias.
+export const NEUTRAL_CONNECTION_COLORS: ConnectionColors = {
+  base: '#64748b',
+  stroke: 'var(--connection-neutral-stroke, #64748b)',
+  casing: 'var(--connection-neutral-casing, #334155)',
+};
+
+/**
+ * Get colors for a connection, preferring neutral colors
+ * when the connection type is 'dataflow' (default) or unresolved.
+ */
+export function getConnectionColorsForType(
+  semantic: ConnectionRenderSemantic,
+  isNeutral: boolean,
+): ConnectionColors {
+  if (isNeutral) return NEUTRAL_CONNECTION_COLORS;
+  return getConnectionColors(semantic);
+}
