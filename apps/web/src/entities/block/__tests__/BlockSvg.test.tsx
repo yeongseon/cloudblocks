@@ -465,3 +465,55 @@ describe('BlockSvg name prop', () => {
     expect(images.length).toBe(1);
   });
 });
+
+// ─── Health Badge Tests (#1591) ────────────────────────────────────────────
+
+describe('BlockSvg health badge (#1591)', () => {
+  it('does not render health badge when healthStatus is undefined', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const badge = container.querySelector('[data-testid="health-badge"]');
+    expect(badge).toBeNull();
+  });
+
+  it('renders a green health badge for ok status', () => {
+    const { container } = render(<BlockSvg category="compute" healthStatus="ok" />);
+    const badge = container.querySelector('[data-testid="health-badge"]');
+    expect(badge).not.toBeNull();
+    expect(badge!.tagName.toLowerCase()).toBe('circle');
+    // ok badge uses smaller radius (3)
+    expect(badge!.getAttribute('r')).toBe('3');
+  });
+
+  it('renders a warning health badge for warn status', () => {
+    const { container } = render(<BlockSvg category="compute" healthStatus="warn" />);
+    const badge = container.querySelector('[data-testid="health-badge"]');
+    expect(badge).not.toBeNull();
+    expect(badge!.tagName.toLowerCase()).toBe('circle');
+    // warn/error badge uses larger radius (4)
+    expect(badge!.getAttribute('r')).toBe('4');
+  });
+
+  it('renders an error health badge for error status', () => {
+    const { container } = render(<BlockSvg category="compute" healthStatus="error" />);
+    const badge = container.querySelector('[data-testid="health-badge"]');
+    expect(badge).not.toBeNull();
+    expect(badge!.getAttribute('r')).toBe('4');
+  });
+
+  it('health badge coexists with aggregation badge and role badges', () => {
+    const { container } = render(
+      <BlockSvg category="compute" aggregationCount={3} roles={['primary']} healthStatus="warn" />,
+    );
+    expect(container.querySelector('[data-testid="aggregation-badge"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="role-badge-primary"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="health-badge"]')).not.toBeNull();
+  });
+
+  it('does not change viewBox dimensions with health badge', () => {
+    const { container: without } = render(<BlockSvg category="compute" />);
+    const { container: withBadge } = render(<BlockSvg category="compute" healthStatus="error" />);
+    const vbWithout = without.querySelector('svg')!.getAttribute('viewBox');
+    const vbWith = withBadge.querySelector('svg')!.getAttribute('viewBox');
+    expect(vbWith).toBe(vbWithout);
+  });
+});
