@@ -25,6 +25,7 @@ vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
 const mockSetSelectedId = vi.fn();
 const mockAddBlock = vi.fn();
 const mockCompleteInteraction = vi.fn();
+const mockSetCanvasZoom = vi.fn();
 
 const architecture: {
   nodes: ResourceBlock[];
@@ -51,9 +52,13 @@ function setupStoreMocks() {
       interactionState: 'idle' as const,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      draggedResourceType: null,
+      draggedSubtype: null,
       activeProvider: 'aws',
       completeInteraction: mockCompleteInteraction,
+      setCanvasZoom: mockSetCanvasZoom,
       isSoundMuted: true,
+      gridStyle: 'paper' as const,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -64,6 +69,7 @@ describe('SceneCanvas ResizeObserver origin update', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSetCanvasZoom.mockClear();
     setupStoreMocks();
     capturedCallback = null;
 

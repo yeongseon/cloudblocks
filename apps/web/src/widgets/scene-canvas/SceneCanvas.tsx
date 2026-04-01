@@ -64,6 +64,7 @@ export function SceneCanvas() {
   const draggedSubtype = useUIStore((s) => s.draggedSubtype);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
+  const setCanvasZoom = useUIStore((s) => s.setCanvasZoom);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const gridStyle = useUIStore((s) => s.gridStyle);
   const playSound = (name: SoundName) => {
@@ -251,6 +252,10 @@ export function SceneCanvas() {
       return newZoom;
     });
   }, []);
+
+  useEffect(() => {
+    setCanvasZoom(zoom);
+  }, [setCanvasZoom, zoom]);
 
   useEffect(() => {
     const el = containerRef.current;
