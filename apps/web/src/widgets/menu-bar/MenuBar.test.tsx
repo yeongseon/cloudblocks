@@ -269,7 +269,8 @@ describe('MenuBar', () => {
     expect(gcpTab).toHaveAttribute('aria-selected', 'true');
     expect(awsTab).toHaveAttribute('aria-selected', 'false');
 
-    expect(gcpTab).toHaveStyle('color: #4285F4');
+    expect(gcpTab).toHaveAttribute('data-provider', 'gcp');
+    expect(gcpTab).toHaveAttribute('data-active', 'true');
   });
 
   it('shows Sign In when not authenticated and GitHub username when authenticated', () => {
