@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock, ROOT_ALLOWED_RESOURCE_TYPES } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
+import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 
@@ -31,6 +32,28 @@ export function SceneCanvas() {
       b.parentId === null &&
       (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
   );
+  const occupiedCellsByContainer = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const node of architecture.nodes) {
+      if (node.kind !== 'resource' || node.parentId === null) {
+        continue;
+      }
+      const block = node;
+      const parentId = block.parentId;
+      if (parentId === null) {
+        continue;
+      }
+      const dims = getBlockDimensions(block.category, block.provider, block.subtype);
+      const set = map.get(parentId) ?? new Set<string>();
+      for (let dx = 0; dx < dims.width; dx++) {
+        for (let dz = 0; dz < dims.depth; dz++) {
+          set.add(`${block.position.x + dx}:${block.position.z + dz}`);
+        }
+      }
+      map.set(parentId, set);
+    }
+    return map;
+  }, [architecture.nodes]);
   const addNode = useArchitectureStore((s) => s.addNode);
   const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -240,6 +263,7 @@ export function SceneCanvas() {
                   screenX={screenPos.x}
                   screenY={screenPos.y}
                   zIndex={zIndex}
+                  occupiedCells={occupiedCellsByContainer.get(container.id)}
                 />
               );
             })}
