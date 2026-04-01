@@ -76,6 +76,47 @@ export function SceneCanvas() {
   const [zoom, setZoom] = useState(0.85);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
+  const externalLaneBounds = useMemo(() => {
+    const externalBlocks = architecture.nodes.filter(
+      (node): node is ResourceBlock =>
+        node.kind === 'resource' &&
+        node.parentId === null &&
+        (Boolean(node.roles?.includes('external')) || isExternalResourceType(node.resourceType)),
+    );
+    if (externalBlocks.length === 0) return null;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const block of externalBlocks) {
+      const sp = worldToScreen(
+        block.position.x,
+        block.position.y,
+        block.position.z,
+        origin.x,
+        origin.y,
+      );
+      minX = Math.min(minX, sp.x);
+      minY = Math.min(minY, sp.y);
+      maxX = Math.max(maxX, sp.x);
+      maxY = Math.max(maxY, sp.y);
+    }
+
+    const PAD_X = 48;
+    const PAD_Y = 36;
+    const BLOCK_W = 72;
+    const BLOCK_H = 96;
+
+    return {
+      left: minX - PAD_X,
+      top: minY - PAD_Y,
+      width: maxX - minX + BLOCK_W + PAD_X * 2,
+      height: maxY - minY + BLOCK_H + PAD_Y * 2,
+    };
+  }, [architecture.nodes, origin.x, origin.y]);
+
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
 
@@ -297,6 +338,21 @@ export function SceneCanvas() {
             />
           </g>
         </svg>
+
+        {externalLaneBounds && (
+          <div
+            className="external-lane-zone"
+            style={{
+              left: externalLaneBounds.left,
+              top: externalLaneBounds.top,
+              width: externalLaneBounds.width,
+              height: externalLaneBounds.height,
+            }}
+            data-testid="external-lane-zone"
+          >
+            <span className="external-lane-label">External</span>
+          </div>
+        )}
 
         <div className="block-layer">
           {containerBlocks.map((block) => {

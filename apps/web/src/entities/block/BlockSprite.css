@@ -232,9 +232,14 @@
   }
 }
 
-/* ── External actor de-emphasis (lighter than normal resource blocks) ─ */
+/* ── External actor de-emphasis (#1582 — desaturate + reduce shadow) ─ */
 .block-sprite.is-external .block-img {
-  opacity: 0.88;
+  opacity: var(--external-block-opacity);
+  filter: var(--external-block-filter);
+}
+
+.block-sprite.is-external {
+  --shadow-block-base: var(--shadow-block-external);
 }
 
 /* ── Mounted block groove shadow (#1581) ─ */
