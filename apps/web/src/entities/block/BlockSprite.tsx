@@ -123,6 +123,10 @@ export const BlockSprite = memo(function BlockSprite({
   const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
   const triggerSnapAnimation = useUIStore((s) => s.triggerSnapAnimation);
   const magneticSnapTargetId = useUIStore((s) => s.magneticSnapTargetId);
+
+  // ── Block status overlay (#1591) ──
+  const blockStatuses = useUIStore((s) => s.blockStatuses);
+  const blockStatus = blockStatuses.get(block.id);
   const isUpgrading = upgradingBlockId === block.id;
   const isSnapTarget = snapTargetBlockIds.has(block.id);
   const isMagneticSnapTarget = magneticSnapTargetId === block.id;
@@ -274,6 +278,18 @@ export const BlockSprite = memo(function BlockSprite({
     isUpgrading && 'is-upgrading',
     isSnapTarget && 'is-snap-target',
     block.roles?.includes('external') && 'is-external',
+    // ── Block status overlay (#1591) ── priority: disabled > error > health ──
+    blockStatus?.disabled && 'is-disabled',
+    !blockStatus?.disabled && blockStatus?.error && 'is-error',
+    !blockStatus?.disabled &&
+      !blockStatus?.error &&
+      blockStatus?.healthStatus === 'warn' &&
+      'is-health-warn',
+    !blockStatus?.disabled &&
+      !blockStatus?.error &&
+      blockStatus?.healthStatus === 'error' &&
+      'is-health-error',
+    !isAlreadyConnected && !isConnectMode && !isDeleteMode && 'is-unconnected',
   ]
     .filter(Boolean)
     .join(' ');
@@ -313,6 +329,7 @@ export const BlockSprite = memo(function BlockSprite({
             name={block.name}
             aggregationCount={block.aggregation?.count}
             roles={block.roles}
+            healthStatus={blockStatus?.disabled ? undefined : blockStatus?.healthStatus}
           />
         </div>
       </button>

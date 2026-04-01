@@ -25,7 +25,7 @@ import {
 import { getBlockFaceColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 import { getBlockSvgPortPoints } from './blockGeometry';
-import { useUIStore } from '../store/uiStore';
+import { useUIStore, type BlockHealthStatus } from '../store/uiStore';
 
 interface BlockSvgProps {
   category: ResourceCategory;
@@ -35,6 +35,7 @@ interface BlockSvgProps {
   name?: string;
   aggregationCount?: number;
   roles?: BlockRole[];
+  healthStatus?: BlockHealthStatus;
 }
 
 export const BlockSvg = memo(function BlockSvg({
@@ -45,6 +46,7 @@ export const BlockSvg = memo(function BlockSvg({
   name: _name,
   aggregationCount,
   roles,
+  healthStatus,
 }: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
@@ -300,6 +302,34 @@ export const BlockSvg = memo(function BlockSvg({
             />
           ))}
         </g>
+      )}
+
+      {/* ─── Health status badge (#1591) ─── */}
+      {healthStatus != null && healthStatus !== 'ok' && (
+        <circle
+          cx={screenWidth - 6}
+          cy={svgHeight - 6}
+          r={4}
+          fill={
+            healthStatus === 'error'
+              ? 'var(--state-health-error, #ef4444)'
+              : 'var(--state-health-warn, #eab308)'
+          }
+          stroke="rgba(0,0,0,0.3)"
+          strokeWidth={0.5}
+          data-testid="health-badge"
+        />
+      )}
+      {healthStatus === 'ok' && (
+        <circle
+          cx={screenWidth - 6}
+          cy={svgHeight - 6}
+          r={3}
+          fill="var(--state-health-ok, #22c55e)"
+          stroke="rgba(0,0,0,0.2)"
+          strokeWidth={0.5}
+          data-testid="health-badge"
+        />
       )}
     </svg>
   );

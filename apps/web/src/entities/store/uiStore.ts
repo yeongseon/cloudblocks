@@ -31,6 +31,20 @@ export interface ActivityLogEntry {
 export type { EditorMode } from '../../shared/types/learning';
 export type { ComplexityLevel } from '../../shared/types';
 
+/** Runtime health/status for a block — not persisted in architecture model. */
+export type BlockHealthStatus = 'ok' | 'warn' | 'error';
+
+/**
+ * Block-level operational status overlay.
+ * These are runtime states (not persisted in the architecture model).
+ * Priority: disabled > error > warning > health > default.
+ */
+export interface BlockStatus {
+  disabled?: boolean;
+  error?: boolean;
+  healthStatus?: BlockHealthStatus;
+}
+
 const PENDING_GITHUB_ACTION_KEY = 'cloudblocks_pending_github_action';
 
 function readPendingGitHubAction(): PendingGitHubAction {
@@ -223,6 +237,11 @@ interface UIState {
   // ── Magnetic snap (connection preview proximity) ──
   magneticSnapTargetId: string | null;
   setMagneticSnapTarget: (id: string | null) => void;
+
+  // ── Block status overlay (#1591) ──
+  blockStatuses: Map<string, BlockStatus>;
+  setBlockStatus: (blockId: string, status: BlockStatus) => void;
+  clearBlockStatus: (blockId: string) => void;
 }
 
 /** Keys that occupy the right-side panel slot — only one may be open. */
@@ -616,6 +635,23 @@ export const useUIStore = create<UIState>((set, get) => ({
     const current = get().labelMode;
     const next = order[(order.indexOf(current) + 1) % order.length];
     set({ labelMode: next });
+  },
+
+  // ── Block status overlay (#1591) ──
+  blockStatuses: new Map<string, BlockStatus>(),
+  setBlockStatus: (blockId, status) => {
+    set((s) => {
+      const next = new Map(s.blockStatuses);
+      next.set(blockId, { ...next.get(blockId), ...status });
+      return { blockStatuses: next };
+    });
+  },
+  clearBlockStatus: (blockId) => {
+    set((s) => {
+      const next = new Map(s.blockStatuses);
+      next.delete(blockId);
+      return { blockStatuses: next };
+    });
   },
 }));
 
