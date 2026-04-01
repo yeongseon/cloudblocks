@@ -39,6 +39,9 @@ export const CASING_WIDTH_OFFSET = 2.5;
 /** Hover width offset added to the base stroke width. */
 export const HOVER_WIDTH_OFFSET = 1;
 
+/** Perpendicular offset (screen px) applied to each connection in an overlap group. */
+export const OVERLAP_OFFSET_PX = 5;
+
 /**
  * Resolve the visual style for a connection type.
  * Falls back to 'dataflow' when type is undefined or unrecognized.

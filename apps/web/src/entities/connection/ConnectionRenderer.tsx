@@ -32,6 +32,7 @@ import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import { getConnectionColorsForType } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
+import { offsetScreenPoints } from './overlapOffset';
 
 interface ConnectionRendererProps {
   connection: Connection;
@@ -39,6 +40,7 @@ interface ConnectionRendererProps {
   plates: ContainerBlock[];
   originX: number;
   originY: number;
+  overlapOffset?: number;
 }
 
 /** Resolved colors for the 2-layer trace rendering. */
@@ -200,6 +202,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   plates,
   originX,
   originY,
+  overlapOffset = 0,
 }: ConnectionRendererProps) {
   const [isHovered, setIsHovered] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
@@ -262,7 +265,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const surfaceRender = useMemo(() => {
     if (!surfaceRoute) return null;
 
-    const hitPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
+    const rawPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
+    const hitPoints = overlapOffset ? offsetScreenPoints(rawPoints, overlapOffset) : rawPoints;
     const hitPath = pointsToPath(hitPoints);
 
     if (hitPoints.length < 2) return null;
@@ -273,7 +277,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       sourcePos: hitPoints[0],
       targetPos: hitPoints[hitPoints.length - 1],
     };
-  }, [surfaceRoute, originX, originY]);
+  }, [surfaceRoute, originX, originY, overlapOffset]);
 
   if (!surfaceRender) return null;
 
