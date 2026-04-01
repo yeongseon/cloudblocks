@@ -236,6 +236,11 @@
   }
 }
 
+/* ── External actor de-emphasis (lighter than normal resource blocks) ─ */
+.block-sprite.is-external .block-img {
+  opacity: 0.88;
+}
+
 /* ── Screen-aligned label chip ─ */
 .block-label-chip {
   position: absolute;

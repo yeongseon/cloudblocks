@@ -1062,4 +1062,48 @@ describe('BlockSprite', () => {
 
     expect(container.firstElementChild).not.toHaveClass('is-warning');
   });
+
+  it('adds is-external class when block has external role', () => {
+    const externalBlock: ResourceBlock = {
+      id: 'actor-browser',
+      name: 'Browser',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'browser',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -3, y: 0, z: 5 },
+      metadata: {},
+      roles: ['external'] as 'external'[],
+    };
+
+    const { container } = render(
+      <BlockSprite
+        block={externalBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-external');
+  });
+
+  it('does not add is-external class for normal resource blocks', () => {
+    const normalBlock = makeBlock('block-compute', 'compute');
+
+    const { container } = render(
+      <BlockSprite
+        block={normalBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    expect(container.firstElementChild).not.toHaveClass('is-external');
+  });
 });

@@ -67,8 +67,8 @@
   --accent-warning: #eab308;
   --accent-error: #ef4444;
   --canvas-glow: rgba(30, 41, 59, 0.55);
-  --canvas-grid-major-color: rgba(255, 255, 255, 0.12);
-  --canvas-grid-minor-color: rgba(255, 255, 255, 0.06);
+  --canvas-grid-major-color: rgba(255, 255, 255, 0.07);
+  --canvas-grid-minor-color: rgba(255, 255, 255, 0.03);
   --connection-http-stroke: #667894;
   --connection-http-casing: #37465b;
   --connection-event-stroke: #787583;
@@ -121,8 +121,8 @@
   --accent-warning: #ca8a04;
   --accent-error: #dc2626;
   --canvas-glow: rgba(241, 245, 249, 0.06);
-  --canvas-grid-major-color: rgba(0, 0, 0, 0.12);
-  --canvas-grid-minor-color: rgba(0, 0, 0, 0.06);
+  --canvas-grid-major-color: rgba(0, 0, 0, 0.08);
+  --canvas-grid-minor-color: rgba(0, 0, 0, 0.03);
   --connection-http-stroke: #8d9db8;
   --connection-http-casing: #617189;
   --connection-event-stroke: #9f9ba7;

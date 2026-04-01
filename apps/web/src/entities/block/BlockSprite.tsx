@@ -271,6 +271,7 @@ export const BlockSprite = memo(function BlockSprite({
     diffState === 'removed' && 'diff-removed',
     isUpgrading && 'is-upgrading',
     isSnapTarget && 'is-snap-target',
+    block.roles?.includes('external') && 'is-external',
   ]
     .filter(Boolean)
     .join(' ');
