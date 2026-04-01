@@ -1,5 +1,15 @@
 import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
+/**
+ * Prefix a root-relative public asset path with the Vite base URL.
+ * In development this is "/"; on GitHub Pages it is "/cloudblocks/".
+ * The leading slash on the raw path is stripped to avoid double slashes.
+ */
+function resolvePublicUrl(rawPath: string): string {
+  const base = import.meta.env.BASE_URL ?? '/';
+  return base + rawPath.replace(/^\//, '');
+}
+
 const AZURE_SUBTYPE_ICONS: Record<string, string> = {
   vm: '/azure-icons/virtual-machine.svg',
   'app-service': '/azure-icons/app-service.svg',
@@ -214,16 +224,19 @@ export function getBlockIconUrl(
 ): string | null {
   // External blocks (internet/browser) have no subtype but use actor-sprite icons
   if (!subtype && resourceType) {
-    return EXTERNAL_BLOCK_ICONS[resourceType] ?? null;
+    const icon = EXTERNAL_BLOCK_ICONS[resourceType];
+    return icon ? resolvePublicUrl(icon) : null;
   }
   if (!subtype) return null;
-  return VENDOR_ICON_REGISTRY[provider]?.[subtype] ?? null;
+  const icon = VENDOR_ICON_REGISTRY[provider]?.[subtype];
+  return icon ? resolvePublicUrl(icon) : null;
 }
 
 export function getResourceIconUrl(resourceType: string, provider: ProviderType): string | null {
   // For Azure, use the legacy resource-type → icon mapping
   if (provider === 'azure') {
-    return AZURE_RESOURCE_ICONS[resourceType] ?? null;
+    const icon = AZURE_RESOURCE_ICONS[resourceType];
+    return icon ? resolvePublicUrl(icon) : null;
   }
   // For AWS/GCP, resolve via the subtype icon registry using remapSubtype
   // The resourceType from RESOURCE_DEFINITIONS has an azureSubtype field;
@@ -237,9 +250,10 @@ export function getResourceIconUrl(resourceType: string, provider: ProviderType)
   // and look up in the vendor registry.
   //
   // Simpler approach: build AWS/GCP resource-type → icon maps parallel to AZURE_RESOURCE_ICONS.
-  return (
-    (AWS_GCP_RESOURCE_ICONS[provider] as Record<string, string> | undefined)?.[resourceType] ?? null
-  );
+  const icon = (AWS_GCP_RESOURCE_ICONS[provider] as Record<string, string> | undefined)?.[
+    resourceType
+  ];
+  return icon ? resolvePublicUrl(icon) : null;
 }
 
 // ─── Subtype Display Labels ─────────────────────────────────
@@ -488,9 +502,10 @@ export function getContainerBlockIconUrl(
   containerLayer: LayerType,
   provider: ProviderType = 'azure',
 ): string {
-  const fallback = CONTAINER_LAYER_ICONS[provider].region;
+  const fallback = resolvePublicUrl(CONTAINER_LAYER_ICONS[provider].region);
   if (containerLayer === 'resource') {
     return fallback;
   }
-  return CONTAINER_LAYER_ICONS[provider][containerLayer as ContainerLayer] ?? fallback;
+  const icon = CONTAINER_LAYER_ICONS[provider][containerLayer as ContainerLayer];
+  return icon ? resolvePublicUrl(icon) : fallback;
 }
