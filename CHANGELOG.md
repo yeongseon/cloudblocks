@@ -8,6 +8,31 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.27.0] — 2026-03-28
+
+**Milestone 27 — Positioning Documentation Completion**
+
+Aligned all user-facing text and documentation with the "visual cloud learning tool" positioning, and fixed documentation–code discrepancies against the v4 schema.
+
+### Positioning Alignment (Epic #1492, PR #1487)
+
+- Updated `index.html` title, meta tags, and OG tags to learning-tool positioning (#1468)
+- Updated `pyproject.toml` descriptions to learning-tool positioning (#1469)
+- Updated `LandingPage.tsx` stale positioning strings (#1470)
+- Updated stale concept docs to learning-tool positioning (#1471)
+- Enriched user-guide files with learning-first context (#1472)
+- Updated `DOMAIN_MODEL.md` framing for learning-tool positioning (#1473)
+
+### Documentation-Code Alignment (Epic #1503, PR #1506)
+
+- Fixed `DOMAIN_MODEL.md`: 16 v4 schema discrepancies corrected (#1504)
+- Fixed `ARCHITECTURE.md`: 11 v4 terminology and structure discrepancies corrected (#1505)
+
+### Statistics
+
+- 12 issues closed, 2 PRs merged
+- Documentation-only milestone — no runtime code changes
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
