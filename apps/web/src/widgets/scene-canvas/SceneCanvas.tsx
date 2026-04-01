@@ -11,10 +11,12 @@ import type { SoundName } from '../../shared/utils/audioService';
 import { ContainerBlockSprite } from '../../entities/container-block/ContainerBlockSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
+import { computeOverlapOffsets } from '../../entities/connection/overlapOffset';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { isExternalResourceType } from '@cloudblocks/schema';
+import { OVERLAP_OFFSET_PX } from '../../shared/tokens/connectionVisualTokens';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -31,6 +33,10 @@ export function SceneCanvas() {
     (b) =>
       b.parentId === null &&
       (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
+  );
+  const overlapOffsets = useMemo(
+    () => computeOverlapOffsets(architecture.connections, OVERLAP_OFFSET_PX),
+    [architecture.connections],
   );
   const occupiedCellsByContainer = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -320,6 +326,7 @@ export function SceneCanvas() {
               plates={plates}
               originX={origin.x}
               originY={origin.y}
+              overlapOffset={overlapOffsets.get(conn.id) ?? 0}
             />
           ))}
         </svg>
