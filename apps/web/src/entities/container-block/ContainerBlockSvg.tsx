@@ -124,7 +124,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
 
   const shortLabel = getContainerShortLabel(containerLayer, provider ?? 'azure');
   const markerClipSeed = useId();
-  const clipId = `plate-top-clip-${containerLayer}-${markerClipSeed.replace(/:/g, '')}`;
+  const clipId = `container-top-clip-${containerLayer}-${markerClipSeed.replace(/:/g, '')}`;
 
   const markers: React.ReactNode[] = [];
   for (let cellX = 0; cellX <= unitsX; cellX++) {
