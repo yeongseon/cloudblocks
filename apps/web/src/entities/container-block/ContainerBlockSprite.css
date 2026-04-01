@@ -38,12 +38,13 @@
 }
 
 .container-sprite.is-selected .container-img {
-  filter: drop-shadow(0 0 10px rgba(255, 213, 0, 0.6)) drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 0 10px var(--state-selection-glow))
+    drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
 }
 
 .container-sprite.is-drop-target .container-img {
-  filter: drop-shadow(0 0 10px #00852b) drop-shadow(0 0 20px rgba(0, 133, 43, 0.4))
-    drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 0 10px var(--state-snap-stroke))
+    drop-shadow(0 0 20px var(--state-snap-glow)) drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
   animation: pulse-drop-target 1.5s ease-in-out infinite;
 }
 
@@ -54,12 +55,12 @@
 @keyframes pulse-drop-target {
   0%,
   100% {
-    filter: drop-shadow(0 0 10px #00852b) drop-shadow(0 0 20px rgba(0, 133, 43, 0.4))
-      drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
+    filter: drop-shadow(0 0 10px var(--state-snap-stroke))
+      drop-shadow(0 0 20px var(--state-snap-glow)) drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
   }
   50% {
-    filter: drop-shadow(0 0 16px #00852b) drop-shadow(0 0 30px rgba(0, 133, 43, 0.6))
-      drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
+    filter: drop-shadow(0 0 16px var(--state-snap-stroke))
+      drop-shadow(0 0 30px var(--state-snap-glow)) drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.12));
   }
 }
 

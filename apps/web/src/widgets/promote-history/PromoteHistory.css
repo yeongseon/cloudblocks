@@ -4,11 +4,11 @@
   top: 60px;
   width: 480px;
   max-height: calc(100vh - 80px);
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--bg-app) 95%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 14px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: var(--font-ui);
   z-index: 10;
   display: flex;
@@ -27,13 +27,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .promote-history-close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 6px;
@@ -41,8 +41,8 @@
 }
 
 .promote-history-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .promote-history-content {
@@ -54,7 +54,7 @@
 
 .promote-history-empty {
   text-align: center;
-  color: #777;
+  color: var(--text-secondary);
   font-size: 12px;
   padding: 20px 0;
 }
@@ -65,12 +65,12 @@
   gap: 10px;
   padding: 10px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
   transition: background 0.15s;
 }
 
 .promote-history-entry:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 /* Type icon */
@@ -86,13 +86,13 @@
 }
 
 .promote-history-icon.promote {
-  background: rgba(66, 133, 244, 0.15);
-  color: #4285f4;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  color: var(--accent-primary);
 }
 
 .promote-history-icon.rollback {
-  background: rgba(255, 152, 0, 0.15);
-  color: #ff9800;
+  background: color-mix(in srgb, var(--accent-warning) 15%, transparent);
+  color: var(--accent-warning);
 }
 
 /* Entry details */
@@ -112,7 +112,7 @@
 .promote-history-entry-type {
   font-size: 12px;
   font-weight: 600;
-  color: #ccc;
+  color: var(--text-secondary);
 }
 
 .promote-history-status {
@@ -125,41 +125,41 @@
 }
 
 .promote-history-status.success {
-  background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
+  background: color-mix(in srgb, var(--accent-success) 15%, transparent);
+  color: var(--accent-success);
 }
 
 .promote-history-status.failed {
-  background: rgba(239, 83, 80, 0.15);
-  color: #ef5350;
+  background: color-mix(in srgb, var(--accent-error) 15%, transparent);
+  color: var(--accent-error);
 }
 
 .promote-history-status.pending {
-  background: rgba(255, 152, 0, 0.15);
-  color: #ff9800;
+  background: color-mix(in srgb, var(--accent-warning) 15%, transparent);
+  color: var(--accent-warning);
 }
 
 .promote-history-status.in_progress {
-  background: rgba(66, 133, 244, 0.15);
-  color: #4285f4;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  color: var(--accent-primary);
 }
 
 .promote-history-env {
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 
 .promote-history-tag {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #8ab4f8;
+  color: var(--accent-primary);
   margin-bottom: 2px;
 }
 
 .promote-history-meta {
   font-size: 10px;
-  color: #777;
+  color: var(--text-secondary);
   display: flex;
   gap: 10px;
 }
@@ -167,7 +167,7 @@
 /* Loading */
 .promote-history-loading {
   text-align: center;
-  color: #777;
+  color: var(--text-secondary);
   font-size: 12px;
   padding: 20px 0;
 }

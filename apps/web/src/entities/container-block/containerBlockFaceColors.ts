@@ -18,6 +18,9 @@ export interface ContainerBlockFaceColors {
 // saturationScale: fraction of original saturation to keep (0.3 = 30%).
 // lightnessBoost: percentage points added to lightness.
 // Outer layers are more washed-out; inner layers retain slightly more color.
+// Both parameters form a strictly monotonic ladder (outer → inner):
+//   saturationScale increases: 0.24 → 0.28 → 0.32 → 0.36 → 0.40
+//   lightnessBoost  decreases:   30 →   26 →   22 →   18 →   14
 
 interface LayerColorAdjustment {
   saturationScale: number;
@@ -25,11 +28,11 @@ interface LayerColorAdjustment {
 }
 
 const CONTAINER_LAYER_COLOR_ADJUSTMENTS: Record<PlateLayerType, LayerColorAdjustment> = {
-  global: { saturationScale: 0.25, lightnessBoost: 30 },
+  global: { saturationScale: 0.24, lightnessBoost: 30 },
   edge: { saturationScale: 0.28, lightnessBoost: 26 },
-  region: { saturationScale: 0.38, lightnessBoost: 16 },
-  zone: { saturationScale: 0.32, lightnessBoost: 22 },
-  subnet: { saturationScale: 0.35, lightnessBoost: 18 },
+  region: { saturationScale: 0.32, lightnessBoost: 22 },
+  zone: { saturationScale: 0.36, lightnessBoost: 18 },
+  subnet: { saturationScale: 0.4, lightnessBoost: 14 },
 };
 
 /**

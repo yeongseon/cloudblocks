@@ -372,9 +372,9 @@ describe('deriveContainerFaceColors', () => {
     expect(derived.top).toBe(lighten(base, 2));
   });
 
-  it('topStroke = darken(base, 8)', () => {
+  it('topStroke = darken(base, 10)', () => {
     const base = '#6688AA';
-    expect(deriveContainerFaceColors(base).topStroke).toBe(darken(base, 8));
+    expect(deriveContainerFaceColors(base).topStroke).toBe(darken(base, 10));
   });
 
   it('right = darken(base, 3)', () => {

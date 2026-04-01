@@ -145,11 +145,13 @@ export function deriveFaceColors(base: string): DerivedFaceColors {
 /**
  * Derive face colors for container blocks with narrower deltas.
  * Containers use subtler face differentiation to appear as background plates.
+ * Stroke uses a stronger darken (10%) than resource blocks (8%) to improve
+ * border visibility against the lighter, desaturated container fills.
  */
 export function deriveContainerFaceColors(base: string): DerivedFaceColors {
   return {
     top: lighten(base, 2),
-    topStroke: darken(base, 8),
+    topStroke: darken(base, 10),
     right: darken(base, 3),
     left: darken(base, 6),
   };

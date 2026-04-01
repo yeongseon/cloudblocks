@@ -9,10 +9,10 @@ import { PROVIDER_BRAND_COLOR } from '../../block/blockFaceColors';
 
 describe('connectionFaceColors', () => {
   describe('CONNECTION_SEMANTIC_BASE_COLORS', () => {
-    it('has entries for http, event, and data', () => {
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.http).toBe('#6F87B6');
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.event).toBe('#C97A63');
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.data).toBe('#5FA59B');
+    it('has neutralized entries for http, event, and data', () => {
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.http).toBe('#667894');
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.event).toBe('#787583');
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.data).toBe('#637e8e');
     });
 
     it('contains exactly 3 semantics', () => {
