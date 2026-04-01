@@ -17,6 +17,9 @@ import {
   ARROW_MARKER_W,
   ARROW_MARKER_H,
   ARROW_MARKER_REF_X,
+  PORT_DOT_RX,
+  PORT_DOT_RY,
+  PORT_DOT_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import {
   resolveConnectionVisualStyle,
@@ -24,10 +27,10 @@ import {
   CASING_WIDTH_OFFSET,
   HOVER_WIDTH_OFFSET,
 } from '../../shared/tokens/connectionVisualTokens';
-import { DIFF_THEMES, lightenColor } from './connectorTheme';
+import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
-import { getConnectionColors } from './connectionFaceColors';
+import { getConnectionColorsForType } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 
 interface ConnectionRendererProps {
@@ -51,8 +54,9 @@ function getColors(
   semantic: ConnectionRenderSemantic,
   diffState: string,
   isHighlighted: boolean,
+  isNeutral: boolean,
 ): TraceColors {
-  const base = getConnectionColors(semantic);
+  const base = getConnectionColorsForType(semantic, isNeutral);
   const diffOverride = diffState !== 'unchanged' ? DIFF_THEMES[diffState] : null;
 
   // Diff mode uses hardcoded hex values that can be lightened.
@@ -115,6 +119,78 @@ function getLabelPosition(points: readonly ScreenPoint[]): ScreenPoint | null {
   const a = points[mid];
   const b = points[mid + 1] ?? a;
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+import type { PinHoleStyle } from './connectorTheme';
+
+/** Render a pinhole glyph at a connection endpoint. */
+function renderPinhole(
+  x: number,
+  y: number,
+  style: PinHoleStyle,
+  stroke: string,
+  key: string,
+): React.ReactElement {
+  const r = PORT_DOT_RX;
+  const ry = PORT_DOT_RY;
+  const sw = PORT_DOT_STROKE_WIDTH;
+
+  switch (style) {
+    case 'filled':
+      return <ellipse key={key} cx={x} cy={y} rx={r} ry={ry} fill={stroke} opacity={0.8} />;
+    case 'cross':
+      return (
+        <g key={key} opacity={0.8}>
+          <line x1={x - r} y1={y} x2={x + r} y2={y} stroke={stroke} strokeWidth={sw} />
+          <line x1={x} y1={y - ry} x2={x} y2={y + ry} stroke={stroke} strokeWidth={sw} />
+        </g>
+      );
+    case 'double':
+      return (
+        <g key={key} opacity={0.8}>
+          <ellipse cx={x} cy={y} rx={r} ry={ry} fill="none" stroke={stroke} strokeWidth={sw} />
+          <ellipse
+            cx={x}
+            cy={y}
+            rx={r * 0.5}
+            ry={ry * 0.5}
+            fill="none"
+            stroke={stroke}
+            strokeWidth={sw * 0.8}
+          />
+        </g>
+      );
+    case 'dashed':
+      return (
+        <ellipse
+          key={key}
+          cx={x}
+          cy={y}
+          rx={r}
+          ry={ry}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={sw}
+          strokeDasharray="2 2"
+          opacity={0.8}
+        />
+      );
+    case 'open':
+    default:
+      return (
+        <ellipse
+          key={key}
+          cx={x}
+          cy={y}
+          rx={r}
+          ry={ry}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={sw}
+          opacity={0.8}
+        />
+      );
+  }
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: rendering component with dual path requires unified control flow
@@ -194,14 +270,12 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     return {
       hitPath,
       labelPos: getLabelPosition(hitPoints),
+      sourcePos: hitPoints[0],
+      targetPos: hitPoints[hitPoints.length - 1],
     };
   }, [surfaceRoute, originX, originY]);
 
   if (!surfaceRender) return null;
-
-  const colors = getColors(renderSemantic, diffState, isHighlighted);
-  const hitPath = surfaceRender.hitPath;
-  const labelPos = surfaceRender.labelPos;
 
   // Resolve per-type stroke width and dash pattern.
   const rawType = connection.metadata?.type;
@@ -209,6 +283,13 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     typeof rawType === 'string' && Object.hasOwn(CONNECTION_VISUAL_STYLES, rawType)
       ? (rawType as ConnectionType)
       : undefined;
+  const isNeutral = connectionType === 'dataflow' || connectionType === undefined;
+  const colors = getColors(renderSemantic, diffState, isHighlighted, isNeutral);
+  const hitPath = surfaceRender.hitPath;
+  const labelPos = surfaceRender.labelPos;
+  const sourcePos = surfaceRender.sourcePos;
+  const targetPos = surfaceRender.targetPos;
+
   const visualStyle = resolveConnectionVisualStyle(connectionType);
   const innerWidth = isHighlighted
     ? visualStyle.strokeWidth + HOVER_WIDTH_OFFSET
@@ -217,7 +298,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     ? visualStyle.strokeWidth + CASING_WIDTH_OFFSET + HOVER_WIDTH_OFFSET
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${connection.id}`;
-
+  const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -329,6 +410,14 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         }}
         data-testid="connection-snap-flash"
       />
+
+      {/* Port pinhole indicators at connection endpoints */}
+      {diffState === 'unchanged' && (
+        <g data-testid="connection-pinholes" pointerEvents="none">
+          {renderPinhole(sourcePos.x, sourcePos.y, pinHoleStyle, colors.stroke, 'src')}
+          {renderPinhole(targetPos.x, targetPos.y, pinHoleStyle, colors.stroke, 'tgt')}
+        </g>
+      )}
 
       {hasValidationError && (
         <path

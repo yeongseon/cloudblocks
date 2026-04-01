@@ -14,11 +14,16 @@ import {
   EDGE_HIGHLIGHT_STROKE_WIDTH,
   LABEL_FACE_MIN_PX,
   LABEL_FACE_SCALE,
+  PORT_DOT_OPACITY,
+  PORT_DOT_RX,
+  PORT_DOT_RY,
+  PORT_DOT_STROKE_WIDTH,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
+import { getBlockSvgPortPoints } from './blockGeometry';
 import { useUIStore } from '../store/uiStore';
 
 interface BlockSvgProps {
@@ -66,6 +71,8 @@ export const BlockSvg = memo(function BlockSvg({
   const displayLabel = getSubtypeDisplayLabel(provider ?? 'azure', subtype);
   const labelMode = useUIStore((s) => s.labelMode);
   const faceLabel = labelMode === 'compact' ? shortLabel : (displayLabel ?? shortLabel);
+  const showPorts = useUIStore((s) => s.showPorts);
+  const portPoints = getBlockSvgPortPoints(cu, 3, 3);
 
   return (
     <svg
@@ -259,6 +266,38 @@ export const BlockSvg = memo(function BlockSvg({
               </g>
             );
           })}
+        </g>
+      )}
+
+      {/* ─── Port dots: generic indicators on block side walls ─── */}
+      {showPorts && (
+        <g data-testid="port-dots">
+          {portPoints.inbound.map((p, i) => (
+            <ellipse
+              key={`in-${i}`}
+              cx={p.x}
+              cy={p.y}
+              rx={PORT_DOT_RX}
+              ry={PORT_DOT_RY}
+              fill="none"
+              stroke="rgba(255,255,255,0.5)"
+              strokeWidth={PORT_DOT_STROKE_WIDTH}
+              opacity={PORT_DOT_OPACITY}
+            />
+          ))}
+          {portPoints.outbound.map((p, i) => (
+            <ellipse
+              key={`out-${i}`}
+              cx={p.x}
+              cy={p.y}
+              rx={PORT_DOT_RX}
+              ry={PORT_DOT_RY}
+              fill="none"
+              stroke="rgba(255,255,255,0.5)"
+              strokeWidth={PORT_DOT_STROKE_WIDTH}
+              opacity={PORT_DOT_OPACITY}
+            />
+          ))}
         </g>
       )}
     </svg>

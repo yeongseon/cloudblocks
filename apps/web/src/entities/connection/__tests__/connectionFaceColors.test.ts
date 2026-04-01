@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   CONNECTION_SEMANTIC_BASE_COLORS,
   getConnectionColors,
+  getConnectionColorsForType,
+  NEUTRAL_CONNECTION_COLORS,
   DEFAULT_CONNECTION_SEMANTIC,
 } from '../connectionFaceColors';
 import type { ConnectionRenderSemantic } from '../connectionFaceColors';
@@ -65,6 +67,36 @@ describe('connectionFaceColors', () => {
 
     it('is a valid key in CONNECTION_SEMANTIC_BASE_COLORS', () => {
       expect(CONNECTION_SEMANTIC_BASE_COLORS[DEFAULT_CONNECTION_SEMANTIC]).toBeDefined();
+    });
+  });
+
+  describe('NEUTRAL_CONNECTION_COLORS', () => {
+    it('uses CSS neutral variables', () => {
+      expect(NEUTRAL_CONNECTION_COLORS.stroke).toContain('--connection-neutral-stroke');
+      expect(NEUTRAL_CONNECTION_COLORS.casing).toContain('--connection-neutral-casing');
+    });
+
+    it('has a valid base hex color', () => {
+      expect(NEUTRAL_CONNECTION_COLORS.base).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    });
+  });
+
+  describe('getConnectionColorsForType', () => {
+    it('returns neutral colors when isNeutral is true', () => {
+      const colors = getConnectionColorsForType('http', true);
+      expect(colors).toBe(NEUTRAL_CONNECTION_COLORS);
+    });
+
+    it('returns semantic colors when isNeutral is false', () => {
+      const colors = getConnectionColorsForType('http', false);
+      expect(colors.stroke).toContain('--connection-http-stroke');
+    });
+
+    it('returns neutral colors regardless of semantic when isNeutral is true', () => {
+      const semantics: ConnectionRenderSemantic[] = ['http', 'event', 'data'];
+      for (const semantic of semantics) {
+        expect(getConnectionColorsForType(semantic, true)).toBe(NEUTRAL_CONNECTION_COLORS);
+      }
     });
   });
 });
