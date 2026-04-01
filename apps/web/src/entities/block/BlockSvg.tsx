@@ -1,5 +1,6 @@
 import { memo, useId } from 'react';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import {
   getBlockIconUrl,
@@ -72,8 +73,8 @@ export const BlockSvg = memo(function BlockSvg({
   const labelMode = useUIStore((s) => s.labelMode);
   const faceLabel = labelMode === 'compact' ? shortLabel : (displayLabel ?? shortLabel);
   const showPorts = useUIStore((s) => s.showPorts);
-  const portPoints = getBlockSvgPortPoints(cu, 3, 3);
-
+  const ports = CATEGORY_PORTS[category] ?? { inbound: 1, outbound: 1 };
+  const portPoints = getBlockSvgPortPoints(cu, ports.inbound, ports.outbound);
   return (
     <svg
       viewBox={`0 0 ${screenWidth} ${svgHeight}`}
