@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import type { LayerType, ProviderType } from '@cloudblocks/schema';
 import {
   TILE_W,
@@ -77,6 +77,7 @@ export interface ContainerBlockSvgProps {
   label?: string;
   iconUrl?: string;
   provider?: ProviderType;
+  occupiedCells?: Set<string>;
 }
 
 // ─── Component ─────────────────────────────────────────────
@@ -93,6 +94,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   label,
   iconUrl,
   provider,
+  occupiedCells,
 }: ContainerBlockSvgProps) {
   // CU-based pixel conversion: 1 CU = 1 unit, rendered via TILE_W/H/Z
   const screenWidth = ((unitsX + unitsY) * TILE_W) / 2;
@@ -121,6 +123,36 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   const leftLabelX = (cx + leftX) / 2;
 
   const shortLabel = getContainerShortLabel(containerLayer, provider ?? 'azure');
+  const markerClipSeed = useId();
+  const clipId = `plate-top-clip-${containerLayer}-${markerClipSeed.replace(/:/g, '')}`;
+
+  const markers: React.ReactNode[] = [];
+  for (let cellX = 0; cellX <= unitsX; cellX++) {
+    for (let cellZ = 0; cellZ <= unitsY; cellZ++) {
+      const mX = cx + ((cellX - cellZ) * TILE_W) / 2;
+      const mY = topY + ((cellX + cellZ) * TILE_H) / 2;
+      const cellKey = `${cellX}:${cellZ}`;
+      const isOccupied = occupiedCells?.has(cellKey) ?? false;
+      const halfW = 4;
+      const halfH = 2;
+
+      markers.push(
+        <polygon
+          key={cellKey}
+          points={`${mX},${mY - halfH} ${mX + halfW},${mY} ${mX},${mY + halfH} ${mX - halfW},${mY}`}
+          fill="none"
+          stroke={
+            isOccupied ? 'var(--anchor-marker-occupied-stroke)' : 'var(--anchor-marker-stroke)'
+          }
+          strokeWidth={0.5}
+          opacity={isOccupied ? 0.4 : 1}
+          data-anchor-state={isOccupied ? 'occupied' : 'empty'}
+          data-anchor-cell={cellKey}
+          pointerEvents="none"
+        />,
+      );
+    }
+  }
 
   return (
     <svg
@@ -161,6 +193,14 @@ export const ContainerBlockSvg = memo(function PlateSvg({
         pointerEvents="none"
         data-layer="inset-shadow"
       />
+      <defs>
+        <clipPath id={clipId}>
+          <polygon points={topFacePoints} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`} data-layer="anchor-markers" pointerEvents="none">
+        {markers}
+      </g>
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
 

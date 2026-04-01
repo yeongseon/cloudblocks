@@ -118,13 +118,17 @@ describe('PlateSvg — SVG structure', () => {
   it('renders 5 face polygons (top + 2 inset + left side + right side)', () => {
     const { container } = renderPlateSvg();
     // Exclude polygons inside <clipPath> (used by PlateSurfaceGrid)
-    const polygons = container.querySelectorAll('polygon:not(clipPath polygon)');
+    const polygons = container.querySelectorAll(
+      'polygon:not(clipPath polygon):not([data-anchor-cell])',
+    );
     expect(polygons.length).toBe(5);
   });
 
   it('applies correct fill colors to face polygons', () => {
     const { container } = renderPlateSvg();
-    const polygons = container.querySelectorAll('polygon');
+    const polygons = container.querySelectorAll(
+      'polygon:not(clipPath polygon):not([data-anchor-cell])',
+    );
 
     expect(polygons[0].getAttribute('fill')).toBe('#22C55E'); // top
     // polygons[1] = inset-highlight (fill=none), polygons[2] = inset-shadow (fill=none)
@@ -220,7 +224,9 @@ describe('PlateSvg — colors are independent of containerLayer', () => {
     };
 
     const { container } = renderPlateSvg({ containerLayer: 'global', ...customColors });
-    const polygons = container.querySelectorAll('polygon');
+    const polygons = container.querySelectorAll(
+      'polygon:not(clipPath polygon):not([data-anchor-cell])',
+    );
 
     expect(polygons[0].getAttribute('fill')).toBe('#FF0000');
     // polygons[1] = inset-highlight, polygons[2] = inset-shadow
@@ -306,6 +312,46 @@ describe('PlateSvg — profile-based rendering', () => {
 
     const svg = container.querySelector('svg');
     expect(svg?.getAttribute('viewBox')).toBe(`0 0 ${expectedWidth} ${expectedHeight}`);
+  });
+});
+
+describe('PlateSvg — placement anchor tiles (#1581)', () => {
+  it('renders anchor markers clipped to top face when no occupied cells', () => {
+    const { container } = renderPlateSvg({ unitsX: 3, unitsY: 3 });
+    const markerGroup = container.querySelector('[data-layer="anchor-markers"]');
+    expect(markerGroup).toBeInTheDocument();
+
+    const markers = container.querySelectorAll('[data-anchor-cell]');
+    expect(markers.length).toBe(16);
+  });
+
+  it('marks occupied cells with data-anchor-state="occupied"', () => {
+    const occupied = new Set(['1:1', '1:2', '2:1', '2:2']);
+    const { container } = renderPlateSvg({ unitsX: 3, unitsY: 3, occupiedCells: occupied });
+
+    const occupiedMarkers = container.querySelectorAll('[data-anchor-state="occupied"]');
+    expect(occupiedMarkers.length).toBe(4);
+
+    const emptyMarkers = container.querySelectorAll('[data-anchor-state="empty"]');
+    expect(emptyMarkers.length).toBe(12);
+  });
+
+  it('occupied markers have lower opacity than empty markers', () => {
+    const occupied = new Set(['1:1']);
+    const { container } = renderPlateSvg({ unitsX: 2, unitsY: 2, occupiedCells: occupied });
+
+    const occupiedMarker = container.querySelector('[data-anchor-state="occupied"]');
+    const emptyMarker = container.querySelector('[data-anchor-state="empty"]');
+
+    const occupiedOpacity = Number(occupiedMarker?.getAttribute('opacity'));
+    const emptyOpacity = Number(emptyMarker?.getAttribute('opacity'));
+    expect(occupiedOpacity).toBeLessThan(emptyOpacity);
+  });
+
+  it('renders clipPath for anchor markers', () => {
+    const { container } = renderPlateSvg({ unitsX: 3, unitsY: 3 });
+    const clipPath = container.querySelector('clipPath');
+    expect(clipPath).toBeInTheDocument();
   });
 });
 
