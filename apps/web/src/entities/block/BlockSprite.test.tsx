@@ -374,6 +374,26 @@ describe('BlockSprite', () => {
     expect(container.firstElementChild).toHaveClass('is-selected');
   });
 
+  it('adds is-mounted class when parentContainer is provided', () => {
+    const block = makeBlock('block-mounted', 'compute');
+    const { container } = render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass('is-mounted');
+  });
+
+  it('does not add is-mounted class when no parentContainer', () => {
+    const block = makeBlock('block-unmounted', 'compute');
+    const { container } = render(<BlockSprite block={block} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).not.toHaveClass('is-mounted');
+  });
+
   it('adds is-delete-mode class when in delete mode', () => {
     const block = makeBlock('block-delete-class', 'event');
     useUIStore.setState({ toolMode: 'delete' });

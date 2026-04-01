@@ -24,6 +24,7 @@ interface PlateSpriteProps {
   screenX: number;
   screenY: number;
   zIndex: number;
+  occupiedCells?: Set<string>;
 }
 
 export const ContainerBlockSprite = memo(function PlateSprite({
@@ -31,6 +32,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
   screenX,
   screenY,
   zIndex,
+  occupiedCells,
 }: PlateSpriteProps) {
   type PlateLayer = Exclude<LayerType, 'resource'>;
 
@@ -236,6 +238,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
             label={label}
             iconUrl={iconUrl}
             provider={activeProvider}
+            occupiedCells={occupiedCells}
           />
         </div>
       </button>

@@ -259,6 +259,7 @@ export const BlockSprite = memo(function BlockSprite({
 
   const className = [
     'block-sprite',
+    parentContainer && 'is-mounted',
     isSelected && 'is-selected',
     isConnectionSource && 'is-connection-source',
     isDeleteMode && 'is-delete-mode',

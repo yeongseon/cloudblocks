@@ -237,6 +237,20 @@
   opacity: 0.88;
 }
 
+/* ── Mounted block groove shadow (#1581) ─ */
+.block-sprite.is-mounted .block-img::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 15%;
+  right: 15%;
+  height: 6px;
+  background: radial-gradient(ellipse at center, var(--groove-color) 0%, transparent 70%);
+  opacity: var(--groove-opacity);
+  pointer-events: none;
+  border-radius: 50%;
+}
+
 /* ── Screen-aligned label chip ─ */
 .block-label-chip {
   position: absolute;
