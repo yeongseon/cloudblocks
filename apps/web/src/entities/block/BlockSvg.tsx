@@ -1,7 +1,11 @@
 import { memo, useId } from 'react';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
-import { getBlockIconUrl, getSubtypeShortLabel } from '../../shared/utils/iconResolver';
+import {
+  getBlockIconUrl,
+  getSubtypeShortLabel,
+  getSubtypeDisplayLabel,
+} from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_PADDING,
@@ -15,6 +19,7 @@ import {
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
+import { useUIStore } from '../store/uiStore';
 
 interface BlockSvgProps {
   category: ResourceCategory;
@@ -58,6 +63,9 @@ export const BlockSvg = memo(function BlockSvg({
   // Icon on right (front) face — fill ~70% of wall height
   const iconSize = Math.max(16, Math.round(sideWallPx * 0.7));
   const shortLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
+  const displayLabel = getSubtypeDisplayLabel(provider ?? 'azure', subtype);
+  const labelMode = useUIStore((s) => s.labelMode);
+  const faceLabel = labelMode === 'compact' ? shortLabel : (displayLabel ?? shortLabel);
 
   return (
     <svg
@@ -179,8 +187,8 @@ export const BlockSvg = memo(function BlockSvg({
         />
       )}
 
-      {/* ─── Right wall: short label ─── */}
-      {shortLabel && (
+      {/* ─── Right wall: label (mode-dependent) ─── */}
+      {faceLabel && (
         <text
           x={0}
           y={0}
@@ -194,7 +202,7 @@ export const BlockSvg = memo(function BlockSvg({
           style={{ pointerEvents: 'none' }}
           data-testid="block-face-label"
         >
-          {shortLabel}
+          {faceLabel}
         </text>
       )}
 
