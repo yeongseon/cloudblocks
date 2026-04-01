@@ -54,6 +54,24 @@ Added keyboard shortcut cheat sheet, skip-to-content accessibility link, landing
 
 - 8 issues closed (Epic #1428)
 
+## [v0.29.0] — 2026-03-29
+
+**Milestone 29 — Mobile Responsive Layout**
+
+Made the visual builder usable on mobile viewports with auto-collapsing sidebar, bottom-sheet palette, compact toolbar, and mobile-friendly canvas.
+
+### Features
+
+- Auto-collapse sidebar on mobile with full-width canvas grid (#1440)
+- Bottom-sheet palette overlay with mobile trigger button (#1441)
+- Fixed canvas padding and toolbar horizontal scroll on mobile (#1442)
+- Disabled drag-to-create on mobile with creation messaging fallback (#1443)
+- Combined mobile responsive layout implementation (PR #1444)
+
+### Statistics
+
+- 6 issues closed (Epic #1439)
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
