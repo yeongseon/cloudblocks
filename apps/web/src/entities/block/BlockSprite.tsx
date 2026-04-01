@@ -56,8 +56,9 @@ export const BlockSprite = memo(function BlockSprite({
   zIndex,
   onMove,
 }: BlockSpriteProps) {
-  const selectedId = useUIStore((s) => s.selectedId);
+  const selectedIds = useUIStore((s) => s.selectedIds);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const toggleSelection = useUIStore((s) => s.toggleSelection);
   const toolMode = useUIStore((s) => s.toolMode);
   const connectionSource = useUIStore((s) => s.connectionSource);
   const startConnecting = useUIStore((s) => s.startConnecting);
@@ -77,7 +78,7 @@ export const BlockSprite = memo(function BlockSprite({
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragZoomRef = useRef(1);
 
-  const isSelected = selectedId === block.id;
+  const isSelected = selectedIds.has(block.id);
   const isConnectionSource = connectionSource === block.id;
   const isDeleteMode = toolMode === 'delete';
 
@@ -252,7 +253,11 @@ export const BlockSprite = memo(function BlockSprite({
       return;
     }
 
-    setSelectedId(block.id);
+    if (e.shiftKey) {
+      toggleSelection(block.id);
+    } else {
+      setSelectedId(block.id);
+    }
   };
 
   const blockSize = getBlockScreenSize(block.category, block.provider, block.subtype);

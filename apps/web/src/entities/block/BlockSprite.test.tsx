@@ -158,7 +158,12 @@ describe('BlockSprite', () => {
     addConnectionMock.mockReturnValue(true);
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
-    useUIStore.setState({ selectedId: null, toolMode: 'select', connectionSource: null });
+    useUIStore.setState({
+      selectedId: null,
+      selectedIds: new Set(),
+      toolMode: 'select',
+      connectionSource: null,
+    });
     useArchitectureStore.setState({
       addConnection: addConnectionMock,
       removeNode: removeNodeMock,
@@ -243,6 +248,51 @@ describe('BlockSprite', () => {
     await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
 
     expect(useUIStore.getState().selectedId).toBe('block-select');
+  });
+
+  it('shift-click in select mode toggles selection via toggleSelection', () => {
+    const block = makeBlock('block-shift', 'compute');
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Node: compute-block' });
+    fireEvent.click(button);
+    // First normal click selects it
+    expect(useUIStore.getState().selectedIds.has('block-shift')).toBe(true);
+
+    // Shift-click toggles it off
+    fireEvent.click(button, { shiftKey: true });
+    expect(useUIStore.getState().selectedIds.has('block-shift')).toBe(false);
+  });
+
+  it('shift-click adds to existing selection', () => {
+    // Pre-select another item
+    useUIStore.getState().setSelectedId('existing-item');
+    const block = makeBlock('block-shift-add', 'compute');
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Node: compute-block' }), {
+      shiftKey: true,
+    });
+    // Both items should be selected
+    expect(useUIStore.getState().selectedIds.has('existing-item')).toBe(true);
+    expect(useUIStore.getState().selectedIds.has('block-shift-add')).toBe(true);
+    expect(useUIStore.getState().selectedIds.size).toBe(2);
   });
 
   it('click in delete mode calls removeBlock', async () => {
@@ -359,7 +409,7 @@ describe('BlockSprite', () => {
 
   it('adds is-selected class when selected', () => {
     const block = makeBlock('block-selected', 'queue');
-    useUIStore.setState({ selectedId: block.id });
+    useUIStore.setState({ selectedId: block.id, selectedIds: new Set([block.id]) });
 
     const { container } = render(
       <BlockSprite

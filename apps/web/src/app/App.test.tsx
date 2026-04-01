@@ -71,6 +71,7 @@ describe('App', () => {
   const loadFromStorageMock = vi.fn();
   const saveToStorageMock = vi.fn();
   const setSelectedIdMock = vi.fn();
+  const clearSelectionMock = vi.fn();
   const checkSessionMock = vi.fn();
 
   beforeEach(() => {
@@ -78,6 +79,7 @@ describe('App', () => {
     useUIStore.setState({
       selectedId: null,
       setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
       cancelDrag: defaultCancelDrag,
       setDiffMode: defaultSetDiffMode,
       draggedBlockCategory: null,
@@ -229,7 +231,12 @@ describe('App', () => {
   });
 
   it('handles Delete key to remove selected block', () => {
-    useUIStore.setState({ selectedId: 'block-1', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'block-1',
+      selectedIds: new Set(['block-1']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -272,11 +279,16 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Delete' });
     expect(removeBlockMock).toHaveBeenCalledWith('block-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('handles Backspace key to remove selected container', () => {
-    useUIStore.setState({ selectedId: 'container-1', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'container-1',
+      selectedIds: new Set(['container-1']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -320,11 +332,16 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Backspace' });
     expect(removePlateMock).toHaveBeenCalledWith('container-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('handles Delete key to remove selected connection', () => {
-    useUIStore.setState({ selectedId: 'conn-1', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'conn-1',
+      selectedIds: new Set(['conn-1']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -361,11 +378,16 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Delete' });
     expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('handles Backspace key to remove selected connection', () => {
-    useUIStore.setState({ selectedId: 'conn-1', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'conn-1',
+      selectedIds: new Set(['conn-1']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -402,14 +424,19 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Backspace' });
     expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('handles Escape key to deselect', () => {
-    useUIStore.setState({ selectedId: 'block-1', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'block-1',
+      selectedIds: new Set(['block-1']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('handles Escape key to cancel interaction before deselecting', () => {
@@ -418,14 +445,16 @@ describe('App', () => {
       interactionState: 'placing',
       cancelInteraction: cancelInteractionMock,
       selectedId: 'block-1',
+      selectedIds: new Set(['block-1']),
       setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
     });
 
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(cancelInteractionMock).toHaveBeenCalledOnce();
-    expect(setSelectedIdMock).not.toHaveBeenCalled();
+    expect(clearSelectionMock).not.toHaveBeenCalled();
   });
 
   it('handles Escape key to exit diff mode before deselecting', () => {
@@ -436,14 +465,16 @@ describe('App', () => {
       setDiffMode: setDiffModeMock,
       draggedBlockCategory: null,
       selectedId: 'block-1',
+      selectedIds: new Set(['block-1']),
       setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
     });
 
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(setDiffModeMock).toHaveBeenCalledWith(false);
-    expect(setSelectedIdMock).not.toHaveBeenCalled();
+    expect(clearSelectionMock).not.toHaveBeenCalled();
   });
 
   it('does not intercept keyboard shortcuts when typing in input', () => {
@@ -467,7 +498,12 @@ describe('App', () => {
   });
 
   it('does not remove when Delete pressed but no element matches selectedId', () => {
-    useUIStore.setState({ selectedId: 'nonexistent', setSelectedId: setSelectedIdMock });
+    useUIStore.setState({
+      selectedId: 'nonexistent',
+      selectedIds: new Set(['nonexistent']),
+      setSelectedId: setSelectedIdMock,
+      clearSelection: clearSelectionMock,
+    });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -499,8 +535,8 @@ describe('App', () => {
     expect(removeBlockMock).not.toHaveBeenCalled();
     expect(removePlateMock).not.toHaveBeenCalled();
     expect(removeConnectionMock).not.toHaveBeenCalled();
-    // setSelectedId is still called with null even when no entity found
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    // clearSelection is called even when no entity found
+    expect(clearSelectionMock).toHaveBeenCalled();
   });
 
   it('does not delete when Delete pressed but nothing is selected', () => {

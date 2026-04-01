@@ -10,6 +10,7 @@ describe('useUIStore', () => {
     useUIStore.setState({
       appView: 'landing',
       selectedId: null,
+      selectedIds: new Set<string>(),
       toolMode: 'select',
       interactionState: 'idle',
       connectionSource: null,
@@ -52,6 +53,8 @@ describe('useUIStore', () => {
     it('should have correct default values', () => {
       const state = useUIStore.getState();
       expect(state.selectedId).toBe(null);
+      expect(state.selectedIds).toBeInstanceOf(Set);
+      expect(state.selectedIds.size).toBe(0);
       expect(state.appView).toBe('landing');
       expect(state.toolMode).toBe('select');
       expect(state.connectionSource).toBe(null);
@@ -276,6 +279,120 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().selectedId).toBe('id-1');
       useUIStore.getState().setSelectedId('id-2');
       expect(useUIStore.getState().selectedId).toBe('id-2');
+    });
+  });
+
+  describe('multi-select actions', () => {
+    it('selectedIds defaults to empty Set', () => {
+      expect(useUIStore.getState().selectedIds).toBeInstanceOf(Set);
+      expect(useUIStore.getState().selectedIds.size).toBe(0);
+    });
+
+    it('setSelectedId syncs selectedIds', () => {
+      useUIStore.getState().setSelectedId('a');
+      const state = useUIStore.getState();
+      expect(state.selectedId).toBe('a');
+      expect(state.selectedIds.has('a')).toBe(true);
+      expect(state.selectedIds.size).toBe(1);
+    });
+
+    it('setSelectedId(null) clears selectedIds', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().setSelectedId(null);
+      const state = useUIStore.getState();
+      expect(state.selectedId).toBe(null);
+      expect(state.selectedIds.size).toBe(0);
+    });
+
+    it('addToSelection adds ids to the set', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().addToSelection('b');
+      const state = useUIStore.getState();
+      expect(state.selectedIds.has('a')).toBe(true);
+      expect(state.selectedIds.has('b')).toBe(true);
+      expect(state.selectedIds.size).toBe(2);
+    });
+
+    it('addToSelection sets selectedId to the added id', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().addToSelection('b');
+      expect(useUIStore.getState().selectedId).toBe('a');
+    });
+
+    it('removeFromSelection removes an id from the set', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().addToSelection('b');
+      useUIStore.getState().removeFromSelection('a');
+      const state = useUIStore.getState();
+      expect(state.selectedIds.has('a')).toBe(false);
+      expect(state.selectedIds.has('b')).toBe(true);
+      expect(state.selectedIds.size).toBe(1);
+    });
+
+    it('removeFromSelection updates selectedId to first remaining or null', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().addToSelection('b');
+      useUIStore.getState().removeFromSelection('b');
+      expect(useUIStore.getState().selectedId).toBe('a');
+    });
+
+    it('removeFromSelection sets selectedId to null when set becomes empty', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().removeFromSelection('a');
+      expect(useUIStore.getState().selectedId).toBe(null);
+      expect(useUIStore.getState().selectedIds.size).toBe(0);
+    });
+
+    it('toggleSelection adds id if not present', () => {
+      useUIStore.getState().toggleSelection('a');
+      expect(useUIStore.getState().selectedIds.has('a')).toBe(true);
+    });
+
+    it('toggleSelection removes id if already present', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().toggleSelection('a');
+      expect(useUIStore.getState().selectedIds.has('a')).toBe(false);
+      expect(useUIStore.getState().selectedIds.size).toBe(0);
+    });
+
+    it('setSelectedIds replaces entire selection from array', () => {
+      useUIStore.getState().setSelectedIds(['x', 'y', 'z']);
+      const state = useUIStore.getState();
+      expect(state.selectedIds.size).toBe(3);
+      expect(state.selectedIds.has('x')).toBe(true);
+      expect(state.selectedIds.has('y')).toBe(true);
+      expect(state.selectedIds.has('z')).toBe(true);
+    });
+
+    it('setSelectedIds replaces entire selection from Set', () => {
+      useUIStore.getState().setSelectedIds(new Set(['p', 'q']));
+      const state = useUIStore.getState();
+      expect(state.selectedIds.size).toBe(2);
+      expect(state.selectedIds.has('p')).toBe(true);
+      expect(state.selectedIds.has('q')).toBe(true);
+    });
+
+    it('setSelectedIds syncs selectedId to first element', () => {
+      useUIStore.getState().setSelectedIds(['x', 'y']);
+      const state = useUIStore.getState();
+      // selectedId should be one of the ids in the set
+      expect(state.selectedIds.has(state.selectedId!)).toBe(true);
+    });
+
+    it('setSelectedIds with empty array clears selection', () => {
+      useUIStore.getState().setSelectedIds(['a']);
+      useUIStore.getState().setSelectedIds([]);
+      const state = useUIStore.getState();
+      expect(state.selectedIds.size).toBe(0);
+      expect(state.selectedId).toBe(null);
+    });
+
+    it('clearSelection resets both selectedIds and selectedId', () => {
+      useUIStore.getState().setSelectedIds(['a', 'b', 'c']);
+      useUIStore.getState().clearSelection();
+      const state = useUIStore.getState();
+      expect(state.selectedIds.size).toBe(0);
+      expect(state.selectedId).toBe(null);
     });
   });
 

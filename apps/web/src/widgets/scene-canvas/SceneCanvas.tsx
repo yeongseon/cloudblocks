@@ -56,7 +56,8 @@ export function SceneCanvas() {
   }, [architecture.nodes]);
   const addNode = useArchitectureStore((s) => s.addNode);
   const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const clearSelection = useUIStore((s) => s.clearSelection);
+  const setSelectedIds = useUIStore((s) => s.setSelectedIds);
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
@@ -120,6 +121,16 @@ export function SceneCanvas() {
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
 
+  // Lasso / marquee selection state
+  const lassoStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [lassoRect, setLassoRect] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const LASSO_THRESHOLD = 5; // min drag distance before lasso activates
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -161,14 +172,55 @@ export function SceneCanvas() {
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.target === containerRef.current) {
-      isDragging.current = true;
-      lastMouse.current = { x: e.clientX, y: e.clientY };
       e.currentTarget.setPointerCapture(e.pointerId);
-      setSelectedId(null);
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+
+      // Shift+drag on empty canvas starts lasso selection
+      if (e.shiftKey && interactionState !== 'placing' && interactionState !== 'connecting') {
+        lassoStartRef.current = { x: e.clientX, y: e.clientY };
+        isDragging.current = false;
+        return;
+      }
+
+      // Normal drag = pan + clear selection
+      isDragging.current = true;
+      clearSelection();
     }
   };
 
   const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // Lasso mode: track rectangle in viewport coordinates
+    if (lassoStartRef.current) {
+      const startX = lassoStartRef.current.x;
+      const startY = lassoStartRef.current.y;
+      const curX = e.clientX;
+      const curY = e.clientY;
+      const dx = curX - startX;
+      const dy = curY - startY;
+
+      // Only activate lasso after passing threshold (prevents accidental lasso on shift-click)
+      if (Math.abs(dx) >= LASSO_THRESHOLD || Math.abs(dy) >= LASSO_THRESHOLD) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          // Convert viewport coords to scene-world coords (account for pan & zoom)
+          const toWorld = (vx: number, vy: number) => ({
+            x: (vx - rect.left - pan.x) / zoom,
+            y: (vy - rect.top - pan.y) / zoom,
+          });
+          const wStart = toWorld(startX, startY);
+          const wCur = toWorld(curX, curY);
+          setLassoRect({
+            x: Math.min(wStart.x, wCur.x),
+            y: Math.min(wStart.y, wCur.y),
+            width: Math.abs(wCur.x - wStart.x),
+            height: Math.abs(wCur.y - wStart.y),
+          });
+        }
+      }
+      return;
+    }
+
+    // Normal pan mode
     if (isDragging.current) {
       const dx = e.clientX - lastMouse.current.x;
       const dy = e.clientY - lastMouse.current.y;
@@ -178,6 +230,67 @@ export function SceneCanvas() {
   };
 
   const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // Handle lasso completion
+    if (lassoStartRef.current) {
+      if (lassoRect) {
+        // Find blocks/containers whose screen positions fall inside the lasso rect
+        const hitIds: string[] = [];
+        const allNodes = architecture.nodes;
+
+        for (const node of allNodes) {
+          let sx: number;
+          let sy: number;
+
+          if (node.kind === 'resource' && node.parentId !== null) {
+            const parentContainer = plates.find((p) => p.id === node.parentId);
+            if (!parentContainer?.frame) continue;
+            const worldX = parentContainer.position.x + node.position.x;
+            const worldY = parentContainer.position.y + parentContainer.frame.height;
+            const worldZ = parentContainer.position.z + node.position.z;
+            const sp = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
+            sx = sp.x;
+            sy = sp.y;
+          } else {
+            const sp = worldToScreen(
+              node.position.x,
+              node.position.y,
+              node.position.z,
+              origin.x,
+              origin.y,
+            );
+            sx = sp.x;
+            sy = sp.y;
+          }
+
+          if (
+            sx >= lassoRect.x &&
+            sx <= lassoRect.x + lassoRect.width &&
+            sy >= lassoRect.y &&
+            sy <= lassoRect.y + lassoRect.height
+          ) {
+            hitIds.push(node.id);
+          }
+        }
+
+        if (hitIds.length > 0) {
+          setSelectedIds(hitIds);
+        } else {
+          clearSelection();
+        }
+      } else {
+        // Shift-click on empty canvas without drag = just clear
+        clearSelection();
+      }
+
+      lassoStartRef.current = null;
+      setLassoRect(null);
+
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+      return;
+    }
+
     isDragging.current = false;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -338,6 +451,19 @@ export function SceneCanvas() {
             />
           </g>
         </svg>
+
+        {lassoRect && (
+          <div
+            className="lasso-rect"
+            style={{
+              left: lassoRect.x,
+              top: lassoRect.y,
+              width: lassoRect.width,
+              height: lassoRect.height,
+            }}
+            data-testid="lasso-rect"
+          />
+        )}
 
         {externalLaneBounds && (
           <div
