@@ -10,26 +10,26 @@ type PlateLayerType = Exclude<LayerType, 'resource'>;
 describe('getContainerBlockFaceColors — deterministic', () => {
   it('returns region colors for region container type', () => {
     expect(getContainerBlockFaceColors({ type: 'region' })).toEqual({
-      topFaceColor: '#6D9ABD',
-      topFaceStroke: '#628CAD',
-      leftSideColor: '#648FB1',
-      rightSideColor: '#6793B6',
+      topFaceColor: '#86A8C1',
+      topFaceStroke: '#7795AD',
+      leftSideColor: '#7C9CB4',
+      rightSideColor: '#80A1BA',
     });
   });
 
   it('returns global colors for global container type', () => {
     expect(getContainerBlockFaceColors({ type: 'global' })).toEqual({
-      topFaceColor: '#A6BACA',
-      topFaceStroke: '#97AAB9',
-      leftSideColor: '#9AAEBD',
-      rightSideColor: '#9FB3C3',
+      topFaceColor: '#A7BAC9',
+      topFaceStroke: '#95A7B4',
+      leftSideColor: '#9BAEBC',
+      rightSideColor: '#A0B3C2',
     });
   });
 
   it('returns edge colors for edge container type', () => {
     expect(getContainerBlockFaceColors({ type: 'edge' })).toEqual({
       topFaceColor: '#97B1C4',
-      topFaceStroke: '#89A1B3',
+      topFaceStroke: '#869EB0',
       leftSideColor: '#8CA5B7',
       rightSideColor: '#91AABD',
     });
@@ -37,19 +37,19 @@ describe('getContainerBlockFaceColors — deterministic', () => {
 
   it('returns zone colors for zone container type', () => {
     expect(getContainerBlockFaceColors({ type: 'zone' })).toEqual({
-      topFaceColor: '#86A8C1',
-      topFaceStroke: '#7999B1',
-      leftSideColor: '#7C9CB4',
-      rightSideColor: '#80A1BA',
+      topFaceColor: '#769FBE',
+      topFaceStroke: '#688DAA',
+      leftSideColor: '#6C94B2',
+      rightSideColor: '#7098B7',
     });
   });
 
   it('returns subnet colors for subnet container type', () => {
     expect(getContainerBlockFaceColors({ type: 'subnet' })).toEqual({
-      topFaceColor: '#779FBD',
-      topFaceStroke: '#6B90AD',
-      leftSideColor: '#6D94B1',
-      rightSideColor: '#7198B6',
+      topFaceColor: '#6396BC',
+      topFaceStroke: '#5685A8',
+      leftSideColor: '#5A8BB0',
+      rightSideColor: '#5D90B5',
     });
   });
 });
@@ -59,19 +59,19 @@ describe('getContainerBlockFaceColors — deterministic', () => {
 describe('getContainerBlockFaceColors — providers', () => {
   it('returns AWS region colors', () => {
     expect(getContainerBlockFaceColors({ type: 'region', provider: 'aws' })).toEqual({
-      topFaceColor: '#BE9B82',
-      topFaceStroke: '#AE8D75',
-      leftSideColor: '#B29077',
-      rightSideColor: '#B7947B',
+      topFaceColor: '#C4AC9A',
+      topFaceStroke: '#B09989',
+      leftSideColor: '#B7A08F',
+      rightSideColor: '#BDA593',
     });
   });
 
   it('returns GCP region colors', () => {
     expect(getContainerBlockFaceColors({ type: 'region', provider: 'gcp' })).toEqual({
-      topFaceColor: '#85AE8F',
-      topFaceStroke: '#789E82',
-      leftSideColor: '#7AA285',
-      rightSideColor: '#7EA789',
+      topFaceColor: '#99B6A1',
+      topFaceStroke: '#88A38F',
+      leftSideColor: '#8EAA95',
+      rightSideColor: '#92B09A',
     });
   });
 });
@@ -167,5 +167,22 @@ describe('getContainerBlockFaceColors — invariants', () => {
     expect(azureRegion.topFaceColor).not.toBe(awsRegion.topFaceColor);
     expect(azureRegion.topFaceColor).not.toBe(gcpRegion.topFaceColor);
     expect(awsRegion.topFaceColor).not.toBe(gcpRegion.topFaceColor);
+  });
+
+  it('layer ladder is strictly monotonic: outer→inner = lighter→darker, less→more saturated', () => {
+    for (const provider of providers) {
+      const hslByLayer = layers.map((layer) => {
+        const colors = getContainerBlockFaceColors({ type: layer, provider });
+        const [r, g, b] = hexToRgb(colors.topFaceColor);
+        return rgbToHsl(r, g, b);
+      });
+
+      for (let i = 1; i < hslByLayer.length; i++) {
+        // saturation strictly increases outer → inner
+        expect(hslByLayer[i].s).toBeGreaterThan(hslByLayer[i - 1].s);
+        // lightness strictly decreases outer → inner
+        expect(hslByLayer[i].l).toBeLessThan(hslByLayer[i - 1].l);
+      }
+    }
   });
 });
