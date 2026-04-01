@@ -86,10 +86,10 @@ describe('deriveFaceColors', () => {
     const base = '#0078D4';
     const derived = deriveFaceColors(base);
 
-    expect(derived.top).toBe('#0A7DD6');
-    expect(derived.topStroke).toBe('#006EC3');
-    expect(derived.right).toBe('#0071C7');
-    expect(derived.left).toBe('#006ABB');
+    expect(derived.top).toBe('#0F80D7');
+    expect(derived.topStroke).toBe('#006CBF');
+    expect(derived.right).toBe('#006EC3');
+    expect(derived.left).toBe('#0066B4');
   });
 
   it('returns all 4 derived properties', () => {
@@ -198,12 +198,12 @@ describe('getBlockFaceColors', () => {
     }
   });
 
-  it('topFaceColor equals lighten(base, 4) for that category', () => {
+  it('topFaceColor equals lighten(base, 6) for that category', () => {
     for (const provider of providers) {
       for (const category of categories) {
         const faceColors = getBlockFaceColors(category, provider);
         const baseColor = getBlockColor(provider, undefined, category);
-        expect(faceColors.topFaceColor).toBe(lighten(baseColor, 4));
+        expect(faceColors.topFaceColor).toBe(lighten(baseColor, 6));
       }
     }
   });
@@ -235,7 +235,7 @@ describe('getBlockFaceColors', () => {
         // Darkened sides should have lower or equal luminance
         expect(leftLuminance).toBeLessThanOrEqual(topLuminance);
         expect(rightLuminance).toBeLessThanOrEqual(topLuminance);
-        // Left (darken 12%) should be darker than right (darken 6%)
+        // Left (darken 15%) should be darker than right (darken 8%)
         expect(leftLuminance).toBeLessThanOrEqual(rightLuminance + 0.001);
       }
     }
@@ -344,12 +344,12 @@ describe('deriveContainerFaceColors', () => {
     const container = deriveContainerFaceColors(base);
     const resource = deriveFaceColors(base);
 
-    // Container top lighten(2) should be darker than resource top lighten(4)
+    // Container top lighten(2) should be darker than resource top lighten(6)
     const containerTopLum = getLuminance(container.top);
     const resourceTopLum = getLuminance(resource.top);
     expect(containerTopLum).toBeLessThanOrEqual(resourceTopLum);
 
-    // Container left darken(6) should be lighter than resource left darken(12)
+    // Container left darken(6) should be lighter than resource left darken(15)
     const containerLeftLum = getLuminance(container.left);
     const resourceLeftLum = getLuminance(resource.left);
     expect(containerLeftLum).toBeGreaterThanOrEqual(resourceLeftLum);

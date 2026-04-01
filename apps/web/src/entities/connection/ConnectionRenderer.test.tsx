@@ -223,12 +223,12 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    // Default state: dataflow strokeWidth=2, casing=2+2=4, trace=2
-    expect(casing?.getAttribute('stroke-width')).toBe('4');
+    // Default state: dataflow strokeWidth=2, casing=2+2.5=4.5, trace=2
+    expect(casing?.getAttribute('stroke-width')).toBe('4.5');
     expect(trace?.getAttribute('stroke-width')).toBe('2');
-    // Hover: casing=2+2+1=5, trace=2+1=3
+    // Hover: casing=2+2.5+1=5.5, trace=2+1=3
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('5');
+    expect(casing?.getAttribute('stroke-width')).toBe('5.5');
     expect(trace?.getAttribute('stroke-width')).toBe('3');
   });
 
@@ -362,7 +362,7 @@ describe('ConnectionRenderer', () => {
       dash?: string;
     }> = [
       { type: 'dataflow', baseWidth: 2 },
-      { type: 'http', baseWidth: 3 },
+      { type: 'http', baseWidth: 3.5 },
       { type: 'internal', baseWidth: 2.5 },
       { type: 'data', baseWidth: 1.5, dash: '6 3' },
       { type: 'async', baseWidth: 2, dash: '2 3' },
@@ -382,7 +382,7 @@ describe('ConnectionRenderer', () => {
 
         // Base stroke widths
         expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth));
-        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 2));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 2.5));
 
         // Dash pattern
         if (spec.dash) {
@@ -409,9 +409,9 @@ describe('ConnectionRenderer', () => {
         const trace = container.querySelector('[data-testid="connection-trace"]');
         const casing = container.querySelector('[data-testid="connection-casing"]');
 
-        // Hover: trace = base + 1, casing = base + 2 + 1
+        // Hover: trace = base + 1, casing = base + 2.5 + 1
         expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 1));
-        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3.5));
       });
     }
 
@@ -426,9 +426,9 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // dataflow defaults: trace=2, casing=4
+      // dataflow defaults: trace=2, casing=4.5
       expect(trace?.getAttribute('stroke-width')).toBe('2');
-      expect(casing?.getAttribute('stroke-width')).toBe('4');
+      expect(casing?.getAttribute('stroke-width')).toBe('4.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
       expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
     });
@@ -457,9 +457,9 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // Should fall back to dataflow (strokeWidth=2, casing=4), not crash
+      // Should fall back to dataflow (strokeWidth=2, casing=4.5), not crash
       expect(trace?.getAttribute('stroke-width')).toBe('2');
-      expect(casing?.getAttribute('stroke-width')).toBe('4');
+      expect(casing?.getAttribute('stroke-width')).toBe('4.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -474,8 +474,8 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      // http: selected=highlighted, casing = 3+2+1 = 6, selection = 6+4 = 10
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('10');
+      // http: selected=highlighted, casing = 3.5+2.5+1 = 7, selection = 7+4 = 11
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('11');
     });
   });
 

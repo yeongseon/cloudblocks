@@ -38,7 +38,7 @@
 }
 
 .container-sprite.is-selected .container-img {
-  filter: drop-shadow(0 0 10px var(--state-selection-glow)) var(--shadow-container-base);
+  filter: drop-shadow(0 0 5px var(--state-selection-glow)) var(--shadow-container-base);
 }
 
 .container-sprite.is-drop-target .container-img {

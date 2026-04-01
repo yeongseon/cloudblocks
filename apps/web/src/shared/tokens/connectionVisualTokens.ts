@@ -27,14 +27,14 @@ export interface ConnectionVisualStyle {
 /** Per-type visual styles. */
 export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualStyle> = {
   dataflow: { strokeWidth: 2 },
-  http: { strokeWidth: 3 },
+  http: { strokeWidth: 3.5 },
   internal: { strokeWidth: 2.5 },
   data: { strokeWidth: 1.5, strokeDasharray: '6 3' },
   async: { strokeWidth: 2, strokeDasharray: '2 3' },
 };
 
 /** Casing width offset added to the base stroke width. */
-export const CASING_WIDTH_OFFSET = 2;
+export const CASING_WIDTH_OFFSET = 2.5;
 
 /** Hover width offset added to the base stroke width. */
 export const HOVER_WIDTH_OFFSET = 1;

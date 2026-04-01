@@ -23,8 +23,8 @@ describe('connectionVisualTokens', () => {
       expect(CONNECTION_VISUAL_STYLES.dataflow.strokeDasharray).toBeUndefined();
     });
 
-    it('http is solid with strokeWidth 3', () => {
-      expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(3);
+    it('http is solid with strokeWidth 3.5', () => {
+      expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(3.5);
       expect(CONNECTION_VISUAL_STYLES.http.strokeDasharray).toBeUndefined();
     });
 
@@ -45,8 +45,8 @@ describe('connectionVisualTokens', () => {
   });
 
   describe('constants', () => {
-    it('CASING_WIDTH_OFFSET is 2', () => {
-      expect(CASING_WIDTH_OFFSET).toBe(2);
+    it('CASING_WIDTH_OFFSET is 2.5', () => {
+      expect(CASING_WIDTH_OFFSET).toBe(2.5);
     });
 
     it('HOVER_WIDTH_OFFSET is 1', () => {

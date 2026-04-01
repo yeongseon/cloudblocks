@@ -825,7 +825,7 @@ describe('CONNECTION_VISUAL_STYLES', () => {
   });
 
   it('http has thicker stroke width', () => {
-    expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(3);
+    expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(3.5);
     expect(CONNECTION_VISUAL_STYLES.http.strokeDasharray).toBeUndefined();
   });
 

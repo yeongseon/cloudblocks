@@ -68,8 +68,8 @@
   --accent-error: #f87171;
   --canvas-grid-major-color: rgba(255, 255, 255, 0.07);
   --canvas-grid-minor-color: rgba(255, 255, 255, 0.03);
-  --connection-http-stroke: #667894;
-  --connection-http-casing: #37465b;
+  --connection-http-stroke: #5a8ab5;
+  --connection-http-casing: #2c4a6b;
   --connection-event-stroke: #787583;
   --connection-event-casing: #404453;
   --connection-data-stroke: #637e8e;
@@ -82,7 +82,7 @@
 
   /* ── Interaction state colors ── */
   --state-selection-stroke: #ffd500;
-  --state-selection-glow: rgba(255, 213, 0, 0.5);
+  --state-selection-glow: rgba(255, 213, 0, 0.35);
   --state-snap-stroke: #16a34a;
   --state-snap-glow: rgba(22, 163, 74, 0.44);
   --state-success-stroke: #22c55e;
@@ -125,9 +125,9 @@
   --groove-opacity: 0.7;
 
   /* ── External node de-emphasis (#1582) ── */
-  --external-block-opacity: 0.75;
-  --external-block-filter: saturate(0.65) brightness(0.95);
-  --shadow-block-external: drop-shadow(1px 2px 0px rgba(0, 0, 0, 0.06));
+  --external-block-opacity: 0.88;
+  --external-block-filter: saturate(0.8) brightness(0.97);
+  --shadow-block-external: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.1));
   --external-lane-bg: rgba(255, 255, 255, 0.03);
   --external-lane-border: rgba(255, 255, 255, 0.06);
 }
@@ -152,8 +152,8 @@
   --accent-error: #b91c1c;
   --canvas-grid-major-color: rgba(0, 0, 0, 0.08);
   --canvas-grid-minor-color: rgba(0, 0, 0, 0.03);
-  --connection-http-stroke: #8d9db8;
-  --connection-http-casing: #617189;
+  --connection-http-stroke: #7a9ec8;
+  --connection-http-casing: #4a6a8c;
   --connection-event-stroke: #9f9ba7;
   --connection-event-casing: #6a6f80;
   --connection-data-stroke: #86a0af;
@@ -209,9 +209,9 @@
   --groove-opacity: 0.5;
 
   /* ── External node de-emphasis (#1582) ── */
-  --external-block-opacity: 0.78;
-  --external-block-filter: saturate(0.7) brightness(0.97);
-  --shadow-block-external: drop-shadow(1px 2px 0px rgba(0, 0, 0, 0.04));
+  --external-block-opacity: 0.9;
+  --external-block-filter: saturate(0.82) brightness(0.98);
+  --shadow-block-external: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.06));
   --external-lane-bg: rgba(0, 0, 0, 0.02);
   --external-lane-border: rgba(0, 0, 0, 0.04);
 }
