@@ -92,6 +92,33 @@ Overhauled the visual language of the isometric canvas: replaced 3D beam connect
 
 - 8 issues closed (Epic #1445)
 
+## [v0.31.0] — 2026-03-30
+
+**Milestone 31 — Palette Tier Audit & External Actor Restoration**
+
+Reclassified resource tier assignments, added missing resource types to the palette, restored Browser external actor, added External Actors section to sidebar palette with mobile support, and synchronized documentation.
+
+### Palette Tier Classification (Epic #1453)
+
+- Defined tier classification criteria in `RESOURCE_CATEGORY_STRATEGY.md` (#1455)
+- Reclassified resource tier assignments in `RESOURCE_DEFINITIONS` (#1456)
+- Added missing resource types to palette definitions (#1457)
+- Set explicit `blockCategory` for VNet and Subnet (#1458)
+- Updated `PROVIDER_RESOURCES.md` and `DOMAIN_MODEL.md` for 8-category system (#1459)
+
+### External Actor Restoration (Epic #1454)
+
+- Restored missing `browser.svg` external actor asset (#1460)
+- Added `addExternalActor` and `removeExternalActor` store actions (#1461)
+- Added External Actors section to sidebar palette (#1462)
+- Added external actor support in mobile palette sheet (#1463)
+- External actor store actions and palette integration tests (#1464)
+- Combined palette and external actor implementation (PR #1465)
+
+### Statistics
+
+- 13 issues closed (Epics #1453, #1454)
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**

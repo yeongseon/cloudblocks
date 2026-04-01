@@ -1,7 +1,7 @@
 {
   "name": "cloudblocks",
   "private": true,
-  "version": "0.30.0",
+  "version": "0.31.0",
   "description": "Visual cloud learning tool for beginners — learn cloud architecture patterns with guided templates and export Terraform starter code",
   "type": "module",
   "repository": {
