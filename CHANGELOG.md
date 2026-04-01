@@ -72,6 +72,26 @@ Made the visual builder usable on mobile viewports with auto-collapsing sidebar,
 
 - 6 issues closed (Epic #1439)
 
+## [v0.30.0] — 2026-03-30
+
+**Milestone 30 — Isometric Scene Visual Redesign**
+
+Overhauled the visual language of the isometric canvas: replaced 3D beam connections with 2-layer SVG paths, added container hierarchy contrast system, quieted resource block materials, moved labels to screen-aligned chips, and compacted validation toasts.
+
+### Visual Changes
+
+- Connection trace redesign — replaced 3D beam with clean 2-layer SVG path (#1446)
+- Container hierarchy visual system — structural navy ramp with inset effect (#1447)
+- Resource block material quieting — reduced grid and stroke opacity (#1448)
+- Screen-aligned label chips — moved labels out of isometric transform (#1449)
+- Validation toast downshift — compact bottom-right positioning (#1450)
+- Test updates for scene visual redesign (#1451)
+- Combined scene visual redesign implementation (PR #1452)
+
+### Statistics
+
+- 8 issues closed (Epic #1445)
+
 ## Milestone 34 — ExternalActor-to-Block Unification (2026-03-31)
 
 **Converted Internet and Browser from deprecated `ExternalActor` model into standard resource blocks (Epic #1533).**
