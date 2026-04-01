@@ -51,10 +51,10 @@ import './MenuBar.css';
 
 type DropdownMenu = 'logo' | 'github' | null;
 
-const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
-  { id: 'azure', label: 'Azure', color: '#0078D4' },
-  { id: 'aws', label: 'AWS', color: '#FF9900' },
-  { id: 'gcp', label: 'GCP', color: '#4285F4' },
+const PROVIDER_OPTIONS: { id: ProviderType; label: string }[] = [
+  { id: 'azure', label: 'Azure' },
+  { id: 'aws', label: 'AWS' },
+  { id: 'gcp', label: 'GCP' },
 ];
 
 export function MenuBar() {
@@ -553,16 +553,8 @@ export function MenuBar() {
               aria-selected={isActive}
               className="provider-btn"
               data-active={isActive}
+              data-provider={provider.id}
               onClick={() => handleProviderSwitch(provider.id)}
-              style={
-                isActive
-                  ? {
-                      borderColor: provider.color,
-                      color: provider.color,
-                      boxShadow: `inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 4px 0 0 ${provider.color}`,
-                    }
-                  : undefined
-              }
             >
               {provider.label}
             </button>

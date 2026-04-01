@@ -245,6 +245,30 @@
   transform: translateY(-1px);
 }
 
+.provider-btn[data-active='true'][data-provider='azure'] {
+  border-color: var(--provider-azure);
+  color: var(--provider-azure);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 var(--provider-azure);
+}
+
+.provider-btn[data-active='true'][data-provider='aws'] {
+  border-color: var(--provider-aws);
+  color: var(--provider-aws);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 var(--provider-aws);
+}
+
+.provider-btn[data-active='true'][data-provider='gcp'] {
+  border-color: var(--provider-gcp);
+  color: var(--provider-gcp);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 var(--provider-gcp);
+}
+
 .provider-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
