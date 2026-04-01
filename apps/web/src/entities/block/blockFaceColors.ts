@@ -135,10 +135,10 @@ export function adjustColorHsl(
  */
 export function deriveFaceColors(base: string): DerivedFaceColors {
   return {
-    top: lighten(base, 4),
-    topStroke: darken(base, 8),
-    right: darken(base, 6),
-    left: darken(base, 12),
+    top: lighten(base, 6),
+    topStroke: darken(base, 10),
+    right: darken(base, 8),
+    left: darken(base, 15),
   };
 }
 

@@ -10,46 +10,46 @@ type PlateLayerType = Exclude<LayerType, 'resource'>;
 describe('getContainerBlockFaceColors — deterministic', () => {
   it('returns region colors for region container type', () => {
     expect(getContainerBlockFaceColors({ type: 'region' })).toEqual({
-      topFaceColor: '#86A8C1',
-      topFaceStroke: '#7795AD',
-      leftSideColor: '#7C9CB4',
-      rightSideColor: '#80A1BA',
+      topFaceColor: '#99B1C3',
+      topFaceStroke: '#889EAF',
+      leftSideColor: '#8EA5B6',
+      rightSideColor: '#92AABC',
     });
   });
 
   it('returns global colors for global container type', () => {
     expect(getContainerBlockFaceColors({ type: 'global' })).toEqual({
-      topFaceColor: '#A7BAC9',
-      topFaceStroke: '#95A7B4',
-      leftSideColor: '#9BAEBC',
-      rightSideColor: '#A0B3C2',
+      topFaceColor: '#B9C6CF',
+      topFaceStroke: '#A6B1B9',
+      leftSideColor: '#ADB9C2',
+      rightSideColor: '#B2BFC8',
     });
   });
 
   it('returns edge colors for edge container type', () => {
     expect(getContainerBlockFaceColors({ type: 'edge' })).toEqual({
-      topFaceColor: '#97B1C4',
-      topFaceStroke: '#869EB0',
-      leftSideColor: '#8CA5B7',
-      rightSideColor: '#91AABD',
+      topFaceColor: '#A9BAC7',
+      topFaceStroke: '#96A7B2',
+      leftSideColor: '#9DAEBA',
+      rightSideColor: '#A2B3C0',
     });
   });
 
   it('returns zone colors for zone container type', () => {
     expect(getContainerBlockFaceColors({ type: 'zone' })).toEqual({
-      topFaceColor: '#769FBE',
-      topFaceStroke: '#688DAA',
-      leftSideColor: '#6C94B2',
-      rightSideColor: '#7098B7',
+      topFaceColor: '#88A8BF',
+      topFaceStroke: '#7995AB',
+      leftSideColor: '#7E9CB3',
+      rightSideColor: '#82A1B8',
     });
   });
 
   it('returns subnet colors for subnet container type', () => {
     expect(getContainerBlockFaceColors({ type: 'subnet' })).toEqual({
-      topFaceColor: '#6396BC',
-      topFaceStroke: '#5685A8',
-      leftSideColor: '#5A8BB0',
-      rightSideColor: '#5D90B5',
+      topFaceColor: '#789FBC',
+      topFaceStroke: '#698DA8',
+      leftSideColor: '#6E94B0',
+      rightSideColor: '#7198B5',
     });
   });
 });
@@ -59,19 +59,19 @@ describe('getContainerBlockFaceColors — deterministic', () => {
 describe('getContainerBlockFaceColors — providers', () => {
   it('returns AWS region colors', () => {
     expect(getContainerBlockFaceColors({ type: 'region', provider: 'aws' })).toEqual({
-      topFaceColor: '#C4AC9A',
-      topFaceStroke: '#B09989',
-      leftSideColor: '#B7A08F',
-      rightSideColor: '#BDA593',
+      topFaceColor: '#C8B6AA',
+      topFaceStroke: '#B3A397',
+      leftSideColor: '#BBAA9E',
+      rightSideColor: '#C1B0A3',
     });
   });
 
   it('returns GCP region colors', () => {
     expect(getContainerBlockFaceColors({ type: 'region', provider: 'gcp' })).toEqual({
-      topFaceColor: '#99B6A1',
-      topFaceStroke: '#88A38F',
-      leftSideColor: '#8EAA95',
-      rightSideColor: '#92B09A',
+      topFaceColor: '#A8BCAD',
+      topFaceStroke: '#95A89A',
+      leftSideColor: '#9CB0A1',
+      rightSideColor: '#A1B5A6',
     });
   });
 });
@@ -143,7 +143,7 @@ describe('getContainerBlockFaceColors — invariants', () => {
 
       it('face derivation deltas are narrower than resource blocks', () => {
         // Container: top=lighten(2), right=darken(3), left=darken(6)
-        // Resource:  top=lighten(4), right=darken(6), left=darken(12)
+        // Resource:  top=lighten(6), right=darken(8), left=darken(15)
         // So container left should be lighter than what resource derivation would produce
         for (const layer of layers) {
           const colors = getContainerBlockFaceColors({ type: layer, provider });

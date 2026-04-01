@@ -39,8 +39,8 @@
 }
 
 .block-sprite.is-selected .block-img {
-  filter: drop-shadow(0 0 8px var(--state-selection-stroke))
-    drop-shadow(0 0 16px var(--state-selection-glow)) var(--shadow-block-glow);
+  filter: drop-shadow(0 0 4px var(--state-selection-stroke))
+    drop-shadow(0 0 8px var(--state-selection-glow)) var(--shadow-block-glow);
 }
 
 .block-sprite.is-connection-source .block-img {
