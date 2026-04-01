@@ -90,6 +90,29 @@
   z-index: 1;
 }
 
+/* ── External lane zone (#1582) ── */
+.external-lane-zone {
+  position: absolute;
+  pointer-events: none;
+  background: var(--external-lane-bg);
+  border: 1px dashed var(--external-lane-border);
+  border-radius: 6px;
+  z-index: 0;
+  transition: opacity 0.2s ease;
+}
+
+.external-lane-zone .external-lane-label {
+  position: absolute;
+  top: -18px;
+  left: 8px;
+  font-size: 10px;
+  color: var(--external-lane-border);
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .connection-layer {
   position: absolute;
   top: 0;

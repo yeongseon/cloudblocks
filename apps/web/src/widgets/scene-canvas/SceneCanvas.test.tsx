@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { SceneCanvas } from './SceneCanvas';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import type { ResourceBlock } from '@cloudblocks/schema';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
@@ -25,7 +26,11 @@ const mockSetSelectedId = vi.fn();
 const mockAddBlock = vi.fn();
 const mockCompleteInteraction = vi.fn();
 
-const architecture = {
+const architecture: {
+  nodes: ResourceBlock[];
+  connections: unknown[];
+  externalActors: unknown[];
+} = {
   nodes: [],
   connections: [],
   externalActors: [],
@@ -156,5 +161,53 @@ describe('SceneCanvas pointer capture handling', () => {
     fireEvent.pointerUp(viewport, { pointerId: 7, clientX: 10, clientY: 10 });
 
     expect(releasePointerCaptureMock).toHaveBeenCalledWith(7);
+  });
+});
+
+describe('SceneCanvas external lane zone', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    architecture.nodes = [];
+    architecture.connections = [];
+    setupStoreMocks();
+  });
+
+  it('renders external lane zone when root external blocks exist', () => {
+    const externalBlock: ResourceBlock = {
+      id: 'external-1',
+      name: 'Browser',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'browser',
+      category: 'delivery',
+      provider: 'aws',
+      parentId: null,
+      position: { x: -2, y: 0, z: 4 },
+      metadata: {},
+      roles: ['external'],
+    };
+    architecture.nodes = [externalBlock];
+
+    const { getByTestId } = render(<SceneCanvas />);
+    expect(getByTestId('external-lane-zone')).toBeInTheDocument();
+  });
+
+  it('does not render external lane zone when no root external blocks exist', () => {
+    const internalBlock: ResourceBlock = {
+      id: 'internal-1',
+      name: 'Compute',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'compute',
+      provider: 'aws',
+      parentId: 'container-1',
+      position: { x: 1, y: 0, z: 1 },
+      metadata: {},
+    };
+    architecture.nodes = [internalBlock];
+
+    const { queryByTestId } = render(<SceneCanvas />);
+    expect(queryByTestId('external-lane-zone')).toBeNull();
   });
 });
