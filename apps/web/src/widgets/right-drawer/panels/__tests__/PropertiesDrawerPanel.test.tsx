@@ -356,10 +356,8 @@ describe('PropertiesDrawerPanel', () => {
       const container = makePlate();
       const connection = {
         id: 'conn-1',
-        sourceEndpoint: 'block-1:out',
-        targetEndpoint: 'container-1:in',
-        type: 'dataflow' as const,
-        label: '',
+        from: 'block-1:out',
+        to: 'container-1:in',
         metadata: {},
       };
       useArchitectureStore.setState({
