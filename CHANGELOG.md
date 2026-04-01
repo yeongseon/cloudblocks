@@ -8,6 +8,27 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.35.0] — 2026-04-01
+
+**Milestone 35 — Visual Hierarchy and Presentation Consistency**
+
+Established canonical block presentation metadata, applied typed connection visuals, softened container block palette, standardized label tokens, and unified resource palette layout.
+
+### Features
+
+- Defined canonical block presentation resolver module with visual metadata (#1555, PR #1560)
+- Applied typed connection visuals in renderer — color-coded by connection type (#1556, PR #1561)
+- Unified resource palette layout and iconography (#1559)
+
+### Visual Polish
+
+- Softened container block palette with HSL desaturation for layer contrast (#1557, PR #1562)
+- Standardized block and container label tokens (#1558, PR #1563)
+
+### Statistics
+
+- 9 issues closed
+
 ## [v0.27.0] — 2026-03-28
 
 **Milestone 27 — Positioning Documentation Completion**
@@ -1054,6 +1075,15 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
+[v0.34.0]: https://github.com/yeongseon/cloudblocks/compare/v0.33.0...v0.34.0
+[v0.33.0]: https://github.com/yeongseon/cloudblocks/compare/v0.32.0...v0.33.0
+[v0.32.0]: https://github.com/yeongseon/cloudblocks/compare/v0.31.0...v0.32.0
+[v0.31.0]: https://github.com/yeongseon/cloudblocks/compare/v0.30.0...v0.31.0
+[v0.30.0]: https://github.com/yeongseon/cloudblocks/compare/v0.29.0...v0.30.0
+[v0.29.0]: https://github.com/yeongseon/cloudblocks/compare/v0.28.0...v0.29.0
+[v0.28.0]: https://github.com/yeongseon/cloudblocks/compare/v0.27.0...v0.28.0
+[v0.27.0]: https://github.com/yeongseon/cloudblocks/compare/v0.26.0...v0.27.0
 [v0.26.0]: https://github.com/yeongseon/cloudblocks/compare/v0.22.0...v0.26.0
 [v0.25.0]: https://github.com/yeongseon/cloudblocks/compare/v0.24.0...v0.25.0
 [v0.24.0]: https://github.com/yeongseon/cloudblocks/compare/v0.23.0...v0.24.0
