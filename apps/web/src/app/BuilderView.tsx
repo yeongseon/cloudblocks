@@ -72,7 +72,7 @@ export function BuilderView() {
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const selectedId = useUIStore((s) => s.selectedId);
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const clearSelection = useUIStore((s) => s.clearSelection);
   const interactionState = useUIStore((s) => s.interactionState);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -185,7 +185,10 @@ export function BuilderView() {
         return;
       }
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const { selectedIds, selectedId: singleId } = useUIStore.getState();
+        const idsToDelete = selectedIds.size > 0 ? [...selectedIds] : singleId ? [singleId] : [];
+        if (idsToDelete.length === 0) return;
         e.preventDefault();
         const arch = useArchitectureStore.getState().workspace.architecture;
         const resources = arch.nodes.filter(
@@ -194,14 +197,16 @@ export function BuilderView() {
         const containers = arch.nodes.filter(
           (node): node is ContainerBlock => node.kind === 'container',
         );
-        if (resources.find((resource) => resource.id === selectedId)) {
-          removeNode(selectedId);
-        } else if (containers.find((container) => container.id === selectedId)) {
-          removeNode(selectedId);
-        } else if (arch.connections.find((c) => c.id === selectedId)) {
-          removeConnection(selectedId);
+        for (const id of idsToDelete) {
+          if (resources.find((resource) => resource.id === id)) {
+            removeNode(id);
+          } else if (containers.find((container) => container.id === id)) {
+            removeNode(id);
+          } else if (arch.connections.find((c) => c.id === id)) {
+            removeConnection(id);
+          }
         }
-        setSelectedId(null);
+        clearSelection();
         return;
       }
 
@@ -215,7 +220,7 @@ export function BuilderView() {
           setDiffMode(false);
           return;
         }
-        setSelectedId(null);
+        clearSelection();
       }
     };
 
@@ -228,7 +233,7 @@ export function BuilderView() {
     selectedId,
     removeNode,
     removeConnection,
-    setSelectedId,
+    clearSelection,
     interactionState,
     cancelInteraction,
     showKeyboardShortcuts,

@@ -36,13 +36,14 @@ export const ContainerBlockSprite = memo(function PlateSprite({
 }: PlateSpriteProps) {
   type PlateLayer = Exclude<LayerType, 'resource'>;
 
-  const selectedId = useUIStore((s) => s.selectedId);
+  const selectedIds = useUIStore((s) => s.selectedIds);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const toggleSelection = useUIStore((s) => s.toggleSelection);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
-  const isSelected = selectedId === container.id;
+  const isSelected = selectedIds.has(container.id);
   const isDragActive = draggedBlockCategory !== null;
   const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, container);
   const isInvalidDropTarget = isDragActive && !canPlaceBlock(draggedBlockCategory, container);
@@ -156,7 +157,11 @@ export const ContainerBlockSprite = memo(function PlateSprite({
       return;
     }
     e.stopPropagation();
-    setSelectedId(container.id);
+    if (e.shiftKey) {
+      toggleSelection(container.id);
+    } else {
+      setSelectedId(container.id);
+    }
   };
 
   const containerLayer = container.layer as PlateLayer;

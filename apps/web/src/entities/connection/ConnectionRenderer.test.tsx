@@ -95,6 +95,7 @@ describe('ConnectionRenderer', () => {
       diffMode: false,
       diffDelta: null,
       selectedId: null,
+      selectedIds: new Set(),
       toolMode: 'select',
     });
   });
@@ -176,7 +177,7 @@ describe('ConnectionRenderer', () => {
   });
 
   it('renders provider-accent glow outline when connection is selected', () => {
-    useUIStore.setState({ selectedId: connection.id });
+    useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
     const { container } = renderConnector();
     const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(selectionOutline).toBeInTheDocument();
@@ -303,7 +304,7 @@ describe('ConnectionRenderer', () => {
     });
 
     it('does not show validation label when surface route has no centerline points', () => {
-      useUIStore.setState({ selectedId: connection.id });
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
@@ -469,7 +470,7 @@ describe('ConnectionRenderer', () => {
         id: 'conn-http-selected',
         metadata: { ...connection.metadata, type: 'http' as ConnectionType },
       };
-      useUIStore.setState({ selectedId: conn.id });
+      useUIStore.setState({ selectedId: conn.id, selectedIds: new Set([conn.id]) });
 
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
@@ -557,7 +558,7 @@ describe('ConnectionRenderer', () => {
     });
 
     it('shows error label when connection is selected and invalid', () => {
-      useUIStore.setState({ selectedId: connection.id });
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
       useArchitectureStore.setState({
         validationResult: {
           valid: false,

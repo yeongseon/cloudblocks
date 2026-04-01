@@ -174,3 +174,13 @@
     }
   }
 }
+
+/* ── Lasso / marquee selection rectangle ────────────────── */
+.lasso-rect {
+  position: absolute;
+  border: 1.5px dashed var(--provider-accent, #4a9eff);
+  background: rgba(74, 158, 255, 0.08);
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 2px;
+}

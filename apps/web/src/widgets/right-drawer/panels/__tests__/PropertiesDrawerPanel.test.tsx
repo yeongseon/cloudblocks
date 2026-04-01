@@ -351,4 +351,65 @@ describe('PropertiesDrawerPanel', () => {
       expect(screen.getByText('Click again to confirm delete')).toBeDefined();
     });
   });
+
+  describe('Multi-select summary', () => {
+    it('renders multi-select summary when multiple items are selected', () => {
+      const block = makeBlock();
+      const container = makePlate();
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            name: 'Test Workspace',
+            nodes: [container, block],
+            connections: [],
+            endpoints: [],
+            externalActors: [],
+          },
+        },
+      });
+      useUIStore.setState({
+        selectedIds: new Set(['container-1', 'block-1']),
+        selectedId: 'container-1',
+      });
+
+      render(<PropertiesDrawerPanel />);
+      expect(screen.getByTestId('props-multi-select')).toBeDefined();
+      expect(screen.getByText('Multi-Selection')).toBeDefined();
+      expect(screen.getByText('2 items selected')).toBeDefined();
+      expect(screen.getByText('Press Delete to remove all selected items.')).toBeDefined();
+    });
+
+    it('shows correct node and connection counts in multi-select', () => {
+      const block = makeBlock();
+      const container = makePlate();
+      const connection = {
+        id: 'conn-1',
+        from: 'block-1:out',
+        to: 'container-1:in',
+        metadata: {},
+      };
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            name: 'Test Workspace',
+            nodes: [container, block],
+            connections: [connection],
+            endpoints: [],
+            externalActors: [],
+          },
+        },
+      });
+      useUIStore.setState({
+        selectedIds: new Set(['container-1', 'block-1', 'conn-1']),
+        selectedId: 'container-1',
+      });
+
+      render(<PropertiesDrawerPanel />);
+      expect(screen.getByText('3 items selected')).toBeDefined();
+    });
+  });
 });

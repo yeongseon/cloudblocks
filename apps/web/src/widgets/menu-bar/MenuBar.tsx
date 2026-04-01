@@ -61,6 +61,8 @@ export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
 
   const selectedId = useUIStore((s) => s.selectedId);
+  const selectedIds = useUIStore((s) => s.selectedIds);
+  const clearSelection = useUIStore((s) => s.clearSelection);
   const showValidation = useUIStore((s) => s.showValidation);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
@@ -152,17 +154,21 @@ export function MenuBar() {
   };
 
   const handleDeleteSelection = () => {
-    if (!selectedId) return;
-    if (plates.some((p) => p.id === selectedId)) {
-      removeNode(selectedId);
-      playSound('delete');
-    } else if (blocks.some((b) => b.id === selectedId)) {
-      removeNode(selectedId);
-      playSound('delete');
-    } else if (architecture.connections.some((c) => c.id === selectedId)) {
-      removeConnection(selectedId);
-      playSound('delete');
+    const idsToDelete = selectedIds.size > 0 ? [...selectedIds] : selectedId ? [selectedId] : [];
+    if (idsToDelete.length === 0) return;
+    for (const id of idsToDelete) {
+      if (plates.some((p) => p.id === id)) {
+        removeNode(id);
+        playSound('delete');
+      } else if (blocks.some((b) => b.id === id)) {
+        removeNode(id);
+        playSound('delete');
+      } else if (architecture.connections.some((c) => c.id === id)) {
+        removeConnection(id);
+        playSound('delete');
+      }
     }
+    clearSelection();
   };
 
   const handleValidate = () => {
@@ -372,7 +378,7 @@ export function MenuBar() {
             type="button"
             className="menu-item"
             onClick={() => handleAction(handleDeleteSelection)}
-            disabled={!selectedId}
+            disabled={selectedIds.size === 0 && !selectedId}
           >
             <span className="menu-item-left">
               <Trash2 size={14} /> Delete Selection

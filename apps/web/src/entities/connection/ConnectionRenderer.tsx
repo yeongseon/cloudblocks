@@ -226,7 +226,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     return () => el.removeEventListener('animationend', handleEnd);
   }, []);
 
-  const selectedId = useUIStore((s) => s.selectedId);
+  const selectedIds = useUIStore((s) => s.selectedIds);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
   const diffMode = useUIStore((s) => s.diffMode);
@@ -244,7 +244,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const renderSemantic: ConnectionRenderSemantic = semantic;
 
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
-  const isSelected = selectedId === connection.id;
+  const isSelected = selectedIds.has(connection.id);
   const isHighlighted = isHovered || isSelected;
 
   const connectionErrors = useMemo(() => {

@@ -11,7 +11,36 @@ import './PropertiesDrawerPanel.css';
 // ── Main Panel ───────────────────────────────────────────────────────────
 export function PropertiesDrawerPanel() {
   const selectedId = useUIStore((s) => s.selectedId);
+  const selectedIds = useUIStore((s) => s.selectedIds);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+
+  // Multi-select summary view
+  if (selectedIds.size > 1) {
+    return (
+      <div className="props-panel" data-testid="props-multi-select">
+        <section className="props-section">
+          <h3 className="props-section-title">Multi-Selection</h3>
+          <p className="props-hint">{selectedIds.size} items selected</p>
+          <div className="props-field-group">
+            <ReadOnlyField
+              label="Nodes"
+              value={String(
+                [...selectedIds].filter((id) => architecture.nodes.some((n) => n.id === id)).length,
+              )}
+            />
+            <ReadOnlyField
+              label="Connections"
+              value={String(
+                [...selectedIds].filter((id) => architecture.connections.some((c) => c.id === id))
+                  .length,
+              )}
+            />
+          </div>
+        </section>
+        <p className="props-hint">Press Delete to remove all selected items.</p>
+      </div>
+    );
+  }
 
   const selectedNode = selectedId
     ? (architecture.nodes.find((n) => n.id === selectedId) ?? null)
@@ -30,12 +59,10 @@ export function PropertiesDrawerPanel() {
   }
 
   if (selectedConnection) {
-    // key={connection.id} resets all internal state (confirmDelete) when connection changes
     return <ConnectionProperties key={selectedConnection.id} connection={selectedConnection} />;
   }
 
   if (selectedNode) {
-    // key={node.id} resets confirmDelete when a different node is selected
     return <NodeProperties key={selectedNode.id} node={selectedNode} />;
   }
 

@@ -92,7 +92,12 @@ describe('PlateSprite', () => {
     vi.clearAllMocks();
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
-    useUIStore.setState({ selectedId: null, toolMode: 'select', connectionSource: null });
+    useUIStore.setState({
+      selectedId: null,
+      selectedIds: new Set(),
+      toolMode: 'select',
+      connectionSource: null,
+    });
     useArchitectureStore.setState({ moveNodePosition: moveNodePositionMock });
   });
 
@@ -145,9 +150,41 @@ describe('PlateSprite', () => {
     expect(useUIStore.getState().selectedId).toBe(container.id);
   });
 
+  it('shift-click toggles selection via toggleSelection', async () => {
+    const user = userEvent.setup();
+    const containerBlock = makeNetworkPlate();
+    render(<ContainerBlockSprite container={containerBlock} screenX={0} screenY={0} zIndex={1} />);
+
+    // Normal click to select
+    await user.click(screen.getByRole('button', { name: `Container: ${containerBlock.name}` }));
+    expect(useUIStore.getState().selectedIds.has(containerBlock.id)).toBe(true);
+
+    // Shift-click to toggle off
+    fireEvent.click(screen.getByRole('button', { name: `Container: ${containerBlock.name}` }), {
+      shiftKey: true,
+    });
+    expect(useUIStore.getState().selectedIds.has(containerBlock.id)).toBe(false);
+  });
+
+  it('shift-click adds to existing selection', () => {
+    useUIStore.getState().setSelectedId('other-item');
+    const containerBlock = makeSubnetPlate();
+    render(<ContainerBlockSprite container={containerBlock} screenX={0} screenY={0} zIndex={1} />);
+
+    fireEvent.click(screen.getByRole('button', { name: `Container: ${containerBlock.name}` }), {
+      shiftKey: true,
+    });
+    expect(useUIStore.getState().selectedIds.has('other-item')).toBe(true);
+    expect(useUIStore.getState().selectedIds.has(containerBlock.id)).toBe(true);
+    expect(useUIStore.getState().selectedIds.size).toBe(2);
+  });
+
   it('adds is-selected class when selected', () => {
     const containerBlock = makeSubnetPlate();
-    useUIStore.setState({ selectedId: containerBlock.id });
+    useUIStore.setState({
+      selectedId: containerBlock.id,
+      selectedIds: new Set([containerBlock.id]),
+    });
     const { container } = render(
       <ContainerBlockSprite container={containerBlock} screenX={0} screenY={0} zIndex={1} />,
     );

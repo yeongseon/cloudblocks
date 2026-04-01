@@ -67,8 +67,22 @@ interface UIState {
   goToBuilder: () => void;
 
   // ── Selection ──
+  /** Primary selection set — supports multi-select (shift-click, lasso). */
+  selectedIds: Set<string>;
+  /** Backward-compat getter: returns first selected id or null. */
   selectedId: string | null;
+  /** Replace entire selection with a single id (or null to clear). */
   setSelectedId: (id: string | null) => void;
+  /** Add id to selection set (shift-click additive). */
+  addToSelection: (id: string) => void;
+  /** Remove id from selection set. */
+  removeFromSelection: (id: string) => void;
+  /** Toggle id in/out of selection set (shift-click toggle). */
+  toggleSelection: (id: string) => void;
+  /** Replace entire selection set (lasso result). */
+  setSelectedIds: (ids: ReadonlySet<string> | readonly string[]) => void;
+  /** Clear all selections. */
+  clearSelection: () => void;
 
   // ── Tool mode ──
   toolMode: ToolMode;
@@ -259,12 +273,54 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ appView: 'builder' });
   },
 
+  selectedIds: new Set<string>(),
   selectedId: null,
   setSelectedId: (id) => {
-    set({ selectedId: id });
+    const selectedIds = id !== null ? new Set([id]) : new Set<string>();
+    set({ selectedIds, selectedId: id });
     if (id !== null) {
       get().openDrawer('properties');
     }
+  },
+  addToSelection: (id) => {
+    const next = new Set(get().selectedIds);
+    next.add(id);
+    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+    set({ selectedIds: next, selectedId });
+    if (next.size === 1) {
+      get().openDrawer('properties');
+    }
+  },
+  removeFromSelection: (id) => {
+    const next = new Set(get().selectedIds);
+    next.delete(id);
+    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+    set({ selectedIds: next, selectedId });
+  },
+  toggleSelection: (id) => {
+    const prev = get().selectedIds;
+    const next = new Set(prev);
+    if (prev.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+    set({ selectedIds: next, selectedId });
+    if (next.size === 1) {
+      get().openDrawer('properties');
+    }
+  },
+  setSelectedIds: (ids) => {
+    const next = ids instanceof Set ? new Set(ids) : new Set(ids);
+    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+    set({ selectedIds: next, selectedId });
+    if (next.size === 1) {
+      get().openDrawer('properties');
+    }
+  },
+  clearSelection: () => {
+    set({ selectedIds: new Set(), selectedId: null });
   },
 
   toolMode: 'select',
