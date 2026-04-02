@@ -110,7 +110,7 @@ Schema version bumps less frequently than app version. Many milestones may ship 
 
 ## Documentation Freshness Markers
 
-Living documentation files include a `Verified against` marker in their metadata header (line 3):
+Living documentation files include a `Verified against` marker in their metadata header immediately below the title:
 
 ```markdown
 > **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.35.0
@@ -118,9 +118,11 @@ Living documentation files include a `Verified against` marker in their metadata
 
 ### Rules
 
-1. **Format**: Always use the app version: `Verified against: v{X.Y.Z}`
-2. **Exception**: Schema-focused docs (e.g., `DOMAIN_MODEL.md`) may additionally note `v{schema} schema` when the schema version materially matters
-3. **Update only after review**: A marker means "a human verified this document accurately describes the codebase at version X". Do not bulk-update markers without actually reviewing content.
+1. **Default format (app version)**: For most docs, use the app version: `Verified against: v{X.Y.Z}`
+2. **Schema-focused docs**: Schema-focused docs (e.g., `DOMAIN_MODEL.md`) may instead use a schema marker or a combined marker, e.g.:
+   - `Verified against: v4.1.0 schema` (schema only), or
+   - `Verified against: app v0.40.0, schema v4.1.0` (both)
+3. **Update only after review**: A marker means "a human verified this document accurately describes the codebase at version X (and/or schema S)". Do not bulk-update markers without actually reviewing content.
 4. **Exempt documents**: ADRs (`docs/decisions/ADR-*.md`) and documents marked "Historical (Superseded)" do not carry freshness markers — they are immutable records.
 5. **Staleness threshold**: A marker more than 5 milestones behind the current release is considered stale and should be prioritized for review.
 

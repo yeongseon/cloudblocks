@@ -61,13 +61,13 @@ echo "---"
 # packages/schema/src/index.ts is the canonical SCHEMA_VERSION.
 # apps/web must import it, not define its own constant.
 SCHEMA_DEFS=$(grep -r "SCHEMA_VERSION\s*=\s*'" "$REPO_ROOT/packages/schema/src/index.ts" "$REPO_ROOT/apps/web/src/shared/types/schema.ts" 2>/dev/null | grep -v 'import\|from\|export {' || true)
-SCHEMA_DEF_COUNT=$(echo "$SCHEMA_DEFS" | grep -c "SCHEMA_VERSION" 2>/dev/null || echo 0)
+SCHEMA_DEF_COUNT=$(echo "$SCHEMA_DEFS" | grep -c "SCHEMA_VERSION" 2>/dev/null || true)
 if [ "$SCHEMA_DEF_COUNT" -gt 1 ]; then
   echo "MISMATCH  Schema version: $SCHEMA_DEF_COUNT definitions found (expected 1 in packages/schema)"
   echo "          $SCHEMA_DEFS"
   ERRORS=$((ERRORS + 1))
 elif [ "$SCHEMA_DEF_COUNT" -eq 1 ]; then
-  SCHEMA_VER=$(echo "$SCHEMA_DEFS" | grep -oP "'\K[^']+" | head -1)
+  SCHEMA_VER=$(echo "$SCHEMA_DEFS" | sed -n "s/.*'\([^']*\)'.*/\1/p" | head -1)
   echo "OK        Schema version: $SCHEMA_VER (single source in packages/schema)"
 else
   echo "WARN      Schema version: no SCHEMA_VERSION definition found"
