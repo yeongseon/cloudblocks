@@ -7,6 +7,7 @@ describe('zoom-dependent label density', () => {
       labelModeOverride: 'auto',
       canvasZoom: 0.85,
       effectiveLabelMode: 'learning',
+      labelMode: 'learning',
     });
   });
 
@@ -27,8 +28,14 @@ describe('zoom-dependent label density', () => {
     });
 
     it('keeps previous mode in hysteresis zones', () => {
+      // 0.55 is inside hysteresis zone [0.55, 0.65]
+      expect(computeAutoLabelMode(0.55, 'compact')).toBe('compact');
+      expect(computeAutoLabelMode(0.55, 'learning')).toBe('learning');
       expect(computeAutoLabelMode(0.6, 'compact')).toBe('compact');
       expect(computeAutoLabelMode(0.6, 'learning')).toBe('learning');
+      // 1.4 is inside hysteresis zone [1.4, 1.6]
+      expect(computeAutoLabelMode(1.4, 'learning')).toBe('learning');
+      expect(computeAutoLabelMode(1.4, 'inspect')).toBe('inspect');
       expect(computeAutoLabelMode(1.5, 'learning')).toBe('learning');
       expect(computeAutoLabelMode(1.5, 'inspect')).toBe('inspect');
     });

@@ -518,19 +518,15 @@ export function MenuBar() {
                 : 'Switch to Blueprint (Dark)'}
             </span>
           </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(cycleLabelMode)}>
+            <span className="menu-item-left">
+              <Type size={14} /> Labels:{' '}
+              {labelModeOverride === 'auto'
+                ? 'Auto'
+                : labelModeOverride.charAt(0).toUpperCase() + labelModeOverride.slice(1)}
+            </span>
+          </button>
           <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(cycleLabelMode)}
-            >
-              <span className="menu-item-left">
-                <Type size={14} /> Labels:{' '}
-                {labelModeOverride === 'auto'
-                  ? 'Auto'
-                  : labelModeOverride.charAt(0).toUpperCase() + labelModeOverride.slice(1)}
-              </span>
-            </button>
             <span className="menu-item-left">
               <LayoutGrid size={14} /> Grid:{' '}
               {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}

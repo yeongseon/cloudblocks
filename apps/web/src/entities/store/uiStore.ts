@@ -34,7 +34,7 @@ export type { ComplexityLevel } from '../../shared/types';
 const PENDING_GITHUB_ACTION_KEY = 'cloudblocks_pending_github_action';
 
 export function computeAutoLabelMode(zoom: number, currentMode: LabelMode): LabelMode {
-  if (zoom <= 0.55) {
+  if (zoom < 0.55) {
     return 'compact';
   }
 
@@ -42,7 +42,7 @@ export function computeAutoLabelMode(zoom: number, currentMode: LabelMode): Labe
     return currentMode === 'compact' ? 'compact' : 'learning';
   }
 
-  if (zoom <= 1.4) {
+  if (zoom < 1.4) {
     return 'learning';
   }
 
