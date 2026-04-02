@@ -131,6 +131,10 @@
   filter: grayscale(0.8) var(--shadow-container-base);
 }
 
+.container-sprite.is-disabled {
+  pointer-events: none;
+}
+
 .container-sprite.is-disabled .container-button {
   cursor: default;
   pointer-events: none;

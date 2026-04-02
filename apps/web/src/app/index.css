@@ -102,7 +102,6 @@
   --state-health-error: #ef4444;
   --state-disabled-opacity: 0.4;
   --state-unconnected-opacity: 0.7;
-  --state-unconnected-dash: 4 3;
 
   /* ── Provider brand colors (#1583) ── */
   --provider-azure: #0078d4;
@@ -196,7 +195,6 @@
   --state-health-error: #dc2626;
   --state-disabled-opacity: 0.4;
   --state-unconnected-opacity: 0.7;
-  --state-unconnected-dash: 4 3;
 
   /* ── Provider brand colors (#1583) ── */
   --provider-azure: #0078d4;
