@@ -17,12 +17,24 @@ const SCENARIOS = [
     firstStep: 'Create the Network',
   },
   {
+    name: 'Simple Compute Setup',
+    firstStep: 'Create the Network',
+  },
+  {
+    name: 'Data Storage Backend',
+    firstStep: 'Create the Network',
+  },
+  {
     name: 'Serverless HTTP API',
     firstStep: 'Set Up Network Zones',
   },
   {
     name: 'Event-Driven Data Pipeline',
     firstStep: 'Add Event Sources',
+  },
+  {
+    name: 'Full-Stack Web App with Event Processing',
+    firstStep: 'Build the Network Foundation',
   },
 ] as const;
 
