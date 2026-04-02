@@ -70,7 +70,7 @@ export const BlockSvg = memo(function BlockSvg({
   const iconSize = Math.max(16, Math.round(sideWallPx * 0.7));
   const shortLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
   const displayLabel = getSubtypeDisplayLabel(provider ?? 'azure', subtype);
-  const labelMode = useUIStore((s) => s.labelMode);
+  const labelMode = useUIStore((s) => s.effectiveLabelMode);
   const faceLabel = labelMode === 'compact' ? shortLabel : (displayLabel ?? shortLabel);
   const showPorts = useUIStore((s) => s.showPorts);
   const ports = CATEGORY_PORTS[category] ?? { inbound: 1, outbound: 1 };
@@ -273,9 +273,9 @@ export const BlockSvg = memo(function BlockSvg({
       {/* ─── Port dots: generic indicators on block side walls ─── */}
       {showPorts && (
         <g data-testid="port-dots">
-          {portPoints.inbound.map((p, i) => (
+          {portPoints.inbound.map((p) => (
             <ellipse
-              key={`in-${i}`}
+              key={`in-${p.x}-${p.y}`}
               cx={p.x}
               cy={p.y}
               rx={PORT_DOT_RX}
@@ -286,9 +286,9 @@ export const BlockSvg = memo(function BlockSvg({
               opacity={PORT_DOT_OPACITY}
             />
           ))}
-          {portPoints.outbound.map((p, i) => (
+          {portPoints.outbound.map((p) => (
             <ellipse
-              key={`out-${i}`}
+              key={`out-${p.x}-${p.y}`}
               cx={p.x}
               cy={p.y}
               rx={PORT_DOT_RX}

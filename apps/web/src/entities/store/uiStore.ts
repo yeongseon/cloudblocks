@@ -33,6 +33,38 @@ export type { ComplexityLevel } from '../../shared/types';
 
 const PENDING_GITHUB_ACTION_KEY = 'cloudblocks_pending_github_action';
 
+export function computeAutoLabelMode(zoom: number, currentMode: LabelMode): LabelMode {
+  if (zoom < 0.55) {
+    return 'compact';
+  }
+
+  if (zoom <= 0.65) {
+    return currentMode === 'compact' ? 'compact' : 'learning';
+  }
+
+  if (zoom < 1.4) {
+    return 'learning';
+  }
+
+  if (zoom <= 1.6) {
+    return currentMode === 'inspect' ? 'inspect' : 'learning';
+  }
+
+  return 'inspect';
+}
+
+function computeEffectiveLabelMode(
+  override: LabelMode | 'auto',
+  zoom: number,
+  currentMode: LabelMode,
+): LabelMode {
+  if (override !== 'auto') {
+    return override;
+  }
+
+  return computeAutoLabelMode(zoom, currentMode);
+}
+
 function readPendingGitHubAction(): PendingGitHubAction {
   if (typeof window === 'undefined') {
     return null;
@@ -215,6 +247,13 @@ interface UIState {
   setGridStyle: (style: 'paper' | 'dot' | 'none') => void;
 
   // ── Label presentation mode ──
+  labelModeOverride: LabelMode | 'auto';
+  setLabelModeOverride: (mode: LabelMode | 'auto') => void;
+  /** Zoom level reported by SceneCanvas, used for auto label density */
+  canvasZoom: number;
+  setCanvasZoom: (zoom: number) => void;
+  /** Computed: the label mode that should be used for rendering */
+  effectiveLabelMode: LabelMode;
   labelMode: LabelMode;
   setLabelMode: (mode: LabelMode) => void;
   cycleLabelMode: () => void;
@@ -665,13 +704,58 @@ export const useUIStore = create<UIState>((set, get) => ({
   magneticSnapTargetId: null,
   setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
 
-  labelMode: 'compact' as LabelMode,
-  setLabelMode: (mode) => set({ labelMode: mode }),
+  labelModeOverride: 'auto',
+  canvasZoom: 0.85,
+  effectiveLabelMode: computeAutoLabelMode(0.85, 'learning'),
+  labelMode: computeAutoLabelMode(0.85, 'learning'),
+  setLabelModeOverride: (mode) =>
+    set((s) => {
+      const effectiveLabelMode = computeEffectiveLabelMode(
+        mode,
+        s.canvasZoom,
+        s.effectiveLabelMode,
+      );
+      return {
+        labelModeOverride: mode,
+        effectiveLabelMode,
+        labelMode: effectiveLabelMode,
+      };
+    }),
+  setCanvasZoom: (zoom) =>
+    set((s) => {
+      const effectiveLabelMode = computeEffectiveLabelMode(
+        s.labelModeOverride,
+        zoom,
+        s.effectiveLabelMode,
+      );
+      return {
+        canvasZoom: zoom,
+        effectiveLabelMode,
+        labelMode: effectiveLabelMode,
+      };
+    }),
+  setLabelMode: (mode) =>
+    set({
+      labelModeOverride: mode,
+      effectiveLabelMode: mode,
+      labelMode: mode,
+    }),
   cycleLabelMode: () => {
-    const order: LabelMode[] = ['compact', 'learning', 'inspect'];
-    const current = get().labelMode;
+    const order: Array<LabelMode | 'auto'> = ['auto', 'compact', 'learning', 'inspect'];
+    const current = get().labelModeOverride;
     const next = order[(order.indexOf(current) + 1) % order.length];
-    set({ labelMode: next });
+    set((s) => {
+      const effectiveLabelMode = computeEffectiveLabelMode(
+        next,
+        s.canvasZoom,
+        s.effectiveLabelMode,
+      );
+      return {
+        labelModeOverride: next,
+        effectiveLabelMode,
+        labelMode: effectiveLabelMode,
+      };
+    });
   },
 }));
 
