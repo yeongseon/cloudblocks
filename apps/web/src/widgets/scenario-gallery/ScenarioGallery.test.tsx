@@ -66,7 +66,7 @@ describe('ScenarioGallery', () => {
     render(<ScenarioGallery />);
     const scenarios = listScenarios();
 
-    expect(scenarios).toHaveLength(3);
+    expect(scenarios).toHaveLength(6);
     scenarios.forEach((scenario) => {
       expect(screen.getByText(scenario.name)).toBeInTheDocument();
     });
@@ -77,7 +77,7 @@ describe('ScenarioGallery', () => {
     render(<ScenarioGallery />);
 
     await user.click(screen.getByRole('button', { name: 'All' }));
-    expect(document.querySelectorAll('.scenario-gallery-card')).toHaveLength(3);
+    expect(document.querySelectorAll('.scenario-gallery-card')).toHaveLength(6);
   });
 
   it('Beginner filter shows only beginner scenarios', async () => {
