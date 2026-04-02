@@ -55,6 +55,7 @@ Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 ### Pull Request Rules
 
 - `main` is a protected branch — all changes go through PR + CI.
+- Always request Copilot code review: include `--reviewer copilot-pull-request-reviewer` in every `gh pr create` command. Auto-review is enabled at the repo level but may not trigger reliably — the explicit flag guarantees it.
 - Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`. **Never** use `--admin` — let CI gates enforce quality.
 - PR title should follow the same Conventional Commits format as commit messages.
 - Each PR should reference and close its issue (e.g., `Fixes #123`).

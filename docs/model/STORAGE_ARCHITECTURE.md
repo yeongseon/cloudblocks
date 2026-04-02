@@ -2,6 +2,8 @@
 
 ## Overview
 
+> **⚠️ Stale backend references**: This document describes backend storage tables (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`) and Redis caching that are implemented in the optional `apps/api` backend. The frontend uses browser localStorage only. Backend storage is accurate for `apps/api` but is not part of the V1 frontend-only deployment.
+
 CloudBlocks uses a **Git-native storage architecture**: GitHub repos are the primary data store for architecture assets and generated code, with a minimal SQLite metadata database for auth, workspace indexing, and run status.
 
 > **Current status (Phase 7+)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`).
