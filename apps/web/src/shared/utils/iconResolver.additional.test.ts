@@ -87,6 +87,25 @@ describe('iconResolver additional branches', () => {
     expect(url).toBe('/actor-sprites/browser.svg');
   });
 
+  it('returns external icon even when subtype is also provided (bug fix: BlockSprite passes resolved subtype)', () => {
+    // BlockSprite resolves pres.subtype='internet' and passes it along with resourceType='internet'.
+    // getBlockIconUrl must still return the external actor-sprite icon.
+    expect(getBlockIconUrl('azure', 'compute', 'internet', 'internet')).toBe(
+      '/actor-sprites/internet.svg',
+    );
+    expect(getBlockIconUrl('azure', 'compute', 'browser', 'browser')).toBe(
+      '/actor-sprites/browser.svg',
+    );
+  });
+
+  it('does not return external icon for non-external resourceTypes', () => {
+    // Normal resource blocks pass resourceType like 'virtual_machine' which is not in EXTERNAL_BLOCK_ICONS.
+    expect(getBlockIconUrl('azure', 'compute', 'vm', 'virtual_machine')).toBe(
+      '/azure-icons/virtual-machine.svg',
+    );
+    expect(getBlockIconUrl('aws', 'compute', 'ec2', 'compute')).toBe('/aws-icons/ec2.svg');
+  });
+
   it('resolves new Azure subtypes (api-management, timer-trigger, azure-postgresql)', () => {
     expect(getBlockIconUrl('azure', 'compute', 'api-management')).toBe(
       '/azure-icons/application-gateway.svg',

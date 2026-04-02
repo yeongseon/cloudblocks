@@ -233,10 +233,11 @@ export function getBlockIconUrl(
   subtype?: string,
   resourceType?: string,
 ): string | null {
-  // External blocks (internet/browser) have no subtype but use actor-sprite icons
-  if (!subtype && resourceType) {
-    const icon = EXTERNAL_BLOCK_ICONS[resourceType];
-    return icon ? resolvePublicUrl(icon) : null;
+  // External blocks (internet/browser) always use actor-sprite icons,
+  // regardless of whether subtype is set (BlockSprite may pass a resolved subtype).
+  if (resourceType) {
+    const extIcon = EXTERNAL_BLOCK_ICONS[resourceType];
+    if (extIcon) return resolvePublicUrl(extIcon);
   }
   if (!subtype) return null;
   const icon = VENDOR_ICON_REGISTRY[provider]?.[subtype];
