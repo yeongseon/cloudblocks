@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-versions.sh — Verify all package versions match the root package.json
+# check-versions.sh — Verify all package versions and schema version source
 # See docs/design/VERSION_POLICY.md for the single-version policy.
 set -euo pipefail
 
@@ -56,10 +56,28 @@ for pkg_json in "$REPO_ROOT"/packages/*/package.json; do
 done
 
 echo "---"
+
+# ── Schema version: must have exactly one canonical source ──
+# packages/schema/src/index.ts is the canonical SCHEMA_VERSION.
+# apps/web must import it, not define its own constant.
+SCHEMA_DEFS=$(grep -r "SCHEMA_VERSION\s*=\s*'" "$REPO_ROOT/packages/schema/src/index.ts" "$REPO_ROOT/apps/web/src/shared/types/schema.ts" 2>/dev/null | grep -v 'import\|from\|export {' || true)
+SCHEMA_DEF_COUNT=$(echo "$SCHEMA_DEFS" | grep -c "SCHEMA_VERSION" 2>/dev/null || true)
+if [ "$SCHEMA_DEF_COUNT" -gt 1 ]; then
+  echo "MISMATCH  Schema version: $SCHEMA_DEF_COUNT definitions found (expected 1 in packages/schema)"
+  echo "          $SCHEMA_DEFS"
+  ERRORS=$((ERRORS + 1))
+elif [ "$SCHEMA_DEF_COUNT" -eq 1 ]; then
+  SCHEMA_VER=$(echo "$SCHEMA_DEFS" | sed -n "s/.*'\([^']*\)'.*/\1/p" | head -1)
+  echo "OK        Schema version: $SCHEMA_VER (single source in packages/schema)"
+else
+  echo "WARN      Schema version: no SCHEMA_VERSION definition found"
+fi
+
 if [ "$ERRORS" -gt 0 ]; then
   echo "FAIL: $ERRORS version mismatch(es) found."
-  echo "All versions must match root package.json ($EXPECTED)."
-  echo "See docs/design/VERSION_POLICY.md for the single-version policy."
+  echo "All package versions must match root package.json ($EXPECTED)."
+  echo "Schema version must have exactly one source in packages/schema."
+  echo "See docs/design/VERSION_POLICY.md for the version alignment policy."
   exit 1
 else
   echo "PASS: All versions aligned at $EXPECTED."

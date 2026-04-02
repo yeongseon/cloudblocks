@@ -21,6 +21,7 @@ import {
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
+  SCHEMA_VERSION,
 } from '@cloudblocks/schema';
 
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: -3 };
@@ -60,6 +61,7 @@ export function migrateExternalActorsToBlocks(
 }
 /**
  * SCHEMA_VERSION: Controls the serialization/storage format.
+ * Canonical source: packages/schema/src/index.ts
  * Bump when the shape of SerializedData or Workspace changes.
  * Used to detect incompatible localStorage data and trigger migrations.
  *
@@ -68,9 +70,10 @@ export function migrateExternalActorsToBlocks(
  *
  * v2.0.0 — Clean start: CU-based dimensions, 6-layer hierarchy,
  *          10 categories, aggregation, roles. No v1.x migration.
+ * v4.0.0 — Endpoint-based connections (M22)
+ * v4.1.0 — External actor migration to block nodes
  */
-export const CURRENT_SCHEMA_VERSION = '4.0.0';
-export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
+export { SCHEMA_VERSION };
 
 /**
  * v1.x schema versions that are explicitly rejected (clean start, no migration).
@@ -78,7 +81,7 @@ export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
  */
 const LEGACY_VERSIONS = ['0.1.0', '0.2.0'];
 
-const SUPPORTED_VERSIONS = [SCHEMA_VERSION, '3.0.0', '2.0.0'];
+const SUPPORTED_VERSIONS = [SCHEMA_VERSION, '4.0.0', '3.0.0', '2.0.0'];
 
 export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 'updatedAt'> & {
   endpoints: ArchitectureModel['endpoints'];
