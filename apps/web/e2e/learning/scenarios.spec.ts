@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 /**
  * E2E: Guided Scenario Validation (#1483)
  *
- * Validates that all 3 built-in guided scenarios are accessible,
+ * Validates that all 6 built-in guided scenarios are accessible,
  * display correct content, and can be started from the scenario gallery.
  *
  * Full interactive step completion (drag-and-drop, connections) requires
@@ -28,6 +28,24 @@ const SCENARIOS = [
     name: 'Event-Driven Data Pipeline',
     difficulty: 'advanced',
     firstStep: 'Add Event Sources',
+    stepCount: 5,
+  },
+  {
+    name: 'Simple Compute Setup',
+    difficulty: 'beginner',
+    firstStep: 'Create the Network',
+    stepCount: 4,
+  },
+  {
+    name: 'Data Storage Backend',
+    difficulty: 'intermediate',
+    firstStep: 'Create the Network',
+    stepCount: 5,
+  },
+  {
+    name: 'Full-Stack Web App with Event Processing',
+    difficulty: 'advanced',
+    firstStep: 'Build the Network Foundation',
     stepCount: 5,
   },
 ] as const;
