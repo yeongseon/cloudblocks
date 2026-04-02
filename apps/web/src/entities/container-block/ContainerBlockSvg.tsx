@@ -27,36 +27,36 @@ type PlateLayerType = Exclude<LayerType, 'resource'>;
 
 const LAYER_VISUALS: Record<PlateLayerType, LayerVisuals> = {
   global: {
-    strokeWidth: 1.2,
-    strokeOpacity: 0.35,
+    strokeWidth: 0.6,
+    strokeOpacity: 0.18,
     labelFontSize: 22,
     emojiFontSize: 28,
     cornerRadius: 0,
   },
   edge: {
-    strokeWidth: 1.0,
-    strokeOpacity: 0.3,
+    strokeWidth: 0.7,
+    strokeOpacity: 0.22,
     labelFontSize: 20,
     emojiFontSize: 26,
     cornerRadius: 0,
   },
   region: {
     strokeWidth: 0.8,
-    strokeOpacity: 0.25,
+    strokeOpacity: 0.28,
     labelFontSize: 18,
     emojiFontSize: 24,
     cornerRadius: 0,
   },
   zone: {
-    strokeWidth: 0.6,
-    strokeOpacity: 0.2,
+    strokeWidth: 1.1,
+    strokeOpacity: 0.4,
     labelFontSize: 16,
     emojiFontSize: 22,
     cornerRadius: 0,
   },
   subnet: {
-    strokeWidth: 0.5,
-    strokeOpacity: 0.18,
+    strokeWidth: 1.4,
+    strokeOpacity: 0.5,
     labelFontSize: 18,
     emojiFontSize: 24,
     cornerRadius: 0,
@@ -112,6 +112,16 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   // Layer-specific visual config
   const visuals = LAYER_VISUALS[containerLayer];
 
+  // Depth factor: inner layers → stronger visual separation (0 = outermost, 1 = innermost)
+  const DEPTH_ORDER: Record<PlateLayerType, number> = {
+    global: 0,
+    edge: 0.25,
+    region: 0.5,
+    zone: 0.75,
+    subnet: 1.0,
+  };
+  const depthFactor = DEPTH_ORDER[containerLayer];
+
   // Isometric face polygons
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
@@ -145,7 +155,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
             isOccupied ? 'var(--anchor-marker-occupied-stroke)' : 'var(--anchor-marker-stroke)'
           }
           strokeWidth={0.5}
-          opacity={isOccupied ? 0.4 : 1}
+          opacity={isOccupied ? 0.25 : 0.6}
           data-anchor-state={isOccupied ? 'occupied' : 'empty'}
           data-anchor-cell={cellKey}
           pointerEvents="none"
@@ -171,25 +181,25 @@ export const ContainerBlockSvg = memo(function PlateSvg({
         strokeOpacity={visuals.strokeOpacity}
       />
 
-      {/* Fake inset — inner highlight ring */}
+      {/* Fake inset — inner highlight ring (subtle, depth-independent) */}
       <polygon
         points={topFacePoints}
         fill="none"
-        stroke="rgba(203,213,225,0.08)"
+        stroke={`rgba(203,213,225,${(0.04 + depthFactor * 0.06).toFixed(2)})`}
         strokeWidth={1}
         strokeLinejoin="round"
-        transform={`translate(0, 0.5)`}
+        transform={`translate(0, ${0.5 + depthFactor * 0.5})`}
         pointerEvents="none"
         data-layer="inset-highlight"
       />
-      {/* Fake inset — inner shadow ring */}
+      {/* Fake inset — inner shadow ring (stronger for inner layers = depth cue) */}
       <polygon
         points={topFacePoints}
         fill="none"
-        stroke="rgba(2,6,23,0.25)"
-        strokeWidth={1}
+        stroke={`rgba(2,6,23,${(0.15 + depthFactor * 0.2).toFixed(2)})`}
+        strokeWidth={1 + depthFactor * 0.5}
         strokeLinejoin="round"
-        transform={`translate(0, -0.5)`}
+        transform={`translate(0, ${-0.5 - depthFactor * 1.0})`}
         pointerEvents="none"
         data-layer="inset-shadow"
       />
