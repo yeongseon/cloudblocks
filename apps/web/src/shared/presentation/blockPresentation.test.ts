@@ -112,6 +112,49 @@ describe('resolveResourcePresentation', () => {
     });
   });
 
+  describe('Path 3: provider-specific subtypes not in RESOURCE_DEFINITIONS', () => {
+    it('resolves api-management for Azure via iconResolver (Path 3)', () => {
+      const result = resolveResourcePresentation('api-management', { provider: 'azure' });
+      expect(result.kind).toBe('resource');
+      expect(result.shortLabel).toBe('APIM');
+      expect(result.displayLabel).toBe('API Management');
+      expect(result.iconUrl).toBeTruthy();
+      expect(result.category).toBe('compute'); // best-effort
+    });
+
+    it('resolves timer-trigger for Azure via iconResolver (Path 3)', () => {
+      const result = resolveResourcePresentation('timer-trigger', { provider: 'azure' });
+      expect(result.kind).toBe('resource');
+      expect(result.shortLabel).toBe('Timer');
+      expect(result.displayLabel).toBe('Timer Trigger');
+      expect(result.iconUrl).toBeTruthy();
+    });
+
+    it('resolves azure-postgresql for Azure via iconResolver (Path 3)', () => {
+      const result = resolveResourcePresentation('azure-postgresql', { provider: 'azure' });
+      expect(result.kind).toBe('resource');
+      expect(result.shortLabel).toBe('PgSQL');
+      expect(result.displayLabel).toBe('Database for PostgreSQL');
+      expect(result.iconUrl).toBeTruthy();
+    });
+
+    it('resolves elastic-beanstalk for AWS via iconResolver (Path 3)', () => {
+      const result = resolveResourcePresentation('elastic-beanstalk', { provider: 'aws' });
+      expect(result.kind).toBe('resource');
+      expect(result.shortLabel).toBe('EB');
+      expect(result.displayLabel).toBe('Elastic Beanstalk');
+      expect(result.iconUrl).toBeTruthy();
+    });
+
+    it('resolves app-engine for GCP via iconResolver (Path 3)', () => {
+      const result = resolveResourcePresentation('app-engine', { provider: 'gcp' });
+      expect(result.kind).toBe('resource');
+      expect(result.shortLabel).toBe('GAE');
+      expect(result.displayLabel).toBe('App Engine');
+      expect(result.iconUrl).toBeTruthy();
+    });
+  });
+
   describe('defaults to azure provider when not specified', () => {
     it('uses azure as default provider', () => {
       const result = resolveResourcePresentation('vm');
