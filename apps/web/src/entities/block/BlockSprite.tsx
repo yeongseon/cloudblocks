@@ -124,13 +124,16 @@ export const BlockSprite = memo(function BlockSprite({
   const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
   const triggerSnapAnimation = useUIStore((s) => s.triggerSnapAnimation);
   const magneticSnapTargetId = useUIStore((s) => s.magneticSnapTargetId);
+
+  // ── Block status overlay (#1591) ──
+  const blockStatus = useUIStore((s) => s.blockStatuses.get(block.id));
   const isUpgrading = upgradingBlockId === block.id;
   const isSnapTarget = snapTargetBlockIds.has(block.id);
   const isMagneticSnapTarget = magneticSnapTargetId === block.id;
 
   useEffect(() => {
     const el = blockRef.current;
-    if (toolMode === 'delete' || toolMode === 'connect' || !el) {
+    if (toolMode === 'delete' || toolMode === 'connect' || blockStatus?.disabled || !el) {
       return;
     }
 
@@ -223,9 +226,10 @@ export const BlockSprite = memo(function BlockSprite({
       el.querySelector('.block-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [block.id, moveNodePosition, onMove, toolMode]);
+  }, [block.id, blockStatus?.disabled, moveNodePosition, onMove, toolMode]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (blockStatus?.disabled) return;
     if (diffMode && diffState === 'removed') return;
     if (isDragging.current) {
       return;
@@ -279,6 +283,24 @@ export const BlockSprite = memo(function BlockSprite({
     isUpgrading && 'is-upgrading',
     isSnapTarget && 'is-snap-target',
     block.roles?.includes('external') && 'is-external',
+    // ── Block status overlay (#1591) ── priority: disabled > error > health > unconnected ──
+    blockStatus?.disabled && 'is-disabled',
+    !blockStatus?.disabled && blockStatus?.error && 'is-error',
+    !blockStatus?.disabled &&
+      !blockStatus?.error &&
+      blockStatus?.healthStatus === 'warn' &&
+      'is-health-warn',
+    !blockStatus?.disabled &&
+      !blockStatus?.error &&
+      blockStatus?.healthStatus === 'error' &&
+      'is-health-error',
+    !blockStatus?.disabled &&
+      !blockStatus?.error &&
+      !blockStatus?.healthStatus &&
+      !isAlreadyConnected &&
+      !isConnectMode &&
+      !isDeleteMode &&
+      'is-unconnected',
   ]
     .filter(Boolean)
     .join(' ');
@@ -300,6 +322,8 @@ export const BlockSprite = memo(function BlockSprite({
         type="button"
         onClick={handleClick}
         className="block-button"
+        disabled={!!blockStatus?.disabled}
+        aria-disabled={!!blockStatus?.disabled || undefined}
         style={{
           width: `${blockSize.width}px`,
           height: `${blockSize.height}px`,
@@ -318,6 +342,7 @@ export const BlockSprite = memo(function BlockSprite({
             name={block.name}
             aggregationCount={block.aggregation?.count}
             roles={block.roles}
+            healthStatus={blockStatus?.disabled ? undefined : blockStatus?.healthStatus}
           />
         </div>
       </button>

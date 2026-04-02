@@ -232,6 +232,51 @@
   }
 }
 
+/* ── Block state: disabled (#1591) ────────────────────────────────── */
+.block-sprite.is-disabled .block-img {
+  opacity: var(--state-disabled-opacity);
+  pointer-events: none;
+  filter: grayscale(0.8) var(--shadow-block-glow);
+}
+
+.block-sprite.is-disabled .block-button {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Block state: error (#1591) ──────────────────────────────────── */
+.block-sprite.is-error .block-img {
+  filter: drop-shadow(0 0 6px var(--state-error-stroke))
+    drop-shadow(0 0 14px var(--state-error-glow)) var(--shadow-block-glow);
+  animation: pulse-error 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-error {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px var(--state-error-stroke))
+      drop-shadow(0 0 14px var(--state-error-glow)) var(--shadow-block-glow);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px var(--state-error-stroke))
+      drop-shadow(0 0 22px var(--state-error-glow)) var(--shadow-block-glow);
+  }
+}
+
+/* ── Block state: health indicators (#1591) ───────────────────── */
+/* Health states are shown via a badge in BlockSvg; CSS handles glow hints. */
+.block-sprite.is-health-warn .block-img {
+  filter: drop-shadow(0 0 4px var(--state-health-warn)) var(--shadow-block-glow);
+}
+
+.block-sprite.is-health-error .block-img {
+  filter: drop-shadow(0 0 4px var(--state-health-error)) var(--shadow-block-glow);
+}
+
+/* ── Block state: unconnected (#1591) ──────────────────────────── */
+.block-sprite.is-unconnected .block-img {
+  opacity: var(--state-unconnected-opacity);
+}
 /* ── External actor de-emphasis (#1582 — desaturate + reduce shadow) ─ */
 .block-sprite.is-external .block-img {
   opacity: var(--external-block-opacity);

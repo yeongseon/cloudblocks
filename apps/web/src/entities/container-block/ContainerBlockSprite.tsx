@@ -48,6 +48,9 @@ export const ContainerBlockSprite = memo(function PlateSprite({
   const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, container);
   const isInvalidDropTarget = isDragActive && !canPlaceBlock(draggedBlockCategory, container);
   const diffState = diffMode && diffDelta ? getDiffState(container.id, diffDelta) : 'unchanged';
+
+  // ── Block status overlay (#1591) ──
+  const containerStatus = useUIStore((s) => s.blockStatuses.get(container.id));
   const plateRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,7 +58,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
 
   useEffect(() => {
     const el = plateRef.current;
-    if (!el) {
+    if (containerStatus?.disabled || !el) {
       return;
     }
 
@@ -150,9 +153,10 @@ export const ContainerBlockSprite = memo(function PlateSprite({
       el.querySelector('.container-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [container.id, moveNodePosition]);
+  }, [container.id, containerStatus?.disabled, moveNodePosition]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (containerStatus?.disabled) return;
     if (isDragging.current) {
       return;
     }
@@ -203,6 +207,9 @@ export const ContainerBlockSprite = memo(function PlateSprite({
     diffState === 'added' && 'diff-added',
     diffState === 'modified' && 'diff-modified',
     diffState === 'removed' && 'diff-removed',
+    // ── Block status overlay (#1591) ── priority: disabled > error ──
+    containerStatus?.disabled && 'is-disabled',
+    !containerStatus?.disabled && containerStatus?.error && 'is-error',
   ]
     .filter(Boolean)
     .join(' ');
@@ -222,6 +229,8 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         type="button"
         onClick={handleClick}
         className="container-button"
+        disabled={!!containerStatus?.disabled}
+        aria-disabled={!!containerStatus?.disabled || undefined}
         aria-label={`Container: ${container.name}`}
         style={{
           left: `${-screenWidth / 2}px`,

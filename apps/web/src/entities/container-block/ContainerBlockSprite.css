@@ -124,6 +124,40 @@
   animation: bounce-drop-container 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+/* ── Container state: disabled (#1591) ───────────────────────────── */
+.container-sprite.is-disabled .container-img {
+  opacity: var(--state-disabled-opacity);
+  pointer-events: none;
+  filter: grayscale(0.8) var(--shadow-container-base);
+}
+
+.container-sprite.is-disabled {
+  pointer-events: none;
+}
+
+.container-sprite.is-disabled .container-button {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Container state: error (#1591) ─────────────────────────────── */
+.container-sprite.is-error .container-img {
+  filter: drop-shadow(0 0 6px var(--state-error-stroke))
+    drop-shadow(0 0 14px var(--state-error-glow)) var(--shadow-container-base);
+  animation: pulse-error-container 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-error-container {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px var(--state-error-stroke))
+      drop-shadow(0 0 14px var(--state-error-glow)) var(--shadow-container-base);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px var(--state-error-stroke))
+      drop-shadow(0 0 22px var(--state-error-glow)) var(--shadow-container-base);
+  }
+}
 /* ── Screen-aligned label chip ─ */
 .container-label-chip {
   position: absolute;

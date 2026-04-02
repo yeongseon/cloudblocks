@@ -94,6 +94,15 @@
   --state-delete-stroke: #ef4444;
   --state-delete-glow: rgba(239, 68, 68, 0.44);
 
+  /* ── Block state tokens (#1591) ── */
+  --state-error-stroke: #ef4444;
+  --state-error-glow: rgba(239, 68, 68, 0.5);
+  --state-health-ok: #22c55e;
+  --state-health-warn: #eab308;
+  --state-health-error: #ef4444;
+  --state-disabled-opacity: 0.4;
+  --state-unconnected-opacity: 0.7;
+
   /* ── Provider brand colors (#1583) ── */
   --provider-azure: #0078d4;
   --provider-aws: #ff9900;
@@ -177,6 +186,15 @@
   --state-connected-glow: rgba(37, 99, 235, 0.22);
   --state-delete-stroke: #dc2626;
   --state-delete-glow: rgba(220, 38, 38, 0.22);
+
+  /* ── Block state tokens (#1591) ── */
+  --state-error-stroke: #dc2626;
+  --state-error-glow: rgba(220, 38, 38, 0.25);
+  --state-health-ok: #15803d;
+  --state-health-warn: #ca8a04;
+  --state-health-error: #dc2626;
+  --state-disabled-opacity: 0.4;
+  --state-unconnected-opacity: 0.7;
 
   /* ── Provider brand colors (#1583) ── */
   --provider-azure: #0078d4;
