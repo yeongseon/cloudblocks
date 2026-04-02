@@ -308,3 +308,106 @@ These gates are not tied to a specific milestone. They apply to every release on
 **Kill Switch Policy**: If either blocker metric is not met within 90 days of launching the learning-tool positioning, the team must convene a retrospective and decide whether to (a) iterate on the learning UX, (b) pivot positioning back to a general-purpose design tool, or (c) shut down the learning-first direction.
 
 > These metrics require analytics instrumentation (planned for a future milestone). Until instrumentation is live, Gate 6 checks are tracked manually via user testing sessions.
+
+### Gate 7: Web Vitals & Lighthouse
+
+> Consolidated from `WEB_VITALS_GATES.md`. These thresholds must be met before any production release.
+
+#### Core Web Vitals Thresholds
+
+| Metric                              | Good    | Needs Improvement | Poor    | CloudBlocks Gate |
+| ----------------------------------- | ------- | ----------------- | ------- | ---------------- |
+| **LCP** (Largest Contentful Paint)  | ≤ 2.5s  | 2.5–4.0s          | > 4.0s  | ≤ 3.0s           |
+| **INP** (Interaction to Next Paint) | ≤ 200ms | 200–500ms         | > 500ms | ≤ 300ms          |
+| **CLS** (Cumulative Layout Shift)   | ≤ 0.1   | 0.1–0.25          | > 0.25  | ≤ 0.15           |
+
+#### Lighthouse Score Thresholds
+
+| Category           | Minimum Score | Notes                                                |
+| ------------------ | ------------- | ---------------------------------------------------- |
+| **Performance**    | 80            | Canvas-heavy SPA — 80 is realistic target            |
+| **Accessibility**  | 90            | Must meet WCAG 2.1 AA                                |
+| **Best Practices** | 90            | No mixed content, HTTPS, etc.                        |
+| **SEO**            | 70            | SPA with client-side rendering — limited SEO surface |
+
+#### Test Scenarios
+
+| Scenario             | URL / State                           | Priority |
+| -------------------- | ------------------------------------- | -------- |
+| Empty canvas         | `/` (no workspaces loaded)            | P0       |
+| Loaded workspace     | `/` with a three-tier template loaded | P0       |
+| Code preview open    | Canvas + CodePreview panel visible    | P1       |
+| Learning mode active | Canvas + LearningPanel overlay        | P1       |
+| Mobile viewport      | 375×667 (iPhone SE)                   | P2       |
+
+#### Bundle Size Budgets
+
+| Budget               | Limit  |
+| -------------------- | ------ |
+| Total JS assets      | 800 KB |
+| Largest single chunk | 350 KB |
+
+#### Enforcement
+
+| Gate                           | Blocking? | Enforcement                         |
+| ------------------------------ | --------- | ----------------------------------- |
+| Core Web Vitals (P0 scenarios) | Yes       | Manual until Lighthouse CI is added |
+| Lighthouse scores              | Yes       | Manual until Lighthouse CI is added |
+| Bundle size                    | Yes       | Automated in CI                     |
+| P1/P2 scenarios                | No        | Advisory — tracked for improvement  |
+
+#### Baseline Measurements
+
+Record baseline measurements after each milestone release. Compare against thresholds to track trends.
+
+| Milestone | LCP | INP | CLS | Perf | A11y | BP  | SEO |
+| --------- | --- | --- | --- | ---- | ---- | --- | --- |
+| v0.19.0   | —   | —   | —   | —    | —    | —   | —   |
+| v0.20.0   | TBD | TBD | TBD | TBD  | TBD  | TBD | TBD |
+
+### Gate 8: NFR Release-Gate Targets
+
+> Extracted from `NFR_TARGETS.md`. These are the NFR targets that serve as release gates. For the full NFR document including validation latency, accessibility, and observability targets, see [NFR_TARGETS.md](NFR_TARGETS.md).
+
+#### Bundle Size Budget
+
+| Metric                           | Target           | Measurement                                 |
+| -------------------------------- | ---------------- | ------------------------------------------- |
+| **Main chunk (gzipped)**         | ≤ 400 KB         | `npx vite build` → inspect `dist/assets/`   |
+| **Total initial load (gzipped)** | ≤ 600 KB         | Sum of all chunks loaded on first page view |
+| **Largest lazy chunk**           | ≤ 100 KB gzipped | Any single lazy-loaded chunk                |
+| **Total bundle (uncompressed)**  | ≤ 2 MB           | `du -sh dist/`                              |
+
+- CI reports bundle size on every PR via `vite build` output
+- Regressions > 10% from baseline require justification in PR description
+- New dependencies > 50 KB (bundled) require architecture review
+
+#### Test Coverage
+
+| Metric                  | Target | Tool        |
+| ----------------------- | ------ | ----------- |
+| **Frontend statements** | ≥ 90%  | Vitest + v8 |
+| **Frontend branches**   | ≥ 90%  | Vitest + v8 |
+| **Frontend functions**  | ≥ 90%  | Vitest + v8 |
+| **Frontend lines**      | ≥ 90%  | Vitest + v8 |
+| **Backend coverage**    | ≥ 90%  | pytest-cov  |
+
+- Coverage thresholds configured in `vitest.config.ts` → build fails if below 90%
+- Backend coverage checked in CI via `pytest --cov --cov-fail-under=90`
+
+#### CI Reliability
+
+| Metric                   | Target                                                   |
+| ------------------------ | -------------------------------------------------------- |
+| **CI pass rate**         | ≥ 95% on `main` branch (excludes infrastructure flakes)  |
+| **CI duration**          | ≤ 5 minutes for full pipeline                            |
+| **Flaky test tolerance** | 0 — flaky tests are fixed or quarantined within 48 hours |
+
+#### Code Quality
+
+| Metric                     | Target                                                      | Tool       |
+| -------------------------- | ----------------------------------------------------------- | ---------- |
+| **TypeScript strict mode** | Zero errors                                                 | `tsc -b`   |
+| **ESLint**                 | Zero errors, zero warnings                                  | `eslint .` |
+| **Ruff (Python)**          | Zero errors                                                 | `ruff check .` |
+| **`any` type usage**       | Zero (`as any`, `@ts-ignore`, `@ts-expect-error` forbidden) | Code review |

@@ -1,12 +1,14 @@
 # CloudBlocks — Deployment Guide
 
-> **Audience**: Contributors / DevOps | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors / DevOps | **Status**: Partially stale — backend deployment references (PostgreSQL, Redis, Azure Container Apps) describe planned infrastructure not yet implemented. Frontend deployment via GitHub Pages is current. | **Verified against**: v0.26.0
 
 ## Overview
 
 CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Production deployments use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.
 
-For the canonical multi-environment cloud strategy (local/staging/production, promotion model, and cost targets), see [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md).
+~~For the canonical multi-environment cloud strategy (local/staging/production, promotion model, and cost targets), see ENVIRONMENT_STRATEGY.md.~~ *(Removed — ENVIRONMENT_STRATEGY.md was deleted as speculative future infrastructure.)*
+
+> **⚠️ Stale backend references**: Sections on PostgreSQL, Redis, Azure Container Apps, and multi-environment promotion describe planned infrastructure. The frontend is a static SPA deployed to GitHub Pages; the backend is local-only as of v0.35.0. The deleted `ENVIRONMENT_STRATEGY.md` was a companion to this future infrastructure plan.
 
 ## Terminology
 

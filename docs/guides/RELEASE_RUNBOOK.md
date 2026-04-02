@@ -2,7 +2,7 @@
 
 > Covers issue #476.  
 > Single reference for validation, tagging, release creation, and post-release checks.  
-> See also: [RELEASE_GATES.md](../design/RELEASE_GATES.md), [ROLLBACK_RUNBOOK.md](ROLLBACK_RUNBOOK.md), [CHANGELOG_TEMPLATE.md](CHANGELOG_TEMPLATE.md).
+> See also: [RELEASE_GATES.md](../design/RELEASE_GATES.md).
 
 ---
 
@@ -58,7 +58,7 @@ Complete every item before proceeding to tagging. A single ❌ in a **Blocker** 
 
 | #   | Check                                                              | Pass? |
 | --- | ------------------------------------------------------------------ | ----- |
-| 20  | CHANGELOG.md entry written (use [template](CHANGELOG_TEMPLATE.md)) | ☐     |
+| 20  | CHANGELOG.md entry written (use [template](#appendix-changelog-template)) | ☐     |
 | 21  | ROADMAP.md exit criteria checked off                               | ☐     |
 | 22  | README feature list matches implemented features                   | ☐     |
 
@@ -87,7 +87,7 @@ git add package.json CHANGELOG.md
 git commit -m "chore: release v${VERSION}"
 
 # Step 4: Squash-merge the release PR
-gh pr merge <PR_NUMBER> --squash --admin --delete-branch
+gh pr merge <PR_NUMBER> --squash --delete-branch
 
 # Step 5: Pull the merge commit
 git checkout main && git pull --ff-only origin main
@@ -151,4 +151,82 @@ For patch releases (v0.N.1+), use the abbreviated flow:
 
 ## 5. Emergency Rollback
 
-If the release introduces a critical issue post-deploy, follow the [Rollback Runbook](ROLLBACK_RUNBOOK.md).
+If the release introduces a critical issue post-deploy:
+
+1. Revert the release commit on `main`: `git revert HEAD`
+2. Push the revert and create a hotfix PR
+3. Follow the Hotfix Release flow (§4) to ship the fix
+4. Create a post-mortem issue with the `incident` label
+
+See [RELEASE_GATES.md § Rollback Plan](../design/RELEASE_GATES.md#4-rollback-plan) for detailed rollback scope and procedures.
+
+---
+
+## Appendix: Changelog Template
+
+Use this template when adding a new entry to `CHANGELOG.md`. Copy the block below and fill in the details.
+
+```markdown
+## [v0.{milestone}.0] — {YYYY-MM-DD}
+
+**Milestone {milestone} — {Milestone Title}**
+
+{1-3 sentence summary of what this milestone delivers, focused on user-facing impact.}
+
+### {Feature Area 1} (Epic #{number})
+
+- {User-visible change description} (#{issue})
+- {User-visible change description} (#{issue})
+
+### {Feature Area 2} (Epic #{number})
+
+- {User-visible change description} (#{issue})
+
+### Bug Fixes
+
+- {What was broken and how it was fixed} (#{issue})
+
+### Infrastructure
+
+- {CI/CD, deployment, or build system changes} (#{issue})
+
+### Documentation
+
+- {New or updated docs} (#{issue})
+```
+
+### Writing Style
+
+| Do                                            | Don't                                       |
+| --------------------------------------------- | ------------------------------------------- |
+| "Add real-time validation for connections"    | "Implemented validation logic in engine.ts" |
+| "Fix crash when loading legacy architectures" | "Fixed bug #1234"                           |
+| "Generate Bicep output alongside Terraform"   | "Added bicep.ts generator module"           |
+
+- **Lead with the user impact**, not the implementation detail.
+- **Use imperative mood**: "Add", "Fix", "Remove", "Update" — not "Added", "Fixed".
+- **Reference issue numbers** at the end of each line: `(#123)`.
+- **Keep entries to one line** — link to the PR/issue for details.
+- Omit empty sections.
+
+### Hotfix Entries
+
+For patch releases (v0.N.1, v0.N.2), use a simplified format:
+
+```markdown
+## [v0.{milestone}.{patch}] — {YYYY-MM-DD}
+
+**Hotfix — {Brief Description}**
+
+{1-2 sentence description of what was broken and how it was fixed.}
+
+### Bug Fix
+
+- {Description} (#{issue})
+```
+
+### Version Convention
+
+- **Milestone N → v0.N.0** (feature release)
+- **Patch → v0.N.1, v0.N.2** (hotfix releases)
+- See `AGENTS.md` Release Workflow for the full release process.

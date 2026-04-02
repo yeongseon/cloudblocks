@@ -1,6 +1,8 @@
 # Scenario Language Review Checklist
 
 > Covers issue #1486 — review all guided scenario content for beginner-appropriate language.
+>
+> **Status**: In progress — initial review complete for three-tier scenario. Remaining scenarios pending review.
 
 ## 1. Review Criteria
 

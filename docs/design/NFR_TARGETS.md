@@ -4,6 +4,8 @@
 
 This document defines measurable non-functional requirement targets for CloudBlocks. These targets enable objective quality and release readiness decisions.
 
+> **Release-gate targets** (bundle size, test coverage, CI reliability, code quality) are consolidated into [RELEASE_GATES.md](RELEASE_GATES.md) §8 "NFR Release-Gate Targets". This document retains the full NFR scope including validation latency, accessibility, and observability.
+
 ---
 
 ## 1. Bundle Size Budget

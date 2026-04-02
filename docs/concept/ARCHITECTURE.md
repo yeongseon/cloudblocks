@@ -72,22 +72,10 @@ cloudblocks/
 
 # 1. Architecture Overview
 
-## Frontend-Only SPA (Milestone 1)
+> For the original Milestone 1 frontend-only architecture, see [ARCHITECTURE_0X_HISTORY.md](./ARCHITECTURE_0X_HISTORY.md).
 
-```
-┌────────────────────────────────────────────────────────┐
-│                    Frontend (SPA)                       │
-│   React + TypeScript + SVG + CSS transforms + Zustand  │
-│   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
-│   │ Isometric│ │ Rule     │ │ localStorage        │    │
-│   │ Builder  │ │ Engine   │ │ (workspace persist.) │    │
-│   └──────────┘ └──────────┘ └────────────────────┘    │
-└────────────────────────────────────────────────────────┘
-```
+## Current Full-Stack Architecture — Git-Native Storage
 
-No backend required. All state lives in the browser.
-
-## Implemented (Milestone 5-7) — Full Stack with Git-Native Storage
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -131,14 +119,8 @@ No backend required. All state lives in the browser.
 
 ## 2.1 Frontend Layer
 
-The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1, it worked entirely standalone with localStorage. As of Milestone 5-7, it uses a local-first model with optional GitHub sync.
+The frontend is a SPA built with React and SVG + CSS transforms. It uses a local-first model with optional GitHub sync.
 
-### Responsibilities (Milestone 1)
-
-- 2.5D isometric builder interface (SVG + CSS transforms)
-- Click-to-add block placement via palette
-- Architecture validation (in-browser Rule Engine)
-- Local persistence (localStorage)
 
 ### Responsibilities (Current)
 
@@ -201,19 +183,7 @@ apps/web/src/
 > **Package boundary**: `apps/web` imports canonical model/domain definitions from `@cloudblocks/schema` and `@cloudblocks/domain`; it does not maintain an independent local schema package.
 > `features/generate/` and `features/templates/` are frontend-owned runtime modules.
 
-## 2.2 MVP Architecture (Milestone 1)
-
-Milestone 1 is implemented as a **frontend-only SPA**. No backend required.
-
-```
-Browser (React + SVG/CSS)
-├── Isometric Scene (SVG + CSS transforms + DOM layering — rendering layer)
-├── Domain Model (Zustand Store — 2D coordinates + hierarchy)
-├── Rule Engine (in-browser)
-└── localStorage (workspace persistence)
-```
-
-## 2.3 Backend Layer (Milestone 5+) — Integration and Session Layer
+## 2.2 Backend Layer — Integration and Session Layer
 
 The backend is **NOT a heavy CRUD service**. It provides authenticated integration endpoints for GitHub and AI services, plus workspace/session metadata.
 
@@ -239,7 +209,7 @@ The backend is **NOT a heavy CRUD service**. It provides authenticated integrati
 | Full prompt/log history                  | GitHub / Blob Storage |
 | Deployment artifacts                     | GitHub / Blob Storage |
 
-### Backend Architecture (Current — Milestone 7)
+### Backend Architecture
 
 ```
 apps/api/
@@ -367,7 +337,7 @@ The canonical model types are defined in `packages/schema` (`@cloudblocks/schema
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"4.0.0"` (source constant: `apps/web/src/shared/types/schema.ts`).
+- Serialization is versioned through `schemaVersion` and currently uses `"4.1.0"` (source constant: `packages/schema/src/index.ts` → `SCHEMA_VERSION`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -424,7 +394,7 @@ Validation flow in `engine.ts`:
 
 ---
 
-# 5. Code Generation Pipeline (Milestone 3+)
+# 5. Code Generation Pipeline
 
 > **Status**: Implemented in the frontend (`apps/web/src/features/generate`). Terraform is the primary generator; Bicep and Pulumi are available as experimental exports.
 
@@ -496,10 +466,10 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 
 ---
 
-# 8. GitHub Integration Architecture (Milestone 5+)
+# 8. GitHub Integration Architecture
 
-> See also: PRD §16 (Future Roadmap — Milestone 5 GitHub Integration)
-> **Status**: Implemented for Milestone 5-7, with session auth migration completed during historical Phase 7.
+> See also: PRD §16 (Future Roadmap — GitHub Integration)
+> **Status**: Implemented, with session auth migration completed.
 
 ## Auth: GitHub OAuth + Session Cookie Model
 
@@ -553,16 +523,11 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 # 10. State Management
 
-### Milestone 1 Storage (Local)
+> For the original Milestone 1 localStorage-only storage model, see [ARCHITECTURE_0X_HISTORY.md](./ARCHITECTURE_0X_HISTORY.md).
 
-Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-The persisted format uses `schemaVersion: "4.0.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
-
-> For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
-
-### Milestone 3+ Storage (Local-First + GitHub Sync)
-
+### Storage Model (Local-First + GitHub Sync)
+The persisted format uses `schemaVersion: "4.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 localStorage for local state + optional GitHub sync:
 
 ```
@@ -578,7 +543,7 @@ Local (localStorage)  ←→    GitHub (via Backend API)
 
 ---
 
-# 11. Security Considerations (Milestone 5+)
+# 11. Security Considerations
 
 - Session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) to prevent token access from JS
 - No JWT tokens and no localStorage auth tokens in browser
@@ -607,12 +572,12 @@ The architecture supports horizontal scalability:
 # 13. Summary
 
 ```
-Frontend (Milestone 1: SPA with SVG + CSS transforms + DOM layering, 2.5D isometric view, localStorage persistence)
+Frontend (SPA with SVG + CSS transforms + DOM layering, 2.5D isometric view, localStorage persistence)
 Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
 Code Generation (frontend-owned pipeline in apps/web/features/generate)
 Backend (FastAPI integration/session API — auth/session + GitHub + AI proxying)
-GitHub Integration (Milestone 5+: repo list/create, sync, pull, PR, commits — implemented)
+GitHub Integration (repo list/create, sync, pull, PR, commits — implemented)
 ```
 
 This architecture enables:
