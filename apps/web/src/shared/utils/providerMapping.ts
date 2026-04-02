@@ -26,7 +26,7 @@ const AZURE_TO_AWS_SUBTYPE: Record<string, string> = {
   'load-balancer': 'elb',
   // Compute
   vm: 'ec2',
-  'app-service': 'ec2',
+  'app-service': 'elastic-beanstalk',
   functions: 'lambda',
   aks: 'eks',
   'container-instances': 'ecs',
@@ -40,6 +40,10 @@ const AZURE_TO_AWS_SUBTYPE: Record<string, string> = {
   'service-bus': 'sqs',
   'event-hubs': 'eventbridge',
   'event-grid': 'eventbridge',
+  // Scheduling / API Management
+  'api-management': 'api-gateway',
+  'timer-trigger': 'eventbridge-scheduler',
+  'azure-postgresql': 'rds-postgres',
   // Security
   'azure-firewall': 'network-firewall',
   nsg: 'security-group',
@@ -72,10 +76,10 @@ const AZURE_TO_GCP_SUBTYPE: Record<string, string> = {
   'load-balancer': 'cloud-load-balancing',
   // Compute
   vm: 'compute-engine',
-  'app-service': 'compute-engine',
+  'app-service': 'app-engine',
   functions: 'cloud-functions',
   aks: 'gke',
-  'container-instances': 'cloud-functions',
+  'container-instances': 'cloud-run',
   // Data
   'sql-database': 'cloud-sql-postgres',
   'cosmos-db': 'firestore',
@@ -86,6 +90,10 @@ const AZURE_TO_GCP_SUBTYPE: Record<string, string> = {
   'service-bus': 'pub-sub',
   'event-hubs': 'eventarc',
   'event-grid': 'eventarc',
+  // Scheduling / API Management
+  'api-management': 'api-gateway',
+  'timer-trigger': 'cloud-scheduler',
+  'azure-postgresql': 'cloud-sql-postgres',
   // Security
   'azure-firewall': 'cloud-armor',
   nsg: 'cloud-armor',
@@ -127,7 +135,7 @@ const AZURE_TO_AWS_NAME: Record<string, string> = {
   subnet: 'Subnet',
   'application-gateway': 'Application Load Balancer',
   vm: 'EC2 Instance',
-  'app-service': 'Elastic Beanstalk',
+  'app-service': 'AWS Elastic Beanstalk',
   functions: 'AWS Lambda',
   aks: 'Amazon EKS',
   'container-instances': 'Amazon ECS',
@@ -156,6 +164,9 @@ const AZURE_TO_AWS_NAME: Record<string, string> = {
   'private-endpoint': 'AWS PrivateLink',
   'azure-synapse': 'Amazon Redshift',
   'iot-hub': 'Amazon Kinesis',
+  'api-management': 'Amazon API Gateway',
+  'timer-trigger': 'Amazon EventBridge Scheduler',
+  'azure-postgresql': 'Amazon RDS for PostgreSQL',
 };
 
 const AZURE_TO_GCP_NAME: Record<string, string> = {
@@ -163,10 +174,10 @@ const AZURE_TO_GCP_NAME: Record<string, string> = {
   subnet: 'Subnet',
   'application-gateway': 'Cloud Load Balancing',
   vm: 'Compute Engine',
-  'app-service': 'Compute Engine',
+  'app-service': 'App Engine',
   functions: 'Cloud Functions',
   aks: 'Google Kubernetes Engine',
-  'container-instances': 'Cloud Functions',
+  'container-instances': 'Cloud Run',
   'sql-database': 'Cloud SQL',
   'cosmos-db': 'Firestore',
   'blob-storage': 'Cloud Storage',
@@ -192,6 +203,9 @@ const AZURE_TO_GCP_NAME: Record<string, string> = {
   'private-endpoint': 'Private Service Connect',
   'azure-synapse': 'BigQuery',
   'iot-hub': 'Pub/Sub',
+  'api-management': 'API Gateway',
+  'timer-trigger': 'Cloud Scheduler',
+  'azure-postgresql': 'Cloud SQL for PostgreSQL',
 };
 
 const PROVIDER_NAME_MAP: Record<ProviderType, Record<string, string>> = {

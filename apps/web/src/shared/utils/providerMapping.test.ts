@@ -20,6 +20,24 @@ describe('remapSubtype', () => {
     expect(remapSubtype('custom-service', 'aws')).toBe('custom-service');
     expect(remapSubtype('custom-service', 'gcp')).toBe('custom-service');
   });
+
+  it('maps app-service to PaaS equivalents (not IaaS)', () => {
+    expect(remapSubtype('app-service', 'aws')).toBe('elastic-beanstalk');
+    expect(remapSubtype('app-service', 'gcp')).toBe('app-engine');
+  });
+
+  it('maps container-instances to cloud-run for GCP', () => {
+    expect(remapSubtype('container-instances', 'gcp')).toBe('cloud-run');
+  });
+
+  it('maps new subtypes for API management, timer, and PostgreSQL', () => {
+    expect(remapSubtype('api-management', 'aws')).toBe('api-gateway');
+    expect(remapSubtype('api-management', 'gcp')).toBe('api-gateway');
+    expect(remapSubtype('timer-trigger', 'aws')).toBe('eventbridge-scheduler');
+    expect(remapSubtype('timer-trigger', 'gcp')).toBe('cloud-scheduler');
+    expect(remapSubtype('azure-postgresql', 'aws')).toBe('rds-postgres');
+    expect(remapSubtype('azure-postgresql', 'gcp')).toBe('cloud-sql-postgres');
+  });
 });
 
 describe('remapName', () => {
@@ -38,6 +56,27 @@ describe('remapName', () => {
 
   it('falls back to original name when no mapping exists', () => {
     expect(remapName('custom-service', 'Custom Service', 'aws')).toBe('Custom Service');
+  });
+  it('maps app-service to PaaS equivalents', () => {
+    expect(remapName('app-service', 'Azure App Service', 'aws')).toBe('AWS Elastic Beanstalk');
+    expect(remapName('app-service', 'Azure App Service', 'gcp')).toBe('App Engine');
+  });
+
+  it('maps container-instances to Cloud Run for GCP', () => {
+    expect(remapName('container-instances', 'Container Instances', 'gcp')).toBe('Cloud Run');
+  });
+
+  it('maps new subtypes (api-management, timer-trigger, azure-postgresql)', () => {
+    expect(remapName('api-management', 'Azure API Management', 'aws')).toBe('Amazon API Gateway');
+    expect(remapName('api-management', 'Azure API Management', 'gcp')).toBe('API Gateway');
+    expect(remapName('timer-trigger', 'Timer Trigger', 'aws')).toBe('Amazon EventBridge Scheduler');
+    expect(remapName('timer-trigger', 'Timer Trigger', 'gcp')).toBe('Cloud Scheduler');
+    expect(remapName('azure-postgresql', 'Azure PostgreSQL', 'aws')).toBe(
+      'Amazon RDS for PostgreSQL',
+    );
+    expect(remapName('azure-postgresql', 'Azure PostgreSQL', 'gcp')).toBe(
+      'Cloud SQL for PostgreSQL',
+    );
   });
 });
 
