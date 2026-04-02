@@ -127,7 +127,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -185,7 +185,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
@@ -259,7 +259,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -305,7 +305,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
@@ -418,7 +418,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -476,7 +476,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
@@ -593,7 +593,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -651,7 +651,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
@@ -778,7 +778,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -848,7 +848,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },
@@ -1058,7 +1058,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -1169,7 +1169,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
   },

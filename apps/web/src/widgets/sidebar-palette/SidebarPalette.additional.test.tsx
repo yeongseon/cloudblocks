@@ -372,7 +372,7 @@ describe('SidebarPalette additional coverage', () => {
     render(<SidebarPalette />);
 
     const internetBtn = screen.getByTitle('Add Internet');
-    const browserBtn = screen.getByTitle('Add Browser');
+    const browserBtn = screen.getByTitle('Add Client');
 
     // External buttons should NOT be in the interact listeners map
     // because the selector scopes to [data-resource-type] only

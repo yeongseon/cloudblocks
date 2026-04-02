@@ -596,7 +596,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
         ) ?? [
           {
             id: 'ext-browser',
-            name: 'Browser',
+            name: 'Client',
             type: 'browser',
             position: { x: -6, y: 0, z: 5 },
           },

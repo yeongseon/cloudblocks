@@ -1136,7 +1136,7 @@ describe('BlockSprite', () => {
   it('adds is-external class when block has external role', () => {
     const externalBlock: ResourceBlock = {
       id: 'actor-browser',
-      name: 'Browser',
+      name: 'Client',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'browser',

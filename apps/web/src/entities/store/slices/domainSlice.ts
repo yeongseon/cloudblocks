@@ -850,7 +850,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     get().addNode({
       kind: 'resource',
       resourceType: type,
-      name: type === 'internet' ? 'Internet' : 'Browser',
+      name: type === 'internet' ? 'Internet' : 'Client',
       parentId: null,
     });
 

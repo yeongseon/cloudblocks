@@ -337,7 +337,7 @@ describe('pulumi generator', () => {
     model.nodes.push(
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource' as const,
         layer: 'resource' as const,
         resourceType: 'browser',

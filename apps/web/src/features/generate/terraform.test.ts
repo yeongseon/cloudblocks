@@ -166,7 +166,7 @@ describe('normalize', () => {
     model.nodes.push(
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource' as const,
         layer: 'resource' as const,
         resourceType: 'browser',
@@ -677,7 +677,7 @@ describe('generateMainTf', () => {
     model.nodes.push(
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource' as const,
         layer: 'resource' as const,
         resourceType: 'browser',
@@ -993,7 +993,7 @@ describe('GCP external block exclusion', () => {
     model.nodes.push(
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource' as const,
         layer: 'resource' as const,
         resourceType: 'browser',

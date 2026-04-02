@@ -21,7 +21,7 @@ function createWorkspace(id: string): Workspace {
       nodes: [
         {
           id: 'ext-browser',
-          name: 'Browser',
+          name: 'Client',
           kind: 'resource',
           layer: 'resource',
           resourceType: 'browser',
@@ -586,7 +586,7 @@ describe('schema utilities', () => {
       nodes: [
         {
           id: 'ext-browser',
-          name: 'Browser',
+          name: 'Client',
           kind: 'resource',
           layer: 'resource',
           resourceType: 'browser',
@@ -694,7 +694,7 @@ describe('schema utilities', () => {
         },
       ],
       externalActors: [
-        { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
         {
           id: 'ext-internet',
           name: 'Internet',
@@ -1026,7 +1026,7 @@ describe('migrateExternalActorsToBlocks', () => {
       },
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         type: 'browser' as const,
         position: { x: -6, y: 0, z: 5 },
       },
@@ -1100,7 +1100,7 @@ describe('deserialize — externalActors migration', () => {
             externalActors: [
               {
                 id: 'ext-browser',
-                name: 'Browser',
+                name: 'Client',
                 type: 'browser',
                 position: { x: -6, y: 0, z: 5 },
               },
@@ -1215,7 +1215,7 @@ describe('deserialize — externalActors migration', () => {
             nodes: [
               {
                 id: 'ext-browser',
-                name: 'Browser',
+                name: 'Client',
                 kind: 'resource',
                 layer: 'resource',
                 resourceType: 'browser',

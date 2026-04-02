@@ -177,8 +177,8 @@ describe('resolveExternalPresentation', () => {
   it('browser resolves correctly', () => {
     const result = resolveExternalPresentation('browser');
     expect(result.kind).toBe('external');
-    expect(result.shortLabel).toBe('Browser');
-    expect(result.displayLabel).toBe('Browser');
+    expect(result.shortLabel).toBe('Client');
+    expect(result.displayLabel).toBe('Client');
     expect(result.iconUrl).toBe('/actor-sprites/browser.svg');
     expect(result.isFallback).toBe(false);
   });

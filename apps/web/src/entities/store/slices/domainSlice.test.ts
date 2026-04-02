@@ -122,7 +122,7 @@ function makeExternalBlock(
 ): ResourceBlock {
   return {
     id,
-    name: resourceType === 'internet' ? 'Internet' : 'Browser',
+    name: resourceType === 'internet' ? 'Internet' : 'Client',
     kind: 'resource',
     layer: 'resource',
     resourceType,
@@ -385,7 +385,7 @@ describe('domainSlice – targeted branch coverage', () => {
               },
               {
                 id: 'ext-other',
-                name: 'Browser',
+                name: 'Client',
                 type: 'browser',
                 position: { x: 9, y: 0, z: 9 },
               },
