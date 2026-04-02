@@ -79,7 +79,7 @@ export const ContainerBlockSurfaceGrid = memo(function PlateSurfaceGrid({
             y1={line.y1}
             x2={line.x2}
             y2={line.y2}
-            stroke="rgba(255,255,255,0.3)"
+            stroke="rgba(255,255,255,0.12)"
             strokeWidth={0.5}
             fill="none"
           />

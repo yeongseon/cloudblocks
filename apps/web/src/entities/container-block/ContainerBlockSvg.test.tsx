@@ -140,22 +140,22 @@ describe('PlateSvg — SVG structure', () => {
 // ─── Layer-Type Visual Differentiation ──────────────────────
 
 describe('PlateSvg — layer-type visuals', () => {
-  it('global container has thicker border than subnet', () => {
+  it('subnet container has thicker border than global (inner layers are more prominent)', () => {
     const { container: globalC } = renderPlateSvg({ containerLayer: 'global' });
     const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet' });
 
     const globalStroke = Number(globalC.querySelector('polygon')?.getAttribute('stroke-width'));
     const subnetStroke = Number(subnetC.querySelector('polygon')?.getAttribute('stroke-width'));
-    expect(globalStroke).toBeGreaterThan(subnetStroke);
+    expect(subnetStroke).toBeGreaterThan(globalStroke);
   });
 
-  it('global container has higher stroke opacity than subnet', () => {
+  it('subnet container has higher stroke opacity than global (inner layers are more prominent)', () => {
     const { container: globalC } = renderPlateSvg({ containerLayer: 'global' });
     const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet' });
 
     const globalOpacity = Number(globalC.querySelector('polygon')?.getAttribute('stroke-opacity'));
     const subnetOpacity = Number(subnetC.querySelector('polygon')?.getAttribute('stroke-opacity'));
-    expect(globalOpacity).toBeGreaterThan(subnetOpacity);
+    expect(subnetOpacity).toBeGreaterThan(globalOpacity);
   });
 
   it('each container type gets a distinct stroke width', () => {
@@ -170,15 +170,16 @@ describe('PlateSvg — layer-type visuals', () => {
     expect(unique.size).toBe(types.length);
   });
 
-  it('stroke widths follow hierarchy: global > edge > region > zone > subnet', () => {
+  it('stroke widths follow hierarchy: subnet > zone > region > edge > global (inner = more prominent)', () => {
     const types: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
     const strokeWidths = types.map((type) => {
       const { container } = renderPlateSvg({ containerLayer: type });
       return Number(container.querySelector('polygon')?.getAttribute('stroke-width'));
     });
 
+    // Inner layers should have thicker strokes than outer layers
     for (let i = 0; i < strokeWidths.length - 1; i++) {
-      expect(strokeWidths[i]).toBeGreaterThan(strokeWidths[i + 1]);
+      expect(strokeWidths[i]).toBeLessThan(strokeWidths[i + 1]);
     }
   });
 
