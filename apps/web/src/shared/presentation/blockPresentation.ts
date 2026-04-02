@@ -41,6 +41,8 @@ export interface BlockPresentation {
   readonly layer?: string;
   /** True if iconUrl is a fallback (not an exact match) */
   readonly isFallback: boolean;
+  /** Human-readable description (e.g. for tooltips or properties panel) */
+  readonly description?: string;
 }
 
 // ─── Options ─────────────────────────────────────────────────
@@ -197,16 +199,18 @@ function resolvePublicUrl(rawPath: string): string {
 
 const EXTERNAL_PRESENTATIONS: Record<
   string,
-  { shortLabel: string; displayLabel: string; iconUrl: string }
+  { shortLabel: string; displayLabel: string; description: string; iconUrl: string }
 > = {
   internet: {
     shortLabel: 'Internet',
     displayLabel: 'Internet',
+    description: 'Public network boundary for traffic entering or leaving the architecture.',
     iconUrl: resolvePublicUrl('/actor-sprites/internet.svg'),
   },
   browser: {
-    shortLabel: 'Browser',
-    displayLabel: 'Browser',
+    shortLabel: 'Client',
+    displayLabel: 'Client',
+    description: 'External client that initiates HTTP requests to your application.',
     iconUrl: resolvePublicUrl('/actor-sprites/browser.svg'),
   },
 };
@@ -227,6 +231,7 @@ export function resolveExternalPresentation(
       subtype: resourceType,
       shortLabel: ext.shortLabel,
       displayLabel: ext.displayLabel,
+      description: ext.description,
       iconUrl: ext.iconUrl,
       category: 'external',
       provider,

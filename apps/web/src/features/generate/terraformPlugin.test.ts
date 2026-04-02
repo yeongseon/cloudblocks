@@ -150,7 +150,7 @@ describe('terraformPlugin', () => {
         ...testArchitecture.nodes,
         {
           id: 'ext-browser',
-          name: 'Browser',
+          name: 'Client',
           kind: 'resource',
           layer: 'resource',
           resourceType: 'browser',

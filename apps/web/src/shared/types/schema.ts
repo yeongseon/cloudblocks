@@ -491,7 +491,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
     nodes: [
       {
         id: 'ext-browser',
-        name: 'Browser',
+        name: 'Client',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'browser',
@@ -529,7 +529,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
     ],
     createdAt: now,

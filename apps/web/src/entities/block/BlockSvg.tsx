@@ -43,7 +43,7 @@ export const BlockSvg = memo(function BlockSvg({
   provider,
   subtype,
   resourceType,
-  name: _name,
+  name,
   aggregationCount,
   roles,
   healthStatus,
@@ -73,7 +73,8 @@ export const BlockSvg = memo(function BlockSvg({
   const shortLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
   const displayLabel = getSubtypeDisplayLabel(provider ?? 'azure', subtype);
   const labelMode = useUIStore((s) => s.effectiveLabelMode);
-  const faceLabel = labelMode === 'compact' ? shortLabel : (displayLabel ?? shortLabel);
+  const faceLabel =
+    labelMode === 'compact' ? (shortLabel ?? name) : (displayLabel ?? shortLabel ?? name);
   const showPorts = useUIStore((s) => s.showPorts);
   const ports = CATEGORY_PORTS[category] ?? { inbound: 1, outbound: 1 };
   const portPoints = getBlockSvgPortPoints(cu, ports.inbound, ports.outbound);

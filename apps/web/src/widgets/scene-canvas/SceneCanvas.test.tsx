@@ -181,7 +181,7 @@ describe('SceneCanvas external lane zone', () => {
   it('renders external lane zone when root external blocks exist', () => {
     const externalBlock: ResourceBlock = {
       id: 'external-1',
-      name: 'Browser',
+      name: 'Client',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'browser',

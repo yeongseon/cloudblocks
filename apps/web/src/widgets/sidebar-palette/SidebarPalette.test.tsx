@@ -95,7 +95,7 @@ describe('SidebarPalette', () => {
     // External group uses unified layout
     expect(screen.getByText('External')).toBeInTheDocument();
     expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
-    expect(screen.getByTitle('Add Browser')).toBeInTheDocument();
+    expect(screen.getByTitle('Add Client')).toBeInTheDocument();
 
     // Groups with starter-tier resources appear by default
     expect(screen.getByText('Network')).toBeInTheDocument();
@@ -245,7 +245,7 @@ describe('SidebarPalette', () => {
     render(<SidebarPalette />);
 
     await user.click(screen.getByTitle('Add Internet'));
-    await user.click(screen.getByTitle('Add Browser'));
+    await user.click(screen.getByTitle('Add Client'));
 
     expect(addExternalBlockMock).toHaveBeenNthCalledWith(1, 'internet');
     expect(addExternalBlockMock).toHaveBeenNthCalledWith(2, 'browser');
@@ -472,7 +472,7 @@ describe('SidebarPalette — blockPresentation integration', () => {
     render(<SidebarPalette />);
 
     const internetBtn = screen.getByTitle('Add Internet');
-    const browserBtn = screen.getByTitle('Add Browser');
+    const browserBtn = screen.getByTitle('Add Client');
 
     // External items use blockPresentation's iconUrl
     const internetImg = internetBtn.querySelector('img');
@@ -490,7 +490,7 @@ describe('SidebarPalette — blockPresentation integration', () => {
 
     await user.type(screen.getByPlaceholderText('Search resources'), 'internet');
     expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
-    expect(screen.queryByTitle('Add Browser')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Add Client')).not.toBeInTheDocument();
   });
 
   it('uses resolved labels from blockPresentation for provider switching', async () => {

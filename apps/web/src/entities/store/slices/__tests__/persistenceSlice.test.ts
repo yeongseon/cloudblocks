@@ -646,7 +646,7 @@ describe('persistenceSlice branches', () => {
       });
       expect(queue).toMatchObject({ resourceType: 'message_queue', provider: 'azure' });
       expect(architecture.externalActors).toEqual([
-        { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
+        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: 5 } },
         { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
       ]);
     });
@@ -1054,7 +1054,7 @@ describe('persistenceSlice branches', () => {
             },
             {
               id: 'ext-browser',
-              name: 'Browser',
+              name: 'Client',
               kind: 'resource',
               layer: 'resource',
               resourceType: 'browser',
@@ -1095,7 +1095,7 @@ describe('persistenceSlice branches', () => {
 
       // External blocks: provider remapped, name/subtype preserved
       expect(browser).toMatchObject({
-        name: 'Browser',
+        name: 'Client',
         provider: 'aws',
         resourceType: 'browser',
         roles: ['external'],
@@ -1138,7 +1138,7 @@ describe('validateArchitectureShape — external resource blocks', () => {
         },
         {
           id: 'ext-browser',
-          name: 'Browser',
+          name: 'Client',
           kind: 'resource',
           layer: 'resource',
           resourceType: 'browser',
