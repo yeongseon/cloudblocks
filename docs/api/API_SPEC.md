@@ -1,6 +1,6 @@
 # CloudBlocks — API Specification
 
-> **Audience**: Contributors / Backend Developers | **Status**: Backend Required (optional) | **Verified against**: v0.26.0
+> **Audience**: Contributors / Backend Developers | **Status**: Backend (optional) | **Verified against**: v0.26.0
 
 > **Note**: The CloudBlocks backend is optional. The frontend works standalone for visual building,
 > templates, validation, and Terraform export. The backend adds GitHub OAuth, workspace sync,

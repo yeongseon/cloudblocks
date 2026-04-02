@@ -89,12 +89,8 @@ exclude_docs: |
   design/VERSION_POLICY.md
   design/VISUAL_DESIGN_SPEC.md
   design/ENDPOINT_PORT_MODEL.md
-  guides/CHANGELOG_TEMPLATE.md
   guides/COMPATIBILITY_CHECKLIST.md
-  guides/OAUTH_ENDPOINTS.md
   guides/RELEASE_RUNBOOK.md
-  guides/ROLLBACK_RUNBOOK.md
-  guides/WEB_VITALS_GATES.md
   model/STORAGE_ARCHITECTURE.md
   concept/ROADMAP_0X_HISTORY.md
   user-guide/generate-code.md
@@ -121,7 +117,6 @@ nav:
   - Advanced:
       - Blank Canvas Mode: advanced/blank-canvas.md
       - Code Generation (Experimental): advanced/code-generation.md
-      - Backend Integrations: advanced/backend-integrations.md
 
   - Reference:
       - Architecture Model: model/DOMAIN_MODEL.md
@@ -133,7 +128,6 @@ nav:
   - Contributors:
       - contributing.md
       - Setup: guides/TUTORIALS.md
-      - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
       - Deployment: guides/DEPLOYMENT.md
       - Generator Architecture: engine/generator.md
       - Provider Adapters: engine/provider.md

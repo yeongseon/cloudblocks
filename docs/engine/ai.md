@@ -8,6 +8,6 @@
 > [ADR-0009](../adr/0009-ai-assisted-architecture.md) reference it.
 >
 > For the current backend architecture overview, see the Backend Layer section in
-> [ARCHITECTURE.md](../concept/ARCHITECTURE.md#backend-layer).
+> [ARCHITECTURE.md](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer).
 
 **Original status**: Implemented (Milestone 14), verified against v0.26.0.

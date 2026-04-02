@@ -392,7 +392,7 @@ Record baseline measurements after each milestone release. Compare against thres
 | **Frontend lines**      | ≥ 90%  | Vitest + v8 |
 | **Backend coverage**    | ≥ 90%  | pytest-cov  |
 
-- Coverage thresholds configured in `vitest.config.ts` → build fails if below 90%
+- Coverage thresholds configured in `vitest.config.ts` → tests/CI fail if below 90%
 - Backend coverage checked in CI via `pytest --cov --cov-fail-under=90`
 
 #### CI Reliability

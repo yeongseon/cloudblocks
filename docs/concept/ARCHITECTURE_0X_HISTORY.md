@@ -51,6 +51,6 @@ Browser (React + SVG/CSS)
 
 Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-The persisted format uses `schemaVersion: "4.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
+The persisted format uses `schemaVersion: "4.0.0"` (see `CURRENT_SCHEMA_VERSION` in `apps/web/src/shared/types/schema.ts`) with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 
 > For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).

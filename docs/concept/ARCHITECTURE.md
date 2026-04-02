@@ -337,7 +337,7 @@ The canonical model types are defined in `packages/schema` (`@cloudblocks/schema
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"4.1.0"` (source constant: `packages/schema/src/index.ts` → `SCHEMA_VERSION`).
+- Serialization for persisted app state (e.g. localStorage) is versioned through `schemaVersion` and currently uses `"4.0.0"` (source constant: `apps/web/src/shared/types/schema.ts` → `CURRENT_SCHEMA_VERSION`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -527,7 +527,7 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 
 ### Storage Model (Local-First + GitHub Sync)
-The persisted format uses `schemaVersion: "4.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
+The persisted format uses `schemaVersion: "4.0.0"` (see `CURRENT_SCHEMA_VERSION` in `apps/web/src/shared/types/schema.ts`) with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 localStorage for local state + optional GitHub sync:
 
 ```

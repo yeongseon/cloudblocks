@@ -8,7 +8,7 @@ CloudBlocks is designed for **lightweight deployment** with minimal infrastructu
 
 ~~For the canonical multi-environment cloud strategy (local/staging/production, promotion model, and cost targets), see ENVIRONMENT_STRATEGY.md.~~ *(Removed — ENVIRONMENT_STRATEGY.md was deleted as speculative future infrastructure.)*
 
-> **⚠️ Stale backend references**: Sections on PostgreSQL, Redis, Azure Container Apps, and multi-environment promotion describe planned infrastructure. The frontend is a static SPA deployed to GitHub Pages; the backend is local-only as of v0.35.0. The deleted `ENVIRONMENT_STRATEGY.md` was a companion to this future infrastructure plan.
+> **⚠️ Stale backend references**: Sections on PostgreSQL, Redis, Azure Container Apps, and multi-environment promotion describe planned infrastructure. The frontend is a static SPA deployed to GitHub Pages; the backend currently runs only on local development setups. The deleted `ENVIRONMENT_STRATEGY.md` was a companion to this future infrastructure plan.
 
 ## Terminology
 
@@ -168,7 +168,7 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 ### Option 3: Azure Container Apps (Cloud)
 
-> **Cloud deployment note**: `infra/terraform/environments/dev/` is the current implementation baseline. The planned direction is staged environments (`staging` -> `production`) documented in [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md). Use this section for current dev-stack provisioning details until the multi-environment Terraform wrappers land.
+> **Cloud deployment note**: `infra/terraform/environments/dev/` is the current implementation baseline. The planned direction is staged environments (`staging` → `production`). ~~See `ENVIRONMENT_STRATEGY.md`.~~ *(Removed — deleted as speculative future infrastructure.)* Use this section for current dev-stack provisioning details until the multi-environment Terraform wrappers land.
 
 #### Managed Azure Stack
 
