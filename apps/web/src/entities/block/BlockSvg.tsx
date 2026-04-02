@@ -85,7 +85,7 @@ export const BlockSvg = memo(function BlockSvg({
   const displayLabel = getSubtypeDisplayLabel(provider ?? 'azure', subtype);
   const labelMode = useUIStore((s) => s.effectiveLabelMode);
   const faceLabel =
-    labelMode === 'compact' ? (shortLabel ?? name) : (displayLabel ?? shortLabel ?? name);
+    labelMode === 'inspect' ? (displayLabel ?? shortLabel ?? name) : (shortLabel ?? name);
   const showPorts = useUIStore((s) => s.showPorts);
   const ports = CATEGORY_PORTS[category] ?? { inbound: 1, outbound: 1 };
   const portPoints = getBlockSvgPortPoints(cu, ports.inbound, ports.outbound);
