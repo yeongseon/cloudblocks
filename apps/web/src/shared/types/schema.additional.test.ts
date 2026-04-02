@@ -64,7 +64,7 @@ describe('schema deserialize additional branch coverage', () => {
         entry.kind === 'container',
     );
 
-    expect(actor?.position).toEqual({ x: -12, y: 0, z: -8 });
+    expect(actor?.position).toEqual({ x: -5, y: 0, z: 0 });
     expect(container?.profileId).toBeDefined();
   });
 
