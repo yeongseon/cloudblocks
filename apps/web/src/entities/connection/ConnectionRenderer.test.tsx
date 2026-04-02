@@ -224,13 +224,13 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    // Default state: dataflow strokeWidth=2, casing=2+2.5=4.5, trace=2
-    expect(casing?.getAttribute('stroke-width')).toBe('4.5');
-    expect(trace?.getAttribute('stroke-width')).toBe('2');
-    // Hover: casing=2+2.5+1=5.5, trace=2+1=3
+    // Default state: dataflow strokeWidth=2.5, casing=2.5+2.5=5, trace=2.5
+    expect(casing?.getAttribute('stroke-width')).toBe('5');
+    expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+    // Hover: casing=2.5+2.5+1=6, trace=2.5+1=3.5
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('5.5');
-    expect(trace?.getAttribute('stroke-width')).toBe('3');
+    expect(casing?.getAttribute('stroke-width')).toBe('6');
+    expect(trace?.getAttribute('stroke-width')).toBe('3.5');
   });
 
   describe('surface render path', () => {
@@ -362,11 +362,11 @@ describe('ConnectionRenderer', () => {
       baseWidth: number;
       dash?: string;
     }> = [
-      { type: 'dataflow', baseWidth: 2 },
-      { type: 'http', baseWidth: 3.5 },
-      { type: 'internal', baseWidth: 2.5 },
-      { type: 'data', baseWidth: 1.5, dash: '6 3' },
-      { type: 'async', baseWidth: 2, dash: '2 3' },
+      { type: 'dataflow', baseWidth: 2.5 },
+      { type: 'http', baseWidth: 4 },
+      { type: 'internal', baseWidth: 3 },
+      { type: 'data', baseWidth: 2, dash: '6 3' },
+      { type: 'async', baseWidth: 2.25, dash: '2 3' },
     ];
 
     for (const spec of typedSpecs) {
@@ -427,9 +427,9 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // dataflow defaults: trace=2, casing=4.5
-      expect(trace?.getAttribute('stroke-width')).toBe('2');
-      expect(casing?.getAttribute('stroke-width')).toBe('4.5');
+      // dataflow defaults: trace=2.5, casing=5
+      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
       expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
     });
@@ -443,7 +443,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const trace = container.querySelector('[data-testid="connection-trace"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('2');
+      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -458,9 +458,9 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // Should fall back to dataflow (strokeWidth=2, casing=4.5), not crash
-      expect(trace?.getAttribute('stroke-width')).toBe('2');
-      expect(casing?.getAttribute('stroke-width')).toBe('4.5');
+      // Should fall back to dataflow (strokeWidth=2.5, casing=5), not crash
+      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -475,8 +475,8 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      // http: selected=highlighted, casing = 3.5+2.5+1 = 7, selection = 7+4 = 11
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('11');
+      // http: selected=highlighted, casing = 4+2.5+1 = 7.5, selection = 7.5+4 = 11.5
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('11.5');
     });
   });
 

@@ -108,7 +108,7 @@ describe('iconResolver additional branches', () => {
 
   it('resolves new Azure subtypes (api-management, timer-trigger, azure-postgresql)', () => {
     expect(getBlockIconUrl('azure', 'compute', 'api-management')).toBe(
-      '/azure-icons/application-gateway.svg',
+      '/azure-icons/api-management.svg',
     );
     expect(getBlockIconUrl('azure', 'compute', 'timer-trigger')).toBe(
       '/azure-icons/function-apps.svg',
@@ -134,9 +134,7 @@ describe('iconResolver additional branches', () => {
     expect(getBlockIconUrl('gcp', 'compute', 'cloud-scheduler')).toBe(
       '/gcp-icons/cloud-scheduler.svg',
     );
-    expect(getBlockIconUrl('gcp', 'network', 'api-gateway')).toBe(
-      '/gcp-icons/cloud-load-balancing.svg',
-    );
+    expect(getBlockIconUrl('gcp', 'network', 'api-gateway')).toBe('/gcp-icons/api-gateway.svg');
   });
 
   it('returns display labels for new subtypes', () => {

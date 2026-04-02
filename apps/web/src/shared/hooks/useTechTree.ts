@@ -380,7 +380,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     category: 'vnet-required',
     blockCategory: 'delivery',
     tier: 'advanced',
-    disabledReason: 'Create a Network first. Application Gateways require a dedicated subnet.',
+    disabledReason:
+      'Create a Network first. Application Gateways typically use a dedicated subnet.',
   },
 };
 

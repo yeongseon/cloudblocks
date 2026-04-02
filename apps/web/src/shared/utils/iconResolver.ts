@@ -21,7 +21,7 @@ const AZURE_SUBTYPE_ICONS: Record<string, string> = {
   'azure-synapse': '/azure-icons/synapse-analytics.svg',
   'azure-cache-for-redis': '/azure-icons/cache-redis.svg',
   'redis-cache': '/azure-icons/cache-redis.svg',
-  'api-management': '/azure-icons/application-gateway.svg',
+  'api-management': '/azure-icons/api-management.svg',
   'timer-trigger': '/azure-icons/function-apps.svg',
   'azure-postgresql': '/azure-icons/sql-database.svg',
   'blob-storage': '/azure-icons/storage-account.svg',
@@ -112,7 +112,7 @@ const GCP_SUBTYPE_ICONS: Record<string, string> = {
   'app-engine': '/gcp-icons/app-engine.svg',
   'cloud-run': '/gcp-icons/cloud-run.svg',
   'cloud-scheduler': '/gcp-icons/cloud-scheduler.svg',
-  'api-gateway': '/gcp-icons/cloud-load-balancing.svg',
+  'api-gateway': '/gcp-icons/api-gateway.svg',
 };
 
 const AZURE_RESOURCE_ICONS: Record<string, string> = {
