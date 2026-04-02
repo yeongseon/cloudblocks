@@ -395,7 +395,7 @@ describe('BlockSvg role badges', () => {
     expect(container.querySelector('[data-testid="role-badge-primary"]')).not.toBeNull();
   });
 
-  it('renders all 8 roles simultaneously', () => {
+  it('renders all 8 roles simultaneously (external filtered out)', () => {
     const allRoles: BlockRole[] = [
       'primary',
       'secondary',
@@ -407,9 +407,13 @@ describe('BlockSvg role badges', () => {
       'external',
     ];
     const { container } = render(<BlockSvg category="compute" roles={allRoles} />);
-    allRoles.forEach((role) => {
+    // 'external' is a structural marker, not a user-facing badge — it should be filtered out
+    const visibleRoles = allRoles.filter((r) => r !== 'external');
+    visibleRoles.forEach((role) => {
       expect(container.querySelector(`[data-testid="role-badge-${role}"]`)).not.toBeNull();
     });
+    // external badge must NOT render
+    expect(container.querySelector('[data-testid="role-badge-external"]')).toBeNull();
   });
 
   it('does not affect block size (viewBox unchanged with roles)', () => {

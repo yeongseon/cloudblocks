@@ -1,6 +1,6 @@
 import { memo, useId } from 'react';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
-import { CATEGORY_PORTS } from '@cloudblocks/schema';
+import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import {
   getBlockIconUrl,
@@ -22,7 +22,7 @@ import {
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
-import { getBlockFaceColors } from './blockFaceColors';
+import { getBlockFaceColors, deriveFaceColors, EXTERNAL_BLOCK_COLOR } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 import { getBlockSvgPortPoints } from './blockGeometry';
 import { useUIStore, type BlockHealthStatus } from '../store/uiStore';
@@ -56,7 +56,18 @@ export const BlockSvg = memo(function BlockSvg({
   const { screenWidth, diamondHeight, sideWallPx, cx, leftX, rightX, topY, midY, bottomY } = dims;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
-  const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
+  const isExternal = resourceType != null && isExternalResourceType(resourceType);
+  const faceColors = isExternal
+    ? (() => {
+        const d = deriveFaceColors(EXTERNAL_BLOCK_COLOR);
+        return {
+          topFaceColor: d.top,
+          topFaceStroke: d.topStroke,
+          leftSideColor: d.left,
+          rightSideColor: d.right,
+        };
+      })()
+    : getBlockFaceColors(category, provider ?? 'azure', subtype);
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype, resourceType);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
@@ -242,34 +253,36 @@ export const BlockSvg = memo(function BlockSvg({
         </g>
       )}
 
-      {roles != null && roles.length > 0 && (
+      {roles != null && roles.filter((r) => r !== 'external').length > 0 && (
         <g data-testid="role-badges">
-          {roles.map((role, i) => {
-            const indicator = ROLE_VISUAL_INDICATORS[role];
-            const badgeX = 2 + i * 18;
-            return (
-              <g key={role} data-testid={`role-badge-${role}`}>
-                <rect
-                  x={badgeX}
-                  y={0}
-                  width={16}
-                  height={16}
-                  rx={3}
-                  fill="#334155"
-                  fillOpacity={0.85}
-                />
-                <text
-                  x={badgeX + 8}
-                  y={12}
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                  fontSize={10}
-                  textAnchor="middle"
-                >
-                  {indicator.icon}
-                </text>
-              </g>
-            );
-          })}
+          {roles
+            .filter((r) => r !== 'external')
+            .map((role, i) => {
+              const indicator = ROLE_VISUAL_INDICATORS[role];
+              const badgeX = 2 + i * 18;
+              return (
+                <g key={role} data-testid={`role-badge-${role}`}>
+                  <rect
+                    x={badgeX}
+                    y={0}
+                    width={16}
+                    height={16}
+                    rx={3}
+                    fill="#334155"
+                    fillOpacity={0.85}
+                  />
+                  <text
+                    x={badgeX + 8}
+                    y={12}
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                    fontSize={10}
+                    textAnchor="middle"
+                  >
+                    {indicator.icon}
+                  </text>
+                </g>
+              );
+            })}
         </g>
       )}
 
