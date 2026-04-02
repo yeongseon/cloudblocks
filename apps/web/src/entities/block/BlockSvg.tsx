@@ -242,34 +242,36 @@ export const BlockSvg = memo(function BlockSvg({
         </g>
       )}
 
-      {roles != null && roles.length > 0 && (
+      {roles != null && roles.filter((r) => r !== 'external').length > 0 && (
         <g data-testid="role-badges">
-          {roles.map((role, i) => {
-            const indicator = ROLE_VISUAL_INDICATORS[role];
-            const badgeX = 2 + i * 18;
-            return (
-              <g key={role} data-testid={`role-badge-${role}`}>
-                <rect
-                  x={badgeX}
-                  y={0}
-                  width={16}
-                  height={16}
-                  rx={3}
-                  fill="#334155"
-                  fillOpacity={0.85}
-                />
-                <text
-                  x={badgeX + 8}
-                  y={12}
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                  fontSize={10}
-                  textAnchor="middle"
-                >
-                  {indicator.icon}
-                </text>
-              </g>
-            );
-          })}
+          {roles
+            .filter((r) => r !== 'external')
+            .map((role, i) => {
+              const indicator = ROLE_VISUAL_INDICATORS[role];
+              const badgeX = 2 + i * 18;
+              return (
+                <g key={role} data-testid={`role-badge-${role}`}>
+                  <rect
+                    x={badgeX}
+                    y={0}
+                    width={16}
+                    height={16}
+                    rx={3}
+                    fill="#334155"
+                    fillOpacity={0.85}
+                  />
+                  <text
+                    x={badgeX + 8}
+                    y={12}
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                    fontSize={10}
+                    textAnchor="middle"
+                  >
+                    {indicator.icon}
+                  </text>
+                </g>
+              );
+            })}
         </g>
       )}
 

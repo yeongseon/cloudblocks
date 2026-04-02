@@ -22,7 +22,7 @@ import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
-import { getSubtypeDisplayLabel } from '../../shared/utils/iconResolver';
+import { resolveResourcePresentation } from '../../shared/presentation/blockPresentation';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -71,12 +71,18 @@ export const BlockSprite = memo(function BlockSprite({
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
 
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragZoomRef = useRef(1);
+
+  // Resolve provider-aware presentation for correct short labels / icons
+  const pres = resolveResourcePresentation(block.subtype ?? block.resourceType, {
+    provider: activeProvider,
+  });
 
   const isSelected = selectedIds.has(block.id);
   const isConnectionSource = connectionSource === block.id;
@@ -331,13 +337,13 @@ export const BlockSprite = memo(function BlockSprite({
           top: `-${blockSize.height / 2}px`,
         }}
         aria-label={`Node: ${block.name}`}
-        title={getSubtypeDisplayLabel(block.provider ?? 'azure', block.subtype) ?? block.name}
+        title={pres.displayLabel ?? block.name}
       >
         <div className="block-img" draggable={false}>
           <BlockSvg
             category={block.category}
-            provider={block.provider}
-            subtype={block.subtype}
+            provider={activeProvider}
+            subtype={pres.subtype ?? block.subtype}
             resourceType={block.resourceType}
             name={block.name}
             aggregationCount={block.aggregation?.count}
