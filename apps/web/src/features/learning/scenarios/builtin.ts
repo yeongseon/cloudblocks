@@ -1,5 +1,9 @@
 import type { ArchitectureSnapshot, Scenario } from '../../../shared/types/learning';
-import type { ContainerCapableResourceType, ContainerLayer } from '@cloudblocks/schema';
+import {
+  type ContainerCapableResourceType,
+  type ContainerLayer,
+  endpointId,
+} from '@cloudblocks/schema';
 import { registerScenario } from './registry';
 
 const CONTAINER_RESOURCE_TYPE: Record<ContainerLayer, ContainerCapableResourceType> = {
@@ -925,6 +929,15 @@ const dataStorageInitialArchitecture: ArchitectureSnapshot = {
   name: 'Data Storage Learning Scenario',
   version: '1',
   endpoints: [],
+  nodes: [],
+  connections: [],
+  externalActors: [],
+};
+
+const dataStorageCheckpointNetworkOnly: ArchitectureSnapshot = {
+  name: 'Data Storage Learning Scenario',
+  version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'container-scndata-vnet',
@@ -1209,7 +1222,7 @@ const dataStorageScenario: Scenario = {
         'Create exactly two subnets inside the VNet.',
       ],
       validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
-      checkpoint: dataStorageInitialArchitecture,
+      checkpoint: dataStorageCheckpointNetworkOnly,
     },
     {
       id: 'step-data-storage-deploy-app-tier',
@@ -1265,25 +1278,9 @@ const fullStackInitialArchitecture: ArchitectureSnapshot = {
   name: 'Full-Stack Event Processing Learning Scenario',
   version: '1',
   endpoints: [],
-  nodes: [
-    {
-      id: 'container-scnfs-vnet',
-      name: 'VNet',
-      kind: 'container',
-      layer: 'region',
-      resourceType: CONTAINER_RESOURCE_TYPE.region,
-      category: 'network',
-      provider: 'azure',
-      parentId: null,
-      position: { x: 0, y: 0, z: 0 },
-      frame: { width: 12, height: 0.3, depth: 10 },
-      metadata: {},
-    },
-  ],
+  nodes: [],
   connections: [],
-  externalActors: [
-    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
-  ],
+  externalActors: [],
 };
 
 const fullStackCheckpointFoundation: ArchitectureSnapshot = {
@@ -1437,26 +1434,26 @@ const fullStackCheckpointWebData: ArchitectureSnapshot = {
   connections: [
     {
       id: 'conn-scnfs-internet-gw',
-      from: 'ext-internet:output:data',
-      to: 'block-scnfs-gw:input:data',
+      from: endpointId('ext-internet', 'output', 'data'),
+      to: endpointId('block-scnfs-gw', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-gw-vm',
-      from: 'block-scnfs-gw:output:data',
-      to: 'block-scnfs-vm:input:data',
+      from: endpointId('block-scnfs-gw', 'output', 'data'),
+      to: endpointId('block-scnfs-vm', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-vm-db',
-      from: 'block-scnfs-vm:output:data',
-      to: 'block-scnfs-db:input:data',
+      from: endpointId('block-scnfs-vm', 'output', 'data'),
+      to: endpointId('block-scnfs-db', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-vm-storage',
-      from: 'block-scnfs-vm:output:data',
-      to: 'block-scnfs-storage:input:data',
+      from: endpointId('block-scnfs-vm', 'output', 'data'),
+      to: endpointId('block-scnfs-storage', 'input', 'data'),
       metadata: {},
     },
   ],
@@ -1643,26 +1640,26 @@ const fullStackCheckpointWithServerless: ArchitectureSnapshot = {
   connections: [
     {
       id: 'conn-scnfs-internet-gw',
-      from: 'ext-internet:output:data',
-      to: 'block-scnfs-gw:input:data',
+      from: endpointId('ext-internet', 'output', 'data'),
+      to: endpointId('block-scnfs-gw', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-gw-vm',
-      from: 'block-scnfs-gw:output:data',
-      to: 'block-scnfs-vm:input:data',
+      from: endpointId('block-scnfs-gw', 'output', 'data'),
+      to: endpointId('block-scnfs-vm', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-vm-db',
-      from: 'block-scnfs-vm:output:data',
-      to: 'block-scnfs-db:input:data',
+      from: endpointId('block-scnfs-vm', 'output', 'data'),
+      to: endpointId('block-scnfs-db', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-scnfs-vm-storage',
-      from: 'block-scnfs-vm:output:data',
-      to: 'block-scnfs-storage:input:data',
+      from: endpointId('block-scnfs-vm', 'output', 'data'),
+      to: endpointId('block-scnfs-storage', 'input', 'data'),
       metadata: {},
     },
   ],
