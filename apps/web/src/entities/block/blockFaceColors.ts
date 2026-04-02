@@ -169,6 +169,15 @@ export const PROVIDER_BRAND_COLOR: Record<ProviderType, string> = {
   gcp: '#34A853', // Google Green (distinct from Azure Blue)
 };
 
+// ─── External Block Color ─────────────────────────────────────
+
+/**
+ * Fixed color for external blocks (Client, Internet).
+ * External actors are provider-independent — they always use neutral slate gray
+ * so they remain visually distinct from provider-colored resource blocks.
+ */
+export const EXTERNAL_BLOCK_COLOR = '#64748B'; // Slate Gray 500
+
 // ─── Color Lookup ─────────────────────────────────────────────
 
 /**

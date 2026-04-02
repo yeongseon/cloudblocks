@@ -1,6 +1,6 @@
 import { memo, useId } from 'react';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
-import { CATEGORY_PORTS } from '@cloudblocks/schema';
+import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import {
   getBlockIconUrl,
@@ -22,7 +22,7 @@ import {
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
-import { getBlockFaceColors } from './blockFaceColors';
+import { getBlockFaceColors, deriveFaceColors, EXTERNAL_BLOCK_COLOR } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 import { getBlockSvgPortPoints } from './blockGeometry';
 import { useUIStore, type BlockHealthStatus } from '../store/uiStore';
@@ -56,7 +56,18 @@ export const BlockSvg = memo(function BlockSvg({
   const { screenWidth, diamondHeight, sideWallPx, cx, leftX, rightX, topY, midY, bottomY } = dims;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
-  const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
+  const isExternal = resourceType != null && isExternalResourceType(resourceType);
+  const faceColors = isExternal
+    ? (() => {
+        const d = deriveFaceColors(EXTERNAL_BLOCK_COLOR);
+        return {
+          topFaceColor: d.top,
+          topFaceStroke: d.topStroke,
+          leftSideColor: d.left,
+          rightSideColor: d.right,
+        };
+      })()
+    : getBlockFaceColors(category, provider ?? 'azure', subtype);
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype, resourceType);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
