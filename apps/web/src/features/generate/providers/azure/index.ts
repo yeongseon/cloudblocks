@@ -192,6 +192,7 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
   messaging: {
     'service-bus': { resourceType: 'azurerm_storage_queue', namePrefix: 'queue' },
     'event-grid': { resourceType: 'azurerm_eventgrid_topic', namePrefix: 'evtopic' },
+    'timer-trigger': { resourceType: 'azurerm_linux_function_app', namePrefix: 'timer' },
   },
   security: {
     'managed-identity': { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' },

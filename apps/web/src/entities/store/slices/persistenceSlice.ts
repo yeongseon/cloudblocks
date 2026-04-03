@@ -37,7 +37,7 @@ import {
 } from './helpers';
 
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
-const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: -3 };
+const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: 4, y: 0, z: 10 };
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
 const VALID_PLATE_TYPES: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];

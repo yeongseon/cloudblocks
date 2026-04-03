@@ -8,10 +8,10 @@ import type { ValidationError } from '@cloudblocks/domain';
 
 const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>> = {
   aws: {
-    compute: ['ec2', 'ecs', 'lambda'],
+    compute: ['ec2', 'ecs', 'lambda', 'elastic-beanstalk', 'app-runner'],
     data: ['rds-postgres', 'dynamodb', 's3'],
     delivery: ['alb', 'api-gateway', 'nat-gateway'],
-    messaging: ['sqs', 'sns', 'eventbridge'],
+    messaging: ['sqs', 'sns', 'eventbridge', 'eventbridge-scheduler'],
     operations: ['cloudwatch', 'athena'],
     security: ['iam', 'kms', 'nsg'],
     identity: [
@@ -25,20 +25,20 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
     network: ['vpc', 'route-53'],
   },
   gcp: {
-    compute: ['compute-engine', 'cloud-run', 'cloud-functions'],
+    compute: ['compute-engine', 'cloud-run', 'cloud-functions', 'app-engine'],
     data: ['cloud-sql-postgres', 'firestore', 'cloud-storage'],
     delivery: ['cloud-load-balancing', 'api-gateway', 'nat-gateway'],
-    messaging: ['pubsub', 'eventarc'],
+    messaging: ['pubsub', 'eventarc', 'cloud-scheduler'],
     operations: ['bigquery', 'monitoring'],
     security: ['iam', 'nsg'],
     identity: ['managed-identity', 'managed_identity', 'service-account', 'service_account'],
     network: ['vpc', 'cloud-dns'],
   },
   azure: {
-    compute: ['vm', 'container-instances', 'functions'],
-    data: ['sql-database', 'cosmos-db', 'blob-storage'],
+    compute: ['vm', 'container-instances', 'functions', 'app-service'],
+    data: ['sql-database', 'cosmos-db', 'blob-storage', 'azure-postgresql'],
     delivery: ['application-gateway', 'api-management'],
-    messaging: ['service-bus', 'event-grid', 'event-hubs'],
+    messaging: ['service-bus', 'event-grid', 'event-hubs', 'timer-trigger'],
     operations: ['azure-monitor'],
     security: ['azure-firewall', 'entra-id'],
     identity: ['managed_identity', 'service_account', 'service_principal'],

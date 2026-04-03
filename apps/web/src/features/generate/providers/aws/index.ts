@@ -243,6 +243,14 @@ function buildAwsBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push(`    Name = "${tagName}"`);
       lines.push('  }');
       break;
+    case 'aws_scheduler_schedule':
+      lines.push(`  name = "${tagName}"`);
+      lines.push('  # TODO: EventBridge Scheduler requires schedule expression and target');
+      lines.push('  # Configure schedule_expression, flexible_time_window, and target');
+      lines.push('  flexible_time_window {');
+      lines.push('    mode = "OFF"');
+      lines.push('  }');
+      break;
     default:
       lines.push(`  # Configure ${ctx.mapping.resourceType}`);
       break;
@@ -272,6 +280,7 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
   messaging: {
     sqs: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
     sns: { resourceType: 'aws_sns_topic', namePrefix: 'topic' },
+    'eventbridge-scheduler': { resourceType: 'aws_scheduler_schedule', namePrefix: 'schedule' },
   },
   security: {
     iam: { resourceType: 'aws_iam_role', namePrefix: 'role' },

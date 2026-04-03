@@ -20,6 +20,10 @@ const AZURE_SUBTYPE_ICONS: Record<string, string> = {
   'cosmos-db': '/azure-icons/cosmos-db.svg',
   'azure-synapse': '/azure-icons/synapse-analytics.svg',
   'azure-cache-for-redis': '/azure-icons/cache-redis.svg',
+  'redis-cache': '/azure-icons/cache-redis.svg',
+  'api-management': '/azure-icons/api-management.svg',
+  'timer-trigger': '/azure-icons/function-apps.svg',
+  'azure-postgresql': '/azure-icons/sql-database.svg',
   'blob-storage': '/azure-icons/storage-account.svg',
   vnet: '/azure-icons/virtual-network.svg',
   subnet: '/azure-icons/subnet.svg',
@@ -78,6 +82,9 @@ const AWS_SUBTYPE_ICONS: Record<string, string> = {
   'elastic-ip': '/aws-icons/elastic-ip.svg',
   'route-table': '/aws-icons/route-table.svg',
   privatelink: '/aws-icons/privatelink.svg',
+  'elastic-beanstalk': '/aws-icons/elastic-beanstalk.svg',
+  'eventbridge-scheduler': '/aws-icons/eventbridge-scheduler.svg',
+  'app-runner': '/aws-icons/app-runner.svg',
 };
 
 const GCP_SUBTYPE_ICONS: Record<string, string> = {
@@ -102,6 +109,10 @@ const GCP_SUBTYPE_ICONS: Record<string, string> = {
   'cloud-iam': '/gcp-icons/cloud-iam.svg',
   'cloud-nat': '/gcp-icons/cloud-nat.svg',
   firestore: '/gcp-icons/firestore.svg',
+  'app-engine': '/gcp-icons/app-engine.svg',
+  'cloud-run': '/gcp-icons/cloud-run.svg',
+  'cloud-scheduler': '/gcp-icons/cloud-scheduler.svg',
+  'api-gateway': '/gcp-icons/api-gateway.svg',
 };
 
 const AZURE_RESOURCE_ICONS: Record<string, string> = {
@@ -222,10 +233,11 @@ export function getBlockIconUrl(
   subtype?: string,
   resourceType?: string,
 ): string | null {
-  // External blocks (internet/browser) have no subtype but use actor-sprite icons
-  if (!subtype && resourceType) {
-    const icon = EXTERNAL_BLOCK_ICONS[resourceType];
-    return icon ? resolvePublicUrl(icon) : null;
+  // External blocks (internet/browser) always use actor-sprite icons,
+  // regardless of whether subtype is set (BlockSprite may pass a resolved subtype).
+  if (resourceType) {
+    const extIcon = EXTERNAL_BLOCK_ICONS[resourceType];
+    if (extIcon) return resolvePublicUrl(extIcon);
   }
   if (!subtype) return null;
   const icon = VENDOR_ICON_REGISTRY[provider]?.[subtype];
@@ -292,6 +304,10 @@ const SUBTYPE_LABELS: Record<string, Record<string, string>> = {
     'private-endpoint': 'Private Endpoint',
     'load-balancer': 'Load Balancer',
     'cdn-profile': 'CDN Profile',
+    'api-management': 'API Management',
+    'timer-trigger': 'Timer Trigger',
+    'azure-postgresql': 'Database for PostgreSQL',
+    'redis-cache': 'Redis Cache',
   },
   aws: {
     ec2: 'EC2',
@@ -326,6 +342,9 @@ const SUBTYPE_LABELS: Record<string, Record<string, string>> = {
     'elastic-ip': 'Elastic IP',
     'route-table': 'Route Table',
     privatelink: 'PrivateLink',
+    'elastic-beanstalk': 'Elastic Beanstalk',
+    'eventbridge-scheduler': 'EventBridge Scheduler',
+    'app-runner': 'App Runner',
   },
   gcp: {
     'compute-engine': 'Compute',
@@ -349,6 +368,10 @@ const SUBTYPE_LABELS: Record<string, Record<string, string>> = {
     'cloud-iam': 'IAM',
     'cloud-nat': 'Cloud NAT',
     firestore: 'Firestore',
+    'app-engine': 'App Engine',
+    'cloud-run': 'Cloud Run',
+    'cloud-scheduler': 'Cloud Scheduler',
+    'api-gateway': 'API Gateway',
   },
 };
 
@@ -393,6 +416,10 @@ const SUBTYPE_SHORT_LABELS: Record<string, Record<string, string>> = {
     'private-endpoint': 'PE',
     'load-balancer': 'ILB',
     'cdn-profile': 'CDN',
+    'api-management': 'APIM',
+    'timer-trigger': 'Timer',
+    'azure-postgresql': 'PgSQL',
+    'redis-cache': 'Redis',
   },
   aws: {
     ec2: 'EC2',
@@ -427,6 +454,9 @@ const SUBTYPE_SHORT_LABELS: Record<string, Record<string, string>> = {
     'elastic-ip': 'EIP',
     'route-table': 'RT',
     privatelink: 'PL',
+    'elastic-beanstalk': 'EB',
+    'eventbridge-scheduler': 'Sched',
+    'app-runner': 'Runner',
   },
   gcp: {
     'compute-engine': 'GCE',
@@ -450,6 +480,10 @@ const SUBTYPE_SHORT_LABELS: Record<string, Record<string, string>> = {
     'cloud-iam': 'IAM',
     'cloud-nat': 'NAT',
     firestore: 'Firestore',
+    'app-engine': 'GAE',
+    'cloud-run': 'Run',
+    'cloud-scheduler': 'Sched',
+    'api-gateway': 'APIGW',
   },
 };
 

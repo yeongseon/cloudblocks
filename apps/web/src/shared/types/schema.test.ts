@@ -373,7 +373,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(legacyData));
 
-    expect(result[0].architecture.externalActors?.[0]?.position).toEqual({ x: -3, y: 0, z: -3 });
+    expect(result[0].architecture.externalActors?.[0]?.position).toEqual({ x: 4, y: 0, z: 10 });
   });
 
   it('rejects legacy 0.1.0 schema (clean start — no migration)', () => {
@@ -594,7 +594,7 @@ describe('schema utilities', () => {
           provider: 'azure',
           parentId: null,
           roles: ['external'],
-          position: { x: -6, y: 0, z: -3 },
+          position: { x: 4, y: 0, z: 10 },
           metadata: {},
         },
         {
@@ -607,7 +607,7 @@ describe('schema utilities', () => {
           provider: 'azure',
           parentId: null,
           roles: ['external'],
-          position: { x: -3, y: 0, z: -3 },
+          position: { x: 7, y: 0, z: 10 },
           metadata: {},
         },
       ],
@@ -694,12 +694,12 @@ describe('schema utilities', () => {
         },
       ],
       externalActors: [
-        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
+        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
         {
           id: 'ext-internet',
           name: 'Internet',
           type: 'internet',
-          position: { x: -3, y: 0, z: -3 },
+          position: { x: 7, y: 0, z: 10 },
         },
       ],
       createdAt: '2026-02-03T04:05:06.000Z',
@@ -1077,7 +1077,7 @@ describe('migrateExternalActorsToBlocks', () => {
     const result = migrateExternalActorsToBlocks(actors, new Set(), 'gcp');
 
     expect(result).toHaveLength(1);
-    expect(result[0].position).toEqual({ x: -3, y: 0, z: -3 });
+    expect(result[0].position).toEqual({ x: 4, y: 0, z: 10 });
   });
 });
 

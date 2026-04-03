@@ -202,8 +202,8 @@
   --provider-gcp: #4285f4;
 
   /* ── Connection neutral (base wire color, recedes behind blocks) ── */
-  --connection-neutral-stroke: #94a3b8;
-  --connection-neutral-casing: #64748b;
+  --connection-neutral-stroke: #9fb0c7;
+  --connection-neutral-casing: #5c6d84;
 
   /* ── Block shadow tokens (systematized #1580) ── */
   --shadow-block-base: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08))

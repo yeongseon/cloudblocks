@@ -141,11 +141,12 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scn3tier-gateway',
-      name: 'Azure Load Balancer',
+      name: 'Azure Application Gateway',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'load_balancer',
+      resourceType: 'application-gateway',
       category: 'delivery',
+      subtype: 'application-gateway',
       provider: 'azure',
       parentId: 'container-scn3tier-subnet1',
       position: { x: -1.2, y: 0.5, z: -1.8 },
@@ -156,8 +157,9 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
       name: 'Azure VM',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'compute',
+      resourceType: 'vm',
       category: 'compute',
+      subtype: 'vm',
       provider: 'azure',
       parentId: 'container-scn3tier-subnet1',
       position: { x: 1.2, y: 0.5, z: 1.2 },
@@ -165,11 +167,12 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scn3tier-database',
-      name: 'Azure SQL Database',
+      name: 'Azure Database for PostgreSQL',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'data',
+      resourceType: 'azure-postgresql',
       category: 'data',
+      subtype: 'azure-postgresql',
       provider: 'azure',
       parentId: 'container-scn3tier-subnet2',
       position: { x: 0, y: 0.5, z: 0 },
@@ -178,7 +181,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [
-    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
   ],
 };
 
@@ -222,7 +225,7 @@ const threeTierScenario: Scenario = {
       order: 3,
       title: 'Place Your Resources',
       instruction:
-        'Place an Azure Load Balancer, an Azure VM, and an Azure SQL Database on your subnets.',
+        'Place an Azure Application Gateway, an Azure Virtual Machine, and an Azure Database for PostgreSQL on your subnets.',
       hints: [
         'Gateways are the entry point for internet traffic.',
         'Databases should be isolated from direct internet exposure using NSG rules.',
@@ -248,7 +251,7 @@ const threeTierScenario: Scenario = {
       order: 4,
       title: 'Connect the Data Flow',
       instruction:
-        'Connect Internet -> Azure Load Balancer -> Azure VM -> Azure SQL Database to establish the request flow.',
+        'Connect Internet -> Azure Application Gateway -> Azure Virtual Machine -> Azure Database for PostgreSQL to establish the request flow.',
       hints: [
         'Use Connect mode to draw connections between resources.',
         'The data flow represents request direction: Internet -> Gateway -> Compute -> Database.',
@@ -296,7 +299,7 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [
-    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
   ],
 };
 
@@ -347,7 +350,7 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [
-    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
   ],
 };
 
@@ -378,11 +381,11 @@ const serverlessApiScenario: Scenario = {
       order: 2,
       title: 'Deploy Serverless Components',
       instruction:
-        'Place an Azure Application Gateway on a subnet, an Azure Functions block on the network container, and an Azure SQL Database on a subnet.',
+        'Place an Azure API Management block on a subnet, an Azure Functions block on the network container, and an Azure Cosmos DB block on a subnet.',
       hints: [
         'Functions are serverless compute - they run on the Network container, not a specific subnet.',
-        'The Gateway receives HTTP requests and routes them to your Function.',
-        'Place the Database on a subnet for security.',
+        'API Management is the public API front door - it receives HTTP requests and forwards them to your Function.',
+        'Cosmos DB stores API data as a managed NoSQL service. Place it on a subnet.',
       ],
       validationRules: [
         {
@@ -404,9 +407,9 @@ const serverlessApiScenario: Scenario = {
       order: 3,
       title: 'Wire the API Flow',
       instruction:
-        'Connect Internet -> Azure Application Gateway -> Azure Functions -> Azure SQL Database.',
+        'Connect Internet -> Azure API Management -> Azure Functions -> Azure Cosmos DB.',
       hints: [
-        'The serverless flow: HTTP request hits the Gateway, triggers a Function, which queries the Database.',
+        'The serverless flow: HTTP request hits API Management, triggers a Function, which queries Cosmos DB.',
         'Functions can connect to databases, storage, and queues.',
       ],
       validationRules: [
@@ -501,8 +504,9 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
       name: 'Azure Event Grid',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'messaging',
+      resourceType: 'event-grid',
       category: 'messaging',
+      subtype: 'event-grid',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: -3, y: 0.5, z: -2.5 },
@@ -513,8 +517,9 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
       name: 'Azure Service Bus',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'messaging',
+      resourceType: 'service-bus',
       category: 'messaging',
+      subtype: 'service-bus',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: -3, y: 0.5, z: 1.5 },
@@ -561,8 +566,9 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
       name: 'Azure Event Grid',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'messaging',
+      resourceType: 'event-grid',
       category: 'messaging',
+      subtype: 'event-grid',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: -3.5, y: 0.5, z: -2.5 },
@@ -573,8 +579,9 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
       name: 'Azure Service Bus',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'messaging',
+      resourceType: 'service-bus',
       category: 'messaging',
+      subtype: 'service-bus',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: -3.5, y: 0.5, z: 1.5 },
@@ -585,8 +592,9 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
       name: 'Azure Functions',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'compute',
+      resourceType: 'functions',
       category: 'compute',
+      subtype: 'functions',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: 0, y: 0.5, z: -1.5 },
@@ -597,8 +605,9 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
       name: 'Azure Functions (Batch)',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'compute',
+      resourceType: 'functions',
       category: 'compute',
+      subtype: 'functions',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: 0, y: 0.5, z: 2 },
@@ -606,11 +615,12 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-timer',
-      name: 'Azure Event Grid (Timer)',
+      name: 'Azure Functions Timer Trigger',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'messaging',
+      resourceType: 'timer-trigger',
       category: 'messaging',
+      subtype: 'timer-trigger',
       provider: 'azure',
       parentId: 'container-scnevt-vnet',
       position: { x: 3.5, y: 0.5, z: -0.2 },
@@ -621,8 +631,9 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
       name: 'Azure Blob Storage',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'data',
+      resourceType: 'blob-storage',
       category: 'data',
+      subtype: 'blob-storage',
       provider: 'azure',
       parentId: 'container-scnevt-subnet',
       position: { x: 0, y: 0.5, z: 0 },
@@ -674,12 +685,12 @@ const eventPipelineScenario: Scenario = {
     {
       id: 'step-event-pipeline-add-timer-storage',
       order: 3,
-      title: 'Add an Event Trigger and Storage',
+      title: 'Add a Timer Trigger and Blob Storage',
       instruction:
-        'Place an Azure Event Grid trigger on the Region container and an Azure Blob Storage block on a Subnet.',
+        'Place an Azure Functions Timer Trigger on the Region container and an Azure Blob Storage block on a Subnet.',
       hints: [
-        'Event triggers can drive scheduled or asynchronous processing workflows.',
-        'Storage in a subnet keeps your data secure.',
+        'A Timer Trigger fires on a schedule (CRON) to drive periodic batch processing.',
+        'Blob Storage stores the pipeline output. In real deployments, use Private Endpoints or firewall rules for network-level isolation.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
@@ -695,7 +706,7 @@ const eventPipelineScenario: Scenario = {
       order: 4,
       title: 'Connect the Pipeline',
       instruction:
-        'Wire: Azure Event Grid -> Azure Functions, Azure Service Bus -> Azure Functions, Azure Event Grid (Timer) -> Azure Functions (Batch), and Azure Functions -> Azure Blob Storage.',
+        'Wire: Azure Event Grid -> Azure Functions, Azure Service Bus -> Azure Functions, Azure Functions Timer Trigger -> Azure Functions (Batch), and Azure Functions -> Azure Blob Storage.',
       hints: [
         'Events and Queues trigger Functions for processing.',
         'Functions process data and write results to Storage.',

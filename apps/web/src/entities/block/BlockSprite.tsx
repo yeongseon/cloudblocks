@@ -22,7 +22,7 @@ import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
-import { resolveResourcePresentation } from '../../shared/presentation/blockPresentation';
+import { resolveBlockPresentation } from '../../shared/presentation/blockPresentation';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -80,7 +80,10 @@ export const BlockSprite = memo(function BlockSprite({
   const dragZoomRef = useRef(1);
 
   // Resolve provider-aware presentation for correct short labels / icons
-  const pres = resolveResourcePresentation(block.subtype ?? block.resourceType, {
+  const isExternalBlock =
+    block.roles?.includes('external') || isExternalResourceType(block.resourceType);
+  const pres = resolveBlockPresentation(block.subtype ?? block.resourceType, {
+    kind: isExternalBlock ? 'external' : 'resource',
     provider: activeProvider,
   });
 
@@ -343,7 +346,7 @@ export const BlockSprite = memo(function BlockSprite({
           <BlockSvg
             category={block.category}
             provider={activeProvider}
-            subtype={pres.subtype ?? block.subtype}
+            subtype={isExternalBlock ? undefined : (pres.subtype ?? block.subtype)}
             resourceType={block.resourceType}
             name={block.name}
             aggregationCount={block.aggregation?.count}

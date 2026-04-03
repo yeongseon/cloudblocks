@@ -24,8 +24,9 @@ const threeTierTemplate: ArchitectureTemplate = {
   name: 'Three-Tier Web Application',
   description:
     'Classic three-tier architecture with gateway, compute, database, and storage. ' +
-    'Internet traffic enters through the Application Gateway in the public subnet, ' +
-    'routes to a Compute instance, which connects to a Database and Storage in the private subnet.',
+    'Internet traffic enters through the Application Gateway in Subnet 1, ' +
+    'routes to a Compute instance, which connects to a Database and Storage in Subnet 2. ' +
+    'In production Azure deployments, Application Gateway typically uses a dedicated subnet.',
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['three-tier', 'web', 'gateway', 'database', 'beginner'],
@@ -104,10 +105,10 @@ const threeTierTemplate: ArchitectureTemplate = {
         name: 'Azure Database for PostgreSQL',
         kind: 'resource',
         layer: 'resource',
-        resourceType: 'sql-database',
+        resourceType: 'azure-postgresql',
         category: 'data',
         provider: 'azure',
-        subtype: 'sql-database',
+        subtype: 'azure-postgresql',
         parentId: 'container-tmpl-private',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
@@ -135,7 +136,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -148,7 +149,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -185,8 +186,8 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
@@ -195,7 +196,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
   id: 'template-simple-compute',
   name: 'Simple Compute Setup',
   description:
-    'Minimal architecture with a single compute instance in a public subnet. ' +
+    'Minimal architecture with a single compute instance in a subnet. ' +
     'Good starting point for simple web services or APIs.',
   category: 'web-application',
   difficulty: 'beginner',
@@ -267,7 +268,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -280,7 +281,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -305,8 +306,8 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
@@ -316,7 +317,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
   name: 'Data Storage Backend',
   description:
     'Backend architecture focused on data storage. Compute connects to both a database ' +
-    'and blob storage in a private subnet for secure data handling.',
+    'and blob storage in a dedicated subnet for secure data handling.',
   category: 'data-pipeline',
   difficulty: 'intermediate',
   tags: ['data', 'storage', 'database', 'private', 'intermediate'],
@@ -426,7 +427,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -439,7 +440,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -476,8 +477,8 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
@@ -541,13 +542,13 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-gw4',
-        name: 'Azure Application Gateway',
+        name: 'Azure API Management',
         kind: 'resource',
         layer: 'resource',
-        resourceType: 'application-gateway',
+        resourceType: 'api-management',
         category: 'delivery',
         provider: 'azure',
-        subtype: 'application-gateway',
+        subtype: 'api-management',
         parentId: 'container-tmpl-pub4',
         position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
@@ -601,7 +602,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -614,7 +615,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -651,8 +652,8 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
@@ -662,7 +663,8 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   name: 'Event-Driven Pipeline',
   description:
     'Event-driven data processing pipeline. Events trigger a processing function ' +
-    'that reads from a queue and writes results to storage. Scheduled events trigger periodic batch jobs.',
+    'that reads from a queue and writes results to storage. A timer trigger block represents a ' +
+    'scheduled invocation configuration on the Function, visualized as a separate trigger source.',
   category: 'data-pipeline',
   difficulty: 'advanced',
   tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
@@ -726,13 +728,13 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-timer5',
-        name: 'Azure Event Grid (Timer)',
+        name: 'Azure Functions Timer Trigger',
         kind: 'resource',
         layer: 'resource',
-        resourceType: 'event-grid',
+        resourceType: 'timer-trigger',
         category: 'messaging',
         provider: 'azure',
-        subtype: 'event-grid',
+        subtype: 'timer-trigger',
         parentId: 'container-tmpl-vnet5',
         position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
@@ -786,7 +788,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -799,7 +801,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -848,20 +850,20 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
 
 const fullStackServerlessTemplate: ArchitectureTemplate = {
   id: 'template-full-stack-serverless',
-  name: 'Full-Stack Serverless with Event Processing',
+  name: 'Full-Stack Web App with Event Processing',
   description:
     'Maximum-complexity architecture using all block types. Internet traffic enters via Gateway ' +
     'to a Compute frontend and serverless API Function. Events, Queues, and Timers drive ' +
-    'background processing Functions. Data flows to Database and Storage in the private subnet. ' +
-    'Uses 8 of 10 block categories, both subnet types, and 11 connections.',
+    'background processing Functions. Data flows to Database and Storage in Subnet 2. ' +
+    'Uses 8 of 10 block categories, both subnets, and 11 connections.',
   category: 'serverless',
   difficulty: 'advanced',
   tags: [
@@ -879,7 +881,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
   ],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
-    name: 'Full-Stack Serverless',
+    name: 'Full-Stack Web App',
     version: '1',
     endpoints: [],
     nodes: [
@@ -956,10 +958,10 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Azure Database for PostgreSQL',
         kind: 'resource',
         layer: 'resource',
-        resourceType: 'sql-database',
+        resourceType: 'azure-postgresql',
         category: 'data',
         provider: 'azure',
-        subtype: 'sql-database',
+        subtype: 'azure-postgresql',
         parentId: 'container-fs-private',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
@@ -1045,13 +1047,13 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-timer',
-        name: 'Azure Event Grid (Timer)',
+        name: 'Azure Functions Timer Trigger',
         kind: 'resource',
         layer: 'resource',
-        resourceType: 'event-grid',
+        resourceType: 'timer-trigger',
         category: 'messaging',
         provider: 'azure',
-        subtype: 'event-grid',
+        subtype: 'timer-trigger',
         parentId: 'container-fs-vnet',
         position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
@@ -1066,7 +1068,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -6, y: 0, z: -3 },
+        position: { x: 4, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -1079,7 +1081,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -3, y: 0, z: -3 },
+        position: { x: 7, y: 0, z: 10 },
         metadata: {},
       },
     ],
@@ -1169,8 +1171,8 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: -3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
   },
 };
