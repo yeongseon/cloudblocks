@@ -1,6 +1,6 @@
 # Learning Mode — Technical Design Specification
 
-> **Audience**: Beginners / Contributors | **Status**: Stable — **V1 Core** | **Verified against**: v0.26.0
+> **Audience**: Beginners / Contributors | **Status**: Stable — **V1 Core** | **Verified against**: v0.35.0
 
 > **Milestone**: 6C — Learning Mode
 > **Last Updated**: 2026-03-28
@@ -65,38 +65,32 @@ export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 
 
 // Typed validation rule union — NO unknown/any
 export type StepValidationRule =
-  | {
-      type: 'container-block-exists';
-      containerBlockType: ContainerBlockType;
-      subnetAccess?: SubnetAccess;
-    }
+  | { type: 'container-exists'; containerLayer: ContainerLayer }
   | {
       type: 'block-exists';
-      category: BlockCategory;
-      onContainerBlockType?: ContainerBlockType;
-      onSubnetAccess?: SubnetAccess;
+      category: ResourceCategory;
+      onContainerLayer?: ContainerLayer;
     }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
   | {
-      type: 'entity-on-container-block';
-      entityCategory: BlockCategory;
-      containerBlockType: ContainerBlockType;
-      subnetAccess?: SubnetAccess;
+      type: 'entity-on-container';
+      entityCategory: ResourceCategory;
+      containerLayer: ContainerLayer;
     }
   | { type: 'architecture-valid' }
-  | { type: 'min-block-count'; category: BlockCategory; count: number }
-  | { type: 'min-container-block-count'; containerBlockType: ContainerBlockType; count: number };
+  | { type: 'min-block-count'; category: ResourceCategory; count: number }
+  | { type: 'min-container-count'; containerLayer: ContainerLayer; count: number };
 ```
 
 Each rule type maps directly to an existing domain concept:
 
-- `container-block-exists` → check `model.containerBlocks` for matching type/access
-- `block-exists` → check `model.blocks` for matching category, optionally on a specific container block type
+- `container-exists` → check `model.containers` for matching layer
+- `block-exists` → check `model.resources` for matching category, optionally on a specific container layer
 - `connection-exists` → check `model.connections` + resolve endpoint types
-- `entity-on-container-block` → check block exists AND its placement container block matches
+- `entity-on-container` → check resource exists AND its placement container matches the specified layer
 - `architecture-valid` → delegate to `validateArchitecture()` engine
-- `min-block-count` → count blocks of category ≥ threshold
-- `min-container-block-count` → count container blocks of type ≥ threshold
+- `min-block-count` → count resources of category ≥ threshold
+- `min-container-count` → count containers of layer ≥ threshold
 
 ### Scenario & Step
 
@@ -250,16 +244,16 @@ interface LearningStoreState {
 
 ---
 
-## 7. Built-in Scenarios
+## 7. Built-in Scenarios (6)
 
-> **Container block terminology**: The user-facing term "Network" maps to `containerBlockType: 'region'` in code. "Subnet" maps to `containerBlockType: 'subnet'`. The scenario validation rules use the code-level container block types.
+> **Container terminology**: The user-facing term "Network" maps to `containerLayer: 'region'` in code. "Subnet" maps to `containerLayer: 'subnet'`. The scenario validation rules use the code-level container layer names.
 
 ### 7.1 Three-Tier Web App (Beginner, ~10 min)
 
 Steps:
 
-1. Create a Region container block (VNet) — `{ type: 'container-block-exists', containerBlockType: 'region' }`
-2. Add a Public Subnet and a Private Subnet — `container-block-exists` for each subnet access level
+1. Create a Region container (VNet) — `{ type: 'container-exists', containerLayer: 'region' }`
+2. Add a Public Subnet and a Private Subnet — `container-exists` for each subnet access level
 3. Place a Gateway on the Public Subnet, a Compute block, and a Database on the Private Subnet — `block-exists` with placement constraints
 4. Connect Internet → Gateway → Compute → Database — `connection-exists` rules
 5. Validate the architecture — `architecture-valid`
@@ -270,7 +264,7 @@ Starts with a pre-built Region container block and Internet external actor.
 Steps:
 
 1. Set up network zones — add Public and Private Subnets
-2. Deploy serverless components — Gateway on public subnet, Function on Region container block (`onContainerBlockType: 'region'`), Database on private subnet
+2. Deploy serverless components — Gateway on public subnet, Function on Region container (`onContainerLayer: 'region'`), Database on private subnet
 3. Wire the API flow — Internet → Gateway → Function → Database
 4. Validate the architecture
 
@@ -279,11 +273,43 @@ Steps:
 Starts with a pre-built Region container block and Private Subnet.
 Steps:
 
-1. Add Event and Queue blocks on the Region container block — `block-exists` with `onContainerBlockType: 'region'`
+1. Add Event and Queue blocks on the Region container — `block-exists` with `onContainerLayer: 'region'`
 2. Add two Function blocks on the Region container block — `min-block-count: function ≥ 2`
 3. Add a second Event trigger on the Region container block and a Storage block on the Private Subnet — uses `event` category (not `timer`; `timer` is not a valid `BlockCategory`)
 4. Connect Event → Function, Queue → Function, Function → Storage — `connection-exists` rules
-5. Final validation — `architecture-valid` + `min-block-count: function ≥ 2` + `min-container-block-count: region ≥ 1`
+5. Final validation — `architecture-valid` + `min-block-count: function ≥ 2` + `min-container-count: region ≥ 1`
+
+### 7.4 Simple Compute Setup (Beginner, ~6 min)
+
+Starts with an empty canvas.
+Steps:
+
+1. Create the Network — create a VNet container — `{ type: 'container-exists', containerLayer: 'region' }`
+2. Add a Subnet — add one subnet inside the VNet — `min-container-count: subnet ≥ 1`
+3. Place Gateway and Compute — place an Application Gateway and an App Service on the subnet — `block-exists` with `onContainerLayer: 'subnet'`
+4. Connect the Traffic Flow — Internet → Application Gateway → App Service — `connection-exists` rules
+
+### 7.5 Data Storage Backend (Intermediate, ~10 min)
+
+Starts with an empty canvas.
+Steps:
+
+1. Create the Network — create a VNet container — `{ type: 'container-exists', containerLayer: 'region' }`
+2. Add Application and Data Subnets — two subnets for tier isolation — `min-container-count: subnet ≥ 2`
+3. Deploy the Application Tier — place an Application Gateway and a VM on the first subnet — `block-exists` with `onContainerLayer: 'subnet'`
+4. Add Data Services — place a SQL Database and Blob Storage on the second subnet — `block-exists: data` + `min-block-count: data ≥ 2`
+5. Wire the Data Flow — Internet → Gateway → VM → SQL Database, VM → Blob Storage — `connection-exists` rules
+
+### 7.6 Full-Stack Web App with Event Processing (Advanced, ~15 min)
+
+Starts with an empty canvas.
+Steps:
+
+1. Build the Network Foundation — create one VNet and two subnets — `container-exists: region` + `min-container-count: subnet ≥ 2`
+2. Deploy the Web Tier — place an Application Gateway and a VM on Subnet 1, connect Internet → Gateway → VM — `block-exists` + `connection-exists`
+3. Add Data Services — place PostgreSQL and Blob Storage on Subnet 2, connect VM → Database and VM → Storage — `block-exists: data` + `min-block-count: data ≥ 2` + `connection-exists`
+4. Build the Serverless Layer — place 3 Functions, Service Bus, Event Grid, and a Timer Trigger on the VNet — `min-block-count: compute ≥ 4` + `block-exists: messaging` + `connection-exists: messaging → compute`
+5. Final Validation — validate the complete architecture — `architecture-valid` + `min-block-count: compute ≥ 4` + `min-container-count: subnet ≥ 2`
 
 ---
 
