@@ -59,6 +59,10 @@ function inferGcpApiShortName(resourceType: string): string | null {
     return 'apigateway';
   }
 
+  if (resourceType.startsWith('google_cloud_scheduler_')) {
+    return 'cloudscheduler';
+  }
+
   return null;
 }
 
@@ -319,6 +323,13 @@ function buildGcpBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('    }');
       lines.push('  })');
       break;
+    case 'google_cloud_scheduler_job':
+      lines.push(`  name     = "${tagName}"`);
+      lines.push('  region   = var.location');
+      lines.push('  # TODO: Cloud Scheduler requires schedule and target');
+      lines.push('  # Configure schedule (cron), time_zone, and http_target or pubsub_target');
+      lines.push('  schedule = "0 * * * *"  # Every hour');
+      break;
     default:
       lines.push(`  # Configure ${ctx.mapping.resourceType}`);
       break;
@@ -370,6 +381,7 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   messaging: {
     pubsub: { resourceType: 'google_pubsub_topic', namePrefix: 'topic' },
     eventarc: { resourceType: 'google_eventarc_trigger', namePrefix: 'trigger' },
+    'cloud-scheduler': { resourceType: 'google_cloud_scheduler_job', namePrefix: 'schedule' },
   },
   security: {
     iam: { resourceType: 'google_service_account', namePrefix: 'sa' },

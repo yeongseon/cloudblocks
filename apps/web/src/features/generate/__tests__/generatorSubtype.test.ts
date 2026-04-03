@@ -101,4 +101,21 @@ describe('generator subtype mapping integration', () => {
     expect(bicepModel.resourceNames.get('block-1')).toBe('ec2Compute');
     expect(pulumiModel.resourceNames.get('block-1')).toBe('ec2Compute');
   });
+
+  describe('scheduler subtype mapping (timer-trigger remap)', () => {
+    it('AWS: eventbridge-scheduler maps to aws_scheduler_schedule', () => {
+      const architecture = createArchitecture('eventbridge-scheduler');
+      architecture.nodes[1]!.category = 'messaging' as never;
+      const normalized = normalize(architecture, awsProviderDefinition);
+      const mainTf = generateMainTf(normalized, awsProviderDefinition, {
+        provider: 'aws',
+        mode: 'draft',
+        projectName: 'scheduler-test',
+        region: 'us-east-1',
+        generator: 'terraform',
+      });
+      expect(mainTf).toContain('resource "aws_scheduler_schedule"');
+      expect(mainTf).not.toContain('resource "aws_sqs_queue"');
+    });
+  });
 });

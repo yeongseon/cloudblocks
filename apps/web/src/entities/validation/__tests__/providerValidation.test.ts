@@ -342,4 +342,76 @@ describe('validateProviderRules', () => {
 
     expect(warnings).toEqual([]);
   });
+
+  it('returns no warning for Azure timer-trigger as messaging subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'timer-1',
+          name: 'Timer Trigger',
+          provider: 'azure',
+          category: 'messaging',
+          subtype: 'timer-trigger',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('returns no warning for AWS eventbridge-scheduler as messaging subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'scheduler-1',
+          name: 'EventBridge Scheduler',
+          provider: 'aws',
+          category: 'messaging',
+          subtype: 'eventbridge-scheduler',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('returns no warning for GCP cloud-scheduler as messaging subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'scheduler-2',
+          name: 'Cloud Scheduler',
+          provider: 'gcp',
+          category: 'messaging',
+          subtype: 'cloud-scheduler',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('returns no warning for Azure azure-postgresql as data subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'pg-1',
+          name: 'PostgreSQL',
+          provider: 'azure',
+          category: 'data',
+          subtype: 'azure-postgresql',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
 });
