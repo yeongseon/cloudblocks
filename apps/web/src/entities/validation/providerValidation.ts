@@ -29,9 +29,15 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
     data: ['cloud-sql-postgres', 'firestore', 'cloud-storage'],
     delivery: ['cloud-load-balancing', 'api-gateway', 'nat-gateway'],
     messaging: ['pubsub', 'eventarc', 'cloud-scheduler'],
-    operations: ['bigquery', 'monitoring'],
-    security: ['iam', 'nsg'],
-    identity: ['managed-identity', 'managed_identity', 'service-account', 'service_account'],
+    operations: ['bigquery', 'monitoring', 'cloud-monitoring'],
+    security: ['iam', 'nsg', 'cloud-armor'],
+    identity: [
+      'managed-identity',
+      'managed_identity',
+      'service-account',
+      'service_account',
+      'cloud-iam',
+    ],
     network: ['vpc', 'cloud-dns'],
   },
   azure: {

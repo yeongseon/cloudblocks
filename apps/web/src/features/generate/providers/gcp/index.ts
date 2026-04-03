@@ -63,6 +63,10 @@ function inferGcpApiShortName(resourceType: string): string | null {
     return 'cloudscheduler';
   }
 
+  if (resourceType.startsWith('google_project_iam_')) {
+    return 'iam';
+  }
+
   return null;
 }
 
@@ -330,6 +334,29 @@ function buildGcpBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('  # Configure schedule (cron), time_zone, and http_target or pubsub_target');
       lines.push('  schedule = "0 * * * *"  # Every hour');
       break;
+    case 'google_compute_security_policy':
+      lines.push(`  name = "${tagName}"`);
+      lines.push('  # TODO: Configure security rules for Cloud Armor');
+      lines.push('  rule {');
+      lines.push('    action   = "allow"');
+      lines.push('    priority = "2147483647"');
+      lines.push('    match {');
+      lines.push('      versioned_expr = "SRC_IPS_V1"');
+      lines.push('      config {');
+      lines.push('        src_ip_ranges = ["*"]');
+      lines.push('      }');
+      lines.push('    }');
+      lines.push('    description = "Default rule"');
+      lines.push('  }');
+      break;
+    case 'google_project_iam_member':
+      lines.push('  # TODO: Configure IAM member binding');
+      lines.push('  project = var.project_id');
+      lines.push('  role    = "roles/viewer"  # TODO: Replace with appropriate role');
+      lines.push(
+        '  member  = "user:example@example.com"  # TODO: Replace with actual member (user:, serviceAccount:, or group:)',
+      );
+      break;
     default:
       lines.push(`  # Configure ${ctx.mapping.resourceType}`);
       break;
@@ -386,6 +413,7 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   security: {
     iam: { resourceType: 'google_service_account', namePrefix: 'sa' },
     nsg: { resourceType: 'google_compute_firewall', namePrefix: 'fw' },
+    'cloud-armor': { resourceType: 'google_compute_security_policy', namePrefix: 'armor' },
   },
   identity: {
     'managed-identity': { resourceType: 'google_service_account', namePrefix: 'identity' },
@@ -393,9 +421,11 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
     'service-account': { resourceType: 'google_service_account', namePrefix: 'svcacct' },
     service_account: { resourceType: 'google_service_account', namePrefix: 'svcacct' },
   },
+  'cloud-iam': { resourceType: 'google_project_iam_member', namePrefix: 'iam' },
   operations: {
     bigquery: { resourceType: 'google_bigquery_dataset', namePrefix: 'analytics' },
     monitoring: { resourceType: 'google_monitoring_dashboard', namePrefix: 'dashboard' },
+    'cloud-monitoring': { resourceType: 'google_monitoring_dashboard', namePrefix: 'monitor' },
   },
 };
 
@@ -408,8 +438,8 @@ export const gcpProviderDefinition: ProviderDefinition = {
       namePrefix: 'network',
     },
     security: {
-      resourceType: 'google_service_account',
-      namePrefix: 'sa',
+      resourceType: 'google_compute_security_policy',
+      namePrefix: 'armor',
     },
     identity: {
       resourceType: 'google_service_account',
@@ -432,8 +462,8 @@ export const gcpProviderDefinition: ProviderDefinition = {
       namePrefix: 'topic',
     },
     operations: {
-      resourceType: 'google_bigquery_dataset',
-      namePrefix: 'analytics',
+      resourceType: 'google_monitoring_dashboard',
+      namePrefix: 'monitor',
     },
   },
   containerLayerMappings: {

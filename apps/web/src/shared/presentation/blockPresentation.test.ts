@@ -388,7 +388,7 @@ describe('category correctness via provider subtypes', () => {
   });
 
   it('GCP Pub/Sub resolves to messaging category, not compute', () => {
-    const result = resolveResourcePresentation('pub-sub', { provider: 'gcp' });
+    const result = resolveResourcePresentation('pubsub', { provider: 'gcp' });
     expect(result.category).toBe('messaging');
   });
 

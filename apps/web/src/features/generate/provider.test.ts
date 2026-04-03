@@ -456,12 +456,12 @@ describe('gcpProviderDefinition', () => {
       namePrefix: 'backend',
     });
     expect(gcpProviderDefinition.blockMappings.operations).toEqual({
-      resourceType: 'google_bigquery_dataset',
-      namePrefix: 'analytics',
+      resourceType: 'google_monitoring_dashboard',
+      namePrefix: 'monitor',
     });
     expect(gcpProviderDefinition.blockMappings.security).toEqual({
-      resourceType: 'google_service_account',
-      namePrefix: 'sa',
+      resourceType: 'google_compute_security_policy',
+      namePrefix: 'armor',
     });
   });
 
