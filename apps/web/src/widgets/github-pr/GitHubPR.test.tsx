@@ -56,6 +56,7 @@ describe('GitHubPR', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/test-repo',
       },
     });
     mockIsAuthError.mockReturnValue(false);
@@ -374,6 +375,7 @@ describe('GitHubPR', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-42',
+        githubRepo: 'owner/test-repo',
       },
     });
     mockApiPost.mockResolvedValue({

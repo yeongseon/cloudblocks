@@ -7,6 +7,10 @@ vi.mock('../../shared/api/client', () => ({
   apiGet: vi.fn(),
   apiPut: vi.fn(),
   isAuthError: vi.fn(() => false),
+  getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
+    if (err instanceof Error) return err.message;
+    return fallback;
+  }),
 }));
 
 vi.mock('../../shared/ui/ConfirmDialog', () => ({

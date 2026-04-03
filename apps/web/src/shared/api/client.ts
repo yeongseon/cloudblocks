@@ -40,13 +40,30 @@ interface FastApiErrorEnvelope {
   detail?: string;
 }
 
-function parseFastApiDetail(body: string): string | null {
+interface AppErrorEnvelope {
+  error?: {
+    message?: string;
+  };
+}
+
+function parseErrorMessage(body: string): string | null {
   if (body.length === 0) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(body) as FastApiErrorEnvelope;
+    const parsed = JSON.parse(body) as FastApiErrorEnvelope & AppErrorEnvelope;
+
+    // Backend AppError format: {"error": {"message": "..."}}
+    if (
+      parsed.error &&
+      typeof parsed.error.message === 'string' &&
+      parsed.error.message.trim().length > 0
+    ) {
+      return parsed.error.message;
+    }
+
+    // FastAPI default HTTPException format: {"detail": "..."}
     if (typeof parsed.detail === 'string' && parsed.detail.trim().length > 0) {
       return parsed.detail;
     }
@@ -59,7 +76,7 @@ function parseFastApiDetail(body: string): string | null {
 
 export function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
   if (error instanceof ApiError) {
-    const detail = parseFastApiDetail(error.body);
+    const detail = parseErrorMessage(error.body);
     if (detail) {
       return detail;
     }
@@ -123,7 +140,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   if (!response.ok) {
     const responseBody = await parseResponseBody(response);
-    const detail = parseFastApiDetail(responseBody);
+    const detail = parseErrorMessage(responseBody);
     throw new ApiError(
       detail ?? `API request failed with status ${response.status}`,
       response.status,
