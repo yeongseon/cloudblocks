@@ -470,6 +470,23 @@ describe('GitHubSync', () => {
     expect(useArchitectureStore.getState().workspace.githubRepo).toBeUndefined();
   });
 
+  it('calls apiPut to clear github_repo on unlink', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await screen.findByRole('button', { name: 'Sync to GitHub' });
+
+    await user.click(screen.getByRole('button', { name: 'Unlink' }));
+
+    // The link call is the first apiPut, unlink call is the second
+    expect(mockApiPut).toHaveBeenCalledTimes(2);
+    expect(mockApiPut).toHaveBeenLastCalledWith(expect.stringContaining('/api/v1/workspaces/'), {
+      github_repo: null,
+    });
+  });
+
   it('handles sync error with non-Error thrown value', async () => {
     const user = userEvent.setup();
     mockApiPost.mockRejectedValue('string error');

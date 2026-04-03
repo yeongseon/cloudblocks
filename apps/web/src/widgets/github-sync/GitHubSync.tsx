@@ -201,6 +201,10 @@ export function GitHubSync() {
   };
 
   const handleUnlink = async () => {
+    // Capture backend workspace ID before clearing local state
+    const bwsId =
+      linkedRepoState?.backendWorkspaceId ?? workspace.backendWorkspaceId ?? workspace.id;
+
     requestSeqRef.current += 1;
     setLinkedRepoState(null);
     setRepoInput('');
@@ -212,16 +216,13 @@ export function GitHubSync() {
     prePullArchitectureRef.current = null;
     setStoreGithubRepo(workspace.id, undefined);
 
-    // Clear github_repo on backend if a backend workspace exists
-    const bwsId = workspace.backendWorkspaceId;
-    if (bwsId) {
-      try {
-        await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
-          github_repo: null,
-        });
-      } catch {
-        // Best-effort: local state is already cleared
-      }
+    // Clear github_repo on backend (best-effort)
+    try {
+      await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
+        github_repo: null,
+      });
+    } catch {
+      // Best-effort: local state is already cleared
     }
   };
 

@@ -1031,7 +1031,7 @@ it('normalizes stale subtype aliases (pub-sub → pubsub) on deserialized nodes'
 
   // pub-sub → pubsub on both resourceType and subtype
   expect(psNode.resourceType).toBe('pubsub');
-  expect((psNode as Record<string, unknown>).subtype).toBe('pubsub');
+  expect(psNode.subtype).toBe('pubsub');
 
   // Unrelated node untouched
   expect(okNode.resourceType).toBe('cloud-functions');

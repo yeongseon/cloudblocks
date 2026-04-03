@@ -420,8 +420,8 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
     managed_identity: { resourceType: 'google_service_account', namePrefix: 'identity' },
     'service-account': { resourceType: 'google_service_account', namePrefix: 'svcacct' },
     service_account: { resourceType: 'google_service_account', namePrefix: 'svcacct' },
+    'cloud-iam': { resourceType: 'google_project_iam_member', namePrefix: 'iam' },
   },
-  'cloud-iam': { resourceType: 'google_project_iam_member', namePrefix: 'iam' },
   operations: {
     bigquery: { resourceType: 'google_bigquery_dataset', namePrefix: 'analytics' },
     monitoring: { resourceType: 'google_monitoring_dashboard', namePrefix: 'dashboard' },
