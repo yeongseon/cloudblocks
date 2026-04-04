@@ -266,6 +266,9 @@ interface UIState {
   /** Zoom level reported by SceneCanvas, used for auto label density */
   canvasZoom: number;
   setCanvasZoom: (zoom: number) => void;
+  fitToContentRequested: boolean;
+  requestFitToContent: () => void;
+  clearFitToContentRequest: () => void;
   /** Computed: the label mode that should be used for rendering */
   effectiveLabelMode: LabelMode;
   labelMode: LabelMode;
@@ -753,6 +756,9 @@ export const useUIStore = create<UIState>((set, get) => ({
         labelMode: effectiveLabelMode,
       };
     }),
+  fitToContentRequested: false,
+  requestFitToContent: () => set({ fitToContentRequested: true }),
+  clearFitToContentRequest: () => set({ fitToContentRequested: false }),
   setLabelMode: (mode) =>
     set({
       labelModeOverride: mode,

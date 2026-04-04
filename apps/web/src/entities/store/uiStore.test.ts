@@ -39,6 +39,7 @@ describe('useUIStore', () => {
       activeProvider: 'azure',
       editorMode: 'build',
       pendingLinkRepo: null,
+      fitToContentRequested: false,
       showLearningPanel: false,
       showScenarioGallery: false,
       diffMode: false,
@@ -1085,6 +1086,18 @@ describe('useUIStore', () => {
 
       useUIStore.getState().setPendingLinkRepo(null);
       expect(useUIStore.getState().pendingLinkRepo).toBe(null);
+    });
+  });
+
+  describe('fit-to-content request', () => {
+    it('sets and clears fit-to-content request state', () => {
+      expect(useUIStore.getState().fitToContentRequested).toBe(false);
+
+      useUIStore.getState().requestFitToContent();
+      expect(useUIStore.getState().fitToContentRequested).toBe(true);
+
+      useUIStore.getState().clearFitToContentRequest();
+      expect(useUIStore.getState().fitToContentRequested).toBe(false);
     });
   });
 

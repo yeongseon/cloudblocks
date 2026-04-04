@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import { SceneCanvas } from './SceneCanvas';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -26,6 +26,8 @@ const mockSetSelectedId = vi.fn();
 const mockAddBlock = vi.fn();
 const mockCompleteInteraction = vi.fn();
 const mockSetCanvasZoom = vi.fn();
+const mockClearFitToContentRequest = vi.fn();
+let mockFitToContentRequested = false;
 
 const architecture: {
   nodes: ResourceBlock[];
@@ -57,6 +59,8 @@ function setupStoreMocks() {
       activeProvider: 'aws',
       completeInteraction: mockCompleteInteraction,
       setCanvasZoom: mockSetCanvasZoom,
+      fitToContentRequested: mockFitToContentRequested,
+      clearFitToContentRequest: mockClearFitToContentRequest,
       isSoundMuted: true,
       gridStyle: 'paper' as const,
     };
@@ -69,7 +73,9 @@ describe('SceneCanvas ResizeObserver origin update', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFitToContentRequested = false;
     mockSetCanvasZoom.mockClear();
+    mockClearFitToContentRequest.mockClear();
     setupStoreMocks();
     capturedCallback = null;
 
@@ -124,6 +130,7 @@ describe('SceneCanvas ResizeObserver origin update', () => {
 describe('SceneCanvas pointer capture handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFitToContentRequested = false;
     setupStoreMocks();
   });
 
@@ -173,6 +180,7 @@ describe('SceneCanvas pointer capture handling', () => {
 describe('SceneCanvas external lane zone', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFitToContentRequested = false;
     architecture.nodes = [];
     architecture.connections = [];
     setupStoreMocks();
@@ -215,5 +223,83 @@ describe('SceneCanvas external lane zone', () => {
 
     const { queryByTestId } = render(<SceneCanvas />);
     expect(queryByTestId('external-lane-zone')).toBeNull();
+  });
+});
+
+describe('SceneCanvas fit-to-content', () => {
+  let capturedCallback: ResizeObserverCallback | null = null;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFitToContentRequested = false;
+    architecture.nodes = [];
+    setupStoreMocks();
+    capturedCallback = null;
+
+    globalThis.ResizeObserver = class MockResizeObserver {
+      constructor(cb: ResizeObserverCallback) {
+        capturedCallback = cb;
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    globalThis.ResizeObserver = class ResizeObserver {
+      constructor(_cb: ResizeObserverCallback) {}
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  it('fits viewport and clears request when fit-to-content is requested', async () => {
+    const externalBlock: ResourceBlock = {
+      id: 'external-fit',
+      name: 'Client',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'browser',
+      category: 'delivery',
+      provider: 'aws',
+      parentId: null,
+      position: { x: -6, y: 0, z: 6 },
+      metadata: {},
+      roles: ['external'],
+    };
+    architecture.nodes = [externalBlock];
+    mockFitToContentRequested = true;
+
+    const { container } = render(<SceneCanvas />);
+    const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
+    const world = container.querySelector('.scene-world') as HTMLDivElement;
+
+    Object.defineProperty(viewport, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        width: 1200,
+        height: 800,
+        top: 0,
+        left: 0,
+        right: 1200,
+        bottom: 800,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    });
+
+    // Fire ResizeObserver to set origin to non-zero (required for fit-to-content guard)
+    capturedCallback!(
+      [{ contentRect: { width: 1200, height: 800 } } as ResizeObserverEntry],
+      {} as ResizeObserver,
+    );
+
+    await waitFor(() => {
+      expect(world.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(0.85)');
+      expect(mockClearFitToContentRequest).toHaveBeenCalledTimes(1);
+    });
   });
 });

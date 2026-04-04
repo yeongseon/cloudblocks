@@ -89,7 +89,7 @@ describe('persistenceSlice branches', () => {
     vi.restoreAllMocks();
     localStorage.clear();
     seedStore();
-    useUIStore.setState({ activeProvider: 'azure' });
+    useUIStore.setState({ activeProvider: 'azure', fitToContentRequested: false });
   });
 
   describe('validateArchitectureShape', () => {
@@ -1027,6 +1027,7 @@ describe('persistenceSlice branches', () => {
         provider: 'gcp',
         subtype: 'compute-engine',
       });
+      expect(useUIStore.getState().fitToContentRequested).toBe(true);
     });
 
     it('remaps external block provider but preserves name and subtype when non-azure', () => {

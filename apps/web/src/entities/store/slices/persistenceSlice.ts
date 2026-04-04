@@ -743,6 +743,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       workspaces: updatedList,
       ...resetTransientState(),
     });
+    useUIStore.getState().requestFitToContent();
   },
 
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => {

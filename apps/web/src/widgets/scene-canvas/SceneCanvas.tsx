@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock, ROOT_ALLOWED_RESOURCE_TYPES } from '../../entities/validation/placement';
-import { worldToScreen, depthKey } from '../../shared/utils/isometric';
+import { worldToScreen, worldSizeToScreen, depthKey } from '../../shared/utils/isometric';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
@@ -72,6 +72,8 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const setCanvasZoom = useUIStore((s) => s.setCanvasZoom);
+  const fitToContentRequested = useUIStore((s) => s.fitToContentRequested);
+  const clearFitToContentRequest = useUIStore((s) => s.clearFitToContentRequest);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const gridStyle = useUIStore((s) => s.gridStyle);
   const playSound = (name: SoundName) => {
@@ -383,6 +385,110 @@ export function SceneCanvas() {
       return () => el.removeEventListener('wheel', handleWheel);
     }
   }, [handleWheel]);
+
+  useEffect(() => {
+    if (!fitToContentRequested || !containerRef.current) {
+      return;
+    }
+
+    // Wait for origin to be initialized by ResizeObserver (non-zero means it's set)
+    if (origin.x === 0 && origin.y === 0) {
+      return;
+    }
+
+    const allNodes = architecture.nodes;
+    if (allNodes.length === 0) {
+      clearFitToContentRequest();
+      return;
+    }
+
+    const parentContainers = new Map(
+      allNodes
+        .filter((node): node is ContainerBlock => node.kind === 'container')
+        .map((node) => [node.id, node]),
+    );
+
+    let minSX = Infinity;
+    let maxSX = -Infinity;
+    let minSY = Infinity;
+    let maxSY = -Infinity;
+
+    for (const node of allNodes) {
+      if (node.kind === 'container') {
+        const sp = worldToScreen(node.position.x, node.position.y, node.position.z, 0, 0);
+
+        if (node.frame) {
+          const { screenWidth, screenHeight } = worldSizeToScreen(
+            node.frame.width,
+            node.frame.height,
+            node.frame.depth,
+          );
+          minSX = Math.min(minSX, sp.x - screenWidth / 2);
+          maxSX = Math.max(maxSX, sp.x + screenWidth / 2);
+          // Isometric diamond half-height = screenWidth/4 (since TILE_H/TILE_W = 0.5)
+          // Top = back of diamond minus elevation walls; bottom = front of diamond
+          const diamondHalfH = screenWidth / 4;
+          minSY = Math.min(minSY, sp.y - diamondHalfH - (screenHeight - 2 * diamondHalfH));
+          maxSY = Math.max(maxSY, sp.y + diamondHalfH);
+        } else {
+          minSX = Math.min(minSX, sp.x);
+          maxSX = Math.max(maxSX, sp.x);
+          minSY = Math.min(minSY, sp.y);
+          maxSY = Math.max(maxSY, sp.y);
+        }
+        continue;
+      }
+
+      let worldX = node.position.x;
+      let worldY = node.position.y;
+      let worldZ = node.position.z;
+
+      if (node.parentId) {
+        const parent = parentContainers.get(node.parentId);
+        if (parent) {
+          worldX = parent.position.x + node.position.x;
+          worldY = parent.position.y + (parent.frame?.height ?? 0);
+          worldZ = parent.position.z + node.position.z;
+        }
+      }
+
+      const sp = worldToScreen(worldX, worldY, worldZ, 0, 0);
+      const BLOCK_HALF_W = 36;
+      const BLOCK_H = 96;
+      minSX = Math.min(minSX, sp.x - BLOCK_HALF_W);
+      maxSX = Math.max(maxSX, sp.x + BLOCK_HALF_W);
+      minSY = Math.min(minSY, sp.y - BLOCK_H);
+      maxSY = Math.max(maxSY, sp.y);
+    }
+
+    if (!isFinite(minSX) || !isFinite(minSY) || !isFinite(maxSX) || !isFinite(maxSY)) {
+      clearFitToContentRequest();
+      return;
+    }
+
+    const contentWidth = Math.max(1, maxSX - minSX);
+    const contentHeight = Math.max(1, maxSY - minSY);
+    const contentCenterX = (minSX + maxSX) / 2;
+    const contentCenterY = (minSY + maxSY) / 2;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const viewportW = rect.width;
+    const viewportH = rect.height;
+    const PADDING = 80;
+    const fitWidth = Math.max(1, viewportW - PADDING * 2);
+    const fitHeight = Math.max(1, viewportH - PADDING * 2);
+
+    const zoomX = fitWidth / contentWidth;
+    const zoomY = fitHeight / contentHeight;
+    const newZoom = Math.max(0.3, Math.min(1.2, Math.min(zoomX, zoomY)));
+
+    const newPanX = viewportW / 2 - (origin.x + contentCenterX) * newZoom;
+    const newPanY = viewportH / 2 - (origin.y + contentCenterY) * newZoom;
+
+    setPan({ x: newPanX, y: newPanY });
+    setZoom(newZoom);
+    clearFitToContentRequest();
+  }, [architecture.nodes, clearFitToContentRequest, fitToContentRequested, origin.x, origin.y]);
 
   return (
     <div
