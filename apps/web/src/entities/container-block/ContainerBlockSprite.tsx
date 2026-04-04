@@ -18,6 +18,7 @@ import { canPlaceBlock } from '../validation/placement';
 import { getContainerBlockFaceColors } from './containerBlockFaceColors';
 import { ContainerBlockSvg } from './ContainerBlockSvg';
 import './ContainerBlockSprite.css';
+import { ResizeHandles } from './ResizeHandles';
 
 interface PlateSpriteProps {
   container: ContainerBlock;
@@ -257,6 +258,15 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         </div>
       </button>
       {isSelected && <span className="container-label-chip">{label}</span>}
+      {isSelected && !containerStatus?.disabled && container.frame && (
+        <ResizeHandles
+          containerId={container.id}
+          frameWidth={container.frame.width}
+          frameDepth={container.frame.depth}
+          frameHeight={container.frame.height}
+          containerLayer={container.layer}
+        />
+      )}
     </div>
   );
 });

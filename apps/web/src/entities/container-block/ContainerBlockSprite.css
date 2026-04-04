@@ -181,3 +181,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── Resize handles ─────────────────────────────────────────── */
+.container-resize-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.container-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--state-selection-glow, #3b82f6);
+  border: 2px solid white;
+  z-index: 11;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition:
+    transform 0.1s ease,
+    background 0.1s ease;
+  touch-action: none;
+}
+
+.container-resize-handle:hover {
+  transform: translate(-50%, -50%) scale(1.3);
+  background: var(--accent-primary, #60a5fa);
+}
+
+.container-resize-handle.is-resizing {
+  transform: translate(-50%, -50%) scale(1.4);
+  background: var(--accent-primary, #60a5fa);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Cursors: N/S handles control width (world X), E/W control depth (world Z) */
+.container-resize-handle[data-edge='n'],
+.container-resize-handle[data-edge='s'] {
+  cursor: nesw-resize;
+}
+
+.container-resize-handle[data-edge='e'],
+.container-resize-handle[data-edge='w'] {
+  cursor: nwse-resize;
+}

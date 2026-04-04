@@ -9,6 +9,7 @@ import type {
 import {
   buildContainerBlockSizeFromProfileId,
   DEFAULT_BLOCK_SIZE,
+  inferLegacyContainerBlockProfileId,
 } from '../../../shared/types/index';
 import {
   CATEGORY_DEFAULT_RESOURCE_TYPE,
@@ -57,6 +58,7 @@ type DomainSlice = Pick<
   | 'renamePlate'
   | 'moveBlock'
   | 'setPlateProfile'
+  | 'resizePlate'
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveExternalBlockPosition'
@@ -74,6 +76,27 @@ const isResource = (node: ContainerBlock | ResourceBlock): node is ResourceBlock
   node.kind === 'resource';
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+type ResizeEdge = 'n' | 'e' | 's' | 'w' | 'ne' | 'se' | 'sw' | 'nw';
+
+const MIN_CONTAINER_SIZE: Record<PlateLayerType, { width: number; depth: number }> = {
+  global: { width: 4, depth: 4 },
+  edge: { width: 4, depth: 4 },
+  region: { width: 4, depth: 4 },
+  zone: { width: 4, depth: 4 },
+  subnet: { width: 2, depth: 2 },
+};
+
+const MAX_CONTAINER_SIZE = { width: 40, depth: 40 };
+
+function clampEven(value: number, min: number, max: number): number {
+  const rounded = Math.round(value);
+  const even = rounded % 2 === 0 ? rounded : rounded + (rounded > value ? -1 : 1);
+  const clamped = Math.max(min, Math.min(max, even));
+  if (clamped % 2 === 0) {
+    return clamped;
+  }
+  return clamped <= min ? min : clamped - 1;
+}
 
 const endpointIdPrefix = (nodeId: string): string => `endpoint-${nodeId}-`;
 
@@ -650,6 +673,124 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         const clamped = clampWithinParent(
           { x: candidate.position.x, z: candidate.position.z },
           { width: nextSize.width, depth: nextSize.depth },
+          DEFAULT_BLOCK_SIZE,
+        );
+        return {
+          ...candidate,
+          position: { x: clamped.x, y: candidate.position.y, z: clamped.z },
+        };
+      });
+
+      return withHistory(state, { ...arch, nodes });
+    });
+  },
+
+  resizePlate: (plateId, newWidth, newDepth, anchorEdge?: ResizeEdge) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const containers = arch.nodes.filter(isContainer);
+      const container = containers.find((candidate) => candidate.id === plateId);
+
+      if (!container) {
+        return state;
+      }
+
+      const minSize =
+        MIN_CONTAINER_SIZE[container.layer as PlateLayerType] ?? MIN_CONTAINER_SIZE.region;
+      const snappedWidth = clampEven(newWidth, minSize.width, MAX_CONTAINER_SIZE.width);
+      const snappedDepth = clampEven(newDepth, minSize.depth, MAX_CONTAINER_SIZE.depth);
+
+      if (container.frame.width === snappedWidth && container.frame.depth === snappedDepth) {
+        return state;
+      }
+
+      const edgeSouth = container.position.x - container.frame.width / 2;
+      const edgeNorth = container.position.x + container.frame.width / 2;
+      const edgeWest = container.position.z - container.frame.depth / 2;
+      const edgeEast = container.position.z + container.frame.depth / 2;
+
+      let nextPositionX = container.position.x;
+      let nextPositionZ = container.position.z;
+
+      if (anchorEdge?.includes('s')) {
+        nextPositionX = edgeSouth + snappedWidth / 2;
+      } else if (anchorEdge?.includes('n')) {
+        nextPositionX = edgeNorth - snappedWidth / 2;
+      }
+
+      if (anchorEdge?.includes('w')) {
+        nextPositionZ = edgeWest + snappedDepth / 2;
+      } else if (anchorEdge?.includes('e')) {
+        nextPositionZ = edgeEast - snappedDepth / 2;
+      }
+
+      const nextFrame = {
+        width: snappedWidth,
+        height: container.frame.height,
+        depth: snappedDepth,
+      };
+
+      const nextProfileId = inferLegacyContainerBlockProfileId({
+        type: container.layer as PlateLayerType,
+        size: { width: nextFrame.width, depth: nextFrame.depth },
+      });
+
+      const resizedPlate: ContainerBlock = {
+        ...container,
+        profileId: nextProfileId,
+        frame: nextFrame,
+        position: {
+          x: nextPositionX,
+          y: container.position.y,
+          z: nextPositionZ,
+        },
+      };
+
+      let nodes = arch.nodes.map((candidate) =>
+        candidate.id === plateId && candidate.kind === 'container' ? resizedPlate : candidate,
+      );
+
+      const finalPlate = nodes.find(
+        (candidate): candidate is ContainerBlock =>
+          candidate.kind === 'container' && candidate.id === plateId,
+      );
+
+      if (!finalPlate) {
+        return state;
+      }
+
+      nodes = nodes.map((candidate) => {
+        if (candidate.kind !== 'container' || candidate.parentId !== plateId) {
+          return candidate;
+        }
+
+        const relPos = {
+          x: candidate.position.x - finalPlate.position.x,
+          z: candidate.position.z - finalPlate.position.z,
+        };
+        const clamped = clampWithinParent(
+          relPos,
+          { width: nextFrame.width, depth: nextFrame.depth },
+          { width: candidate.frame.width, depth: candidate.frame.depth },
+        );
+        return {
+          ...candidate,
+          position: {
+            x: finalPlate.position.x + clamped.x,
+            y: candidate.position.y,
+            z: finalPlate.position.z + clamped.z,
+          },
+        };
+      });
+
+      nodes = nodes.map((candidate) => {
+        if (candidate.kind !== 'resource' || candidate.parentId !== plateId) {
+          return candidate;
+        }
+
+        const clamped = clampWithinParent(
+          { x: candidate.position.x, z: candidate.position.z },
+          { width: nextFrame.width, depth: nextFrame.depth },
           DEFAULT_BLOCK_SIZE,
         );
         return {

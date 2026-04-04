@@ -88,6 +88,12 @@ export interface ArchitectureState {
   renamePlate: (plateId: string, newName: string) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
   setPlateProfile: (plateId: string, profileId: ContainerBlockProfileId) => void;
+  resizePlate: (
+    plateId: string,
+    newWidth: number,
+    newDepth: number,
+    anchorEdge?: 'n' | 'e' | 's' | 'w' | 'ne' | 'se' | 'sw' | 'nw',
+  ) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */

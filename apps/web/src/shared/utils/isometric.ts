@@ -94,6 +94,45 @@ export function screenDeltaToWorld(
   };
 }
 
+export type ResizeEdge = 'n' | 'e' | 's' | 'w' | 'ne' | 'se' | 'sw' | 'nw';
+
+export interface ResizeDelta {
+  dWidth: number;
+  dDepth: number;
+  dPosX: number;
+  dPosZ: number;
+}
+
+export function resizeProjection(
+  dxScreen: number,
+  dyScreen: number,
+  edge: ResizeEdge,
+): ResizeDelta {
+  const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
+  const dx = Math.round(dWorldX);
+  const dz = Math.round(dWorldZ);
+
+  const byEdge: Record<'n' | 'e' | 's' | 'w', ResizeDelta> = {
+    n: { dWidth: dx, dDepth: 0, dPosX: dx / 2, dPosZ: 0 },
+    s: { dWidth: -dx, dDepth: 0, dPosX: dx / 2, dPosZ: 0 },
+    e: { dWidth: 0, dDepth: dz, dPosX: 0, dPosZ: dz / 2 },
+    w: { dWidth: 0, dDepth: -dz, dPosX: 0, dPosZ: dz / 2 },
+  };
+
+  if (edge.length === 1) {
+    return byEdge[edge as 'n' | 'e' | 's' | 'w'];
+  }
+
+  const first = byEdge[edge[0] as 'n' | 'e' | 's' | 'w'];
+  const second = byEdge[edge[1] as 'n' | 'e' | 's' | 'w'];
+  return {
+    dWidth: first.dWidth + second.dWidth,
+    dDepth: first.dDepth + second.dDepth,
+    dPosX: first.dPosX + second.dPosX,
+    dPosZ: first.dPosZ + second.dPosZ,
+  };
+}
+
 /**
  * Z-index / depth key for rendering order (isometric painter's algorithm).
  *
