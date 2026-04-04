@@ -8,13 +8,17 @@
  * 2. External actor overlaps (parentId === null blocks)
  * 3. Same-container overlaps (redundant with placement.ts but included for completeness)
  *
- * Position convention: top-left corner (consistent with validateNoOverlap in placement.ts).
+ * Position convention: CENTER-BASED. All positions are center-of-object offsets
+ * relative to the parent container's center. Bounding boxes are computed as
+ * [center - size/2, center + size/2] on the X-Z plane.
+ *
  * All resource blocks are 2×2×2 CU (medium tier).
  *
  * NOTE: This validator only inspects `architecture.nodes`. External actors
  * are expected to be migrated/mirrored into the nodes array. If that assumption
  * changes, this validator must be extended to also cover `architecture.externalActors`.
  *
+ * @see helpers.ts clampWithinParent — center-based child clamping
  * @see placement.ts validateNoOverlap — same-parent-only overlap check
  * @see CLOUDBLOCKS_SPEC_V2.md §5.2 — tier dimensions
  */
@@ -37,6 +41,15 @@ export interface OverlapViolation {
   message: string;
 }
 
+export interface BoundsViolation {
+  /** The child block/container that falls outside its ancestor */
+  child: { id: string; name: string };
+  /** The ancestor container whose frame the child exceeds */
+  ancestor: { id: string; name: string };
+  /** Human-readable description */
+  message: string;
+}
+
 export interface GlobalBlock {
   id: string;
   name: string;
@@ -51,12 +64,15 @@ export interface GlobalBlock {
 // ─── Core Logic ──────────────────────────────────────────────
 
 /**
- * Compute the global (world) position of a resource block by walking
- * up the container hierarchy and summing positions.
+ * Compute the global (world) position of a resource block.
  *
- * - parentId === null → global = block.position
- * - parent is container → global = parent.globalPosition + block.position
- * - parent is subnet in VNet → global = VNet.position + subnet.position + block.position
+ * Matches runtime semantics from position.ts getBlockWorldPosition():
+ * - parentId === null → global = block.position (external actors)
+ * - has parent → global = immediateParent.position + block.position
+ *
+ * Container positions in templates are ABSOLUTE (world coordinates).
+ * Resource block positions are RELATIVE to their immediate parent container center.
+ * We only add the immediate parent's absolute position — no hierarchy walk needed.
  */
 export function computeGlobalPosition(
   resource: ResourceBlock,
@@ -66,32 +82,19 @@ export function computeGlobalPosition(
     return { ...resource.position };
   }
 
-  // Walk up the container hierarchy, summing positions
-  let globalX = resource.position.x;
-  let globalY = resource.position.y;
-  let globalZ = resource.position.z;
-
-  let currentParentId: string | null = resource.parentId;
-  const visited = new Set<string>();
-
-  while (currentParentId) {
-    if (visited.has(currentParentId)) {
-      // Cyclic parent chain detected — stop walking to avoid infinite loop
-      break;
-    }
-    visited.add(currentParentId);
-
-    const parent = containers.find((c) => c.id === currentParentId);
-    if (!parent) break;
-
-    globalX += parent.position.x;
-    globalY += parent.position.y;
-    globalZ += parent.position.z;
-
-    currentParentId = parent.parentId;
+  // Find immediate parent container (its position is absolute/world coords)
+  const parent = containers.find((c) => c.id === resource.parentId);
+  if (!parent) {
+    // Orphan block — fall back to block position as-is
+    return { ...resource.position };
   }
 
-  return { x: globalX, y: globalY, z: globalZ };
+  // Runtime formula: parent.absolutePosition + block.relativePosition
+  return {
+    x: parent.position.x + resource.position.x,
+    y: parent.position.y + resource.position.y,
+    z: parent.position.z + resource.position.z,
+  };
 }
 
 /**
@@ -99,21 +102,22 @@ export function computeGlobalPosition(
  * Uses strict overlap (not edge-touching): overlap exists when
  * both X and Z ranges have non-zero intersection.
  *
- * Position convention: top-left corner (position.x, position.z is the min corner).
- * Bounding box: [x, x+width] × [z, z+depth]
+ * Position convention: CENTER-BASED. Each GlobalBlock.globalPosition is the
+ * center of the block in world coordinates. Bounding box is computed as
+ * [center - size/2, center + size/2].
  *
  * @returns overlap area in CU², or 0 if no overlap
  */
 export function computeOverlapArea(a: GlobalBlock, b: GlobalBlock): number {
-  const ax1 = a.globalPosition.x;
-  const az1 = a.globalPosition.z;
-  const ax2 = ax1 + a.width;
-  const az2 = az1 + a.depth;
+  const ax1 = a.globalPosition.x - a.width / 2;
+  const az1 = a.globalPosition.z - a.depth / 2;
+  const ax2 = a.globalPosition.x + a.width / 2;
+  const az2 = a.globalPosition.z + a.depth / 2;
 
-  const bx1 = b.globalPosition.x;
-  const bz1 = b.globalPosition.z;
-  const bx2 = bx1 + b.width;
-  const bz2 = bz1 + b.depth;
+  const bx1 = b.globalPosition.x - b.width / 2;
+  const bz1 = b.globalPosition.z - b.depth / 2;
+  const bx2 = b.globalPosition.x + b.width / 2;
+  const bz2 = b.globalPosition.z + b.depth / 2;
 
   const overlapX = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
   const overlapZ = Math.max(0, Math.min(az2, bz2) - Math.max(az1, bz1));
@@ -170,16 +174,12 @@ export function validateTemplateOverlaps(
       const a = globalBlocks[i];
       const b = globalBlocks[j];
 
-      // If minGap > 0, expand bounding boxes by minGap/2 on each side
+      // If minGap > 0, expand bounding boxes by minGap/2 on each side.
+      // Center-based: just increase width/depth by minGap (expands equally from center).
       const effectiveA: GlobalBlock =
         minGap > 0
           ? {
               ...a,
-              globalPosition: {
-                x: a.globalPosition.x - minGap / 2,
-                y: a.globalPosition.y,
-                z: a.globalPosition.z - minGap / 2,
-              },
               width: a.width + minGap,
               depth: a.depth + minGap,
             }
@@ -188,11 +188,6 @@ export function validateTemplateOverlaps(
         minGap > 0
           ? {
               ...b,
-              globalPosition: {
-                x: b.globalPosition.x - minGap / 2,
-                y: b.globalPosition.y,
-                z: b.globalPosition.z - minGap / 2,
-              },
               width: b.width + minGap,
               depth: b.depth + minGap,
             }
@@ -212,6 +207,101 @@ export function validateTemplateOverlaps(
             `(${b.globalPosition.x}, ${b.globalPosition.z})`,
         });
       }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Container Bounds Validation ─────────────────────────────
+
+/**
+ * Validate that all descendant blocks and containers fall within
+ * their ancestor container's frame bounds on the X-Z plane.
+ *
+ * Position convention: CENTER-BASED. All positions are center offsets
+ * relative to parent center. A child at position (cx, cz) relative to
+ * parent center is within bounds when:
+ *   |cx| <= parentFrame.width/2 - childSize.width/2
+ *   |cz| <= parentFrame.depth/2 - childSize.depth/2
+ *
+ * This mirrors the clampWithinParent() logic in helpers.ts.
+ *
+ * @param template - The architecture template to validate
+ * @returns Array of bounds violations (empty = all within bounds = pass)
+ */
+export function validateContainerBounds(template: ArchitectureTemplate): BoundsViolation[] {
+  const violations: BoundsViolation[] = [];
+  const nodes = template.architecture.nodes;
+  const containers = nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+
+  // Check child containers fit within parent containers (center-based).
+  // Container positions are absolute in the template, so the relative offset
+  // must be computed as child.position - parent.position.
+  for (const child of containers) {
+    if (!child.parentId || !child.frame) continue;
+    const parent = containers.find((c) => c.id === child.parentId);
+    if (!parent?.frame) continue;
+
+    // Compute relative offset: child absolute - parent absolute
+    const relX = child.position.x - parent.position.x;
+    const relZ = child.position.z - parent.position.z;
+
+    // Allowed range: ±(parentFrame/2 - childFrame/2)
+    const allowedHalfX = parent.frame.width / 2 - child.frame.width / 2;
+    const allowedHalfZ = parent.frame.depth / 2 - child.frame.depth / 2;
+
+    if (
+      relX < -allowedHalfX ||
+      relX > allowedHalfX ||
+      relZ < -allowedHalfZ ||
+      relZ > allowedHalfZ
+    ) {
+      violations.push({
+        child: { id: child.id, name: child.name },
+        ancestor: { id: parent.id, name: parent.name },
+        message:
+          `Container "${child.name}" (${child.id}) relative offset ` +
+          `(${relX}, ${relZ}) exceeds allowed range ` +
+          `[${-allowedHalfX}, ${allowedHalfX}] × [${-allowedHalfZ}, ${allowedHalfZ}] ` +
+          `in parent "${parent.name}" (${parent.id})`,
+      });
+    }
+  }
+
+  // Check resource blocks fit within their direct parent container (center-based)
+  for (const resource of resources) {
+    if (!resource.parentId) continue; // external actors have no container
+
+    const parent = containers.find((c) => c.id === resource.parentId);
+    if (!parent?.frame) continue;
+
+    const tier = CATEGORY_TIER_MAP[resource.category] ?? 'medium';
+    const dims = TIER_DIMENSIONS[tier];
+
+    // Resource position is center-offset relative to parent center.
+    // Allowed range: ±(parentFrame/2 - blockSize/2)
+    const allowedHalfX = parent.frame.width / 2 - dims.width / 2;
+    const allowedHalfZ = parent.frame.depth / 2 - dims.depth / 2;
+    const relX = resource.position.x;
+    const relZ = resource.position.z;
+
+    if (
+      relX < -allowedHalfX ||
+      relX > allowedHalfX ||
+      relZ < -allowedHalfZ ||
+      relZ > allowedHalfZ
+    ) {
+      violations.push({
+        child: { id: resource.id, name: resource.name },
+        ancestor: { id: parent.id, name: parent.name },
+        message:
+          `Block "${resource.name}" (${resource.id}) center offset ` +
+          `(${relX}, ${relZ}) exceeds allowed range ` +
+          `[${-allowedHalfX}, ${allowedHalfX}] × [${-allowedHalfZ}, ${allowedHalfZ}] ` +
+          `in container "${parent.name}" (${parent.id})`,
+      });
     }
   }
 

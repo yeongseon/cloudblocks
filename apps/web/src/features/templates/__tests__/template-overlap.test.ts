@@ -7,6 +7,7 @@ import {
   computeOverlapArea,
   resolveGlobalBlocks,
   validateTemplateOverlaps,
+  validateContainerBounds,
 } from '../validateTemplateOverlaps';
 
 // ─── Test Helpers ────────────────────────────────────────────
@@ -90,7 +91,7 @@ describe('computeGlobalPosition', () => {
     expect(result).toEqual({ x: 3, y: 0.5, z: -2 });
   });
 
-  it('sums positions through VNet + Subnet hierarchy', () => {
+  it('adds immediate parent position (VNet at origin, subnet offset)', () => {
     const vnet = makeContainer('vnet', null, { x: 0, y: 0, z: 0 });
     const subnet = makeContainer('subnet', 'vnet', { x: 4, y: 0.3, z: 0 });
     const resource = makeResource('block-1', 'subnet', { x: -1.5, y: 0.5, z: -2 });
@@ -98,12 +99,16 @@ describe('computeGlobalPosition', () => {
     expect(result).toEqual({ x: 2.5, y: 0.8, z: -2 });
   });
 
-  it('handles offset VNet position', () => {
+  it('adds immediate parent position only (no hierarchy walk)', () => {
+    // Runtime semantics: worldPos = immediateParent.absolutePos + block.relativePos
+    // VNet at (5,0,3), subnet at (2,0.3,1). Block in subnet → adds subnet only.
     const vnet = makeContainer('vnet', null, { x: 5, y: 0, z: 3 });
     const subnet = makeContainer('subnet', 'vnet', { x: 2, y: 0.3, z: 1 });
     const resource = makeResource('block-1', 'subnet', { x: 1, y: 0.5, z: 1 });
     const result = computeGlobalPosition(resource, [vnet, subnet]);
-    expect(result).toEqual({ x: 8, y: 0.8, z: 5 });
+    // Only immediate parent (subnet) position is added:
+    // x: 2+1=3, y: 0.3+0.5=0.8, z: 1+1=2
+    expect(result).toEqual({ x: 3, y: 0.8, z: 2 });
   });
 
   it('handles block directly in VNet (no subnet)', () => {
@@ -119,13 +124,14 @@ describe('computeGlobalPosition', () => {
     expect(result).toEqual({ x: 5, y: 0, z: 5 });
   });
 
-  it('handles deeply nested containers (3+ levels)', () => {
+  it('handles deeply nested containers (only adds immediate parent)', () => {
     const root = makeContainer('root', null, { x: 1, y: 0, z: 1 });
     const mid = makeContainer('mid', 'root', { x: 2, y: 0, z: 2 });
     const leaf = makeContainer('leaf', 'mid', { x: 3, y: 0, z: 3 });
     const resource = makeResource('block-1', 'leaf', { x: 4, y: 0, z: 4 });
     const result = computeGlobalPosition(resource, [root, mid, leaf]);
-    expect(result).toEqual({ x: 10, y: 0, z: 10 });
+    // Only immediate parent (leaf) position added: 3+4=7, 0+0=0, 3+4=7
+    expect(result).toEqual({ x: 7, y: 0, z: 7 });
   });
 });
 
@@ -543,6 +549,198 @@ describe('builtin template overlap quality gate', () => {
         const details = violations.map((v) => `  - ${v.message}`).join('\n');
         throw new Error(
           `Template "${template.name}" (${template.id}) has ${violations.length} near-overlap(s) (< 0.5 CU gap):\n${details}`,
+        );
+      }
+    }
+  });
+});
+
+// ─── validateContainerBounds ────────────────────────────────────
+
+describe('validateContainerBounds', () => {
+  // Container frame: 10×10. Block dims: 2×2 (medium tier).
+  // Allowed block center range: ±(10/2 - 2/2) = ±4 on X and Z.
+
+  it('returns empty for blocks within container bounds', () => {
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: 3, y: 0.5, z: 3 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('detects block outside container on X axis (center offset exceeds allowed half)', () => {
+    // Allowed X range: ±4. Block at x=5 exceeds +4.
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: 5, y: 0.5, z: 0 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].child.id).toBe('block-1');
+    expect(violations[0].ancestor.id).toBe('vnet');
+  });
+
+  it('detects block outside container on negative X axis', () => {
+    // Allowed X range: ±4. Block at x=-5 exceeds -4.
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: -5, y: 0.5, z: 0 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].child.id).toBe('block-1');
+  });
+
+  it('detects block outside container on Z axis', () => {
+    // Allowed Z range: ±4. Block at z=5 exceeds +4.
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: 0, y: 0.5, z: 5 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].child.id).toBe('block-1');
+  });
+
+  it('detects subnet exceeding parent container bounds', () => {
+    // VNet frame 10×10. Subnet frame 6×10.
+    // Allowed subnet X range: ±(10/2 - 6/2) = ±2. Subnet at x=3 exceeds +2.
+    const vnet = makeContainer('vnet', null, { x: 0, y: 0, z: 0 });
+    const subnet = {
+      ...makeContainer('subnet', 'vnet', { x: 3, y: 0.3, z: 0 }),
+      frame: { width: 6, height: 0.2, depth: 10 },
+    };
+    const template = makeTemplate([vnet, subnet as ContainerBlock]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].child.id).toBe('subnet');
+    expect(violations[0].ancestor.id).toBe('vnet');
+  });
+
+  it('allows subnet within parent container bounds', () => {
+    // Allowed subnet X range: ±2. Subnet at x=2 is exactly at boundary.
+    const vnet = makeContainer('vnet', null, { x: 0, y: 0, z: 0 });
+    const subnet = {
+      ...makeContainer('subnet', 'vnet', { x: 2, y: 0.3, z: 0 }),
+      frame: { width: 6, height: 0.2, depth: 10 },
+    };
+    const template = makeTemplate([vnet, subnet as ContainerBlock]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('checks resource block against direct parent only', () => {
+    // VNet frame 10×10, Subnet at (0, 0.3, 0) frame 6×6.
+    // Block in subnet at (4, 0.5, 0). Allowed range in subnet: ±(6/2 - 2/2) = ±2.
+    // 4 > 2 → violation against subnet.
+    const vnet = makeContainer('vnet', null, { x: 0, y: 0, z: 0 });
+    const subnet = {
+      ...makeContainer('subnet', 'vnet', { x: 0, y: 0.3, z: 0 }),
+      frame: { width: 6, height: 0.2, depth: 6 },
+    };
+    const block = makeResource('block-1', 'subnet', { x: 4, y: 0.5, z: 0 });
+    const template = makeTemplate([vnet, subnet as ContainerBlock, block]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].ancestor.id).toBe('subnet');
+  });
+
+  it('skips external actors (parentId === null)', () => {
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('ext-browser', null, { x: -14, y: 0, z: -3 }, {
+        resourceType: 'browser',
+        category: 'delivery',
+        roles: ['external'],
+      } as Partial<ResourceBlock>),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('allows block exactly at container boundary (center-based edge)', () => {
+    // Allowed block center range: ±4. Block at (4, 0.5, -4) is exactly at boundary.
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: 4, y: 0.5, z: -4 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('includes human-readable message in violation', () => {
+    const template = makeTemplate([
+      makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      makeResource('block-1', 'vnet', { x: 5, y: 0.5, z: 0 }),
+    ]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].message).toContain('block-1');
+    expect(violations[0].message).toContain('vnet');
+    expect(violations[0].message).toContain('exceeds');
+  });
+
+  it('validates real template coords: VNet(16×14) with Subnet at x=-4, frame 6×5', () => {
+    // Matches three-tier template. Allowed subnet X: ±(16/2 - 6/2) = ±5.
+    // Subnet at x=-4: |-4| = 4 <= 5 ✓
+    // Allowed subnet Z: ±(14/2 - 5/2) = ±4.5. Subnet at z=0: |0| = 0 <= 4.5 ✓
+    const vnet = {
+      ...makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      frame: { width: 16, height: 0.3, depth: 14 },
+    } as ContainerBlock;
+    const subnet = {
+      ...makeContainer('subnet', 'vnet', { x: -4, y: 0.3, z: 0 }),
+      frame: { width: 6, height: 0.2, depth: 5 },
+    } as ContainerBlock;
+    // Block in subnet: allowed X: ±(6/2 - 2/2) = ±2. |-1.5| = 1.5 <= 2 ✓
+    // Block in subnet: allowed Z: ±(5/2 - 2/2) = ±1.5.
+    // Use z=-1.5 to stay exactly at boundary.
+    const block = makeResource('gw', 'subnet', { x: -1.5, y: 0.5, z: -1.5 });
+    const template = makeTemplate([vnet, subnet, block]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('catches out-of-bounds block in real template dimensions', () => {
+    // Subnet frame 6×5. Block dims 2×2.
+    // Allowed Z: ±(5/2 - 2/2) = ±1.5. Block at z=-2: |-2| > 1.5 → violation.
+    const vnet = {
+      ...makeContainer('vnet', null, { x: 0, y: 0, z: 0 }),
+      frame: { width: 16, height: 0.3, depth: 14 },
+    } as ContainerBlock;
+    const subnet = {
+      ...makeContainer('subnet', 'vnet', { x: -4, y: 0.3, z: 0 }),
+      frame: { width: 6, height: 0.2, depth: 5 },
+    } as ContainerBlock;
+    const block = makeResource('gw', 'subnet', { x: -1.5, y: 0.5, z: -2 });
+    const template = makeTemplate([vnet, subnet, block]);
+    const violations = validateContainerBounds(template);
+    expect(violations).toHaveLength(1);
+    expect(violations[0].child.id).toBe('gw');
+    expect(violations[0].ancestor.id).toBe('subnet');
+  });
+});
+
+// ─── Quality Gate: ALL Builtin Templates Container Bounds ───────
+
+describe('builtin template bounds quality gate', () => {
+  it('all 6 builtin templates have all blocks within container bounds', async () => {
+    const { registerBuiltinTemplates } = await import('../builtin');
+    const { listTemplates } = await import('../registry');
+
+    registerBuiltinTemplates();
+
+    const templates = listTemplates();
+    expect(templates).toHaveLength(6);
+
+    for (const template of templates) {
+      const violations = validateContainerBounds(template);
+      if (violations.length > 0) {
+        const details = violations.map((v) => `  - ${v.message}`).join('\n');
+        throw new Error(
+          `Template "${template.name}" (${template.id}) has ${violations.length} bounds violation(s):\n${details}`,
         );
       }
     }

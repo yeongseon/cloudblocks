@@ -242,9 +242,9 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         <div className="container-img" aria-hidden="true">
           <ContainerBlockSvg
             containerLayer={containerLayer}
-            unitsX={profile.unitsX}
-            unitsY={profile.unitsY}
-            worldHeight={profile.worldHeight}
+            unitsX={container.frame ? container.frame.width : profile.unitsX}
+            unitsY={container.frame ? container.frame.depth : profile.unitsY}
+            worldHeight={container.frame ? container.frame.height : profile.worldHeight}
             topFaceColor={faceColors.topFaceColor}
             topFaceStroke={faceColors.topFaceStroke}
             leftSideColor={faceColors.leftSideColor}
