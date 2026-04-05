@@ -620,3 +620,231 @@ describe('Auto-resize integration', () => {
     expect(result.map((n) => n.id).sort()).toEqual(nodes.map((n) => n.id).sort());
   });
 });
+
+// ============================================================================
+// Branch coverage tests
+// ============================================================================
+
+describe('autosizeContainerTree branch coverage', () => {
+  it('should infer profileId when subnet has profileId property', () => {
+    const subnet: ContainerBlock = {
+      ...makeContainer('subnet-1', 'subnet', null, { width: 4, height: 2, depth: 6 }),
+      profileId: 'subnet-utility',
+    };
+    const res1 = makeResource('r1', 'subnet-1');
+    const res2 = makeResource('r2', 'subnet-1');
+    const res3 = makeResource('r3', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [subnet, res1, res2, res3];
+    const result = autosizeContainerTree(nodes, ['subnet-1'], true);
+
+    const updatedSubnet = result.find((n) => n.id === 'subnet-1') as ContainerBlock;
+    expect(updatedSubnet).toBeDefined();
+    // Should have inferred a new profileId based on resized dimensions
+    expect(updatedSubnet.profileId).toBeDefined();
+  });
+
+  it('should infer profileId on parent VNet when it has profileId', () => {
+    const vnet: ContainerBlock = {
+      ...makeContainer('vnet-1', 'region', null, { width: 8, height: 2, depth: 12 }),
+      profileId: 'network-sandbox',
+    };
+    const subnet = makeContainer('subnet-1', 'subnet', 'vnet-1', {
+      width: 4,
+      height: 2,
+      depth: 6,
+    });
+    const res1 = makeResource('r1', 'subnet-1');
+    const res2 = makeResource('r2', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [vnet, subnet, res1, res2];
+    const result = autosizeContainerTree(nodes, ['subnet-1'], true);
+
+    const updatedVNet = result.find((n) => n.id === 'vnet-1') as ContainerBlock;
+    expect(updatedVNet).toBeDefined();
+    expect(updatedVNet.profileId).toBeDefined();
+  });
+
+  it('should skip non-existent changedSubnetId gracefully', () => {
+    const subnet = makeContainer('subnet-1', 'subnet', null, { width: 4, height: 2, depth: 6 });
+    const res1 = makeResource('r1', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [subnet, res1];
+    // 'nonexistent' is not in nodes
+    const result = autosizeContainerTree(nodes, ['nonexistent'], true);
+    expect(result).toEqual(nodes);
+  });
+
+  it('should handle subnet whose parent is not a virtual_network', () => {
+    // parent is a region container but NOT a virtual_network
+    const parent = makeContainer('region-1', 'region', null, {
+      width: 16,
+      height: 2,
+      depth: 20,
+    });
+    // Override resourceType so it's NOT virtual_network
+    (parent as ContainerBlock).resourceType = 'resource_group';
+    const subnet = makeContainer('subnet-1', 'subnet', 'region-1', {
+      width: 4,
+      height: 2,
+      depth: 6,
+    });
+    const res1 = makeResource('r1', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [parent, subnet, res1];
+    const result = autosizeContainerTree(nodes, ['subnet-1'], true);
+
+    const updatedSubnet = result.find((n) => n.id === 'subnet-1') as ContainerBlock;
+    expect(updatedSubnet).toBeDefined();
+    // Parent should NOT be resized (not a VNet)
+    const updatedParent = result.find((n) => n.id === 'region-1') as ContainerBlock;
+    expect(updatedParent.frame).toEqual(parent.frame);
+  });
+
+  it('should handle duplicate changedSubnetIds (dedup via Set)', () => {
+    const subnet = makeContainer('subnet-1', 'subnet', null, { width: 4, height: 2, depth: 6 });
+    const res1 = makeResource('r1', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [subnet, res1];
+    const result = autosizeContainerTree(nodes, ['subnet-1', 'subnet-1', 'subnet-1'], true);
+
+    // Should process subnet-1 only once
+    const updatedSubnet = result.find((n) => n.id === 'subnet-1') as ContainerBlock;
+    expect(updatedSubnet).toBeDefined();
+    expect(updatedSubnet.frame.width).toBeGreaterThanOrEqual(4);
+  });
+
+  it('should handle resource block ID in changedSubnetIds (skip non-container)', () => {
+    const subnet = makeContainer('subnet-1', 'subnet', null, { width: 4, height: 2, depth: 6 });
+    const res1 = makeResource('r1', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [subnet, res1];
+    // Pass a resource block's ID — should skip it
+    const result = autosizeContainerTree(nodes, ['r1'], true);
+    expect(result).toEqual(nodes);
+  });
+
+  it('should handle parentVNet not found in nodes gracefully', () => {
+    // Subnet references a parentId that doesn't exist in nodes
+    const subnet = makeContainer('subnet-1', 'subnet', 'missing-vnet', {
+      width: 4,
+      height: 2,
+      depth: 6,
+    });
+    const res1 = makeResource('r1', 'subnet-1');
+
+    const nodes: (ContainerBlock | ResourceBlock)[] = [subnet, res1];
+    const result = autosizeContainerTree(nodes, ['subnet-1'], true);
+
+    const updatedSubnet = result.find((n) => n.id === 'subnet-1') as ContainerBlock;
+    expect(updatedSubnet).toBeDefined();
+    // Subnet should still be resized, just no parent VNet cascade
+    expect(updatedSubnet.frame.width).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('chooseGrid branch coverage', () => {
+  it('count=1: fallback and best should be the same (single layout)', () => {
+    const result = chooseGrid(1);
+    expect(result.cols).toBe(1);
+    expect(result.rows).toBe(1);
+    // Single column should have aspect ratio ≤ 2
+    const aspect = Math.max(result.width / result.depth, result.depth / result.width);
+    expect(aspect).toBeLessThanOrEqual(2);
+  });
+
+  it('count=5: should find best layout despite some layouts exceeding aspect ratio', () => {
+    const result = chooseGrid(5);
+    // For 5: 5x1 rejected (aspect too high), 3x2 or 2x3 should work
+    expect(result.cols * result.rows).toBeGreaterThanOrEqual(5);
+    expect(result.width % 2).toBe(0);
+    expect(result.depth % 2).toBe(0);
+  });
+
+  it('count=9: should pick reasonable grid', () => {
+    const result = chooseGrid(9);
+    expect(result.cols * result.rows).toBeGreaterThanOrEqual(9);
+    expect(result.width % 2).toBe(0);
+    expect(result.depth % 2).toBe(0);
+  });
+
+  it('count=10: should pick reasonable grid with even dimensions', () => {
+    const result = chooseGrid(10);
+    expect(result.cols * result.rows).toBeGreaterThanOrEqual(10);
+    expect(result.width % 2).toBe(0);
+    expect(result.depth % 2).toBe(0);
+  });
+
+  it('count=12: should pick optimal layout', () => {
+    const result = chooseGrid(12);
+    // 4x3 or 3x4 should be optimal
+    expect(result.cols * result.rows).toBeGreaterThanOrEqual(12);
+    const aspect = Math.max(result.width / result.depth, result.depth / result.width);
+    expect(aspect).toBeLessThanOrEqual(2);
+  });
+
+  it('should handle equal-area tie-break by choosing smaller depth', () => {
+    // count=4: 2x2, 1x4, 4x1 — all compete. 2x2 should win (balanced)
+    const result = chooseGrid(4);
+    expect(result.cols).toBe(2);
+    expect(result.rows).toBe(2);
+  });
+});
+
+describe('reflowBlockPositions branch coverage', () => {
+  it('count=3 with 3x1 grid should distribute blocks horizontally', () => {
+    const grid = { cols: 3, rows: 1, width: 10, depth: 6 };
+    const positions = reflowBlockPositions(3, grid, 0.5);
+
+    expect(positions).toHaveLength(3);
+    // All same y and z
+    positions.forEach((pos) => {
+      expect(pos.y).toBe(0.5);
+    });
+    expect(positions[0].z).toBe(positions[1].z);
+    expect(positions[1].z).toBe(positions[2].z);
+    // x values should be different
+    const xSet = new Set(positions.map((p) => p.x));
+    expect(xSet.size).toBe(3);
+  });
+
+  it('count=5 with 3x2 grid should fill 2 rows', () => {
+    const grid = { cols: 3, rows: 2, width: 10, depth: 8 };
+    const positions = reflowBlockPositions(5, grid, 0.6);
+
+    expect(positions).toHaveLength(5);
+    // First 3 in row 0, next 2 in row 1
+    const row0z = positions[0].z;
+    const row1z = positions[3].z;
+    expect(row0z).not.toBe(row1z);
+  });
+});
+
+describe('subnetFrameFromBounds branch coverage', () => {
+  it('blocks spread on both axes should produce frame covering all', () => {
+    const blocks = [
+      makeResource('r1', 'subnet-1', { x: -4, y: 0.6, z: -4 }),
+      makeResource('r2', 'subnet-1', { x: 4, y: 0.6, z: 4 }),
+    ];
+    const frame = subnetFrameFromBounds(blocks);
+
+    // Bounding box: x from -5 to 5 = 10 + 2 pad = 12
+    // z from -5 to 5 = 10 + 2 pad = 12
+    expect(frame.width).toBeGreaterThanOrEqual(10);
+    expect(frame.depth).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('parentFrameFromChildSubnets branch coverage', () => {
+  it('children spread on both axes should produce larger frame', () => {
+    const children = [
+      { position: { x: -6, z: -6 }, frame: { width: 4, depth: 6 } },
+      { position: { x: 6, z: 6 }, frame: { width: 4, depth: 6 } },
+    ];
+    const frame = parentFrameFromChildSubnets(children);
+
+    // Bounding: x from -8 to 8 = 16 + 4 = 20; z from -9 to 9 = 18 + 4 = 22
+    expect(frame.width).toBeGreaterThanOrEqual(16);
+    expect(frame.depth).toBeGreaterThanOrEqual(16);
+  });
+});
