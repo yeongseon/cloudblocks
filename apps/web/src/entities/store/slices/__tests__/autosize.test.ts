@@ -683,7 +683,7 @@ describe('autosizeContainerTree branch coverage', () => {
       depth: 20,
     });
     // Override resourceType so it's NOT virtual_network
-    (parent as ContainerBlock).resourceType = 'resource_group';
+    (parent as ContainerBlock).resourceType = 'subnet';
     const subnet = makeContainer('subnet-1', 'subnet', 'region-1', {
       width: 4,
       height: 2,
