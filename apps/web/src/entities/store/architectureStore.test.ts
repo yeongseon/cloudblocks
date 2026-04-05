@@ -1303,7 +1303,7 @@ describe('architectureStore', () => {
   });
 
   describe('moveBlockPosition', () => {
-    it('moves a block and clamps it within parent container bounds', () => {
+    it('moves a block without clamping in parent container', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
@@ -1314,8 +1314,8 @@ describe('architectureStore', () => {
       getState().moveBlockPosition(blockId, 100, -100);
 
       const moved = getArch().blocks.find((block) => block.id === blockId);
-      expect(moved?.position.x).toBe(1.8);
-      expect(moved?.position.z).toBe(-2.8);
+      expect(moved?.position.x).toBe(100);
+      expect(moved?.position.z).toBe(-100);
     });
 
     it('no-ops when moving a block whose parent container is missing', () => {
