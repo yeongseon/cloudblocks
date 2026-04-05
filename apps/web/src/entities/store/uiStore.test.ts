@@ -261,6 +261,18 @@ describe('useUIStore', () => {
       expect(log[0].message).toBe('entry-5');
       expect(log[199].message).toBe('entry-204');
     });
+
+    it('falls back to Math.random id when crypto.randomUUID is unavailable', () => {
+      vi.stubGlobal('crypto', { randomUUID: undefined } as unknown as Crypto);
+      try {
+        useUIStore.getState().appendLog({ level: 'info', message: 'fallback-id' });
+        const [entry] = useUIStore.getState().activityLog;
+        expect(entry.id).toBeTypeOf('string');
+        expect(entry.id.length).toBeGreaterThan(0);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
   });
 
   describe('setSelectedId', () => {
@@ -318,6 +330,32 @@ describe('useUIStore', () => {
       useUIStore.getState().setSelectedId('a');
       useUIStore.getState().addToSelection('b');
       expect(useUIStore.getState().selectedId).toBe('a');
+    });
+
+    it('addToSelection does not open drawer when selection grows beyond one', () => {
+      useUIStore.setState({
+        selectedId: 'a',
+        selectedIds: new Set(['a']),
+        drawer: { isOpen: false, activePanel: null },
+      });
+
+      useUIStore.getState().addToSelection('b');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
+    });
+
+    it('addToSelection uses null fallback when iterator yields undefined', () => {
+      const valuesSpy = vi.spyOn(Set.prototype, 'values').mockImplementation(function () {
+        return [undefined][Symbol.iterator]() as unknown as IterableIterator<string>;
+      });
+
+      try {
+        useUIStore.getState().addToSelection('a');
+        expect(useUIStore.getState().selectedIds.size).toBe(1);
+        expect(useUIStore.getState().selectedId).toBe(null);
+      } finally {
+        valuesSpy.mockRestore();
+      }
     });
 
     it('removeFromSelection removes an id from the set', () => {
@@ -378,6 +416,20 @@ describe('useUIStore', () => {
       const state = useUIStore.getState();
       // selectedId should be one of the ids in the set
       expect(state.selectedIds.has(state.selectedId!)).toBe(true);
+    });
+
+    it('setSelectedIds uses null fallback when iterator yields undefined', () => {
+      const valuesSpy = vi.spyOn(Set.prototype, 'values').mockImplementation(function () {
+        return [undefined][Symbol.iterator]() as unknown as IterableIterator<string>;
+      });
+
+      try {
+        useUIStore.getState().setSelectedIds(['x']);
+        expect(useUIStore.getState().selectedIds.size).toBe(1);
+        expect(useUIStore.getState().selectedId).toBe(null);
+      } finally {
+        valuesSpy.mockRestore();
+      }
     });
 
     it('setSelectedIds with empty array clears selection', () => {
@@ -1302,6 +1354,48 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showPorts).toBe(false);
       expect(localStorage.getItem('cloudblocks:show-ports')).toBe('false');
       expect(localStorage.getItem('cloudblocks:show-studs')).toBe(null);
+    });
+
+    it('reads and migrates legacy show-studs key at module initialization', async () => {
+      localStorage.setItem('cloudblocks:show-studs', 'false');
+      localStorage.removeItem('cloudblocks:show-ports');
+
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+
+      expect(reloadedUIStore.getState().showPorts).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('false');
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe(null);
+    });
+
+    it('reads show-ports key at module initialization when present', async () => {
+      localStorage.removeItem('cloudblocks:show-studs');
+      localStorage.setItem('cloudblocks:show-ports', 'false');
+
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+
+      expect(reloadedUIStore.getState().showPorts).toBe(false);
+    });
+  });
+
+  describe('triggerSnapAnimation', () => {
+    it('does not mutate state when target id is already removed before timeout', () => {
+      vi.useFakeTimers();
+      try {
+        useUIStore.getState().triggerSnapAnimation('block-1');
+
+        useUIStore.setState((state) => {
+          const next = new Set(state.snapTargetBlockIds);
+          next.delete('block-1');
+          return { snapTargetBlockIds: next };
+        });
+
+        vi.advanceTimersByTime(500);
+        expect(useUIStore.getState().snapTargetBlockIds.has('block-1')).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

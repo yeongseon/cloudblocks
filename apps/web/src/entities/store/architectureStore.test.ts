@@ -215,6 +215,101 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('unified node API', () => {
+    it('addNode adds container and resource nodes', () => {
+      getState().addNode({
+        kind: 'container',
+        layer: 'region',
+        resourceType: 'virtual_network',
+        name: 'Node VNet',
+        parentId: null,
+      });
+      const plateId = getArch().plates[0].id;
+
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'web_compute',
+        name: 'Node VM',
+        parentId: plateId,
+      });
+
+      expect(getArch().plates).toHaveLength(1);
+      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks[0].category).toBe('compute');
+    });
+
+    it('addNode falls back to compute category for unknown resource type', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'totally_unknown_type',
+        name: 'Fallback VM',
+        parentId: plateId,
+      });
+
+      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks[0].category).toBe('compute');
+      expect(getArch().blocks[0].resourceType).toBe('totally_unknown_type');
+    });
+
+    it('removeNode cascades for container by default and removes only target resource nodes', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+      getState().addBlock('compute', 'VM', plateId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().removeNode(blockId);
+      expect(getArch().blocks).toHaveLength(0);
+
+      getState().removeNode(plateId);
+      expect(getArch().plates).toHaveLength(0);
+    });
+
+    it('removeNode with cascade false does not remove container', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().removeNode(plateId, { cascade: false });
+      expect(getArch().plates).toHaveLength(1);
+      expect(getArch().plates[0].id).toBe(plateId);
+    });
+
+    it('renameNode and moveNodePosition handle both containers and resources', () => {
+      getState().addPlate('region', 'Old Region', null);
+      const plateId = getArch().plates[0].id;
+      getState().addBlock('compute', 'Old VM', plateId);
+      const blockId = getArch().blocks[0].id;
+      const originalBlockPosition = { ...getArch().blocks[0].position };
+
+      getState().renameNode(plateId, 'New Region');
+      getState().renameNode(blockId, 'New VM');
+      getState().moveNodePosition(plateId, 2, 1);
+      getState().moveNodePosition(blockId, 1, 1);
+
+      const renamedPlate = getArch().plates.find((plate) => plate.id === plateId);
+      const renamedBlock = getArch().blocks.find((block) => block.id === blockId);
+      expect(renamedPlate?.name).toBe('New Region');
+      expect(renamedBlock?.name).toBe('New VM');
+      expect(renamedPlate?.position).toEqual({ x: 2, y: 0, z: 1 });
+      expect(renamedBlock?.position).not.toEqual(originalBlockPosition);
+    });
+
+    it('updateNodeMetadata updates existing node and no-ops for missing node', () => {
+      getState().addPlate('region', 'Meta Region', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().updateNodeMetadata(plateId, 'owner', 'team-a');
+      expect(getArch().plates[0].metadata.owner).toBe('team-a');
+
+      const beforeMissingUpdate = getState().workspace.architecture;
+      getState().updateNodeMetadata('missing-node', 'owner', 'team-b');
+      expect(getState().workspace.architecture).toBe(beforeMissingUpdate);
+      expect(getArch().plates[0].metadata.owner).toBe('team-a');
+    });
+  });
+
   // ── ContainerBlock actions ──
 
   describe('addPlate', () => {

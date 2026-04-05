@@ -221,8 +221,12 @@ export function GitHubSync() {
       await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
         github_repo: null,
       });
-    } catch {
-      // Best-effort: local state is already cleared
+    } catch (err: unknown) {
+      // Best-effort: local state is already cleared, but warn in console
+      console.warn(
+        'Failed to clear github_repo on backend:',
+        getApiErrorMessage(err, 'Unknown error'),
+      );
     }
   };
 

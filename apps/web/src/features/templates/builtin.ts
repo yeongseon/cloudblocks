@@ -998,7 +998,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: -4, y: 0.5, z: 3 },
+        position: { x: -4, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1011,7 +1011,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.5, z: 3 },
+        position: { x: 0, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1024,7 +1024,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: 4, y: 0.5, z: 3 },
+        position: { x: 4, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1037,7 +1037,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'service-bus',
         parentId: 'container-fs-vnet',
-        position: { x: -3, y: 0.5, z: -3 },
+        position: { x: -3, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -1050,7 +1050,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'event-grid',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.5, z: -3 },
+        position: { x: 0, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -1063,7 +1063,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'timer-trigger',
         parentId: 'container-fs-vnet',
-        position: { x: 3, y: 0.5, z: -3 },
+        position: { x: 3, y: 0.5, z: -5 },
         metadata: {},
       },
       {
