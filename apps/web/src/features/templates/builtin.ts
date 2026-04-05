@@ -53,7 +53,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 14 },
+        frame: { width: 16, height: 1.0, depth: 14 },
         metadata: {},
       },
       {
@@ -66,7 +66,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet',
         position: { x: -5, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -79,7 +79,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet',
         position: { x: 0, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -92,7 +92,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet',
         position: { x: 5, y: 0.3, z: 0 },
-        frame: { width: 6, height: 0.2, depth: 5 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -237,7 +237,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 14 },
+        frame: { width: 16, height: 1.0, depth: 14 },
         metadata: {},
       },
       {
@@ -250,7 +250,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet2',
         position: { x: -4, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -263,7 +263,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet2',
         position: { x: 4, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -370,7 +370,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 14 },
+        frame: { width: 16, height: 1.0, depth: 14 },
         metadata: {},
       },
       {
@@ -383,7 +383,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet3',
         position: { x: -5, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -396,7 +396,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet3',
         position: { x: 0, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -409,7 +409,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet3',
         position: { x: 5, y: 0.3, z: 0 },
-        frame: { width: 6, height: 0.2, depth: 5 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -558,7 +558,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 14 },
+        frame: { width: 16, height: 1.0, depth: 14 },
         metadata: {},
       },
       {
@@ -571,7 +571,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet4',
         position: { x: -5, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -584,7 +584,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet4',
         position: { x: 0, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -597,7 +597,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet4',
         position: { x: 5, y: 0.3, z: 0 },
-        frame: { width: 6, height: 0.2, depth: 5 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -744,7 +744,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 20 },
+        frame: { width: 16, height: 1.0, depth: 20 },
         metadata: {},
       },
       {
@@ -757,7 +757,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet5',
         position: { x: -3, y: 0.3, z: 0 },
-        frame: { width: 6, height: 0.2, depth: 5 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -770,7 +770,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-tmpl-vnet5',
         position: { x: 5, y: 0.3, z: 0 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -933,7 +933,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 0.3, depth: 26 },
+        frame: { width: 16, height: 1.0, depth: 26 },
         metadata: {},
       },
       {
@@ -946,7 +946,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: -5, y: 0.3, z: -4 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -959,7 +959,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: 0, y: 0.3, z: -4 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -972,7 +972,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: 5, y: 0.3, z: -4 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -985,7 +985,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: -5, y: 0.3, z: 3 },
-        frame: { width: 4, height: 0.2, depth: 5 },
+        frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -998,7 +998,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: -1, y: 0.3, z: 3 },
-        frame: { width: 5, height: 0.2, depth: 5 },
+        frame: { width: 5, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -1011,7 +1011,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: 'container-fs-vnet',
         position: { x: 5, y: 0.3, z: 3 },
-        frame: { width: 5, height: 0.2, depth: 5 },
+        frame: { width: 5, height: 0.6, depth: 5 },
         metadata: {},
       },
 

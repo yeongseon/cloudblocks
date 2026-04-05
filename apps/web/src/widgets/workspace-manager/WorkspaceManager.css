@@ -168,3 +168,68 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* Bulk actions bar */
+.workspace-manager-bulk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+  border-radius: 4px;
+}
+
+.workspace-manager-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.workspace-manager-select-all input[type='checkbox'] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+.workspace-manager-delete-selected {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--accent-error) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-error) 30%, transparent);
+  border-radius: 4px;
+  color: var(--accent-error);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.workspace-manager-delete-selected:hover {
+  background: color-mix(in srgb, var(--accent-error) 25%, transparent);
+}
+
+/* Checkbox in workspace row */
+.workspace-manager-checkbox {
+  margin: 0 6px 0 0;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.workspace-manager-checkbox:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Selected state */
+.workspace-manager-item-selected {
+  background: color-mix(in srgb, var(--accent-error) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent-error) 20%, transparent);
+}

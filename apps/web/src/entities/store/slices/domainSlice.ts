@@ -400,7 +400,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         category,
         provider: provider ?? 'azure',
         parentId: placementId,
-        position: nextGridPosition(existingBlocksOnPlate, container.frame),
+        position: nextGridPosition(existingBlocksOnPlate, container.frame, container.frame.height),
         metadata: {},
         ...(subtype ? { subtype } : {}),
         ...(config ? { config } : {}),
@@ -438,10 +438,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         (candidate) => candidate.parentId === sourceBlock.parentId,
       );
 
-      const unclampedPosition = nextGridPosition(siblingsOnPlate, {
-        width: parentPlate.frame.width,
-        depth: parentPlate.frame.depth,
-      });
+      const unclampedPosition = nextGridPosition(
+        siblingsOnPlate,
+        {
+          width: parentPlate.frame.width,
+          depth: parentPlate.frame.depth,
+        },
+        parentPlate.frame.height,
+      );
 
       const clampedXZ = clampWithinParent(
         { x: unclampedPosition.x, z: unclampedPosition.z },
@@ -566,7 +570,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       }
 
       const blocksOnTarget = resources.filter((candidate) => candidate.parentId === newPlacementId);
-      const newPosition = nextGridPosition(blocksOnTarget, targetPlate.frame);
+      const newPosition = nextGridPosition(
+        blocksOnTarget,
+        targetPlate.frame,
+        targetPlate.frame.height,
+      );
 
       return withHistory(state, {
         ...arch,
