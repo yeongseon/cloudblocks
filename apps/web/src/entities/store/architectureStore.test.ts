@@ -987,11 +987,11 @@ describe('architectureStore', () => {
       expect(blockAfter.position.x).toBeLessThanOrEqual(2.8);
     });
 
-    it('returns unchanged state for non-existent plate', () => {
+    it('returns unchanged state for non-existent container', () => {
       getState().addPlate('region', 'VNet', null);
       const before = getState().workspace.architecture;
 
-      getState().setPlateProfile('nonexistent-plate', 'subnet-service');
+      getState().setPlateProfile('nonexistent-id', 'subnet-service');
 
       expect(getState().workspace.architecture).toBe(before);
     });
