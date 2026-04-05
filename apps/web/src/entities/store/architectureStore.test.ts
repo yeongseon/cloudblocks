@@ -288,11 +288,11 @@ describe('architectureStore', () => {
       getState().moveNodePosition(plateId, 2, 1);
       getState().moveNodePosition(blockId, 1, 1);
 
-      const renamedPlate = getArch().plates.find((plate) => plate.id === plateId);
+      const renamedContainer = getArch().plates.find((c) => c.id === plateId);
       const renamedBlock = getArch().blocks.find((block) => block.id === blockId);
-      expect(renamedPlate?.name).toBe('New Region');
+      expect(renamedContainer?.name).toBe('New Region');
       expect(renamedBlock?.name).toBe('New VM');
-      expect(renamedPlate?.position).toEqual({ x: 2, y: 0, z: 1 });
+      expect(renamedContainer?.position).toEqual({ x: 2, y: 0, z: 1 });
       expect(renamedBlock?.position).not.toEqual(originalBlockPosition);
     });
 
