@@ -74,7 +74,14 @@ describe('template → edit → export flow', () => {
       expect(template).toBeDefined();
       expect(template!.architecture.nodes.length).toBeGreaterThan(0);
       expect(template!.architecture.connections.length).toBeGreaterThan(0);
-      expect(template!.architecture.externalActors?.length).toBeGreaterThan(0);
+      const externalNodes = template!.architecture.nodes.filter((n) =>
+        n.roles?.includes('external'),
+      );
+      if (templateId === 'template-event-driven-pipeline') {
+        expect(externalNodes).toHaveLength(0);
+      } else {
+        expect(externalNodes.length).toBeGreaterThan(0);
+      }
 
       // Every template must have at least one container and one resource
       const containers = template!.architecture.nodes.filter((n) => n.kind === 'container');
@@ -469,8 +476,14 @@ describe('template → edit → export flow', () => {
       const containerZMin = -7;
       const containerZMax = 7;
 
-      const externalActors = template.architecture.externalActors ?? [];
-      expect(externalActors.length).toBeGreaterThan(0);
+      const externalActors = template.architecture.nodes.filter((n) =>
+        n.roles?.includes('external'),
+      );
+      if (templateId === 'template-event-driven-pipeline') {
+        expect(externalActors).toHaveLength(0);
+      } else {
+        expect(externalActors.length).toBeGreaterThan(0);
+      }
 
       for (const actor of externalActors) {
         const { x, z } = actor.position;

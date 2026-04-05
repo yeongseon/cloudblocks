@@ -38,7 +38,10 @@ describe('registerBuiltinTemplates', () => {
     for (const template of listTemplates()) {
       expect(Array.isArray(template.architecture.nodes)).toBe(true);
       expect(Array.isArray(template.architecture.connections)).toBe(true);
-      expect(Array.isArray(template.architecture.externalActors)).toBe(true);
+      const externalNodes = template.architecture.nodes.filter((node) =>
+        node.roles?.includes('external'),
+      );
+      expect(Array.isArray(externalNodes)).toBe(true);
     }
   });
 
@@ -53,7 +56,7 @@ describe('registerBuiltinTemplates', () => {
     const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(containerNodes).toHaveLength(3);
+    expect(containerNodes).toHaveLength(4);
     expect(resourceNodes).toHaveLength(6);
     expect(template?.architecture.connections).toHaveLength(5);
   });
@@ -69,7 +72,7 @@ describe('registerBuiltinTemplates', () => {
     const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(containerNodes).toHaveLength(2);
+    expect(containerNodes).toHaveLength(3);
     expect(resourceNodes).toHaveLength(4);
     expect(template?.architecture.connections).toHaveLength(3);
   });
@@ -85,7 +88,7 @@ describe('registerBuiltinTemplates', () => {
     const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(containerNodes).toHaveLength(3);
+    expect(containerNodes).toHaveLength(4);
     expect(resourceNodes).toHaveLength(6);
     expect(template?.architecture.connections).toHaveLength(5);
   });
@@ -103,7 +106,7 @@ describe('registerBuiltinTemplates', () => {
     expect(httpApiTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
     expect(
       httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'container'),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
     ).toHaveLength(6);
@@ -113,11 +116,14 @@ describe('registerBuiltinTemplates', () => {
     expect(eventPipelineTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
     expect(
       eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'container'),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
     expect(
       eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
-    ).toHaveLength(8);
-    expect(eventPipelineTemplate?.architecture.connections).toHaveLength(7);
+    ).toHaveLength(6);
+    expect(eventPipelineTemplate?.architecture.connections).toHaveLength(6);
+    expect(
+      eventPipelineTemplate?.architecture.nodes.filter((node) => node.roles?.includes('external')),
+    ).toHaveLength(0);
   });
 
   it('full-stack serverless template uses all block categories with expected counts', async () => {
@@ -131,13 +137,15 @@ describe('registerBuiltinTemplates', () => {
     expect(template).toBeDefined();
     expect(template?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
     expect(template?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(
-      3,
+      7,
     );
     expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(
-      12,
+      13,
     );
     expect(template?.architecture.connections).toHaveLength(12);
-    expect(template?.architecture.externalActors).toHaveLength(2);
+    expect(
+      template?.architecture.nodes.filter((node) => node.roles?.includes('external')),
+    ).toHaveLength(2);
 
     const categories = template?.architecture.nodes
       .filter((node) => node.kind === 'resource')
@@ -150,6 +158,7 @@ describe('registerBuiltinTemplates', () => {
       'compute',
       'data',
       'data',
+      'delivery',
       'delivery',
       'delivery',
       'delivery',
