@@ -429,6 +429,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           existingBlocksOnPlate,
           container.frame,
           getBlockDimensions(category, provider, subtype),
+          container.frame.height,
         ),
         metadata: {},
         ...(subtype ? { subtype } : {}),
@@ -474,6 +475,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           depth: parentPlate.frame.depth,
         },
         getBlockDimensions(sourceBlock.category, sourceBlock.provider, sourceBlock.resourceType),
+        parentPlate.frame.height,
       );
 
       const clampedXZ = clampWithinParent(
@@ -612,6 +614,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         blocksOnTarget,
         targetPlate.frame,
         getBlockDimensions(block.category, block.provider, block.resourceType),
+        targetPlate.frame.height,
       );
 
       return withHistory(state, {

@@ -162,7 +162,7 @@ describe('schema utilities', () => {
       throw new Error('Expected migrated container node');
     }
     expect(container.profileId).toBe('network-platform');
-    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.height).toBe(1.0);
     expect(container.frame.width).toBe(16);
     expect(container.frame.depth).toBe(20);
   });
@@ -187,7 +187,7 @@ describe('schema utilities', () => {
                 parentId: null,
                 children: [],
                 position: { x: 0, y: 0, z: 0 },
-                size: { width: 20, height: 0.7, depth: 24 },
+                size: { width: 20, height: 1.0, depth: 24 },
                 metadata: {},
               },
             ],
@@ -223,7 +223,7 @@ describe('schema utilities', () => {
     expect(container.profileId).toBe('network-hub');
     expect(container.frame.width).toBe(20);
     expect(container.frame.depth).toBe(24);
-    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.height).toBe(1.0);
   });
 
   it('rebuilds frame when container has profileId but no frame or size', () => {
@@ -281,7 +281,7 @@ describe('schema utilities', () => {
     expect(container.profileId).toBe('network-platform');
     expect(container.frame).toBeDefined();
     expect(container.frame.width).toBe(16);
-    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.height).toBe(1.0);
     expect(container.frame.depth).toBe(20);
   });
 
@@ -342,7 +342,7 @@ describe('schema utilities', () => {
     expect(container.profileId).toBe('network-platform');
     expect(container.frame).toBeDefined();
     expect(container.frame.width).toBe(16);
-    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.height).toBe(1.0);
     expect(container.frame.depth).toBe(20);
   });
 
@@ -1639,7 +1639,7 @@ it('preserves legacy connection type into metadata.type during v3→v4 migration
               parentId: null,
               children: ['block-1', 'block-2'],
               position: { x: 0, y: 0, z: 0 },
-              size: { width: 16, height: 0.7, depth: 20 },
+              size: { width: 16, height: 1.0, depth: 20 },
               metadata: {},
             },
           ],

@@ -39,6 +39,7 @@ export function nextGridPosition(
   existingBlocks: ResourceBlock[],
   plateSize: { width: number; depth: number },
   blockSize?: { width: number; depth: number },
+  containerHeight: number = 0.5,
 ): Position {
   const blockWidth = blockSize?.width ?? DEFAULT_BLOCK_SIZE.width;
   const blockDepth = blockSize?.depth ?? DEFAULT_BLOCK_SIZE.depth;
@@ -55,7 +56,7 @@ export function nextGridPosition(
 
   return {
     x: roundToTenth(startX + col * stepX),
-    y: 0.5,
+    y: containerHeight,
     z: roundToTenth(startZ - row * stepZ),
   };
 }

@@ -18,6 +18,7 @@ type WorkspaceSlice = Pick<
   | 'createWorkspace'
   | 'switchWorkspace'
   | 'deleteWorkspace'
+  | 'deleteWorkspaces'
   | 'cloneWorkspace'
   | 'setBackendWorkspaceId'
   | 'setGithubRepo'
@@ -91,6 +92,38 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
       if (saveWorkspaces(filtered)) {
         saveActiveWorkspaceId(next.id);
       }
+
+      set({
+        workspace: next,
+        workspaces: filtered,
+        ...resetTransientState(),
+      });
+
+      return;
+    }
+
+    saveWorkspaces(filtered);
+    set({ workspaces: filtered });
+  },
+
+  deleteWorkspaces: (ids) => {
+    const state = get();
+    const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
+    const idsSet = new Set(ids);
+    const filtered = withCurrent.filter((ws) => !idsSet.has(ws.id));
+
+    if (idsSet.has(state.workspace.id)) {
+      const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
+
+      if (filtered.length === 0) {
+        filtered.push(next);
+      }
+
+      if (saveWorkspaces(filtered)) {
+        saveActiveWorkspaceId(next.id);
+      }
+
+      useUIStore.getState().clearDiffState();
 
       set({
         workspace: next,

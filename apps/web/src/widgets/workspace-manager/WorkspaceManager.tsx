@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Pencil, Copy } from 'lucide-react';
+import { X, Pencil, Copy, Trash2 } from 'lucide-react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { syncWorkspaceUI } from '../../entities/store/uiSync';
@@ -17,11 +17,13 @@ export function WorkspaceManager() {
   const createWorkspace = useArchitectureStore((s) => s.createWorkspace);
   const switchWorkspace = useArchitectureStore((s) => s.switchWorkspace);
   const deleteWorkspace = useArchitectureStore((s) => s.deleteWorkspace);
+  const deleteWorkspaces = useArchitectureStore((s) => s.deleteWorkspaces);
   const cloneWorkspace = useArchitectureStore((s) => s.cloneWorkspace);
   const renameWorkspace = useArchitectureStore((s) => s.renameWorkspace);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
 
   const [newName, setNewName] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   if (!show) return null;
 
@@ -47,6 +49,43 @@ export function WorkspaceManager() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    const confirmed = await confirmDialog(
+      `Delete ${count} workspace${count > 1 ? 's' : ''}? This cannot be undone.`,
+      'Delete selected workspaces?',
+    );
+    if (confirmed) {
+      deleteWorkspaces([...selectedIds]);
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectableIds = allWorkspaces.filter((ws) => ws.id !== workspace.id).map((ws) => ws.id);
+
+  const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableIds));
+    }
+  };
+
   const handleRename = async (currentName: string) => {
     const newName = await promptDialog('Rename workspace:', 'Rename', currentName);
     if (newName && newName.trim() && newName.trim() !== currentName) {
@@ -67,6 +106,30 @@ export function WorkspaceManager() {
           <X size={14} />
         </button>
       </div>
+
+      {selectableIds.length > 0 && (
+        <div className="workspace-manager-bulk-actions">
+          <label className="workspace-manager-select-all">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleSelectAll}
+              aria-label="Select all workspaces"
+            />
+            <span>Select all</span>
+          </label>
+          {selectedIds.size > 0 && (
+            <button
+              type="button"
+              className="workspace-manager-delete-selected"
+              onClick={handleBulkDelete}
+            >
+              <Trash2 size={12} />
+              Delete selected ({selectedIds.size})
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="workspace-manager-create">
         <input
@@ -102,8 +165,17 @@ export function WorkspaceManager() {
           return (
             <div
               key={ws.id}
-              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}`}
+              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}${selectedIds.has(ws.id) ? ' workspace-manager-item-selected' : ''}`}
             >
+              <input
+                type="checkbox"
+                className="workspace-manager-checkbox"
+                checked={selectedIds.has(ws.id)}
+                disabled={isActive}
+                onChange={() => toggleSelection(ws.id)}
+                aria-label={`Select ${ws.name}`}
+                title={isActive ? 'Cannot delete active workspace' : `Select ${ws.name}`}
+              />
               <div className="workspace-manager-item-info">
                 <span className="workspace-manager-item-name">
                   {isActive && '● '}

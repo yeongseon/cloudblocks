@@ -333,7 +333,7 @@ describe('architectureStore', () => {
       expect(plates[0].profileId).toBe('network-hub');
       expect(plates[0].frame.width).toBe(20);
       expect(plates[0].frame.depth).toBe(24);
-      expect(plates[0].frame.height).toBe(0.7);
+      expect(plates[0].frame.height).toBe(1.0);
     });
 
     it('adds a subnet container with explicit profileId', () => {
@@ -344,7 +344,7 @@ describe('architectureStore', () => {
       expect(subnet.profileId).toBe('subnet-scale');
       expect(subnet.frame.width).toBe(10);
       expect(subnet.frame.depth).toBe(12);
-      expect(subnet.frame.height).toBe(0.5);
+      expect(subnet.frame.height).toBe(0.6);
     });
 
     it('adds a subnet container as child of network', () => {
@@ -359,7 +359,7 @@ describe('architectureStore', () => {
       expect(subnet.name).toBe('Public');
       expect(subnet.type).toBe('subnet');
       expect(subnet.parentId).toBe(netId);
-      expect(subnet.position.y).toBe(0.7);
+      expect(subnet.position.y).toBe(1.0);
 
       // Network container should have subnet as child
       const network = plates.find((p) => p.id === netId);
@@ -635,7 +635,7 @@ describe('architectureStore', () => {
       expect(duplicate.category).toBe(source.category);
       expect(duplicate.placementId).toBe(source.placementId);
       expect(duplicate.provider).toBe(source.provider);
-      expect(duplicate.position.y).toBe(0.5);
+      expect(duplicate.position.y).toBe(0.6);
       expect(duplicate.position).not.toEqual(source.position);
 
       const container = getArch().plates.find((p) => p.id === subId);
