@@ -21,6 +21,16 @@ const SHORTCUT_GROUPS = [
     ],
   },
   {
+    category: 'Canvas',
+    shortcuts: [
+      { keys: 'Ctrl+=', description: 'Zoom in' },
+      { keys: 'Ctrl+-', description: 'Zoom out' },
+      { keys: 'Ctrl+0', description: 'Fit to screen' },
+      { keys: 'Scroll', description: 'Zoom in/out' },
+      { keys: 'Shift+Drag', description: 'Lasso select' },
+    ],
+  },
+  {
     category: 'Panels',
     shortcuts: [{ keys: 'Ctrl+Alt+S', description: 'Toggle sidebar palette' }],
   },
