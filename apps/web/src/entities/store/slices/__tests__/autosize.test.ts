@@ -7,6 +7,8 @@ import {
   subnetFrameFromBounds,
   parentFrameFromChildSubnets,
   autosizeContainerTree,
+  nextGridPosition,
+  findNonOverlappingPosition,
   roundToTenth,
 } from '../helpers';
 
@@ -846,5 +848,43 @@ describe('parentFrameFromChildSubnets branch coverage', () => {
     // Bounding: x from -8 to 8 = 16 + 4 = 20; z from -9 to 9 = 18 + 4 = 22
     expect(frame.width).toBeGreaterThanOrEqual(16);
     expect(frame.depth).toBeGreaterThanOrEqual(16);
+  });
+});
+
+describe('nextGridPosition', () => {
+  it('places first block at center', () => {
+    const pos = nextGridPosition([], { width: 4, depth: 6 });
+
+    expect(pos).toEqual({ x: 0, y: 0.5, z: 0 });
+  });
+
+  it('wraps to next row when exceeding maxCols', () => {
+    const existing = Array.from({ length: 5 }, (_, i) => makeResource(`b${i}`, 'p1'));
+
+    const pos = nextGridPosition(existing, { width: 6, depth: 8 });
+
+    expect(pos.x).toBeGreaterThan(0);
+    expect(pos.z).toBeLessThan(-4);
+  });
+
+  it('uses containerHeight for y', () => {
+    const pos = nextGridPosition([], { width: 4, depth: 6 }, 0.8);
+
+    expect(pos.y).toBe(0.8);
+  });
+});
+
+describe('findNonOverlappingPosition', () => {
+  it('returns last position when all attempts exhausted', () => {
+    const plateSize = { width: 2, depth: 2 };
+    const siblings = Array.from({ length: 51 }, (_, i) => ({
+      id: `s${i}`,
+      position: { x: i * 3, z: 0 },
+      frame: { width: 4, depth: 4 },
+    }));
+
+    const result = findNonOverlappingPosition({ x: 0, z: 0 }, plateSize, siblings);
+
+    expect(result).toEqual({ x: 150, z: 0 });
   });
 });

@@ -988,6 +988,15 @@ describe('architectureStore', () => {
       // Block position should be within new bounds: max x = (8/2) - (2/2) = 3 (compute = medium tier = 2×2)
       expect(blockAfter.position.x).toBeLessThanOrEqual(3);
     });
+
+    it('returns unchanged state for non-existent plate', () => {
+      getState().addPlate('region', 'VNet', null);
+      const before = getState().workspace.architecture;
+
+      getState().setPlateProfile('nonexistent-plate', 'subnet-service');
+
+      expect(getState().workspace.architecture).toBe(before);
+    });
   });
 
   describe('resizePlate', () => {
@@ -1350,6 +1359,19 @@ describe('architectureStore', () => {
       getState().moveBlockPosition('missing-block', 1, 1);
 
       expect(getState().workspace.architecture).toBe(before);
+    });
+
+    it('moves a top-level block with null parentId', () => {
+      getState().addBlock('compute', 'Internet VM', null);
+      const blockId = getArch().blocks[0].id;
+      const before = getArch().blocks.find((block) => block.id === blockId)!;
+
+      getState().moveBlockPosition(blockId, 1, -2);
+
+      const after = getArch().blocks.find((block) => block.id === blockId)!;
+      expect(after.position.x).toBe(before.position.x + 1);
+      expect(after.position.z).toBe(before.position.z - 2);
+      expect(after.position.y).toBe(before.position.y);
     });
   });
 
@@ -1900,6 +1922,56 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
+    });
+  });
+
+  describe('deleteWorkspaces', () => {
+    it('deletes multiple non-current workspaces', () => {
+      const firstId = getState().workspace.id;
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      getState().createWorkspace('Third');
+      const currentId = getState().workspace.id;
+
+      getState().deleteWorkspaces([firstId, secondId]);
+
+      expect(getState().workspace.id).toBe(currentId);
+      expect(getState().workspaces.find((ws) => ws.id === firstId)).toBeUndefined();
+      expect(getState().workspaces.find((ws) => ws.id === secondId)).toBeUndefined();
+    });
+
+    it('switches to first remaining when deleting current workspace', () => {
+      getState().createWorkspace('Second');
+      const currentId = getState().workspace.id;
+      const expectedNext = getState().workspaces.find((ws) => ws.id !== currentId)?.id;
+
+      getState().deleteWorkspaces([currentId]);
+
+      expect(getState().workspace.id).not.toBe(currentId);
+      expect(getState().workspace.id).toBe(expectedNext);
+    });
+
+    it('creates new default when deleting all workspaces', () => {
+      const onlyId = getState().workspace.id;
+
+      getState().deleteWorkspaces([onlyId]);
+
+      expect(getState().workspace).toBeDefined();
+      expect(getState().workspace.id).not.toBe(onlyId);
+      expect(getState().workspaces).toHaveLength(1);
+    });
+
+    it('deletes non-current workspaces without affecting current', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      getState().createWorkspace('Third');
+      const currentId = getState().workspace.id;
+
+      getState().deleteWorkspaces([secondId]);
+
+      expect(getState().workspace.id).toBe(currentId);
+      expect(getState().workspaces.find((ws) => ws.id === secondId)).toBeUndefined();
+      expect(getState().workspaces.find((ws) => ws.id === currentId)).toBeDefined();
     });
   });
 
