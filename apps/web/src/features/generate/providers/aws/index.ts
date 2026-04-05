@@ -251,6 +251,12 @@ function buildAwsBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('    mode = "OFF"');
       lines.push('  }');
       break;
+    case 'aws_cloudwatch_event_bus':
+      lines.push(`  name = "${tagName}"`);
+      lines.push('  tags = {');
+      lines.push(`    Name = "${tagName}"`);
+      lines.push('  }');
+      break;
     default:
       lines.push(`  # Configure ${ctx.mapping.resourceType}`);
       break;
@@ -281,6 +287,7 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
     sqs: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
     sns: { resourceType: 'aws_sns_topic', namePrefix: 'topic' },
     'eventbridge-scheduler': { resourceType: 'aws_scheduler_schedule', namePrefix: 'schedule' },
+    eventbridge: { resourceType: 'aws_cloudwatch_event_bus', namePrefix: 'eventbus' },
   },
   security: {
     iam: { resourceType: 'aws_iam_role', namePrefix: 'role' },

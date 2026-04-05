@@ -92,7 +92,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'application-gateway',
         parentId: 'container-tmpl-public',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -118,7 +118,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'azure-postgresql',
         parentId: 'container-tmpl-private',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -250,7 +250,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'application-gateway',
         parentId: 'container-tmpl-pub2',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -383,7 +383,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'application-gateway',
         parentId: 'container-tmpl-pub3',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -409,7 +409,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'sql-database',
         parentId: 'container-tmpl-priv3',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -584,7 +584,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'blob-storage',
         parentId: 'container-tmpl-priv4',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -944,7 +944,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'application-gateway',
         parentId: 'container-fs-public',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -971,7 +971,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'azure-postgresql',
         parentId: 'container-fs-private',
-        position: { x: -1.5, y: 0.5, z: -2 },
+        position: { x: -1.5, y: 0.5, z: -1.3 },
         metadata: {},
       },
       {
@@ -998,7 +998,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: -4, y: 0.5, z: 3 },
+        position: { x: -4, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1011,7 +1011,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.5, z: 3 },
+        position: { x: 0, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1024,7 +1024,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-fs-vnet',
-        position: { x: 4, y: 0.5, z: 3 },
+        position: { x: 4, y: 0.5, z: 5 },
         metadata: {},
       },
       {
@@ -1037,7 +1037,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'service-bus',
         parentId: 'container-fs-vnet',
-        position: { x: -3, y: 0.5, z: -3 },
+        position: { x: -3, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -1050,7 +1050,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'event-grid',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.5, z: -3 },
+        position: { x: 0, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -1063,7 +1063,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'timer-trigger',
         parentId: 'container-fs-vnet',
-        position: { x: 3, y: 0.5, z: -3 },
+        position: { x: 3, y: 0.5, z: -5 },
         metadata: {},
       },
       {

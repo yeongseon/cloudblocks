@@ -598,13 +598,13 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             id: 'ext-browser',
             name: 'Client',
             type: 'browser',
-            position: { x: -6, y: 0, z: 5 },
+            position: { x: -12, y: 0, z: 5 },
           },
           {
             id: 'ext-internet',
             name: 'Internet',
             type: 'internet',
-            position: { x: -3, y: 0, z: 5 },
+            position: { x: -10, y: 0, z: 5 },
           },
         ],
         createdAt: (imported.createdAt as string) || now,
@@ -629,6 +629,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             node.name = remapName(azureSubtype, node.name, importProvider);
             if (node.subtype) {
               node.subtype = remapSubtype(node.subtype, importProvider);
+            }
+            if (node.resourceType) {
+              node.resourceType = remapSubtype(node.resourceType, importProvider);
             }
           }
         }
@@ -704,6 +707,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
           if (node.subtype) {
             node.subtype = remapSubtype(node.subtype, activeProvider);
           }
+          if (node.resourceType) {
+            node.resourceType = remapSubtype(node.resourceType, activeProvider);
+          }
         }
       }
     }
@@ -737,6 +743,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       workspaces: updatedList,
       ...resetTransientState(),
     });
+    useUIStore.getState().requestFitToContent();
   },
 
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => {

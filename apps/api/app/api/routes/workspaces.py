@@ -126,10 +126,10 @@ async def update_workspace(
         workspace.generator = body.generator
     if body.provider is not None:
         workspace.provider = body.provider
-    if body.github_repo is not None:
+    if "github_repo" in body.model_fields_set:
         workspace.github_repo = body.github_repo
-    if body.github_branch is not None:
-        workspace.github_branch = body.github_branch
+    if "github_branch" in body.model_fields_set:
+        workspace.github_branch = body.github_branch if body.github_branch is not None else "main"
 
     workspace = await workspace_repo.update(workspace)
     return _workspace_to_response(workspace)

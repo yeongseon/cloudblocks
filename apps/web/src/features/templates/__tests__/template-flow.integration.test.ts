@@ -347,4 +347,148 @@ describe('template → edit → export flow', () => {
       },
     );
   });
+
+  describe('AWS Terraform generation for all templates (#1662)', () => {
+    it.each(TEMPLATE_IDS)(
+      '%s generates valid AWS Terraform with provider "aws"',
+      async (templateId) => {
+        const { registerBuiltinTemplates } = await import('../builtin');
+        const { getTemplate } = await import('../registry');
+        const { generateCode } = await import('../../generate/pipeline');
+        const { remapSubtype, remapName } = await import('../../../shared/utils/providerMapping');
+
+        registerBuiltinTemplates();
+        const template = getTemplate(templateId)!;
+        const architecture = hydrateArchitecture(template);
+
+        // Simulate provider remap (as persistenceSlice.loadFromTemplate does)
+        for (const node of architecture.nodes) {
+          const azureSubtype = node.subtype ?? node.resourceType;
+          node.provider = 'aws';
+          if (node.roles?.includes('external')) continue;
+          if (node.kind === 'container') {
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, 'aws');
+            }
+          } else {
+            node.name = remapName(azureSubtype, node.name, 'aws');
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, 'aws');
+            }
+            if (node.resourceType) {
+              node.resourceType = remapSubtype(node.resourceType, 'aws');
+            }
+          }
+        }
+
+        const output = generateCode(architecture, {
+          provider: 'aws',
+          mode: 'draft',
+          projectName: `test-aws-${templateId}`,
+          region: 'us-east-1',
+          generator: 'terraform',
+        });
+
+        const mainTf = output.files.find((f) => f.path === 'main.tf');
+        expect(mainTf).toBeDefined();
+        expect(mainTf!.content).toContain('provider "aws"');
+        expect(mainTf!.content).toContain('resource "');
+        expect(mainTf!.content.trim().length).toBeGreaterThan(100);
+
+        // Verify no Azure resource types leaked through
+        expect(mainTf!.content).not.toContain('azurerm_');
+      },
+    );
+  });
+
+  describe('GCP Terraform generation for all templates (#1662)', () => {
+    it.each(TEMPLATE_IDS)(
+      '%s generates valid GCP Terraform with provider "gcp"',
+      async (templateId) => {
+        const { registerBuiltinTemplates } = await import('../builtin');
+        const { getTemplate } = await import('../registry');
+        const { generateCode } = await import('../../generate/pipeline');
+        const { remapSubtype, remapName } = await import('../../../shared/utils/providerMapping');
+
+        registerBuiltinTemplates();
+        const template = getTemplate(templateId)!;
+        const architecture = hydrateArchitecture(template);
+
+        // Simulate provider remap (as persistenceSlice.loadFromTemplate does)
+        for (const node of architecture.nodes) {
+          const azureSubtype = node.subtype ?? node.resourceType;
+          node.provider = 'gcp';
+          if (node.roles?.includes('external')) continue;
+          if (node.kind === 'container') {
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, 'gcp');
+            }
+          } else {
+            node.name = remapName(azureSubtype, node.name, 'gcp');
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, 'gcp');
+            }
+            if (node.resourceType) {
+              node.resourceType = remapSubtype(node.resourceType, 'gcp');
+            }
+          }
+        }
+
+        const output = generateCode(architecture, {
+          provider: 'gcp',
+          mode: 'draft',
+          projectName: `test-gcp-${templateId}`,
+          region: 'us-central1',
+          generator: 'terraform',
+        });
+
+        const mainTf = output.files.find((f) => f.path === 'main.tf');
+        expect(mainTf).toBeDefined();
+        expect(mainTf!.content).toContain('provider "google"');
+        expect(mainTf!.content).toContain('resource "');
+        expect(mainTf!.content.trim().length).toBeGreaterThan(100);
+
+        // Verify no Azure resource types leaked through
+        expect(mainTf!.content).not.toContain('azurerm_');
+      },
+    );
+  });
+
+  describe('external actors positioned outside container footprint (#1662)', () => {
+    it.each(TEMPLATE_IDS)('%s has external actors outside container bounds', async (templateId) => {
+      const { registerBuiltinTemplates } = await import('../builtin');
+      const { getTemplate } = await import('../registry');
+
+      registerBuiltinTemplates();
+      const template = getTemplate(templateId)!;
+
+      // Container footprint: width=16, depth=14, centered at origin
+      // x range: [-8, 8], z range: [-7, 7]
+      const containerXMin = -8;
+      const containerXMax = 8;
+      const containerZMin = -7;
+      const containerZMax = 7;
+
+      const externalActors = template.architecture.externalActors ?? [];
+      expect(externalActors.length).toBeGreaterThan(0);
+
+      for (const actor of externalActors) {
+        const { x, z } = actor.position;
+        const isOutside =
+          x < containerXMin || x > containerXMax || z < containerZMin || z > containerZMax;
+        expect(isOutside).toBe(true);
+      }
+
+      // Also check external-role resource nodes in the template
+      const externalNodes = template.architecture.nodes.filter((n) =>
+        n.roles?.includes('external'),
+      );
+      for (const node of externalNodes) {
+        const { x, z } = node.position;
+        const isOutside =
+          x < containerXMin || x > containerXMax || z < containerZMin || z > containerZMax;
+        expect(isOutside).toBe(true);
+      }
+    });
+  });
 });

@@ -137,6 +137,15 @@ function remapCategory(raw: string): ResourceCategory {
   return 'compute';
 }
 
+/**
+ * Maps stale subtype/resourceType keys to their canonical equivalents.
+ * Applied during deserialization to migrate persisted workspaces.
+ * Icon file paths (e.g. /gcp-icons/pub-sub.svg) are NOT affected — only map keys.
+ */
+const SUBTYPE_ALIASES: Record<string, string> = {
+  'pub-sub': 'pubsub',
+};
+
 interface LegacyPlate {
   id: string;
   name: string;
@@ -378,6 +387,14 @@ export function deserialize(json: string): Workspace[] {
         // and already-persisted nodes that have old category names)
         if (typeof node.category === 'string') {
           node.category = remapCategory(node.category as string);
+        }
+
+        // Normalize stale subtype/resourceType aliases (e.g. pub-sub → pubsub)
+        if (typeof node.resourceType === 'string' && node.resourceType in SUBTYPE_ALIASES) {
+          node.resourceType = SUBTYPE_ALIASES[node.resourceType];
+        }
+        if (typeof node.subtype === 'string' && node.subtype in SUBTYPE_ALIASES) {
+          node.subtype = SUBTYPE_ALIASES[node.subtype];
         }
 
         const sizeOrFrame = isRecord(node.frame)

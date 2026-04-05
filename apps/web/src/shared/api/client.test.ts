@@ -138,6 +138,33 @@ describe('api client', () => {
     });
   });
 
+  it('uses AppError error.message for ApiError message', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ error: { code: 'NOT_FOUND', message: 'Workspace not found' } }, 404),
+    );
+
+    await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'Workspace not found',
+      status: 404,
+    });
+  });
+
+  it('prefers AppError error.message over FastAPI detail', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        { detail: 'Fallback detail', error: { code: 'FORBIDDEN', message: 'Access denied' } },
+        403,
+      ),
+    );
+
+    await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'Access denied',
+      status: 403,
+    });
+  });
+
   it('ApiError includes expected name, message, status, and body', () => {
     const error = new ApiError('Custom error', 418, 'Teapot');
 
@@ -310,6 +337,16 @@ describe('getApiErrorMessage', () => {
     const error = new ApiError('API request failed with status 400', 400, '');
 
     expect(getApiErrorMessage(error, 'Fallback')).toBe('API request failed with status 400');
+  });
+
+  it('extracts AppError error.message from ApiError body', () => {
+    const error = new ApiError(
+      'API request failed with status 404',
+      404,
+      '{"error":{"code":"NOT_FOUND","message":"Workspace not found"}}',
+    );
+
+    expect(getApiErrorMessage(error, 'Fallback')).toBe('Workspace not found');
   });
 });
 

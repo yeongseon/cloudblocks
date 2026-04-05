@@ -30,6 +30,7 @@ export function GitHubPR() {
   const authStatus = useAuthStore((s) => s.status);
   const workspace = useArchitectureStore((s) => s.workspace);
   const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
+  const hasGithubRepo = Boolean(workspace.githubRepo);
 
   const [title, setTitle] = useState(DEFAULT_TITLE);
   const [body, setBody] = useState(DEFAULT_BODY);
@@ -77,7 +78,8 @@ export function GitHubPR() {
     cleanedCommitMessage.length > 0 &&
     branchIsValid &&
     !branchMatchesBase &&
-    hasBackendWorkspaceLink;
+    hasBackendWorkspaceLink &&
+    hasGithubRepo;
 
   if (!show) return null;
 

@@ -974,6 +974,69 @@ it('remaps legacy categories on already-migrated nodes[] with old category names
   expect(nodes[1].category).toBe('data');
 });
 
+it('normalizes stale subtype aliases (pub-sub → pubsub) on deserialized nodes', () => {
+  const data = {
+    schemaVersion: '4.0.0',
+    workspaces: [
+      {
+        id: 'ws-gcp',
+        name: 'GCP Workspace',
+        provider: 'gcp',
+        architecture: {
+          id: 'arch-gcp',
+          name: 'GCP Arch',
+          version: '1',
+          nodes: [
+            {
+              id: 'blk-ps',
+              name: 'Pub/Sub',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'pub-sub',
+              category: 'messaging',
+              provider: 'gcp',
+              parentId: 'container-1',
+              position: { x: 1, y: 0.5, z: 1 },
+              metadata: {},
+              subtype: 'pub-sub',
+            },
+            {
+              id: 'blk-ok',
+              name: 'Functions',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'cloud-functions',
+              category: 'compute',
+              provider: 'gcp',
+              parentId: 'container-1',
+              position: { x: 3, y: 0.5, z: 1 },
+              metadata: {},
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  };
+
+  const result = deserialize(JSON.stringify(data));
+  const nodes = result[0].architecture.nodes;
+  const psNode = nodes.find((n) => n.id === 'blk-ps')!;
+  const okNode = nodes.find((n) => n.id === 'blk-ok')!;
+
+  // pub-sub → pubsub on both resourceType and subtype
+  expect(psNode.resourceType).toBe('pubsub');
+  expect(psNode.subtype).toBe('pubsub');
+
+  // Unrelated node untouched
+  expect(okNode.resourceType).toBe('cloud-functions');
+});
+
 it('accepts schema version 2.0.0 without warning', () => {
   const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const data = {

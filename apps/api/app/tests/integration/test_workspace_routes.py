@@ -321,3 +321,98 @@ async def test_delete_workspace_not_owner_returns_403(
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
+
+
+@pytest.mark.asyncio
+async def test_update_workspace_omitting_github_repo_preserves_value(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+) -> None:
+    """When github_repo is omitted from the request body, the existing value is preserved."""
+    created = await client.post(
+        "/api/v1/workspaces/",
+        cookies=auth_cookies,
+        json={"name": "GH Test"},
+    )
+    workspace_id = created.json()["id"]
+
+    # Set github_repo first
+    await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"github_repo": "owner/repo"},
+    )
+
+    # Update only the name — github_repo should be preserved
+    response = await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"name": "Renamed"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "Renamed"
+    assert data["github_repo"] == "owner/repo"
+
+
+@pytest.mark.asyncio
+async def test_update_workspace_null_github_repo_clears_value(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+) -> None:
+    """Explicitly sending github_repo=null clears the linked repository."""
+    created = await client.post(
+        "/api/v1/workspaces/",
+        cookies=auth_cookies,
+        json={"name": "GH Test"},
+    )
+    workspace_id = created.json()["id"]
+
+    # Set github_repo first
+    await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"github_repo": "owner/repo"},
+    )
+
+    # Explicitly null it
+    response = await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"github_repo": None},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["github_repo"] is None
+
+
+@pytest.mark.asyncio
+async def test_update_workspace_null_github_branch_resets_to_main(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+) -> None:
+    """Explicitly sending github_branch=null resets the branch to 'main'."""
+    created = await client.post(
+        "/api/v1/workspaces/",
+        cookies=auth_cookies,
+        json={"name": "GH Test"},
+    )
+    workspace_id = created.json()["id"]
+
+    # Set a custom branch
+    await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"github_branch": "develop"},
+    )
+
+    # Null it — should reset to main
+    response = await client.put(
+        f"/api/v1/workspaces/{workspace_id}",
+        cookies=auth_cookies,
+        json={"github_branch": None},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["github_branch"] == "main"

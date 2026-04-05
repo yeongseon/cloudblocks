@@ -3,7 +3,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
-import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut, getApiErrorMessage, isAuthError } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
@@ -147,7 +147,7 @@ export function GitHubSync() {
         useUIStore.getState().toggleGitHubLogin();
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to load commits.');
+      setError(getApiErrorMessage(err, 'Failed to load commits.'));
     } finally {
       if (canApply()) {
         setLoadingCommits(false);
@@ -194,13 +194,17 @@ export function GitHubSync() {
         useUIStore.getState().toggleGitHubLogin();
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to link repository.');
+      setError(getApiErrorMessage(err, 'Failed to link repository.'));
     } finally {
       setLinking(false);
     }
   };
 
-  const handleUnlink = () => {
+  const handleUnlink = async () => {
+    // Capture backend workspace ID before clearing local state
+    const bwsId =
+      linkedRepoState?.backendWorkspaceId ?? workspace.backendWorkspaceId ?? workspace.id;
+
     requestSeqRef.current += 1;
     setLinkedRepoState(null);
     setRepoInput('');
@@ -211,6 +215,19 @@ export function GitHubSync() {
     setPullDiffSummary(null);
     prePullArchitectureRef.current = null;
     setStoreGithubRepo(workspace.id, undefined);
+
+    // Clear github_repo on backend (best-effort)
+    try {
+      await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
+        github_repo: null,
+      });
+    } catch (err: unknown) {
+      // Best-effort: local state is already cleared, but warn in console
+      console.warn(
+        'Failed to clear github_repo on backend:',
+        getApiErrorMessage(err, 'Unknown error'),
+      );
+    }
   };
 
   const handleSync = async () => {
@@ -237,7 +254,7 @@ export function GitHubSync() {
         useUIStore.getState().toggleGitHubLogin();
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to sync workspace.');
+      setError(getApiErrorMessage(err, 'Failed to sync workspace.'));
     } finally {
       setSyncing(false);
     }
@@ -273,7 +290,7 @@ export function GitHubSync() {
         useUIStore.getState().toggleGitHubLogin();
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
+      setError(getApiErrorMessage(err, 'Failed to pull from GitHub.'));
     } finally {
       setPulling(false);
     }

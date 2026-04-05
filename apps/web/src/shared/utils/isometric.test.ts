@@ -7,6 +7,7 @@ import {
   ISO_Y,
   SCALE,
   depthKey,
+  resizeProjection,
   screenDeltaToWorld,
   screenToWorld,
   snapToGrid,
@@ -98,6 +99,28 @@ describe('screenDeltaToWorld', () => {
 
     expect(w2.worldX - w1.worldX).toBeCloseTo(delta.dWorldX);
     expect(w2.worldZ - w1.worldZ).toBeCloseTo(delta.dWorldZ);
+  });
+});
+
+describe('resizeProjection', () => {
+  it('maps N and S handles to width deltas and x shifts', () => {
+    expect(resizeProjection(64, 32, 'n')).toEqual({ dWidth: 2, dDepth: 0, dPosX: 1, dPosZ: 0 });
+    expect(resizeProjection(64, 32, 's')).toEqual({ dWidth: -2, dDepth: 0, dPosX: 1, dPosZ: 0 });
+  });
+
+  it('maps E and W handles to depth deltas and z shifts', () => {
+    expect(resizeProjection(32, 96, 'e')).toEqual({ dWidth: 0, dDepth: 3, dPosX: 0, dPosZ: 1.5 });
+    expect(resizeProjection(32, 96, 'w')).toEqual({ dWidth: 0, dDepth: -3, dPosX: 0, dPosZ: 1.5 });
+  });
+
+  it('combines component edges for corners', () => {
+    expect(resizeProjection(64, 32, 'ne')).toEqual({ dWidth: 2, dDepth: 0, dPosX: 1, dPosZ: 0 });
+    expect(resizeProjection(32, 96, 'sw')).toEqual({
+      dWidth: -4,
+      dDepth: -3,
+      dPosX: 2,
+      dPosZ: 1.5,
+    });
   });
 });
 

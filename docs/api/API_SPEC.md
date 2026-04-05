@@ -1,6 +1,6 @@
 # CloudBlocks — API Specification
 
-> **Audience**: Contributors / Backend Developers | **Status**: Backend (optional) | **Verified against**: v0.26.0
+> **Audience**: Contributors / Backend Developers | **Status**: Backend (optional) | **Verified against**: v0.35.0
 
 > **Note**: The CloudBlocks backend is optional. The frontend works standalone for visual building,
 > templates, validation, and Terraform export. The backend adds GitHub OAuth, workspace sync,
@@ -266,7 +266,11 @@ The following capabilities are intentionally frontend-owned in the current archi
 
 ## Error Format
 
-All errors follow a consistent format:
+The backend uses two error response formats depending on the error source. The frontend error parser (`client.ts: parseErrorMessage`) handles both formats transparently.
+
+### AppError Format (Custom Application Errors)
+
+Raised by application-level error handlers (e.g., `AppError` class). Used for domain errors with structured codes.
 
 ```json
 {
@@ -277,6 +281,18 @@ All errors follow a consistent format:
   }
 }
 ```
+
+### FastAPI HTTPException Format
+
+Raised by FastAPI's built-in `HTTPException` (e.g., dependency injection failures, middleware rejections). Used for framework-level errors.
+
+```json
+{
+  "detail": "Not authenticated"
+}
+```
+
+The frontend `getApiErrorMessage()` helper tries `error.message` first, then falls back to `detail`, ensuring consistent user-facing messages regardless of which format the server returns.
 
 ### Error Codes
 

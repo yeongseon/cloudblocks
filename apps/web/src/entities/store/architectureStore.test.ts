@@ -215,6 +215,101 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('unified node API', () => {
+    it('addNode adds container and resource nodes', () => {
+      getState().addNode({
+        kind: 'container',
+        layer: 'region',
+        resourceType: 'virtual_network',
+        name: 'Node VNet',
+        parentId: null,
+      });
+      const plateId = getArch().plates[0].id;
+
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'web_compute',
+        name: 'Node VM',
+        parentId: plateId,
+      });
+
+      expect(getArch().plates).toHaveLength(1);
+      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks[0].category).toBe('compute');
+    });
+
+    it('addNode falls back to compute category for unknown resource type', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'totally_unknown_type',
+        name: 'Fallback VM',
+        parentId: plateId,
+      });
+
+      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks[0].category).toBe('compute');
+      expect(getArch().blocks[0].resourceType).toBe('totally_unknown_type');
+    });
+
+    it('removeNode cascades for container by default and removes only target resource nodes', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+      getState().addBlock('compute', 'VM', plateId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().removeNode(blockId);
+      expect(getArch().blocks).toHaveLength(0);
+
+      getState().removeNode(plateId);
+      expect(getArch().plates).toHaveLength(0);
+    });
+
+    it('removeNode with cascade false does not remove container', () => {
+      getState().addPlate('region', 'VNet', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().removeNode(plateId, { cascade: false });
+      expect(getArch().plates).toHaveLength(1);
+      expect(getArch().plates[0].id).toBe(plateId);
+    });
+
+    it('renameNode and moveNodePosition handle both containers and resources', () => {
+      getState().addPlate('region', 'Old Region', null);
+      const plateId = getArch().plates[0].id;
+      getState().addBlock('compute', 'Old VM', plateId);
+      const blockId = getArch().blocks[0].id;
+      const originalBlockPosition = { ...getArch().blocks[0].position };
+
+      getState().renameNode(plateId, 'New Region');
+      getState().renameNode(blockId, 'New VM');
+      getState().moveNodePosition(plateId, 2, 1);
+      getState().moveNodePosition(blockId, 1, 1);
+
+      const renamedContainer = getArch().plates.find((c) => c.id === plateId);
+      const renamedBlock = getArch().blocks.find((block) => block.id === blockId);
+      expect(renamedContainer?.name).toBe('New Region');
+      expect(renamedBlock?.name).toBe('New VM');
+      expect(renamedContainer?.position).toEqual({ x: 2, y: 0, z: 1 });
+      expect(renamedBlock?.position).not.toEqual(originalBlockPosition);
+    });
+
+    it('updateNodeMetadata updates existing node and no-ops for missing node', () => {
+      getState().addPlate('region', 'Meta Region', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().updateNodeMetadata(plateId, 'owner', 'team-a');
+      expect(getArch().plates[0].metadata.owner).toBe('team-a');
+
+      const beforeMissingUpdate = getState().workspace.architecture;
+      getState().updateNodeMetadata('missing-node', 'owner', 'team-b');
+      expect(getState().workspace.architecture).toBe(beforeMissingUpdate);
+      expect(getArch().plates[0].metadata.owner).toBe('team-a');
+    });
+  });
+
   // ── ContainerBlock actions ──
 
   describe('addPlate', () => {
@@ -890,6 +985,203 @@ describe('architectureStore', () => {
 
       // Block position should be within new bounds: max x = (8/2) - (2.4/2) = 2.8
       expect(blockAfter.position.x).toBeLessThanOrEqual(2.8);
+    });
+  });
+
+  describe('resizePlate', () => {
+    it('resizes a container to the specified even dimensions', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+
+      getState().resizePlate(regionId, 20, 24);
+      const resized = getArch().plates.find((p) => p.id === regionId)!;
+      expect(resized.frame.width).toBe(20);
+      expect(resized.frame.depth).toBe(24);
+    });
+
+    it('snaps odd dimensions to nearest even integer', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+
+      getState().resizePlate(regionId, 11, 15);
+      const resized = getArch().plates.find((p) => p.id === regionId)!;
+      // 11 → 12, 15 → 16 (nearest even)
+      expect(resized.frame.width % 2).toBe(0);
+      expect(resized.frame.depth % 2).toBe(0);
+    });
+
+    it('enforces minimum size for network containers (4x4)', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+
+      getState().resizePlate(regionId, 1, 1);
+      const resized = getArch().plates.find((p) => p.id === regionId)!;
+      expect(resized.frame.width).toBeGreaterThanOrEqual(4);
+      expect(resized.frame.depth).toBeGreaterThanOrEqual(4);
+    });
+
+    it('enforces minimum size for subnet containers (2x2)', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', regionId);
+      const subnetId = getArch().plates[1].id;
+
+      getState().resizePlate(subnetId, 1, 1);
+      const resized = getArch().plates.find((p) => p.id === subnetId)!;
+      expect(resized.frame.width).toBeGreaterThanOrEqual(2);
+      expect(resized.frame.depth).toBeGreaterThanOrEqual(2);
+    });
+
+    it('enforces maximum size cap (40x40)', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+
+      getState().resizePlate(regionId, 100, 100);
+      const resized = getArch().plates.find((p) => p.id === regionId)!;
+      expect(resized.frame.width).toBeLessThanOrEqual(40);
+      expect(resized.frame.depth).toBeLessThanOrEqual(40);
+    });
+
+    it('anchors S edge when anchorEdge includes s', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+      const southEdge = before.position.x - before.frame.width / 2;
+
+      getState().resizePlate(regionId, 20, before.frame.depth, 's');
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      const southEdgeAfter = after.position.x - after.frame.width / 2;
+      expect(southEdgeAfter).toBeCloseTo(southEdge, 5);
+    });
+
+    it('anchors N edge when anchorEdge includes n', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+      const northEdge = before.position.x + before.frame.width / 2;
+
+      getState().resizePlate(regionId, 20, before.frame.depth, 'n');
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      const northEdgeAfter = after.position.x + after.frame.width / 2;
+      expect(northEdgeAfter).toBeCloseTo(northEdge, 5);
+    });
+
+    it('anchors W edge when anchorEdge includes w', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+      const westEdge = before.position.z - before.frame.depth / 2;
+
+      getState().resizePlate(regionId, before.frame.width, 24, 'w');
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      const westEdgeAfter = after.position.z - after.frame.depth / 2;
+      expect(westEdgeAfter).toBeCloseTo(westEdge, 5);
+    });
+
+    it('anchors E edge when anchorEdge includes e', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+      const eastEdge = before.position.z + before.frame.depth / 2;
+
+      getState().resizePlate(regionId, before.frame.width, 24, 'e');
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      const eastEdgeAfter = after.position.z + after.frame.depth / 2;
+      expect(eastEdgeAfter).toBeCloseTo(eastEdge, 5);
+    });
+
+    it('anchors SW corner when anchorEdge is sw', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+      const southEdge = before.position.x - before.frame.width / 2;
+      const westEdge = before.position.z - before.frame.depth / 2;
+
+      getState().resizePlate(regionId, 20, 24, 'sw');
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      expect(after.position.x - after.frame.width / 2).toBeCloseTo(southEdge, 5);
+      expect(after.position.z - after.frame.depth / 2).toBeCloseTo(westEdge, 5);
+    });
+
+    it('updates profileId to closest matching profile', () => {
+      getState().addPlate('subnet', 'Public', null);
+      const subnetId = getArch().plates[0].id;
+
+      // Resize to subnet-workload dimensions (8x10)
+      getState().resizePlate(subnetId, 8, 10);
+      const resized = getArch().plates.find((p) => p.id === subnetId)!;
+      expect(resized.profileId).toBe('subnet-workload');
+    });
+
+    it('clamps child containers when parent shrinks', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', regionId);
+      const subnetId = getArch().plates[1].id;
+
+      // Move subnet to far edge
+      getState().movePlatePosition(subnetId, 100, 100);
+
+      // Shrink region to 10x12 (still fits subnet 6×8)
+      getState().resizePlate(regionId, 10, 12);
+      const regionAfter = getArch().plates.find((p) => p.id === regionId)!;
+      const subnetAfter = getArch().plates.find((p) => p.id === subnetId)!;
+
+      // Subnet should be clamped within new bounds
+      const relX = subnetAfter.position.x - regionAfter.position.x;
+      const relZ = subnetAfter.position.z - regionAfter.position.z;
+      const maxRelX = (regionAfter.frame.width - subnetAfter.frame.width) / 2;
+      const maxRelZ = (regionAfter.frame.depth - subnetAfter.frame.depth) / 2;
+      expect(Math.abs(relX)).toBeLessThanOrEqual(maxRelX + 0.01);
+      expect(Math.abs(relZ)).toBeLessThanOrEqual(maxRelZ + 0.01);
+    });
+
+    it('clamps child resource blocks when parent shrinks', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      getState().addBlock('compute', 'VM', regionId);
+      const blockId = getArch().blocks[0].id;
+
+      // Move block to far edge
+      getState().moveBlockPosition(blockId, 100, 100);
+
+      // Shrink region to 6x6
+      getState().resizePlate(regionId, 6, 6);
+      const blockAfter = getArch().blocks.find((b) => b.id === blockId)!;
+
+      // Block relative position should be within bounds
+      // Max relative x for block = (6 - 2.4) / 2 = 1.8
+      expect(Math.abs(blockAfter.position.x)).toBeLessThanOrEqual(1.8 + 0.01);
+    });
+
+    it('returns unchanged state when container not found', () => {
+      getState().addPlate('region', 'VNet', null);
+      const before = getArch();
+      getState().resizePlate('nonexistent', 20, 20);
+      const after = getArch();
+      expect(after.nodes).toEqual(before.nodes);
+    });
+
+    it('returns unchanged state when dimensions match current', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+
+      getState().resizePlate(regionId, before.frame.width, before.frame.depth);
+      // Should be no-op (same dimensions)
+      const after = getArch().plates.find((p) => p.id === regionId)!;
+      expect(after.frame.width).toBe(before.frame.width);
+      expect(after.frame.depth).toBe(before.frame.depth);
+    });
+
+    it('preserves frame height during resize', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      const before = getArch().plates.find((p) => p.id === regionId)!;
+
+      getState().resizePlate(regionId, 20, 24);
+      const resized = getArch().plates.find((p) => p.id === regionId)!;
+      expect(resized.frame.height).toBe(before.frame.height);
     });
   });
 

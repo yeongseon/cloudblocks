@@ -339,6 +339,7 @@ describe('Group 3: GitHubPR submission guards', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/test-repo',
       },
     });
     useUIStore.setState({ showGitHubPR: true });
@@ -728,6 +729,7 @@ describe('Group 6: PR body prefill from compare review', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/test-repo',
       },
     });
     useUIStore.setState({ showGitHubPR: true });

@@ -89,7 +89,7 @@ describe('persistenceSlice branches', () => {
     vi.restoreAllMocks();
     localStorage.clear();
     seedStore();
-    useUIStore.setState({ activeProvider: 'azure' });
+    useUIStore.setState({ activeProvider: 'azure', fitToContentRequested: false });
   });
 
   describe('validateArchitectureShape', () => {
@@ -646,8 +646,13 @@ describe('persistenceSlice branches', () => {
       });
       expect(queue).toMatchObject({ resourceType: 'message_queue', provider: 'azure' });
       expect(architecture.externalActors).toEqual([
-        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -6, y: 0, z: 5 } },
-        { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -12, y: 0, z: 5 } },
+        {
+          id: 'ext-internet',
+          name: 'Internet',
+          type: 'internet',
+          position: { x: -10, y: 0, z: 5 },
+        },
       ]);
     });
 
@@ -1022,6 +1027,7 @@ describe('persistenceSlice branches', () => {
         provider: 'gcp',
         subtype: 'compute-engine',
       });
+      expect(useUIStore.getState().fitToContentRequested).toBe(true);
     });
 
     it('remaps external block provider but preserves name and subtype when non-azure', () => {

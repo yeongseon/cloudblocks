@@ -87,7 +87,7 @@ const AZURE_TO_GCP_SUBTYPE: Record<string, string> = {
   'azure-cache-for-redis': 'memorystore',
   'redis-cache': 'memorystore',
   // Messaging
-  'service-bus': 'pub-sub',
+  'service-bus': 'pubsub',
   'event-hubs': 'eventarc',
   'event-grid': 'eventarc',
   // Scheduling / API Management
@@ -108,7 +108,7 @@ const AZURE_TO_GCP_SUBTYPE: Record<string, string> = {
   'azure-dns': 'cloud-dns',
   // Misc
   'azure-synapse': 'bigquery',
-  'iot-hub': 'pub-sub',
+  'iot-hub': 'pubsub',
 };
 
 const PROVIDER_SUBTYPE_MAP: Record<ProviderType, Record<string, string>> = {

@@ -7,6 +7,10 @@ vi.mock('../../shared/api/client', () => ({
   apiGet: vi.fn(),
   apiPut: vi.fn(),
   isAuthError: vi.fn(() => false),
+  getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
+    if (err instanceof Error) return err.message;
+    return fallback;
+  }),
 }));
 
 vi.mock('../../shared/ui/ConfirmDialog', () => ({
@@ -102,6 +106,12 @@ describe('GitHubSync', () => {
     useAuthStore.setState({ status: 'anonymous' });
     render(<GitHubSync />);
     expect(screen.getByText('GitHub authentication required.')).toBeInTheDocument();
+  });
+
+  it('shows auth checking state when auth status is unknown', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<GitHubSync />);
+    expect(screen.getByText('Checking authentication...')).toBeInTheDocument();
   });
 
   it('shows link repo form when no repo linked', () => {
@@ -466,6 +476,52 @@ describe('GitHubSync', () => {
     expect(useArchitectureStore.getState().workspace.githubRepo).toBeUndefined();
   });
 
+  it('calls apiPut to clear github_repo on unlink', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await screen.findByRole('button', { name: 'Sync to GitHub' });
+
+    await user.click(screen.getByRole('button', { name: 'Unlink' }));
+
+    // The link call is the first apiPut, unlink call is the second
+    expect(mockApiPut).toHaveBeenCalledTimes(2);
+    expect(mockApiPut).toHaveBeenLastCalledWith(expect.stringContaining('/api/v1/workspaces/'), {
+      github_repo: null,
+    });
+  });
+
+  it('logs warning when unlink API call fails', async () => {
+    const user = userEvent.setup();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await screen.findByRole('button', { name: 'Sync to GitHub' });
+
+    // Make the second apiPut (unlink) reject
+    mockApiPut.mockRejectedValueOnce(new Error('network error'));
+
+    await user.click(screen.getByRole('button', { name: 'Unlink' }));
+
+    // Local state should still be cleared despite API failure
+    expect(screen.getByText('No GitHub repo linked.')).toBeInTheDocument();
+
+    // Best-effort warning should be logged
+    await waitFor(() => {
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Failed to clear github_repo on backend:',
+        expect.any(String),
+      );
+    });
+
+    warnSpy.mockRestore();
+  });
+
   it('handles sync error with non-Error thrown value', async () => {
     const user = userEvent.setup();
     mockApiPost.mockRejectedValue('string error');
@@ -521,6 +577,27 @@ describe('GitHubSync', () => {
       'Close GitHub Sync?',
     );
     expect(useUIStore.getState().showGitHubSync).toBe(true);
+    resolveSync({ message: 'ok', commit_sha: 'abc' });
+  });
+
+  it('closes when confirmation is accepted while operation is in progress', async () => {
+    const user = userEvent.setup();
+    let resolveSync!: (value: unknown) => void;
+    mockApiPost.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSync = resolve;
+      }),
+    );
+    mockConfirmDialog.mockResolvedValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+    await user.click(screen.getByRole('button', { name: 'Close GitHub sync panel' }));
+
+    expect(useUIStore.getState().showGitHubSync).toBe(false);
     resolveSync({ message: 'ok', commit_sha: 'abc' });
   });
 
@@ -635,6 +712,47 @@ describe('GitHubSync', () => {
 
     const ws = useArchitectureStore.getState().workspace;
     expect(ws.backendWorkspaceId).toBe('ws-1');
+  });
+
+  it('uses workspace backendWorkspaceId when repo is already linked on mount', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: 'owner/repo-one',
+        backendWorkspaceId: 'server-ws-99',
+      },
+    });
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/server-ws-99/sync', {
+        architecture: emptyArch,
+        commit_message: 'Sync architecture from CloudBlocks',
+      });
+    });
+  });
+
+  it('returns early for sync, pull, and commit loading when effective workspace ID is empty', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: 'owner/repo-one',
+        backendWorkspaceId: '',
+      },
+    });
+
+    render(<GitHubSync />);
+
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+    await user.click(screen.getByRole('button', { name: 'Pull from GitHub' }));
+
+    expect(mockApiPost).not.toHaveBeenCalled();
+    expect(mockApiGet).not.toHaveBeenCalled();
   });
 
   it('shows loading indicator while operations are in progress', async () => {
