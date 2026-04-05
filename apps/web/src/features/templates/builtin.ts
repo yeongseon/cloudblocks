@@ -13,11 +13,12 @@ const CONTAINER_RESOURCE_TYPE: Record<ContainerLayer, ContainerCapableResourceTy
 
 /**
  * Canonical positions for external resources (Client, Internet).
- * These must sit outside the VNet bounding box (width=16 → x range -8..+8).
+ * Placed lower-right of the VNet bounding box (width=16 → x range -8..+8)
+ * to represent the standard Client → Internet → Server data flow.
  * Update these constants if VNet dimensions change.
  */
-const EXT_CLIENT_POS = { x: -10, y: 0, z: -3 } as const;
-const EXT_INTERNET_POS = { x: -10, y: 0, z: 0 } as const;
+const EXT_CLIENT_POS = { x: 13, y: 0, z: 0 } as const;
+const EXT_INTERNET_POS = { x: 10, y: 0, z: 0 } as const;
 
 /**
  * Built-in Templates (v0.4 + v1.0)
@@ -65,7 +66,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet',
-        position: { x: -5, y: 0.3, z: 0 },
+        position: { x: 4, y: 0.3, z: -1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -91,7 +92,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet',
-        position: { x: 5, y: 0.3, z: 0 },
+        position: { x: -5, y: 0.3, z: 2 },
         frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -131,7 +132,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'azure-postgresql',
         parentId: 'container-tmpl-private',
-        position: { x: -1.5, y: 0.5, z: -0.5 },
+        position: { x: -1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -144,7 +145,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'blob-storage',
         parentId: 'container-tmpl-private',
-        position: { x: 1.5, y: 0.5, z: 0.5 },
+        position: { x: 1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -249,7 +250,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet2',
-        position: { x: -4, y: 0.3, z: 0 },
+        position: { x: 4, y: 0.3, z: -1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -262,7 +263,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet2',
-        position: { x: 4, y: 0.3, z: 0 },
+        position: { x: -4, y: 0.3, z: 1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -382,7 +383,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet3',
-        position: { x: -5, y: 0.3, z: 0 },
+        position: { x: 4, y: 0.3, z: -1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -408,7 +409,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet3',
-        position: { x: 5, y: 0.3, z: 0 },
+        position: { x: -5, y: 0.3, z: 2 },
         frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -448,7 +449,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'sql-database',
         parentId: 'container-tmpl-priv3',
-        position: { x: -1.5, y: 0.5, z: -0.5 },
+        position: { x: -1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -461,7 +462,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'blob-storage',
         parentId: 'container-tmpl-priv3',
-        position: { x: 1.5, y: 0.5, z: 0.5 },
+        position: { x: 1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -570,7 +571,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet4',
-        position: { x: -5, y: 0.3, z: 0 },
+        position: { x: 4, y: 0.3, z: -1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -596,7 +597,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet4',
-        position: { x: 5, y: 0.3, z: 0 },
+        position: { x: -5, y: 0.3, z: 2 },
         frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -636,7 +637,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'blob-storage',
         parentId: 'container-tmpl-priv4',
-        position: { x: -1.5, y: 0.5, z: -0.5 },
+        position: { x: -1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -649,7 +650,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'cosmos-db',
         parentId: 'container-tmpl-priv4',
-        position: { x: 1.5, y: 0.5, z: 0.5 },
+        position: { x: 1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -756,7 +757,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet5',
-        position: { x: -3, y: 0.3, z: 0 },
+        position: { x: 1, y: 0.3, z: 0 },
         frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -769,7 +770,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-tmpl-vnet5',
-        position: { x: 5, y: 0.3, z: 0 },
+        position: { x: 6, y: 0.3, z: -1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -783,7 +784,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'event-grid',
         parentId: 'container-tmpl-vnet5',
-        position: { x: -3, y: 0.5, z: -7 },
+        position: { x: -6, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -796,7 +797,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'service-bus',
         parentId: 'container-tmpl-vnet5',
-        position: { x: 0, y: 0.5, z: -7 },
+        position: { x: -2, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -809,7 +810,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'timer-trigger',
         parentId: 'container-tmpl-vnet5',
-        position: { x: 3, y: 0.5, z: -7 },
+        position: { x: 2, y: 0.5, z: -5 },
         metadata: {},
       },
       {
@@ -822,7 +823,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-tmpl-comp5',
-        position: { x: -0.5, y: 0.5, z: 1 },
+        position: { x: -1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -835,7 +836,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'functions',
         parentId: 'container-tmpl-comp5',
-        position: { x: 2, y: 0.5, z: 1 },
+        position: { x: 1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -932,8 +933,8 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: null,
-        position: { x: 0, y: 0, z: 0 },
-        frame: { width: 16, height: 1.0, depth: 26 },
+        position: { x: -4, y: 0, z: 0 },
+        frame: { width: 24, height: 1.0, depth: 20 },
         metadata: {},
       },
       {
@@ -945,7 +946,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: -5, y: 0.3, z: -4 },
+        position: { x: 6, y: 0.3, z: -5 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -958,7 +959,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.3, z: -4 },
+        position: { x: 2, y: 0.3, z: -3 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -971,7 +972,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: 5, y: 0.3, z: -4 },
+        position: { x: 6, y: 0.3, z: 1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -984,7 +985,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: -5, y: 0.3, z: 3 },
+        position: { x: 0, y: 0.3, z: 1 },
         frame: { width: 4, height: 0.6, depth: 5 },
         metadata: {},
       },
@@ -997,8 +998,8 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: -1, y: 0.3, z: 3 },
-        frame: { width: 5, height: 0.6, depth: 5 },
+        position: { x: -5, y: 0.3, z: 1 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
       {
@@ -1010,8 +1011,8 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         category: 'network',
         provider: 'azure',
         parentId: 'container-fs-vnet',
-        position: { x: 5, y: 0.3, z: 3 },
-        frame: { width: 5, height: 0.6, depth: 5 },
+        position: { x: -11, y: 0.3, z: -2 },
+        frame: { width: 6, height: 0.6, depth: 5 },
         metadata: {},
       },
 
@@ -1066,7 +1067,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'azure-postgresql',
         parentId: 'container-fs-private',
-        position: { x: -1.5, y: 0.5, z: -0.5 },
+        position: { x: -1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -1079,7 +1080,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'blob-storage',
         parentId: 'container-fs-private',
-        position: { x: 1.5, y: 0.5, z: 0.5 },
+        position: { x: 1.5, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -1131,7 +1132,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'service-bus',
         parentId: 'container-fs-vnet',
-        position: { x: -3, y: 0.5, z: -8 },
+        position: { x: -5, y: 0.5, z: -7 },
         metadata: {},
       },
       {
@@ -1144,7 +1145,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'event-grid',
         parentId: 'container-fs-vnet',
-        position: { x: 0, y: 0.5, z: -8 },
+        position: { x: -9, y: 0.5, z: -7 },
         metadata: {},
       },
       {
@@ -1157,7 +1158,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         subtype: 'timer-trigger',
         parentId: 'container-fs-vnet',
-        position: { x: 3, y: 0.5, z: -8 },
+        position: { x: -1, y: 0.5, z: -7 },
         metadata: {},
       },
       {
