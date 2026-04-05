@@ -1305,7 +1305,7 @@ describe('architectureStore', () => {
   });
 
   describe('moveBlockPosition', () => {
-    it('moves a block and clamps it within parent container bounds', () => {
+    it('moves a block without clamping in parent container', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
