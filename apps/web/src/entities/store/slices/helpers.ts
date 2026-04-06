@@ -154,8 +154,12 @@ export function subnetFrameFromBounds(blocks: ResourceBlock[]): { width: number;
   };
 }
 
-export function parentFrameFromChildSubnets(
-  children: Array<{ position: { x: number; z: number }; frame: { width: number; depth: number } }>,
+export function parentFrameFromChildren(
+  children: Array<{
+    kind: 'container' | 'resource';
+    position: { x: number; z: number };
+    frame?: { width: number; depth: number };
+  }>,
 ): { width: number; depth: number } {
   if (children.length === 0) {
     return { ...MIN_VNET };
@@ -167,19 +171,31 @@ export function parentFrameFromChildSubnets(
   let bottom = Number.NEGATIVE_INFINITY;
 
   for (const child of children) {
-    const halfW = child.frame.width / 2;
-    const halfD = child.frame.depth / 2;
+    const halfW =
+      child.kind === 'container' && child.frame
+        ? child.frame.width / 2
+        : DEFAULT_BLOCK_SIZE.width / 2;
+    const halfD =
+      child.kind === 'container' && child.frame
+        ? child.frame.depth / 2
+        : DEFAULT_BLOCK_SIZE.depth / 2;
     left = Math.min(left, child.position.x - halfW);
     right = Math.max(right, child.position.x + halfW);
     top = Math.min(top, child.position.z - halfD);
     bottom = Math.max(bottom, child.position.z + halfD);
   }
 
+  const maxAbsX = Math.max(Math.abs(left), Math.abs(right));
+  const maxAbsZ = Math.max(Math.abs(top), Math.abs(bottom));
+
   return {
-    width: snapEvenUp(Math.max(MIN_VNET.width, right - left + 2 * VNET_PAD)),
-    depth: snapEvenUp(Math.max(MIN_VNET.depth, bottom - top + 2 * VNET_PAD)),
+    width: snapEvenUp(Math.max(MIN_VNET.width, 2 * maxAbsX + 2 * VNET_PAD)),
+    depth: snapEvenUp(Math.max(MIN_VNET.depth, 2 * maxAbsZ + 2 * VNET_PAD)),
   };
 }
+
+/** @deprecated Use parentFrameFromChildren */
+export const parentFrameFromChildSubnets = parentFrameFromChildren;
 
 export function autosizeContainerTree(
   nodes: (ContainerBlock | ResourceBlock)[],
@@ -265,14 +281,14 @@ export function autosizeContainerTree(
       continue;
     }
 
-    const childSubnets = getCurrentNodes().filter(
-      (node): node is ContainerBlock =>
-        node.kind === 'container' && node.parentId === parentId && node.layer === 'subnet',
-    );
-    const parentSize = parentFrameFromChildSubnets(
-      childSubnets.map((child) => ({
+    const vnetChildren = getCurrentNodes().filter((node) => node.parentId === parentId);
+    const parentSize = parentFrameFromChildren(
+      vnetChildren.map((child) => ({
+        kind: child.kind,
         position: { x: child.position.x, z: child.position.z },
-        frame: { width: child.frame.width, depth: child.frame.depth },
+        ...(child.kind === 'container'
+          ? { frame: { width: child.frame.width, depth: child.frame.depth } }
+          : {}),
       })),
     );
 
