@@ -6,6 +6,7 @@ import {
   reflowBlockPositions,
   subnetFrameFromBounds,
   parentFrameFromChildSubnets,
+  parentFrameFromChildren,
   autosizeContainerTree,
   nextGridPosition,
   findNonOverlappingPosition,
@@ -314,6 +315,7 @@ describe('parentFrameFromChildSubnets', () => {
   it('single subnet should expand to accommodate it plus padding', () => {
     const children = [
       {
+        kind: 'container' as const,
         position: { x: 0, z: 0 },
         frame: { width: 4, depth: 6 },
       },
@@ -329,10 +331,12 @@ describe('parentFrameFromChildSubnets', () => {
   it('two subnets spread apart should expand frame appropriately', () => {
     const children = [
       {
+        kind: 'container' as const,
         position: { x: -4, z: 0 },
         frame: { width: 4, depth: 6 },
       },
       {
+        kind: 'container' as const,
         position: { x: 4, z: 0 },
         frame: { width: 4, depth: 6 },
       },
@@ -346,14 +350,14 @@ describe('parentFrameFromChildSubnets', () => {
 
   it('frame dimensions should always be even', () => {
     const testCases = [
-      [{ position: { x: 0, z: 0 }, frame: { width: 4, depth: 6 } }],
+      [{ kind: 'container' as const, position: { x: 0, z: 0 }, frame: { width: 4, depth: 6 } }],
       [
-        { position: { x: -5, z: 0 }, frame: { width: 4, depth: 6 } },
-        { position: { x: 5, z: 0 }, frame: { width: 4, depth: 6 } },
+        { kind: 'container' as const, position: { x: -5, z: 0 }, frame: { width: 4, depth: 6 } },
+        { kind: 'container' as const, position: { x: 5, z: 0 }, frame: { width: 4, depth: 6 } },
       ],
       [
-        { position: { x: 0, z: -6 }, frame: { width: 4, depth: 6 } },
-        { position: { x: 0, z: 6 }, frame: { width: 4, depth: 6 } },
+        { kind: 'container' as const, position: { x: 0, z: -6 }, frame: { width: 4, depth: 6 } },
+        { kind: 'container' as const, position: { x: 0, z: 6 }, frame: { width: 4, depth: 6 } },
       ],
     ];
 
@@ -365,11 +369,37 @@ describe('parentFrameFromChildSubnets', () => {
   });
 
   it('should respect minimum VNET dimensions (8x12)', () => {
-    const children = [{ position: { x: 0, z: 0 }, frame: { width: 4, depth: 6 } }];
+    const children = [
+      { kind: 'container' as const, position: { x: 0, z: 0 }, frame: { width: 4, depth: 6 } },
+    ];
     const frame = parentFrameFromChildSubnets(children);
 
     expect(frame.width).toBeGreaterThanOrEqual(8);
     expect(frame.depth).toBeGreaterThanOrEqual(12);
+  });
+});
+
+describe('parentFrameFromChildren', () => {
+  it('should handle mixed children: subnets and loose resource blocks', () => {
+    const children = [
+      { kind: 'container' as const, position: { x: 4, z: 0 }, frame: { width: 4, depth: 6 } },
+      { kind: 'resource' as const, position: { x: -6, z: -5 } },
+    ];
+    const frame = parentFrameFromChildren(children);
+
+    expect(frame.width).toBeGreaterThanOrEqual(18);
+    expect(frame.depth).toBeGreaterThanOrEqual(12);
+    expect(frame.width % 2).toBe(0);
+    expect(frame.depth % 2).toBe(0);
+  });
+
+  it('should use asymmetric extent math', () => {
+    const children = [
+      { kind: 'container' as const, position: { x: 8, z: 0 }, frame: { width: 4, depth: 6 } },
+    ];
+    const frame = parentFrameFromChildren(children);
+
+    expect(frame.width).toBeGreaterThanOrEqual(24);
   });
 });
 
@@ -483,6 +513,30 @@ describe('autosizeContainerTree', () => {
 
     // VNet should be resized (because subnet changed)
     expect(updatedVNet.frame).not.toEqual(vnet.frame);
+  });
+
+  it('parent VNet should consider loose resource blocks when resizing', () => {
+    const vnet = makeContainer('vnet-1', 'region', null, {
+      width: 8,
+      height: 2,
+      depth: 12,
+    });
+    const subnet = makeContainer(
+      'subnet-1',
+      'subnet',
+      'vnet-1',
+      { width: 4, height: 2, depth: 6 },
+      { x: 4, y: 0, z: 0 },
+    );
+    const looseBlock = makeResource('loose-1', 'vnet-1', { x: -6, y: 0.5, z: -5 });
+    const res1 = makeResource('r1', 'subnet-1', { x: 0, y: 0.6, z: 0 });
+
+    const nodes = [vnet, subnet, looseBlock, res1];
+    const result = autosizeContainerTree(nodes, ['subnet-1'], true);
+
+    const updatedVNet = result.find((n) => n.id === 'vnet-1') as ContainerBlock;
+    expect(updatedVNet).toBeDefined();
+    expect(updatedVNet.frame.width).toBeGreaterThanOrEqual(18);
   });
 
   it('multiple changed subnets should all be processed', () => {
@@ -840,8 +894,8 @@ describe('subnetFrameFromBounds branch coverage', () => {
 describe('parentFrameFromChildSubnets branch coverage', () => {
   it('children spread on both axes should produce larger frame', () => {
     const children = [
-      { position: { x: -6, z: -6 }, frame: { width: 4, depth: 6 } },
-      { position: { x: 6, z: 6 }, frame: { width: 4, depth: 6 } },
+      { kind: 'container' as const, position: { x: -6, z: -6 }, frame: { width: 4, depth: 6 } },
+      { kind: 'container' as const, position: { x: 6, z: 6 }, frame: { width: 4, depth: 6 } },
     ];
     const frame = parentFrameFromChildSubnets(children);
 
