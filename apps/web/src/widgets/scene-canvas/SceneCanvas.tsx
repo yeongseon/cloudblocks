@@ -17,6 +17,7 @@ import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { isExternalResourceType } from '@cloudblocks/schema';
 import { OVERLAP_OFFSET_PX } from '../../shared/tokens/connectionVisualTokens';
+import { ZoomControls } from './ZoomControls';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -84,6 +85,14 @@ export function SceneCanvas() {
 
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(0.85);
+
+  const zoomIn = useCallback(() => {
+    setZoom((prev) => Math.min(3.0, prev * 1.1));
+  }, []);
+  const zoomOut = useCallback(() => {
+    setZoom((prev) => Math.max(0.3, prev / 1.1));
+  }, []);
+  const requestFitToContent = useUIStore((s) => s.requestFitToContent);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
   const externalLaneBounds = useMemo(() => {
@@ -386,6 +395,63 @@ export function SceneCanvas() {
     }
   }, [handleWheel]);
 
+  // ── Keyboard zoom events (from BuilderView shortcuts) ──
+  useEffect(() => {
+    const handleZoomInEvt = () => zoomIn();
+    const handleZoomOutEvt = () => zoomOut();
+    window.addEventListener('cloudblocks:zoom-in', handleZoomInEvt);
+    window.addEventListener('cloudblocks:zoom-out', handleZoomOutEvt);
+    return () => {
+      window.removeEventListener('cloudblocks:zoom-in', handleZoomInEvt);
+      window.removeEventListener('cloudblocks:zoom-out', handleZoomOutEvt);
+    };
+  }, [zoomIn, zoomOut]);
+
+  // ── Pinch-to-zoom (touch devices) ──
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let lastDistance = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastDistance = Math.sqrt(dx * dx + dy * dy);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (lastDistance > 0) {
+          const scale = distance / lastDistance;
+          setZoom((prev) => Math.max(0.3, Math.min(3.0, prev * scale)));
+        }
+        lastDistance = distance;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      lastDistance = 0;
+    };
+
+    el.addEventListener('touchstart', handleTouchStart, { passive: false });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   useEffect(() => {
     if (!fitToContentRequested || !containerRef.current) {
       return;
@@ -640,6 +706,13 @@ export function SceneCanvas() {
           })}
         </div>
       </div>
+
+      <ZoomControls
+        zoom={zoom}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onFitToContent={requestFitToContent}
+      />
     </div>
   );
 }

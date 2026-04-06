@@ -34,10 +34,10 @@ import type { EndpointType } from '../../connection/endpointResolver';
 import { getEffectiveEndpointType } from '../../connection/endpointResolver';
 import { validatePlacement } from '../../validation/placement';
 import {
+  autosizeContainerTree,
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
   findNonOverlappingPosition,
-  nextGridPosition,
   resolveMoveDelta,
   withHistory,
 } from './helpers';
@@ -382,14 +382,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       }
 
       const containers = arch.nodes.filter(isContainer);
-      const resources = arch.nodes.filter(isResource);
       const container = containers.find((candidate) => candidate.id === placementId);
 
       if (!container) {
         return state;
       }
-
-      const existingBlocksOnPlate = resources.filter((block) => block.parentId === placementId);
 
       const block: ResourceBlock = {
         id: generateId('block'),
@@ -400,15 +397,18 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         category,
         provider: provider ?? 'azure',
         parentId: placementId,
-        position: nextGridPosition(existingBlocksOnPlate, container.frame),
+        position: { x: 0, y: container.frame.height, z: 0 },
         metadata: {},
         ...(subtype ? { subtype } : {}),
         ...(config ? { config } : {}),
       };
 
+      const provisionalNodes = [...arch.nodes, block];
+      const resizedNodes = autosizeContainerTree(provisionalNodes, [placementId], true);
+
       return withHistory(state, {
         ...arch,
-        nodes: [...arch.nodes, block],
+        nodes: resizedNodes,
         endpoints: [...arch.endpoints, ...generateEndpointsForBlock(block.id)],
       });
     });
@@ -434,41 +434,23 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const siblingsOnPlate = resources.filter(
-        (candidate) => candidate.parentId === sourceBlock.parentId,
-      );
-
-      const unclampedPosition = nextGridPosition(siblingsOnPlate, {
-        width: parentPlate.frame.width,
-        depth: parentPlate.frame.depth,
-      });
-
-      const clampedXZ = clampWithinParent(
-        { x: unclampedPosition.x, z: unclampedPosition.z },
-        parentPlate.frame,
-        DEFAULT_BLOCK_SIZE,
-      );
-
-      const position = {
-        x: clampedXZ.x,
-        y: unclampedPosition.y,
-        z: clampedXZ.z,
-      };
-
       const newBlock: ResourceBlock = {
         ...sourceBlock,
         id: generateId('block'),
         name: `${sourceBlock.name} (copy)`,
-        position,
+        position: { x: 0, y: parentPlate.frame.height, z: 0 },
         metadata: { ...sourceBlock.metadata },
         ...(sourceBlock.config ? { config: JSON.parse(JSON.stringify(sourceBlock.config)) } : {}),
         ...(sourceBlock.aggregation ? { aggregation: { ...sourceBlock.aggregation } } : {}),
         ...(sourceBlock.roles ? { roles: [...sourceBlock.roles] } : {}),
       };
 
+      const provisionalNodes = [...arch.nodes, newBlock];
+      const resizedNodes = autosizeContainerTree(provisionalNodes, [parentPlate.id], true);
+
       return withHistory(state, {
         ...arch,
-        nodes: [...arch.nodes, newBlock],
+        nodes: resizedNodes,
       });
     });
   },
@@ -482,9 +464,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const nodesWithoutBlock = arch.nodes.filter((candidate) => candidate.id !== id);
+      const resizedNodes = block.parentId
+        ? autosizeContainerTree(nodesWithoutBlock, [block.parentId], true)
+        : nodesWithoutBlock;
+
       return withHistory(state, {
         ...arch,
-        nodes: arch.nodes.filter((candidate) => candidate.id !== id),
+        nodes: resizedNodes,
         endpoints: arch.endpoints.filter((endpoint) => endpoint.blockId !== id),
         connections: arch.connections.filter(
           (connection) =>
@@ -565,20 +552,24 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const blocksOnTarget = resources.filter((candidate) => candidate.parentId === newPlacementId);
-      const newPosition = nextGridPosition(blocksOnTarget, targetPlate.frame);
+      const movedNodes = arch.nodes.map((candidate) =>
+        candidate.id === blockId && candidate.kind === 'resource'
+          ? {
+              ...candidate,
+              parentId: newPlacementId,
+              position: { x: 0, y: targetPlate.frame.height, z: 0 },
+            }
+          : candidate,
+      );
+
+      const changedSubnetIds = [oldPlacementId, newPlacementId].filter(
+        (placementId): placementId is string => placementId !== null,
+      );
+      const resizedNodes = autosizeContainerTree(movedNodes, changedSubnetIds, true);
 
       return withHistory(state, {
         ...arch,
-        nodes: arch.nodes.map((candidate) =>
-          candidate.id === blockId && candidate.kind === 'resource'
-            ? {
-                ...candidate,
-                parentId: newPlacementId,
-                position: newPosition,
-              }
-            : candidate,
-        ),
+        nodes: resizedNodes,
       });
     });
   },
@@ -929,31 +920,23 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const unclampedPosition = {
-        x: block.position.x + deltaX,
-        z: block.position.z + deltaZ,
-      };
-      const clampedPosition = clampWithinParent(
-        unclampedPosition,
-        { width: parentPlate.frame.width, depth: parentPlate.frame.depth },
-        { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
-      );
-
-      const nodes = arch.nodes.map((candidate) => {
+      const movedNodes = arch.nodes.map((candidate) => {
         if (candidate.id === id && candidate.kind === 'resource') {
           return {
             ...candidate,
             position: {
-              x: clampedPosition.x,
+              x: candidate.position.x + deltaX,
               y: candidate.position.y,
-              z: clampedPosition.z,
+              z: candidate.position.z + deltaZ,
             },
           };
         }
         return candidate;
       });
 
-      return withHistory(state, { ...arch, nodes });
+      const resizedNodes = autosizeContainerTree(movedNodes, [parentPlate.id], false);
+
+      return withHistory(state, { ...arch, nodes: resizedNodes });
     });
   },
 

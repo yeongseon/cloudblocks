@@ -63,6 +63,7 @@ describe('WorkspaceManager', () => {
   const createWorkspaceMock = vi.fn();
   const switchWorkspaceMock = vi.fn();
   const deleteWorkspaceMock = vi.fn();
+  const deleteWorkspacesMock = vi.fn();
   const cloneWorkspaceMock = vi.fn();
   const saveToStorageMock = vi.fn();
   const renameWorkspaceMock = vi.fn();
@@ -76,6 +77,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -176,6 +178,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -196,6 +199,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -234,6 +238,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -259,6 +264,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -279,6 +285,7 @@ describe('WorkspaceManager', () => {
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
       cloneWorkspace: cloneWorkspaceMock,
       renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
@@ -350,6 +357,132 @@ describe('WorkspaceManager', () => {
     await user.click(renameBtn);
     await waitFor(() => {
       expect(renameWorkspaceMock).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Bulk delete tests ──────────────────────────────────────────────
+
+  const setupMultiWorkspace = () => {
+    const ws2 = makeWorkspace('ws-2', 'Second Workspace', 1, 0);
+    const ws3 = makeWorkspace('ws-3', 'Third Workspace', 0, 1);
+    useArchitectureStore.setState({
+      workspace: makeWorkspace('ws-1', 'Default Workspace', 2, 1),
+      workspaces: [makeWorkspace('ws-1', 'Default Workspace', 2, 1), ws2, ws3],
+      createWorkspace: createWorkspaceMock,
+      switchWorkspace: switchWorkspaceMock,
+      deleteWorkspace: deleteWorkspaceMock,
+      deleteWorkspaces: deleteWorkspacesMock,
+      cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
+      saveToStorage: saveToStorageMock,
+    });
+    useUIStore.setState({ showWorkspaceManager: true });
+  };
+
+  it('does not show bulk actions when only one workspace exists', () => {
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    expect(screen.queryByText('Select all')).not.toBeInTheDocument();
+  });
+
+  it('shows select-all checkbox when multiple workspaces exist', () => {
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    expect(screen.getByText('Select all')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Select all workspaces' })).toBeInTheDocument();
+  });
+
+  it('disables checkbox for active workspace', () => {
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const activeCheckbox = screen.getByRole('checkbox', { name: 'Select Default Workspace' });
+    expect(activeCheckbox).toBeDisabled();
+  });
+
+  it('enables checkbox for non-active workspaces', () => {
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const ws2Checkbox = screen.getByRole('checkbox', { name: 'Select Second Workspace' });
+    expect(ws2Checkbox).not.toBeDisabled();
+  });
+
+  it('toggles individual workspace selection', async () => {
+    const user = userEvent.setup();
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const ws2Checkbox = screen.getByRole('checkbox', { name: 'Select Second Workspace' });
+    expect(ws2Checkbox).not.toBeChecked();
+    await user.click(ws2Checkbox);
+    expect(ws2Checkbox).toBeChecked();
+    await user.click(ws2Checkbox);
+    expect(ws2Checkbox).not.toBeChecked();
+  });
+
+  it('shows delete selected button only when items are selected', async () => {
+    const user = userEvent.setup();
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    expect(screen.queryByText(/Delete selected/)).not.toBeInTheDocument();
+    const ws2Checkbox = screen.getByRole('checkbox', { name: 'Select Second Workspace' });
+    await user.click(ws2Checkbox);
+    expect(screen.getByText(/Delete selected \(1\)/)).toBeInTheDocument();
+  });
+
+  it('select all checks all non-active workspaces', async () => {
+    const user = userEvent.setup();
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const selectAllCheckbox = screen.getByRole('checkbox', { name: 'Select all workspaces' });
+    await user.click(selectAllCheckbox);
+    expect(screen.getByRole('checkbox', { name: 'Select Second Workspace' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Select Third Workspace' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Select Default Workspace' })).not.toBeChecked();
+    expect(screen.getByText(/Delete selected \(2\)/)).toBeInTheDocument();
+  });
+
+  it('deselect all unchecks all workspaces', async () => {
+    const user = userEvent.setup();
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const selectAllCheckbox = screen.getByRole('checkbox', { name: 'Select all workspaces' });
+    await user.click(selectAllCheckbox); // select all
+    await user.click(selectAllCheckbox); // deselect all
+    expect(screen.getByRole('checkbox', { name: 'Select Second Workspace' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Select Third Workspace' })).not.toBeChecked();
+    expect(screen.queryByText(/Delete selected/)).not.toBeInTheDocument();
+  });
+
+  it('bulk deletes selected workspaces after confirmation', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const ws2Checkbox = screen.getByRole('checkbox', { name: 'Select Second Workspace' });
+    const ws3Checkbox = screen.getByRole('checkbox', { name: 'Select Third Workspace' });
+    await user.click(ws2Checkbox);
+    await user.click(ws3Checkbox);
+    const deleteBtn = screen.getByText(/Delete selected \(2\)/);
+    await user.click(deleteBtn);
+    expect(confirmDialog).toHaveBeenCalledWith(
+      'Delete 2 workspaces? This cannot be undone.',
+      'Delete selected workspaces?',
+    );
+    await waitFor(() => {
+      expect(deleteWorkspacesMock).toHaveBeenCalledWith(expect.arrayContaining(['ws-2', 'ws-3']));
+    });
+  });
+
+  it('does not bulk delete when confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(false);
+    setupMultiWorkspace();
+    render(<WorkspaceManager />);
+    const ws2Checkbox = screen.getByRole('checkbox', { name: 'Select Second Workspace' });
+    await user.click(ws2Checkbox);
+    const deleteBtn = screen.getByText(/Delete selected \(1\)/);
+    await user.click(deleteBtn);
+    await waitFor(() => {
+      expect(deleteWorkspacesMock).not.toHaveBeenCalled();
     });
   });
 });

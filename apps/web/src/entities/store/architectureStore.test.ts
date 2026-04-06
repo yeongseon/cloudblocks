@@ -331,7 +331,7 @@ describe('architectureStore', () => {
       expect(plates[0].profileId).toBe('network-hub');
       expect(plates[0].frame.width).toBe(20);
       expect(plates[0].frame.depth).toBe(24);
-      expect(plates[0].frame.height).toBe(0.7);
+      expect(plates[0].frame.height).toBe(1.0);
     });
 
     it('adds a subnet container with explicit profileId', () => {
@@ -342,7 +342,7 @@ describe('architectureStore', () => {
       expect(subnet.profileId).toBe('subnet-scale');
       expect(subnet.frame.width).toBe(10);
       expect(subnet.frame.depth).toBe(12);
-      expect(subnet.frame.height).toBe(0.5);
+      expect(subnet.frame.height).toBe(0.6);
     });
 
     it('adds a subnet container as child of network', () => {
@@ -357,7 +357,7 @@ describe('architectureStore', () => {
       expect(subnet.name).toBe('Public');
       expect(subnet.type).toBe('subnet');
       expect(subnet.parentId).toBe(netId);
-      expect(subnet.position.y).toBe(0.7);
+      expect(subnet.position.y).toBe(1.0);
 
       // Network container should have subnet as child
       const network = plates.find((p) => p.id === netId);
@@ -633,7 +633,7 @@ describe('architectureStore', () => {
       expect(duplicate.category).toBe(source.category);
       expect(duplicate.placementId).toBe(source.placementId);
       expect(duplicate.provider).toBe(source.provider);
-      expect(duplicate.position.y).toBe(0.5);
+      expect(duplicate.position.y).toBe(0.6);
       expect(duplicate.position).not.toEqual(source.position);
 
       const container = getArch().plates.find((p) => p.id === subId);
@@ -986,6 +986,15 @@ describe('architectureStore', () => {
       // Block position should be within new bounds: max x = (8/2) - (2.4/2) = 2.8
       expect(blockAfter.position.x).toBeLessThanOrEqual(2.8);
     });
+
+    it('returns unchanged state for non-existent container', () => {
+      getState().addPlate('region', 'VNet', null);
+      const before = getState().workspace.architecture;
+
+      getState().setPlateProfile('nonexistent-id', 'subnet-service');
+
+      expect(getState().workspace.architecture).toBe(before);
+    });
   });
 
   describe('resizePlate', () => {
@@ -1303,7 +1312,7 @@ describe('architectureStore', () => {
   });
 
   describe('moveBlockPosition', () => {
-    it('moves a block and clamps it within parent container bounds', () => {
+    it('moves a block without clamping in parent container', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
@@ -1314,8 +1323,8 @@ describe('architectureStore', () => {
       getState().moveBlockPosition(blockId, 100, -100);
 
       const moved = getArch().blocks.find((block) => block.id === blockId);
-      expect(moved?.position.x).toBe(1.8);
-      expect(moved?.position.z).toBe(-2.8);
+      expect(moved?.position.x).toBe(100);
+      expect(moved?.position.z).toBe(-100);
     });
 
     it('no-ops when moving a block whose parent container is missing', () => {
@@ -1346,6 +1355,19 @@ describe('architectureStore', () => {
       getState().moveBlockPosition('missing-block', 1, 1);
 
       expect(getState().workspace.architecture).toBe(before);
+    });
+
+    it('moves a top-level block with null parentId', () => {
+      getState().addBlock('compute', 'Internet VM', null);
+      const blockId = getArch().blocks[0].id;
+      const before = getArch().blocks.find((block) => block.id === blockId)!;
+
+      getState().moveBlockPosition(blockId, 1, -2);
+
+      const after = getArch().blocks.find((block) => block.id === blockId)!;
+      expect(after.position.x).toBe(before.position.x + 1);
+      expect(after.position.z).toBe(before.position.z - 2);
+      expect(after.position.y).toBe(before.position.y);
     });
   });
 
@@ -1896,6 +1918,56 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
+    });
+  });
+
+  describe('deleteWorkspaces', () => {
+    it('deletes multiple non-current workspaces', () => {
+      const firstId = getState().workspace.id;
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      getState().createWorkspace('Third');
+      const currentId = getState().workspace.id;
+
+      getState().deleteWorkspaces([firstId, secondId]);
+
+      expect(getState().workspace.id).toBe(currentId);
+      expect(getState().workspaces.find((ws) => ws.id === firstId)).toBeUndefined();
+      expect(getState().workspaces.find((ws) => ws.id === secondId)).toBeUndefined();
+    });
+
+    it('switches to first remaining when deleting current workspace', () => {
+      getState().createWorkspace('Second');
+      const currentId = getState().workspace.id;
+      const expectedNext = getState().workspaces.find((ws) => ws.id !== currentId)?.id;
+
+      getState().deleteWorkspaces([currentId]);
+
+      expect(getState().workspace.id).not.toBe(currentId);
+      expect(getState().workspace.id).toBe(expectedNext);
+    });
+
+    it('creates new default when deleting all workspaces', () => {
+      const onlyId = getState().workspace.id;
+
+      getState().deleteWorkspaces([onlyId]);
+
+      expect(getState().workspace).toBeDefined();
+      expect(getState().workspace.id).not.toBe(onlyId);
+      expect(getState().workspaces).toHaveLength(1);
+    });
+
+    it('deletes non-current workspaces without affecting current', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      getState().createWorkspace('Third');
+      const currentId = getState().workspace.id;
+
+      getState().deleteWorkspaces([secondId]);
+
+      expect(getState().workspace.id).toBe(currentId);
+      expect(getState().workspaces.find((ws) => ws.id === secondId)).toBeUndefined();
+      expect(getState().workspaces.find((ws) => ws.id === currentId)).toBeDefined();
     });
   });
 
