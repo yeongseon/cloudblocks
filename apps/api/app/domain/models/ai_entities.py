@@ -29,8 +29,10 @@ class AISuggestion(BaseModel):
 
 
 class AISuggestionsResponse(BaseModel):
+    status: str = "success"
     suggestions: list[AISuggestion] = Field(default_factory=list)
     score: dict[str, int | float] = Field(default_factory=dict)
+    error_message: str | None = None
 
 
 class CostResource(BaseModel):

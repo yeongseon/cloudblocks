@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -102,7 +102,10 @@ async def suggest_improvements(
         timeout=settings.llm_request_timeout,
     )
     engine = SuggestionEngine(client)
-    return await engine.analyze(request.architecture, request.provider)
+    try:
+        return await engine.analyze(request.architecture, request.provider)
+    except LLMError as exc:
+        raise GenerationError(f"Architecture analysis failed: {exc}") from exc
 
 
 SUBTYPE_TO_TF_RESOURCE: dict[str, str] = {
@@ -163,10 +166,11 @@ def _architecture_to_tf_json(architecture: dict[str, object]) -> dict[str, objec
     resources: dict[str, dict[str, dict[str, object]]] = {}
     _, blocks = extract_containers_and_resources(architecture)
 
-    for block in blocks:
+    for raw_block in blocks:
+        block = cast(dict[str, object], raw_block)
         subtype = block.get("subtype")
-        name = block.get("name", "unnamed")
-        block_id = block.get("id", "unknown")
+        name_value: object = block.get("name", "unnamed")
+        block_id_value: object = block.get("id", "unknown")
 
         if not isinstance(subtype, str):
             continue
@@ -175,10 +179,12 @@ def _architecture_to_tf_json(architecture: dict[str, object]) -> dict[str, objec
         if tf_type is None:
             continue
 
-        safe_name = str(block_id).replace("-", "_")
+        name = name_value if isinstance(name_value, str) else ""
+        block_id = block_id_value if isinstance(block_id_value, str) else str(block_id_value)
+        safe_name = block_id.replace("-", "_")
         if tf_type not in resources:
             resources[tf_type] = {}
-        resources[tf_type][safe_name] = {"tags": {"Name": name if isinstance(name, str) else ""}}
+        resources[tf_type][safe_name] = {"tags": {"Name": name}}
 
     return {"resource": resources}
 
@@ -195,7 +201,7 @@ async def estimate_cost(
     tmp_dir = tempfile.mkdtemp(prefix="cloudblocks_cost_")
     tf_path = Path(tmp_dir) / "main.tf.json"
     try:
-        tf_path.write_text(json.dumps(tf_json, indent=2))
+        _ = tf_path.write_text(json.dumps(tf_json, indent=2))
         client = InfracostClient(api_key=settings.infracost_api_key)
         return await client.estimate(tmp_dir)
     except InfracostError as exc:

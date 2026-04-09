@@ -15,7 +15,7 @@ from app.domain.models.entities import User
 from app.infrastructure.cost.infracost_client import InfracostClient
 from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import SQLiteAIApiKeyRepository
-from app.infrastructure.llm.client import OpenAIClient
+from app.infrastructure.llm.client import LLMError, OpenAIClient
 from app.infrastructure.llm.key_manager import KeyManager
 
 
@@ -150,6 +150,7 @@ async def test_generate_returns_validation_warnings(
     ) -> dict[str, object]:
         _ = self
         _ = system_prompt
+        _ = user_prompt
         _ = response_schema
         return invalid_architecture
 
@@ -163,7 +164,7 @@ async def test_generate_returns_validation_warnings(
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
-    warnings = payload["warnings"]
+    warnings = cast(list[object], payload["warnings"])
     assert isinstance(warnings, list)
     assert len(warnings) >= 2
 
@@ -212,10 +213,48 @@ async def test_suggest_success(
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
-    suggestions = payload["suggestions"]
+    suggestions = cast(list[object], payload["suggestions"])
     assert isinstance(suggestions, list)
     assert len(suggestions) == 1
+    assert payload["status"] == "success"
     assert payload["score"] == {"security": 60, "reliability": 80, "best_practice": 70}
+
+
+@pytest.mark.asyncio
+async def test_suggest_llm_error(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    test_user: User,
+    db: Database,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _store_openai_key(db, test_user.id)
+
+    async def mock_generate(
+        self: OpenAIClient,
+        system_prompt: str,
+        user_prompt: str,
+        response_schema: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        _ = self
+        _ = system_prompt
+        _ = user_prompt
+        _ = response_schema
+        raise LLMError("model overloaded")
+
+    monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
+
+    response = await client.post(
+        "/api/v1/ai/suggest",
+        cookies=auth_cookies,
+        json={"architecture": {"blocks": []}, "provider": "aws"},
+    )
+
+    assert response.status_code == 500
+    payload = cast(dict[str, object], response.json())
+    error_payload = cast(dict[str, object], payload["error"])
+    assert error_payload["code"] == "GENERATION_FAILED"
+    assert "Architecture analysis failed" in str(error_payload["message"])
 
 
 @pytest.mark.asyncio
@@ -312,7 +351,7 @@ async def test_cost_success(
     payload = cast(dict[str, object], json.loads(response.text))
     assert payload["monthly_cost"] == 42.50
     assert payload["currency"] == "USD"
-    resources = payload["resources"]
+    resources = cast(list[object], payload["resources"])
     assert isinstance(resources, list)
     assert len(resources) == 2
 
@@ -394,6 +433,7 @@ async def test_cost_infracost_error(
         terraform_dir: str,
     ) -> CostEstimate:
         _ = self
+        _ = terraform_dir
         raise InfracostError("Infracost binary not found on PATH")
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
