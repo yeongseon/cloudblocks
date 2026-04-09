@@ -70,6 +70,7 @@ describe('GitHubLogin', () => {
     const user = userEvent.setup();
     const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockImplementation(async () => {
       useAuthStore.setState({ status: 'anonymous', user: null });
+      return 'available';
     });
     useAuthStore.setState({
       status: 'authenticated',
@@ -94,6 +95,7 @@ describe('GitHubLogin', () => {
     const user = userEvent.setup();
     const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockImplementation(async () => {
       useAuthStore.setState({ status: 'authenticated', error: 'Logout failed. Checking session…' });
+      return 'available';
     });
     useAuthStore.setState({
       status: 'authenticated',
