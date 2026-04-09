@@ -1,5 +1,4 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { useLearningStore } from '../../entities/store/learningStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getScenario } from './scenarios/registry';
 import { formatScenarioForProvider } from './scenario-formatter';
@@ -13,12 +12,12 @@ let unsubscribe: (() => void) | null = null;
 let preLearningSnapshot: ArchitectureModel | null = null;
 
 function hasActiveScenario(): boolean {
-  const { activeScenario, progress } = useLearningStore.getState();
+  const { activeScenario, progress } = useArchitectureStore.getState();
   return activeScenario !== null && progress !== null;
 }
 
 function syncCurrentStepCompletion(): ValidationResult {
-  const learningState = useLearningStore.getState();
+  const learningState = useArchitectureStore.getState();
   if (!learningState.activeScenario || !learningState.progress) {
     learningState.setStepComplete(false);
     return { passed: false, results: [] };
@@ -43,7 +42,7 @@ export function startLearningScenario(scenarioId: string): void {
   );
   useArchitectureStore.getState().replaceArchitecture(scenario.initialArchitecture);
   useUIStore.getState().setEditorMode('learn');
-  useLearningStore.getState().startScenario(scenario);
+  useArchitectureStore.getState().startScenario(scenario);
 
   useUIStore.getState().openDrawer('learning');
 
@@ -54,7 +53,7 @@ export function startLearningScenario(scenarioId: string): void {
 }
 
 export function advanceToNextStep(): void {
-  const learningState = useLearningStore.getState();
+  const learningState = useArchitectureStore.getState();
   const { activeScenario, progress, isCurrentStepComplete } = learningState;
 
   if (!activeScenario || !progress || !isCurrentStepComplete) {
@@ -79,7 +78,7 @@ export function advanceToNextStep(): void {
 }
 
 export function resetCurrentStep(): void {
-  const learningState = useLearningStore.getState();
+  const learningState = useArchitectureStore.getState();
   const { activeScenario, progress } = learningState;
 
   if (!activeScenario || !progress) {
@@ -102,7 +101,7 @@ export function resetCurrentStep(): void {
 }
 
 export function abandonLearning(): void {
-  useLearningStore.getState().abandonScenario();
+  useArchitectureStore.getState().abandonScenario();
 
   if (preLearningSnapshot) {
     useArchitectureStore.getState().replaceArchitecture(preLearningSnapshot);
@@ -125,12 +124,12 @@ export function startValidationSubscription(): void {
   unsubscribe = useArchitectureStore.subscribe((state, prevState) => {
     if (state.workspace.architecture !== prevState.workspace.architecture) {
       if (!hasActiveScenario()) {
-        useLearningStore.getState().setStepComplete(false);
+        useArchitectureStore.getState().setStepComplete(false);
         return;
       }
 
       const validation = getValidationDetails();
-      useLearningStore.getState().setStepComplete(validation.passed);
+      useArchitectureStore.getState().setStepComplete(validation.passed);
     }
   });
 }
@@ -145,7 +144,7 @@ export function stopValidationSubscription(): void {
 }
 
 export function getCurrentStepRules(): StepValidationRule[] {
-  const { activeScenario, progress } = useLearningStore.getState();
+  const { activeScenario, progress } = useArchitectureStore.getState();
   if (!activeScenario || !progress) {
     return [];
   }
@@ -155,7 +154,7 @@ export function getCurrentStepRules(): StepValidationRule[] {
 }
 
 export function getValidationDetails(): ValidationResult {
-  const { activeScenario, progress } = useLearningStore.getState();
+  const { activeScenario, progress } = useArchitectureStore.getState();
   if (!activeScenario || !progress) {
     return { passed: false, results: [] };
   }

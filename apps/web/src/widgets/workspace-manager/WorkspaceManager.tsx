@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Pencil, Copy } from 'lucide-react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { syncWorkspaceUI } from '../../entities/store/uiSync';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { promptDialog } from '../../shared/ui/PromptDialog';
 import './WorkspaceManager.css';
@@ -32,6 +33,7 @@ export function WorkspaceManager() {
     const name = newName.trim();
     if (!name) return;
     createWorkspace(name);
+    syncWorkspaceUI();
     setNewName('');
   };
 
@@ -40,6 +42,7 @@ export function WorkspaceManager() {
     const confirmed = await confirmDialog('This cannot be undone.', 'Delete this workspace?');
     if (confirmed) {
       deleteWorkspace(id);
+      syncWorkspaceUI();
     }
   };
 
@@ -127,6 +130,7 @@ export function WorkspaceManager() {
                     onClick={() => {
                       saveToStorage();
                       switchWorkspace(ws.id);
+                      syncWorkspaceUI();
                     }}
                     title="Switch to this workspace"
                   >
@@ -136,7 +140,10 @@ export function WorkspaceManager() {
                 <button
                   type="button"
                   className="workspace-manager-action"
-                  onClick={() => cloneWorkspace(ws.id)}
+                  onClick={() => {
+                    cloneWorkspace(ws.id);
+                    syncWorkspaceUI();
+                  }}
                   title="Clone workspace"
                 >
                   <Copy size={14} />

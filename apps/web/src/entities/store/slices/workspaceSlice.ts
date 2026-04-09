@@ -49,9 +49,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
       saveActiveWorkspaceId(newWorkspace.id);
     }
 
-    useUIStore.getState().clearDiffState();
-    useUIStore.getState().setActiveProvider(resolvedProvider);
-
     set({
       workspace: newWorkspace,
       workspaces: allWorkspaces,
@@ -72,10 +69,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     if (saveWorkspaces(updatedList)) {
       saveActiveWorkspaceId(target.id);
     }
-
-    useUIStore.getState().clearDiffState();
-    // Sync UI provider from workspace provider (migration: default to 'azure')
-    useUIStore.getState().setActiveProvider(target.provider ?? 'azure');
 
     set({
       workspace: target,
@@ -99,8 +92,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
       if (saveWorkspaces(filtered)) {
         saveActiveWorkspaceId(next.id);
       }
-
-      useUIStore.getState().clearDiffState();
 
       set({
         workspace: next,
@@ -148,9 +139,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     if (saveWorkspaces(updatedList)) {
       saveActiveWorkspaceId(cloned.id);
     }
-
-    useUIStore.getState().clearDiffState();
-    useUIStore.getState().setActiveProvider(cloned.provider);
 
     set({
       workspace: cloned,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { syncWorkspaceUI } from '../../entities/store/uiSync';
 import { listTemplates, listTemplatesByCategory } from '../../features/templates/registry';
 import type { ArchitectureTemplate, TemplateCategory } from '../../shared/types/template';
 import './TemplateGallery.css';
@@ -32,6 +33,7 @@ export function TemplateGallery() {
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
     loadFromTemplate(template);
+    syncWorkspaceUI({ fitToContent: true });
     saveToStorage();
     setActiveCategory('all');
     closeDrawer();

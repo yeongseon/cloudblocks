@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAiStore } from '../store';
+import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { isApiConfigured } from '../../../shared/api/client';
 import type { AiSuggestion } from '../api';
 import './SuggestionsPanel.css';
@@ -50,9 +50,9 @@ function ScoreBar({ label, value, max = 100 }: { label: string; value: number; m
 }
 
 export const SuggestionsPanel: React.FC = () => {
-  const loading = useAiStore((s) => s.suggestLoading);
-  const error = useAiStore((s) => s.suggestError);
-  const result = useAiStore((s) => s.suggestResult);
+  const loading = useArchitectureStore((s) => s.suggestLoading);
+  const error = useArchitectureStore((s) => s.suggestError);
+  const result = useArchitectureStore((s) => s.suggestResult);
   const backendConfigured = isApiConfigured();
 
   if (!backendConfigured) {
@@ -88,13 +88,14 @@ export const SuggestionsPanel: React.FC = () => {
   }
 
   const { suggestions, score } = result;
+  const scoreEntries: [string, number][] = Object.entries(score);
 
   return (
     <div className="suggestions-panel" data-testid="suggestions-panel">
-      {Object.keys(score).length > 0 && (
+      {scoreEntries.length > 0 && (
         <div className="suggestions-scores">
           <h4 className="suggestions-section-title">Architecture Score</h4>
-          {Object.entries(score).map(([key, val]) => (
+          {scoreEntries.map(([key, val]) => (
             <ScoreBar key={key} label={key} value={val} />
           ))}
         </div>
@@ -105,7 +106,7 @@ export const SuggestionsPanel: React.FC = () => {
         {suggestions.length === 0 ? (
           <div className="suggestions-empty">No suggestions — looking good!</div>
         ) : (
-          suggestions.map((s) => (
+          suggestions.map((s: AiSuggestion) => (
             <SuggestionItem key={`${s.severity}-${s.category}-${s.message}`} suggestion={s} />
           ))
         )}

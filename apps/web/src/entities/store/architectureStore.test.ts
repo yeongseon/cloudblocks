@@ -1616,16 +1616,16 @@ describe('architectureStore', () => {
       expect(getState().canRedo).toBe(false);
     });
 
-    it('loadFromStorage clears active diff state', () => {
+    it('loadFromStorage leaves diff UI state unchanged', () => {
       getState().saveToStorage();
       activateDiffState();
 
       getState().loadFromStorage();
 
       const uiState = useUIStore.getState();
-      expect(uiState.diffMode).toBe(false);
-      expect(uiState.diffDelta).toBe(null);
-      expect(uiState.diffBaseArchitecture).toBe(null);
+      expect(uiState.diffMode).toBe(true);
+      expect(uiState.diffDelta).not.toBe(null);
+      expect(uiState.diffBaseArchitecture).not.toBe(null);
     });
   });
 
@@ -1669,15 +1669,15 @@ describe('architectureStore', () => {
       spy.mockRestore();
     });
 
-    it('clears active diff state', () => {
+    it('leaves diff UI state unchanged', () => {
       activateDiffState();
 
       getState().resetWorkspace();
 
       const uiState = useUIStore.getState();
-      expect(uiState.diffMode).toBe(false);
-      expect(uiState.diffDelta).toBe(null);
-      expect(uiState.diffBaseArchitecture).toBe(null);
+      expect(uiState.diffMode).toBe(true);
+      expect(uiState.diffDelta).not.toBe(null);
+      expect(uiState.diffBaseArchitecture).not.toBe(null);
     });
   });
 
@@ -1835,7 +1835,7 @@ describe('architectureStore', () => {
       spy.mockRestore();
     });
 
-    it('clears active diff state when switching workspaces', () => {
+    it('leaves diff UI state unchanged when switching workspaces', () => {
       const initialWorkspaceId = getState().workspace.id;
       getState().createWorkspace('Second');
       activateDiffState();
@@ -1843,9 +1843,9 @@ describe('architectureStore', () => {
       getState().switchWorkspace(initialWorkspaceId);
 
       const uiState = useUIStore.getState();
-      expect(uiState.diffMode).toBe(false);
-      expect(uiState.diffDelta).toBe(null);
-      expect(uiState.diffBaseArchitecture).toBe(null);
+      expect(uiState.diffMode).toBe(true);
+      expect(uiState.diffDelta).not.toBe(null);
+      expect(uiState.diffBaseArchitecture).not.toBe(null);
     });
   });
 
@@ -2355,7 +2355,7 @@ describe('architectureStore', () => {
       spy.mockRestore();
     });
 
-    it('clears active diff state after successful import', () => {
+    it('leaves diff UI state unchanged after successful import', () => {
       activateDiffState();
 
       const arch = {
@@ -2366,9 +2366,9 @@ describe('architectureStore', () => {
 
       expect(result).toBeNull();
       const uiState = useUIStore.getState();
-      expect(uiState.diffMode).toBe(false);
-      expect(uiState.diffDelta).toBe(null);
-      expect(uiState.diffBaseArchitecture).toBe(null);
+      expect(uiState.diffMode).toBe(true);
+      expect(uiState.diffDelta).not.toBe(null);
+      expect(uiState.diffBaseArchitecture).not.toBe(null);
     });
   });
 
@@ -2476,7 +2476,7 @@ describe('architectureStore', () => {
       spy.mockRestore();
     });
 
-    it('clears active diff state when loading a template', () => {
+    it('leaves diff UI state unchanged when loading a template', () => {
       activateDiffState();
 
       const template: ArchitectureTemplate = {
@@ -2499,9 +2499,9 @@ describe('architectureStore', () => {
       getState().loadFromTemplate(template);
 
       const uiState = useUIStore.getState();
-      expect(uiState.diffMode).toBe(false);
-      expect(uiState.diffDelta).toBe(null);
-      expect(uiState.diffBaseArchitecture).toBe(null);
+      expect(uiState.diffMode).toBe(true);
+      expect(uiState.diffDelta).not.toBe(null);
+      expect(uiState.diffBaseArchitecture).not.toBe(null);
     });
   });
 

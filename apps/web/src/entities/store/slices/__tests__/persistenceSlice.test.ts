@@ -1027,7 +1027,7 @@ describe('persistenceSlice branches', () => {
         provider: 'gcp',
         subtype: 'compute-engine',
       });
-      expect(useUIStore.getState().fitToContentRequested).toBe(true);
+      expect(useUIStore.getState().fitToContentRequested).toBe(false);
     });
 
     it('remaps external block provider but preserves name and subtype when non-azure', () => {

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { clearWorkspaceDiffUI } from '../../entities/store/uiSync';
 import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
@@ -27,6 +28,7 @@ export function EmptyCanvasOverlay() {
       const text = ev.target?.result;
       if (typeof text === 'string') {
         importArchitecture(text);
+        clearWorkspaceDiffUI();
       }
     };
     reader.readAsText(file);

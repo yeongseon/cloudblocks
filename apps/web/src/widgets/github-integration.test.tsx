@@ -48,6 +48,7 @@ import { useArchitectureStore } from '../entities/store/architectureStore';
 import { apiGet, apiPost, apiPut, isAuthError } from '../shared/api/client';
 import { confirmDialog } from '../shared/ui/ConfirmDialog';
 import { computeArchitectureDiff } from '../features/diff/engine';
+import type { BackendStatus } from '../entities/store/uiStore';
 
 /* ------------------------------------------------------------------ */
 /*  Shared fixtures                                                    */
@@ -170,12 +171,13 @@ describe('Group 1: OAuth redirect → action preservation → panel restoration'
     });
     useUIStore.setState({ showGitHubLogin: true });
 
-    const logoutMock = vi.fn(async () => {
+    const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockImplementation(async () => {
       // Logout failed — status stays authenticated
       useAuthStore.setState({
         status: 'authenticated',
         error: 'Logout failed. Checking session…',
       });
+      return 'available';
     });
     useAuthStore.setState({ logout: logoutMock });
 

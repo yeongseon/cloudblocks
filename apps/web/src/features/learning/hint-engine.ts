@@ -1,5 +1,4 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { useLearningStore } from '../../entities/store/learningStore';
 
 const DEFAULT_IDLE_MS = 30000;
 
@@ -9,7 +8,7 @@ let architectureUnsubscribe: (() => void) | null = null;
 let learningUnsubscribe: (() => void) | null = null;
 
 function getCurrentStepHintCount(): number {
-  const { activeScenario, progress } = useLearningStore.getState();
+  const { activeScenario, progress } = useArchitectureStore.getState();
 
   if (!activeScenario || !progress) {
     return 0;
@@ -20,14 +19,14 @@ function getCurrentStepHintCount(): number {
 }
 
 function hasHintsRemaining(): boolean {
-  const { currentHintIndex } = useLearningStore.getState();
+  const { currentHintIndex } = useArchitectureStore.getState();
   const hintCount = getCurrentStepHintCount();
   return currentHintIndex < hintCount - 1;
 }
 
 function scheduleHintTimer(): void {
   hintTimerId = setTimeout(() => {
-    const state = useLearningStore.getState();
+    const state = useArchitectureStore.getState();
 
     if (state.isCurrentStepComplete || !hasHintsRemaining()) {
       stopHintTimer();
@@ -36,7 +35,7 @@ function scheduleHintTimer(): void {
 
     state.showNextHint();
 
-    const nextState = useLearningStore.getState();
+    const nextState = useArchitectureStore.getState();
     if (nextState.isCurrentStepComplete || !hasHintsRemaining()) {
       stopHintTimer();
       return;
@@ -50,7 +49,7 @@ export function startHintTimer(idleMs: number = DEFAULT_IDLE_MS): void {
   hintIdleMs = idleMs;
   stopHintTimer();
 
-  const state = useLearningStore.getState();
+  const state = useArchitectureStore.getState();
   if (state.isCurrentStepComplete || !hasHintsRemaining()) {
     return;
   }
@@ -81,7 +80,7 @@ export function startHintSubscription(): void {
   }
 
   if (!learningUnsubscribe) {
-    learningUnsubscribe = useLearningStore.subscribe((state, prevState) => {
+    learningUnsubscribe = useArchitectureStore.subscribe((state, prevState) => {
       if (!prevState.isCurrentStepComplete && state.isCurrentStepComplete) {
         stopHintTimer();
       }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { usePromoteStore } from '../../entities/store/promoteStore';
+import { useUIStore } from '../../entities/store/uiStore';
 import type { PromotionChecklist } from '../../shared/types/ops';
 import { ComingSoonBanner } from '../../shared/ui/ComingSoonBanner';
 import { timeAgo } from '../../shared/utils/timeAgo';
@@ -13,14 +13,14 @@ const CHECKLIST_LABELS: Record<keyof PromotionChecklist, string> = {
 };
 
 export function PromoteDialog() {
-  const show = usePromoteStore((s) => s.showPromoteDialog);
-  const checklist = usePromoteStore((s) => s.promotionChecklist);
-  const promoting = usePromoteStore((s) => s.promoting);
-  const promotionError = usePromoteStore((s) => s.promotionError);
-  const updateChecklist = usePromoteStore((s) => s.updateChecklist);
-  const promote = usePromoteStore((s) => s.promote);
-  const setShowPromoteDialog = usePromoteStore((s) => s.setShowPromoteDialog);
-  const resetChecklist = usePromoteStore((s) => s.resetChecklist);
+  const show = useUIStore((s) => s.showPromoteDialog);
+  const checklist = useUIStore((s) => s.promotionChecklist);
+  const promoting = useUIStore((s) => s.promoting);
+  const promotionError = useUIStore((s) => s.promotionError);
+  const updateChecklist = useUIStore((s) => s.updateChecklist);
+  const promote = useUIStore((s) => s.promote);
+  const setShowPromoteDialog = useUIStore((s) => s.setShowPromoteDialog);
+  const resetChecklist = useUIStore((s) => s.resetChecklist);
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -67,7 +67,12 @@ export function PromoteDialog() {
 
   return (
     <>
-      <div className="promote-dialog-backdrop" role="presentation" onClick={handleClose} />
+      <button
+        type="button"
+        className="promote-dialog-backdrop"
+        onClick={handleClose}
+        aria-label="Close promote dialog"
+      />
       <div className="promote-dialog" role="dialog" aria-label="Promote to Production">
         <div className="promote-dialog-header">
           <h3 className="promote-dialog-title">Promote to Production</h3>
@@ -103,10 +108,10 @@ export function PromoteDialog() {
           <div className="promote-checklist">
             <div className="promote-checklist-title">Pre-Promotion Checklist</div>
             {(Object.keys(CHECKLIST_LABELS) as (keyof PromotionChecklist)[]).map((key) => (
-              <div
+              <label
                 key={key}
                 className={`promote-checklist-item${checklist[key] ? ' checked' : ''}`}
-                onClick={() => updateChecklist(key, !checklist[key])}
+                htmlFor={`checklist-${key}`}
               >
                 <input
                   type="checkbox"
@@ -117,8 +122,8 @@ export function PromoteDialog() {
                   }}
                   id={`checklist-${key}`}
                 />
-                <label htmlFor={`checklist-${key}`}>{CHECKLIST_LABELS[key]}</label>
-              </div>
+                <span>{CHECKLIST_LABELS[key]}</span>
+              </label>
             ))}
           </div>
 

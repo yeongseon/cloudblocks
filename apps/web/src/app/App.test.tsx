@@ -58,6 +58,7 @@ vi.mock('../features/templates/builtin', () => ({
 // Import App after mocks
 import App from './App';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
+import type { BackendStatus } from '../entities/store/uiStore';
 
 const defaultCancelDrag = useUIStore.getState().cancelDrag;
 const defaultSetDiffMode = useUIStore.getState().setDiffMode;
@@ -72,11 +73,12 @@ describe('App', () => {
   const saveToStorageMock = vi.fn();
   const setSelectedIdMock = vi.fn();
   const clearSelectionMock = vi.fn();
-  const checkSessionMock = vi.fn();
+  const checkSessionMock = vi.fn<() => Promise<BackendStatus>>().mockResolvedValue('available');
 
   beforeEach(() => {
     vi.clearAllMocks();
     useUIStore.setState({
+      appView: 'builder',
       selectedId: null,
       setSelectedId: setSelectedIdMock,
       clearSelection: clearSelectionMock,
@@ -164,6 +166,7 @@ describe('App', () => {
     });
     checkSessionMock.mockImplementation(async () => {
       useAuthStore.setState({ status: 'authenticated' });
+      return 'available';
     });
 
     render(<App />);
@@ -459,18 +462,17 @@ describe('App', () => {
 
   it('handles Escape key to exit diff mode before deselecting', () => {
     const setDiffModeMock = vi.fn();
+    useUIStore.setState({ interactionState: 'idle', draggedBlockCategory: null });
+
+    render(<App />);
     useUIStore.setState({
-      interactionState: 'idle',
       diffMode: true,
       setDiffMode: setDiffModeMock,
-      draggedBlockCategory: null,
       selectedId: 'block-1',
       selectedIds: new Set(['block-1']),
       setSelectedId: setSelectedIdMock,
       clearSelection: clearSelectionMock,
     });
-
-    render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(setDiffModeMock).toHaveBeenCalledWith(false);

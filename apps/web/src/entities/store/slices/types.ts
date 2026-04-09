@@ -8,7 +8,9 @@ import type {
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
+import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../features/ai/api';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
+import type { Scenario, LearningProgress } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
@@ -44,6 +46,21 @@ export interface ArchitectureState {
   workspace: Workspace;
   workspaces: Workspace[];
   validationResult: ValidationResult | null;
+
+  activeScenario: Scenario | null;
+  progress: LearningProgress | null;
+  currentHintIndex: number;
+  isCurrentStepComplete: boolean;
+
+  generateLoading: boolean;
+  generateError: string | null;
+  generateResult: GenerateResponse | null;
+  suggestLoading: boolean;
+  suggestError: string | null;
+  suggestResult: SuggestResponse | null;
+  costLoading: boolean;
+  costError: string | null;
+  costResult: CostResponse | null;
 
   history: { past: ArchitectureModel[]; future: ArchitectureModel[] };
   canUndo: boolean;
@@ -111,6 +128,14 @@ export interface ArchitectureState {
 
   validate: () => ValidationResult;
 
+  startScenario: (scenario: Scenario) => void;
+  advanceStep: () => void;
+  completeScenario: () => void;
+  showNextHint: () => void;
+  resetHints: () => void;
+  setStepComplete: (complete: boolean) => void;
+  abandonScenario: () => void;
+
   saveToStorage: () => boolean;
   loadFromStorage: () => void;
   resetWorkspace: () => void;
@@ -124,6 +149,9 @@ export interface ArchitectureState {
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate) => void;
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
+  generate: (prompt: string, provider: string) => Promise<void>;
+  suggest: (provider: string) => Promise<void>;
+  estimateCost: (provider: string) => Promise<void>;
   setBackendWorkspaceId: (workspaceId: string, backendId: string) => void;
   setGithubRepo: (workspaceId: string, repo: string | undefined) => void;
   setLastPrResult: (workspaceId: string, result: LastPrResult) => void;

@@ -1,5 +1,6 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { syncWorkspaceUI } from '../../entities/store/uiSync';
 import { listTemplates } from '../../features/templates/registry';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 import { LandingNavbar } from '../landing-navbar/LandingNavbar';
@@ -17,6 +18,7 @@ export function LandingPage() {
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
     loadFromTemplate(template);
+    syncWorkspaceUI({ fitToContent: true });
     saveToStorage();
     goToBuilder();
   };
@@ -101,7 +103,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <footer className="landing-footer" role="contentinfo">
+        <footer className="landing-footer">
           <div className="landing-footer-links">
             <a
               href="https://github.com/yeongseon/cloudblocks"

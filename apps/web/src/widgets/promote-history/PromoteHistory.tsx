@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { usePromoteStore } from '../../entities/store/promoteStore';
+import { useUIStore } from '../../entities/store/uiStore';
 import type { PromotionRecord, RollbackRecord } from '../../shared/types/ops';
 import { ComingSoonBanner } from '../../shared/ui/ComingSoonBanner';
 import { timeAgo } from '../../shared/utils/timeAgo';
@@ -10,12 +10,12 @@ type TimelineEntry =
   | { kind: 'rollback'; record: RollbackRecord; sortDate: string };
 
 export function PromoteHistory() {
-  const show = usePromoteStore((s) => s.showPromoteHistory);
-  const promotionHistory = usePromoteStore((s) => s.promotionHistory);
-  const rollbackHistory = usePromoteStore((s) => s.rollbackHistory);
-  const loadingHistory = usePromoteStore((s) => s.loadingHistory);
-  const loadHistory = usePromoteStore((s) => s.loadHistory);
-  const togglePromoteHistory = usePromoteStore((s) => s.togglePromoteHistory);
+  const show = useUIStore((s) => s.showPromoteHistory);
+  const promotionHistory = useUIStore((s) => s.promotionHistory);
+  const rollbackHistory = useUIStore((s) => s.rollbackHistory);
+  const loadingHistory = useUIStore((s) => s.loadingHistory);
+  const loadHistory = useUIStore((s) => s.loadHistory);
+  const togglePromoteHistory = useUIStore((s) => s.togglePromoteHistory);
 
   useEffect(() => {
     if (show) {

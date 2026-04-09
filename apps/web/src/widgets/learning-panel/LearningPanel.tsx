@@ -1,5 +1,5 @@
 import './LearningPanel.css';
-import { useLearningStore } from '../../entities/store/learningStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import {
   advanceToNextStep,
   resetCurrentStep,
@@ -54,11 +54,11 @@ function describeRule(rule: StepValidationRule): string {
 }
 
 export function LearningPanel() {
-  const activeScenario = useLearningStore((state) => state.activeScenario);
-  const progress = useLearningStore((state) => state.progress);
-  const isCurrentStepComplete = useLearningStore((state) => state.isCurrentStepComplete);
-  const showNextHint = useLearningStore((state) => state.showNextHint);
-  const currentHintIndex = useLearningStore((state) => state.currentHintIndex);
+  const activeScenario = useArchitectureStore((state) => state.activeScenario);
+  const progress = useArchitectureStore((state) => state.progress);
+  const isCurrentStepComplete = useArchitectureStore((state) => state.isCurrentStepComplete);
+  const showNextHint = useArchitectureStore((state) => state.showNextHint);
+  const currentHintIndex = useArchitectureStore((state) => state.currentHintIndex);
 
   if (!activeScenario || !progress) {
     return (
@@ -130,11 +130,11 @@ export function LearningPanel() {
 
           {rules.length > 0 && (
             <ul className="validation-list">
-              {rules.map((rule, index) => {
+              {rules.map((rule) => {
                 const ruleId = getRuleIdentifier(rule);
                 const isPass = validationResultByRuleId.get(ruleId) ?? false;
                 return (
-                  <li key={`${ruleId}-${index}`} className="validation-item">
+                  <li key={ruleId} className="validation-item">
                     <span className={`validation-icon ${isPass ? 'pass' : 'fail'}`}>
                       {isPass ? '✓' : '✗'}
                     </span>

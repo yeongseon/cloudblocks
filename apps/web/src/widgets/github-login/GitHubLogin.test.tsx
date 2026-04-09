@@ -6,6 +6,7 @@ import { GitHubLogin } from './GitHubLogin';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { apiPost } from '../../shared/api/client';
+import type { BackendStatus } from '../../entities/store/uiStore';
 
 describe('GitHubLogin', () => {
   const mockApiPost = vi.mocked(apiPost);
@@ -67,8 +68,9 @@ describe('GitHubLogin', () => {
 
   it('sign out calls logout from authStore and closes panel', async () => {
     const user = userEvent.setup();
-    const logoutMock = vi.fn(async () => {
+    const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockImplementation(async () => {
       useAuthStore.setState({ status: 'anonymous', user: null });
+      return 'available';
     });
     useAuthStore.setState({
       status: 'authenticated',
@@ -91,8 +93,9 @@ describe('GitHubLogin', () => {
 
   it('keeps panel open when sign out does not change authenticated status', async () => {
     const user = userEvent.setup();
-    const logoutMock = vi.fn(async () => {
+    const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockImplementation(async () => {
       useAuthStore.setState({ status: 'authenticated', error: 'Logout failed. Checking session…' });
+      return 'available';
     });
     useAuthStore.setState({
       status: 'authenticated',

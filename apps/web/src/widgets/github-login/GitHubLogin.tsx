@@ -12,6 +12,7 @@ export function GitHubLogin() {
   const show = useUIStore((s) => s.showGitHubLogin);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
   const setPendingGitHubAction = useUIStore((s) => s.setPendingGitHubAction);
+  const setBackendStatus = useUIStore((s) => s.setBackendStatus);
 
   const user = useAuthStore((s) => s.user);
   const status = useAuthStore((s) => s.status);
@@ -47,7 +48,8 @@ export function GitHubLogin() {
     setLocalError(null);
     setError(null);
 
-    await logout();
+    const backendStatus = await logout();
+    setBackendStatus(backendStatus);
 
     setIsWorking(false);
     if (useAuthStore.getState().status !== 'authenticated') {

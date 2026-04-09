@@ -12,7 +12,7 @@ import { EmptyCanvasCTA } from '../widgets/empty-canvas-cta';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
-import { usePromoteStore } from '../entities/store/promoteStore';
+import { syncWorkspaceUI } from '../entities/store/uiSync';
 import { audioService } from '../shared/utils/audioService';
 import { isApiConfigured } from '../shared/api/client';
 import { useIsMobile } from '../shared/hooks/useIsMobile';
@@ -71,7 +71,6 @@ export function BuilderView() {
   const redo = useArchitectureStore((s) => s.redo);
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
-  const selectedId = useUIStore((s) => s.selectedId);
   const clearSelection = useUIStore((s) => s.clearSelection);
   const interactionState = useUIStore((s) => s.interactionState);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -85,9 +84,9 @@ export function BuilderView() {
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
   const isMobile = useIsMobile();
 
-  const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
-  const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
-  const showPromoteHistory = usePromoteStore((s) => s.showPromoteHistory);
+  const showPromoteDialog = useUIStore((s) => s.showPromoteDialog);
+  const showRollbackDialog = useUIStore((s) => s.showRollbackDialog);
+  const showPromoteHistory = useUIStore((s) => s.showPromoteHistory);
 
   // Auto-collapse sidebar on mobile viewport
   useEffect(() => {
@@ -101,6 +100,7 @@ export function BuilderView() {
 
   useEffect(() => {
     loadFromStorage();
+    syncWorkspaceUI();
   }, [loadFromStorage]);
 
   useEffect(() => {
@@ -109,7 +109,8 @@ export function BuilderView() {
     }
 
     void (async () => {
-      await useAuthStore.getState().checkSession();
+      const backendStatus = await useAuthStore.getState().checkSession();
+      useUIStore.getState().setBackendStatus(backendStatus);
 
       if (useAuthStore.getState().status !== 'authenticated') {
         return;
@@ -230,7 +231,6 @@ export function BuilderView() {
     undo,
     redo,
     saveToStorage,
-    selectedId,
     removeNode,
     removeConnection,
     clearSelection,

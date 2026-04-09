@@ -1,8 +1,8 @@
-import { useLearningStore } from '../../entities/store/learningStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 
 export function StepProgress() {
-  const activeScenario = useLearningStore((state) => state.activeScenario);
-  const progress = useLearningStore((state) => state.progress);
+  const activeScenario = useArchitectureStore((state) => state.activeScenario);
+  const progress = useArchitectureStore((state) => state.progress);
 
   if (!activeScenario || !progress) {
     return null;
