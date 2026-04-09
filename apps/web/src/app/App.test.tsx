@@ -58,6 +58,7 @@ vi.mock('../features/templates/builtin', () => ({
 // Import App after mocks
 import App from './App';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
+import type { BackendStatus } from '../entities/store/uiStore';
 
 const defaultCancelDrag = useUIStore.getState().cancelDrag;
 const defaultSetDiffMode = useUIStore.getState().setDiffMode;
@@ -72,7 +73,7 @@ describe('App', () => {
   const saveToStorageMock = vi.fn();
   const setSelectedIdMock = vi.fn();
   const clearSelectionMock = vi.fn();
-  const checkSessionMock = vi.fn();
+  const checkSessionMock = vi.fn<() => Promise<BackendStatus>>().mockResolvedValue('available');
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -165,6 +166,7 @@ describe('App', () => {
     });
     checkSessionMock.mockImplementation(async () => {
       useAuthStore.setState({ status: 'authenticated' });
+      return 'available';
     });
 
     render(<App />);

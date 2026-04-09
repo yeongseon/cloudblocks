@@ -88,13 +88,14 @@ export const SuggestionsPanel: React.FC = () => {
   }
 
   const { suggestions, score } = result;
+  const scoreEntries: [string, number][] = Object.entries(score);
 
   return (
     <div className="suggestions-panel" data-testid="suggestions-panel">
-      {Object.keys(score).length > 0 && (
+      {scoreEntries.length > 0 && (
         <div className="suggestions-scores">
           <h4 className="suggestions-section-title">Architecture Score</h4>
-          {Object.entries(score).map(([key, val]) => (
+          {scoreEntries.map(([key, val]) => (
             <ScoreBar key={key} label={key} value={val} />
           ))}
         </div>
@@ -105,7 +106,7 @@ export const SuggestionsPanel: React.FC = () => {
         {suggestions.length === 0 ? (
           <div className="suggestions-empty">No suggestions — looking good!</div>
         ) : (
-          suggestions.map((s) => (
+          suggestions.map((s: AiSuggestion) => (
             <SuggestionItem key={`${s.severity}-${s.category}-${s.message}`} suggestion={s} />
           ))
         )}

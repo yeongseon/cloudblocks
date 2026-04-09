@@ -1,6 +1,7 @@
 import React from 'react';
 import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { isApiConfigured } from '../../../shared/api/client';
+import type { CostResource } from '../api';
 import './CostPanel.css';
 
 const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
@@ -78,7 +79,7 @@ export const CostPanel: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {resources.map((r) => (
+              {resources.map((r: CostResource) => (
                 <tr key={r.name}>
                   <td className="cost-resource-name">{r.name}</td>
                   <td className="cost-resource-price">

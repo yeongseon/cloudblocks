@@ -85,8 +85,10 @@ export function RightDrawer({ children }: RightDrawerProps) {
   const closeDrawer = useUIStore((s) => s.closeDrawer);
   const drawerRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const activePanel: DrawerPanelId | null = drawer.activePanel;
 
-  const panelInfo = drawer.activePanel ? PANEL_REGISTRY[drawer.activePanel] : null;
+  const panelInfo =
+    activePanel === null ? null : PANEL_REGISTRY[activePanel as keyof typeof PANEL_REGISTRY];
 
   // Focus management: focus the drawer on open, restore on close
   useEffect(() => {
@@ -168,7 +170,7 @@ export function RightDrawer({ children }: RightDrawerProps) {
           </button>
         </div>
         <div className="right-drawer-body">
-          <DrawerContent panelId={drawer.activePanel} />
+          <DrawerContent panelId={activePanel} />
           {children}
         </div>
       </div>

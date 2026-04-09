@@ -5,7 +5,6 @@ import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { ComplexityLevel } from '../../shared/types';
 import type { ThemeVariant } from '../../shared/tokens/themeTokens';
-import type { DrawerPanelId } from '../../shared/types/drawer';
 import type {
   PromotionChecklist,
   PromotionRecord,
@@ -27,6 +26,14 @@ export type RightOverlayId =
   | 'githubPR'
   | 'diff'
   | null;
+export type DrawerPanelId =
+  | 'properties'
+  | 'validation'
+  | 'connections'
+  | 'scenarios'
+  | 'learning'
+  | 'code'
+  | 'templates';
 
 export interface ActivityLogEntry {
   id: string;

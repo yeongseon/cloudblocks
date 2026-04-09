@@ -19,6 +19,7 @@ vi.mock('../../shared/api/client', () => ({
   }),
 }));
 import { MenuBar } from './MenuBar';
+import type { BackendStatus } from '../../entities/store/uiStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -716,7 +717,7 @@ describe('MenuBar', () => {
 
   it('handles authenticated GitHub menu actions', async () => {
     const user = userEvent.setup();
-    const logoutMock = vi.fn();
+    const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockResolvedValue('available');
     useArchitectureStore.setState({
       workspace: {
         ...useArchitectureStore.getState().workspace,

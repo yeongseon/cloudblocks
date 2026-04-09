@@ -1,6 +1,6 @@
 import { isApiConfigured } from '../../../shared/api/client';
-import { estimateCost, generateArchitecture, suggestImprovements } from '../../../shared/api/ai';
-import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../shared/api/ai';
+import { estimateCost, generateArchitecture, suggestImprovements } from '../../../features/ai/api';
+import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../features/ai/api';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { validateArchitectureShape } from './index';
 import type { ArchitectureSlice, ArchitectureState } from './types';
