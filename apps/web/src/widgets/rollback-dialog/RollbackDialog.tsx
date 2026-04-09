@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { usePromoteStore } from '../../entities/store/promoteStore';
+import { useUIStore } from '../../entities/store/uiStore';
 import type { DeploymentVersion } from '../../shared/types/ops';
 import { ComingSoonBanner } from '../../shared/ui/ComingSoonBanner';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
 
 export function RollbackDialog() {
-  const show = usePromoteStore((s) => s.showRollbackDialog);
-  const availableVersions = usePromoteStore((s) => s.availableVersions);
-  const selectedVersion = usePromoteStore((s) => s.selectedRollbackVersion);
-  const rollingBack = usePromoteStore((s) => s.rollingBack);
-  const rollbackError = usePromoteStore((s) => s.rollbackError);
-  const selectRollbackVersion = usePromoteStore((s) => s.selectRollbackVersion);
-  const loadAvailableVersions = usePromoteStore((s) => s.loadAvailableVersions);
-  const rollback = usePromoteStore((s) => s.rollback);
-  const setShowRollbackDialog = usePromoteStore((s) => s.setShowRollbackDialog);
+  const show = useUIStore((s) => s.showRollbackDialog);
+  const availableVersions = useUIStore((s) => s.availableVersions);
+  const selectedVersion = useUIStore((s) => s.selectedRollbackVersion);
+  const rollingBack = useUIStore((s) => s.rollingBack);
+  const rollbackError = useUIStore((s) => s.rollbackError);
+  const selectRollbackVersion = useUIStore((s) => s.selectRollbackVersion);
+  const loadAvailableVersions = useUIStore((s) => s.loadAvailableVersions);
+  const rollback = useUIStore((s) => s.rollback);
+  const setShowRollbackDialog = useUIStore((s) => s.setShowRollbackDialog);
 
   const [reason, setReason] = useState('');
   const [confirming, setConfirming] = useState(false);
@@ -89,7 +89,12 @@ export function RollbackDialog() {
 
   return (
     <>
-      <div className="rollback-dialog-backdrop" role="presentation" onClick={handleClose} />
+      <button
+        type="button"
+        className="rollback-dialog-backdrop"
+        onClick={handleClose}
+        aria-label="Close rollback dialog"
+      />
       <div className="rollback-dialog" role="dialog" aria-label="Rollback Production">
         <div className="rollback-dialog-header">
           <h3 className="rollback-dialog-title">Rollback Production</h3>
@@ -127,13 +132,12 @@ export function RollbackDialog() {
               aria-label="Available versions"
             >
               {availableVersions.map((v) => (
-                <div
+                <button
+                  type="button"
                   key={v.imageTag}
                   className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
                   onClick={() => handleSelectVersion(v)}
-                  role="radio"
-                  aria-checked={selectedVersion?.imageTag === v.imageTag}
-                  tabIndex={0}
+                  aria-pressed={selectedVersion?.imageTag === v.imageTag}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -152,7 +156,7 @@ export function RollbackDialog() {
                     <span className="rollback-version-msg">{v.commitMessage}</span>
                     <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>

@@ -77,6 +77,7 @@ describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useUIStore.setState({
+      appView: 'builder',
       selectedId: null,
       setSelectedId: setSelectedIdMock,
       clearSelection: clearSelectionMock,
@@ -459,18 +460,17 @@ describe('App', () => {
 
   it('handles Escape key to exit diff mode before deselecting', () => {
     const setDiffModeMock = vi.fn();
+    useUIStore.setState({ interactionState: 'idle', draggedBlockCategory: null });
+
+    render(<App />);
     useUIStore.setState({
-      interactionState: 'idle',
       diffMode: true,
       setDiffMode: setDiffModeMock,
-      draggedBlockCategory: null,
       selectedId: 'block-1',
       selectedIds: new Set(['block-1']),
       setSelectedId: setSelectedIdMock,
       clearSelection: clearSelectionMock,
     });
-
-    render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(setDiffModeMock).toHaveBeenCalledWith(false);
