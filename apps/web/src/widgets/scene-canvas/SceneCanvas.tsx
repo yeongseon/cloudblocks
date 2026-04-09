@@ -292,7 +292,7 @@ export function SceneCanvas() {
     const mouseY = e.clientY - rect.top;
 
     setZoom((prevZoom) => {
-      let nextTransform: ReturnType<typeof computeWheelViewportTransform> | null = null;
+      let nextZoom = prevZoom;
 
       setPan((prevPan) => {
         const transform = computeWheelViewportTransform(
@@ -302,11 +302,11 @@ export function SceneCanvas() {
           mouseY,
           e.deltaY,
         );
-        nextTransform = transform;
+        nextZoom = transform.zoom;
         return transform.pan;
       });
 
-      return nextTransform?.zoom ?? prevZoom;
+      return nextZoom;
     });
   }, []);
 
