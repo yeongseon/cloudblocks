@@ -99,18 +99,14 @@ class SuggestionEngine:
         architecture_json = json.dumps(architecture, separators=(",", ":"))
         user_prompt = f"Analyze this {provider} architecture:\n{architecture_json}"
 
-        try:
-            response = await self._client.generate(
-                SUGGESTION_SYSTEM_PROMPT,
-                user_prompt,
-                response_schema=RESPONSE_SCHEMA,
-            )
-        except LLMError:
-            logger.exception("Failed to generate architecture suggestions")
-            return AISuggestionsResponse()
+        response = await self._client.generate(
+            SUGGESTION_SYSTEM_PROMPT,
+            user_prompt,
+            response_schema=RESPONSE_SCHEMA,
+        )
 
         try:
             return AISuggestionsResponse.model_validate(response)
-        except Exception:
+        except Exception as exc:
             logger.warning("Malformed suggestion response payload", exc_info=True)
-            return AISuggestionsResponse()
+            raise LLMError(f"Malformed suggestion response: {exc}") from exc

@@ -73,10 +73,8 @@ async def test_analyze_malformed_llm_response() -> None:
     }
     engine = SuggestionEngine(llm_client)
 
-    result = await engine.analyze(architecture={"plates": []})
-
-    assert result.suggestions == []
-    assert result.score == {}
+    with pytest.raises(LLMError, match="Malformed suggestion response"):
+        _ = await engine.analyze(architecture={"plates": []})
 
 
 @pytest.mark.asyncio
@@ -85,10 +83,8 @@ async def test_analyze_llm_error() -> None:
     generate.side_effect = LLMError("provider unavailable")
     engine = SuggestionEngine(llm_client)
 
-    result = await engine.analyze(architecture={"blocks": []})
-
-    assert result.suggestions == []
-    assert result.score == {}
+    with pytest.raises(LLMError, match="provider unavailable"):
+        _ = await engine.analyze(architecture={"blocks": []})
 
 
 @pytest.mark.asyncio
