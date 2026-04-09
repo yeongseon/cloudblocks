@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAiStore } from '../store';
+import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { isApiConfigured } from '../../../shared/api/client';
 import './CostPanel.css';
 
@@ -15,9 +15,9 @@ function formatCurrency(value: number, currency: string): string {
 }
 
 export const CostPanel: React.FC = () => {
-  const loading = useAiStore((s) => s.costLoading);
-  const error = useAiStore((s) => s.costError);
-  const result = useAiStore((s) => s.costResult);
+  const loading = useArchitectureStore((s) => s.costLoading);
+  const error = useArchitectureStore((s) => s.costError);
+  const result = useArchitectureStore((s) => s.costResult);
   const backendConfigured = isApiConfigured();
 
   if (!backendConfigured) {

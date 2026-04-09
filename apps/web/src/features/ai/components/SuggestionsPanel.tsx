@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAiStore } from '../store';
+import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { isApiConfigured } from '../../../shared/api/client';
 import type { AiSuggestion } from '../api';
 import './SuggestionsPanel.css';
@@ -50,9 +50,9 @@ function ScoreBar({ label, value, max = 100 }: { label: string; value: number; m
 }
 
 export const SuggestionsPanel: React.FC = () => {
-  const loading = useAiStore((s) => s.suggestLoading);
-  const error = useAiStore((s) => s.suggestError);
-  const result = useAiStore((s) => s.suggestResult);
+  const loading = useArchitectureStore((s) => s.suggestLoading);
+  const error = useArchitectureStore((s) => s.suggestError);
+  const result = useArchitectureStore((s) => s.suggestResult);
   const backendConfigured = isApiConfigured();
 
   if (!backendConfigured) {

@@ -1,10 +1,10 @@
-import { useLearningStore } from '../../entities/store/learningStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { abandonLearning } from '../../features/learning/scenario-engine';
 
 export function CompletionScreen() {
-  const activeScenario = useLearningStore((state) => state.activeScenario);
-  const progress = useLearningStore((state) => state.progress);
+  const activeScenario = useArchitectureStore((state) => state.activeScenario);
+  const progress = useArchitectureStore((state) => state.progress);
   const openDrawer = useUIStore((state) => state.openDrawer);
 
   if (!activeScenario || !progress || !progress.completedAt) {

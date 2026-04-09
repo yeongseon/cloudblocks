@@ -1,36 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAiStore } from './store';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 
-const mockGenerate = vi.fn();
-const mockSuggest = vi.fn();
-const mockEstimateCost = vi.fn();
 const mockIsApiConfigured = vi.fn();
-
-vi.mock('./api', () => ({
-  generateArchitecture: (...args: unknown[]) => mockGenerate(...args),
-  suggestImprovements: (...args: unknown[]) => mockSuggest(...args),
-  estimateCost: (...args: unknown[]) => mockEstimateCost(...args),
-}));
+const mockApiPost = vi.fn();
 
 vi.mock('../../shared/api/client', () => ({
   isApiConfigured: (...args: unknown[]) => mockIsApiConfigured(...args),
+  apiPost: (...args: unknown[]) => mockApiPost(...args),
 }));
 
 const mockReplaceArchitecture = vi.fn();
-vi.mock('../../entities/store/architectureStore', () => ({
-  useArchitectureStore: {
-    getState: () => ({
-      replaceArchitecture: mockReplaceArchitecture,
-      workspace: {
-        architecture: { plates: [], blocks: [], connections: [] },
-      },
-    }),
-  },
-}));
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockIsApiConfigured.mockReturnValue(true);
+  mockApiPost.mockReset();
   useAiStore.setState({
     generateLoading: false,
     generateError: null,
@@ -42,6 +27,18 @@ beforeEach(() => {
     costError: null,
     costResult: null,
   });
+  useArchitectureStore.setState({
+    replaceArchitecture: mockReplaceArchitecture,
+    workspace: {
+      ...useArchitectureStore.getState().workspace,
+      architecture: {
+        ...useArchitectureStore.getState().workspace.architecture,
+        plates: [],
+        blocks: [],
+        connections: [],
+      } as never,
+    },
+  });
 });
 
 describe('useAiStore', () => {
@@ -51,7 +48,7 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().generate('test', 'aws');
 
-      expect(mockGenerate).not.toHaveBeenCalled();
+      expect(mockApiPost).not.toHaveBeenCalled();
       expect(useAiStore.getState().generateLoading).toBe(false);
       expect(useAiStore.getState().generateResult).toBeNull();
       expect(useAiStore.getState().generateError).toBe(
@@ -65,11 +62,14 @@ describe('useAiStore', () => {
         explanation: 'done',
         warnings: [],
       };
-      mockGenerate.mockResolvedValueOnce(response);
+      mockApiPost.mockResolvedValueOnce(response);
 
       await useAiStore.getState().generate('build a vpc', 'aws');
 
-      expect(mockGenerate).toHaveBeenCalledWith({ prompt: 'build a vpc', provider: 'aws' });
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/ai/generate', {
+        prompt: 'build a vpc',
+        provider: 'aws',
+      });
       expect(useAiStore.getState().generateResult).toEqual(response);
       expect(useAiStore.getState().generateLoading).toBe(false);
       expect(useAiStore.getState().generateError).toBeNull();
@@ -77,7 +77,7 @@ describe('useAiStore', () => {
 
     it('calls replaceArchitecture with result on success', async () => {
       const arch = { plates: [], blocks: [], connections: [] };
-      mockGenerate.mockResolvedValueOnce({
+      mockApiPost.mockResolvedValueOnce({
         architecture: arch,
         explanation: '',
         warnings: [],
@@ -88,7 +88,7 @@ describe('useAiStore', () => {
     });
 
     it('sets error on failure', async () => {
-      mockGenerate.mockRejectedValueOnce(new Error('API down'));
+      mockApiPost.mockRejectedValueOnce(new Error('API down'));
 
       await useAiStore.getState().generate('test', 'aws');
 
@@ -98,7 +98,7 @@ describe('useAiStore', () => {
     });
 
     it('sets fallback error message for non-Error throws', async () => {
-      mockGenerate.mockRejectedValueOnce('unknown failure');
+      mockApiPost.mockRejectedValueOnce('unknown failure');
 
       await useAiStore.getState().generate('test', 'aws');
 
@@ -111,7 +111,7 @@ describe('useAiStore', () => {
         explanation: 'done',
         warnings: ['missing region container'],
       };
-      mockGenerate.mockResolvedValueOnce(response);
+      mockApiPost.mockResolvedValueOnce(response);
 
       await useAiStore.getState().generate('test', 'aws');
 
@@ -127,7 +127,7 @@ describe('useAiStore', () => {
         explanation: 'done',
         warnings: [],
       };
-      mockGenerate.mockResolvedValueOnce(response);
+      mockApiPost.mockResolvedValueOnce(response);
 
       await useAiStore.getState().generate('test', 'aws');
 
@@ -144,7 +144,7 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().suggest('aws');
 
-      expect(mockSuggest).not.toHaveBeenCalled();
+      expect(mockApiPost).not.toHaveBeenCalled();
       expect(useAiStore.getState().suggestLoading).toBe(false);
       expect(useAiStore.getState().suggestResult).toBeNull();
       expect(useAiStore.getState().suggestError).toBe(
@@ -159,20 +159,23 @@ describe('useAiStore', () => {
         ],
         score: { security: 80 },
       };
-      mockSuggest.mockResolvedValueOnce(response);
+      mockApiPost.mockResolvedValueOnce(response);
 
       await useAiStore.getState().suggest('aws');
 
-      expect(mockSuggest).toHaveBeenCalledWith({
-        architecture: { plates: [], blocks: [], connections: [] },
-        provider: 'aws',
-      });
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/ai/suggest',
+        expect.objectContaining({
+          architecture: expect.objectContaining({ plates: [], blocks: [], connections: [] }),
+          provider: 'aws',
+        }),
+      );
       expect(useAiStore.getState().suggestResult).toEqual(response);
       expect(useAiStore.getState().suggestLoading).toBe(false);
     });
 
     it('sets error on failure', async () => {
-      mockSuggest.mockRejectedValueOnce(new Error('Suggest failed'));
+      mockApiPost.mockRejectedValueOnce(new Error('Suggest failed'));
 
       await useAiStore.getState().suggest('aws');
 
@@ -181,7 +184,7 @@ describe('useAiStore', () => {
     });
 
     it('sets fallback error for non-Error throws', async () => {
-      mockSuggest.mockRejectedValueOnce(42);
+      mockApiPost.mockRejectedValueOnce(42);
 
       await useAiStore.getState().suggest('aws');
 
@@ -195,7 +198,7 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().estimateCost('aws');
 
-      expect(mockEstimateCost).not.toHaveBeenCalled();
+      expect(mockApiPost).not.toHaveBeenCalled();
       expect(useAiStore.getState().costLoading).toBe(false);
       expect(useAiStore.getState().costResult).toBeNull();
       expect(useAiStore.getState().costError).toBe(
@@ -210,20 +213,23 @@ describe('useAiStore', () => {
         currency: 'USD',
         resources: [{ name: 'ec2', monthly_cost: 100, details: {} }],
       };
-      mockEstimateCost.mockResolvedValueOnce(response);
+      mockApiPost.mockResolvedValueOnce(response);
 
       await useAiStore.getState().estimateCost('aws');
 
-      expect(mockEstimateCost).toHaveBeenCalledWith({
-        architecture: { plates: [], blocks: [], connections: [] },
-        provider: 'aws',
-      });
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/ai/cost',
+        expect.objectContaining({
+          architecture: expect.objectContaining({ plates: [], blocks: [], connections: [] }),
+          provider: 'aws',
+        }),
+      );
       expect(useAiStore.getState().costResult).toEqual(response);
       expect(useAiStore.getState().costLoading).toBe(false);
     });
 
     it('sets error on failure', async () => {
-      mockEstimateCost.mockRejectedValueOnce(new Error('Cost failed'));
+      mockApiPost.mockRejectedValueOnce(new Error('Cost failed'));
 
       await useAiStore.getState().estimateCost('aws');
 
@@ -232,7 +238,7 @@ describe('useAiStore', () => {
     });
 
     it('sets fallback error for non-Error throws', async () => {
-      mockEstimateCost.mockRejectedValueOnce(null);
+      mockApiPost.mockRejectedValueOnce(null);
 
       await useAiStore.getState().estimateCost('aws');
 

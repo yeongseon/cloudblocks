@@ -1,9 +1,9 @@
-import { useLearningStore } from '../../entities/store/learningStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 
 export function HintPopup() {
-  const activeScenario = useLearningStore((state) => state.activeScenario);
-  const progress = useLearningStore((state) => state.progress);
-  const currentHintIndex = useLearningStore((state) => state.currentHintIndex);
+  const activeScenario = useArchitectureStore((state) => state.activeScenario);
+  const progress = useArchitectureStore((state) => state.progress);
+  const currentHintIndex = useArchitectureStore((state) => state.currentHintIndex);
 
   if (!activeScenario || !progress) {
     return null;
