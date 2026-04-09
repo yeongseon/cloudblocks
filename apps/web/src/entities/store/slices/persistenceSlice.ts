@@ -407,10 +407,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     const activeId = loadActiveWorkspaceId();
     const active = workspaces.find((ws) => ws.id === activeId) ?? workspaces[0];
 
-    useUIStore.getState().clearDiffState();
-    // Sync UI provider from loaded workspace
-    useUIStore.getState().setActiveProvider(active.provider ?? 'azure');
-
     set({
       workspace: active,
       workspaces,
@@ -432,8 +428,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     if (saveWorkspaces(updatedList)) {
       saveActiveWorkspaceId(cleared.id);
     }
-
-    useUIStore.getState().clearDiffState();
 
     set({
       workspace: cleared,
@@ -654,8 +648,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
         saveActiveWorkspaceId(newWorkspace.id);
       }
 
-      useUIStore.getState().clearDiffState();
-
       set({
         workspace: newWorkspace,
         workspaces: updatedList,
@@ -717,7 +709,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: template.name,
-      provider: useUIStore.getState().activeProvider,
+      provider: activeProvider,
       architecture: {
         ...clonedArch,
         id: generateId('arch'),
@@ -736,14 +728,11 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       saveActiveWorkspaceId(newWorkspace.id);
     }
 
-    useUIStore.getState().clearDiffState();
-
     set({
       workspace: newWorkspace,
       workspaces: updatedList,
       ...resetTransientState(),
     });
-    useUIStore.getState().requestFitToContent();
   },
 
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => {

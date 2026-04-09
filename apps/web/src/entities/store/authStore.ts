@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ApiError, apiGet, apiPost, isApiConfigured } from '../../shared/api/client';
 import type { ApiUser, SessionUserResponse } from '../../shared/types/api';
-import { useUIStore } from './uiStore';
+import type { BackendStatus } from './uiStore';
 
 type AuthStatus = 'unknown' | 'authenticated' | 'anonymous';
 
@@ -14,13 +14,13 @@ interface AuthState {
   setAuthenticated: (user: ApiUser) => void;
   setAnonymous: () => void;
   setError: (error: string | null) => void;
-  checkSession: () => Promise<void>;
-  logout: () => Promise<void>;
+  checkSession: () => Promise<BackendStatus>;
+  logout: () => Promise<BackendStatus>;
 }
 
 let _checkSessionSeq = 0;
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   status: 'unknown',
   user: null,
   hydrated: false,
@@ -35,17 +35,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkSession: async () => {
     if (!isApiConfigured()) {
       set({ status: 'anonymous', user: null, hydrated: true, error: null });
-      return;
+      return 'not_configured';
     }
 
     const seq = ++_checkSessionSeq;
     try {
       const user = await apiGet<SessionUserResponse>('/api/v1/auth/session');
-      if (seq !== _checkSessionSeq) return; // stale response
+      if (seq !== _checkSessionSeq) return 'available';
       set({ status: 'authenticated', user, hydrated: true, error: null });
-      useUIStore.getState().setBackendStatus('available');
+      return 'available';
     } catch (err: unknown) {
-      if (seq !== _checkSessionSeq) return; // stale response
+      if (seq !== _checkSessionSeq) return 'available';
       // 401 = clear session quietly; other errors = set anonymous with error message
       const isUnauthorized =
         err instanceof Error && 'status' in err && (err as { status: number }).status === 401;
@@ -53,13 +53,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         (err instanceof ApiError && err.status === 0) || err instanceof TypeError;
       if (isUnauthorized) {
         set({ status: 'anonymous', user: null, hydrated: true, error: null });
-        useUIStore.getState().setBackendStatus('available');
+        return 'available';
       } else if (isNetworkError) {
         set({ status: 'anonymous', user: null, hydrated: true, error: null });
-        useUIStore.getState().setBackendStatus('unavailable');
+        return 'unavailable';
       } else {
         set({ status: 'anonymous', user: null, hydrated: true, error: 'Session check failed' });
-        useUIStore.getState().setBackendStatus('available');
+        return 'available';
       }
     }
   },
@@ -68,9 +68,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await apiPost<{ message: string }>('/api/v1/auth/logout');
       set({ status: 'anonymous', user: null, error: null });
+      return 'available';
     } catch {
       set({ error: 'Logout failed. Checking session…' });
-      await useAuthStore.getState().checkSession();
+      return get().checkSession();
     }
   },
 }));

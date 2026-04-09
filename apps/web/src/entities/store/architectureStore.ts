@@ -1,6 +1,8 @@
 import { create } from 'zustand';
+import { createAiSlice } from './slices/aiSlice';
 import { createDomainSlice } from './slices/domainSlice';
 import { createHistorySlice } from './slices/historySlice';
+import { createLearningSlice } from './slices/learningSlice';
 import { createPersistenceSlice } from './slices/persistenceSlice';
 import { createValidationSlice } from './slices/validationSlice';
 import { createWorkspaceSlice } from './slices/workspaceSlice';
@@ -14,6 +16,8 @@ export const useArchitectureStore = create<ArchitectureState>()((...a) => ({
   ...createHistorySlice(...a),
   ...createDomainSlice(...a),
   ...createPersistenceSlice(...a),
+  ...createLearningSlice(...a),
+  ...createAiSlice(...a),
 }));
 
 let autoValidateTimer: ReturnType<typeof setTimeout> | null = null;
