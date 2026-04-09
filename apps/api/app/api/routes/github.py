@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 from app.application.use_cases.github_use_cases import (
     CreateGitHubRepoUseCase,
@@ -76,12 +76,12 @@ class ArchitecturePayload(BaseModel):
     id: str
     name: str
     version: str
-    nodes: list[dict[str, object]] = []
-    endpoints: list[dict[str, object]] = []
-    plates: list[dict[str, object]] = []
-    blocks: list[dict[str, object]] = []
-    connections: list[dict[str, object]] = []
-    externalActors: list[dict[str, object]] = []  # noqa: N815
+    nodes: list[dict[str, object]] = Field(default_factory=list)
+    endpoints: list[dict[str, object]] = Field(default_factory=list)
+    plates: list[dict[str, object]] = Field(default_factory=list)
+    blocks: list[dict[str, object]] = Field(default_factory=list)
+    connections: list[dict[str, object]] = Field(default_factory=list)
+    externalActors: list[dict[str, object]] = Field(default_factory=list)  # noqa: N815
     createdAt: str  # noqa: N815
     updatedAt: str  # noqa: N815
 

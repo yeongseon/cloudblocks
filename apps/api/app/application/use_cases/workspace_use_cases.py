@@ -81,6 +81,15 @@ class DeleteWorkspaceUseCase:
 
 @final
 class UpdateWorkspaceUseCase:
+    """Update workspace fields with support for partial updates.
+
+    The workspace name, generator, provider, GitHub repository, and GitHub
+    branch can be updated. The ``github_repo_provided`` and
+    ``github_branch_provided`` flags determine whether those optional fields
+    should be changed, allowing callers to distinguish between leaving a value
+    unchanged and explicitly setting or clearing it.
+    """
+
     def __init__(self, workspace_repo: WorkspaceRepository) -> None:
         self._repo: WorkspaceRepository = workspace_repo
 

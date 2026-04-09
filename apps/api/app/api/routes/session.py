@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.application.use_cases.session_use_cases import BindWorkspaceToSessionUseCase
@@ -30,7 +30,6 @@ class SessionInfoResponse(BaseModel):
 @router.post("/workspace")
 async def bind_workspace(
     body: WorkspaceBindRequest,
-    request: Request,
     session: Annotated[Session, Depends(get_current_session)],
     use_case: Annotated[
         BindWorkspaceToSessionUseCase, Depends(get_bind_workspace_to_session_use_case)
@@ -40,6 +39,5 @@ async def bind_workspace(
 
     Validates that the workspace exists and belongs to the session user.
     """
-    _ = request
     session_info = await use_case.execute(session, body.workspace_id, body.repo_full_name)
     return SessionInfoResponse(**session_info)
