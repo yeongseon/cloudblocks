@@ -29,6 +29,8 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/features/generate/types.ts',
         'src/shared/types/template.ts',
+        // SceneCanvas.tsx is the React component shell with DOM event handlers and rendering;
+        // it is covered through integration tests, while the extracted pure utils are unit-tested.
         'src/widgets/scene-canvas/SceneCanvas.tsx',
         // Ops widgets — complex UI shells wired to stores already covered by store-level tests
         'src/widgets/ops-center/OpsCenter.tsx',

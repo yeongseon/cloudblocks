@@ -182,15 +182,17 @@ export function SceneCanvas() {
       // Only activate lasso after passing threshold (prevents accidental lasso on shift-click)
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect) {
-        setLassoRect(
-          createLassoRect(
-            { x: startX, y: startY },
-            { x: curX, y: curY },
-            { left: rect.left, top: rect.top },
-            pan,
-            zoom,
-          ),
+        const nextLassoRect = createLassoRect(
+          { x: startX, y: startY },
+          { x: curX, y: curY },
+          { left: rect.left, top: rect.top },
+          pan,
+          zoom,
         );
+
+        if (nextLassoRect) {
+          setLassoRect(nextLassoRect);
+        }
       }
       return;
     }
@@ -281,38 +283,32 @@ export function SceneCanvas() {
     }
   };
 
-  const handleWheel = useCallback(
-    (e: WheelEvent) => {
-      e.preventDefault();
-      if (!containerRef.current) return;
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    if (!containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-      setZoom((prevZoom) => {
-        setPan((prevPan) => {
-          const nextTransform = computeWheelViewportTransform(
-            prevPan,
-            prevZoom,
-            mouseX,
-            mouseY,
-            e.deltaY,
-          );
-          return nextTransform.pan;
-        });
-        const nextTransform = computeWheelViewportTransform(
-          pan,
+    setZoom((prevZoom) => {
+      let nextTransform: ReturnType<typeof computeWheelViewportTransform> | null = null;
+
+      setPan((prevPan) => {
+        const transform = computeWheelViewportTransform(
+          prevPan,
           prevZoom,
           mouseX,
           mouseY,
           e.deltaY,
         );
-        return nextTransform.zoom;
+        nextTransform = transform;
+        return transform.pan;
       });
-    },
-    [pan],
-  );
+
+      return nextTransform?.zoom ?? prevZoom;
+    });
+  }, []);
 
   useEffect(() => {
     setCanvasZoom(zoom);
