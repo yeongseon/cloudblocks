@@ -1,5 +1,5 @@
 import type { ArchitectureModel, ResourceCategory, ContainerLayer } from './index';
-import type { EndpointType } from '../../entities/validation/connection';
+import type { EndpointType } from './endpoint';
 import type { TemplateCategory } from './template';
 
 // ─── Editor Mode ───────────────────────────────────────────

@@ -4,7 +4,10 @@ import type {
   ContainerBlock,
   ResourceBlock,
 } from '@cloudblocks/schema';
-import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
+import type { DiffDelta, EntityDiff, PropertyChange } from '../../shared/types/diff';
+import { getDiffState } from '../../shared/utils/diff';
+
+export { getDiffState };
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
 const ROOT_ENTITY_PATHS = new Set(['nodes', 'endpoints', 'connections', 'createdAt', 'updatedAt']);
@@ -220,22 +223,4 @@ export function computeArchitectureDiff(
     ...deltaWithoutSummary,
     summary: computeSummary(deltaWithoutSummary),
   };
-}
-
-export function getDiffState(entityId: string, delta: DiffDelta): DiffState {
-  const entityDiffs = [delta.plates, delta.blocks, delta.connections];
-
-  if (entityDiffs.some((diff) => diff.added.some((entity) => entity.id === entityId))) {
-    return 'added';
-  }
-
-  if (entityDiffs.some((diff) => diff.removed.some((entity) => entity.id === entityId))) {
-    return 'removed';
-  }
-
-  if (entityDiffs.some((diff) => diff.modified.some((entity) => entity.id === entityId))) {
-    return 'modified';
-  }
-
-  return 'unchanged';
 }

@@ -4,7 +4,7 @@ import { endpointId } from '@cloudblocks/schema';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 import { ConnectionRenderer } from './ConnectionRenderer';
-import { getDiffState } from '../../features/diff/engine';
+import { getDiffState } from '../../shared/utils/diff';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute } from './surfaceRouting';
 import { useUIStore } from '../store/uiStore';
@@ -28,7 +28,7 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   PORT_DOT_STROKE_WIDTH: 1.5,
 }));
 
-vi.mock('../../features/diff/engine', () => ({
+vi.mock('../../shared/utils/diff', () => ({
   getDiffState: vi.fn(),
 }));
 

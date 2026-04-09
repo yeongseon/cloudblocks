@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { ArchitectureModel, ContainerBlock, ResourceCategory } from '@cloudblocks/schema';
 import { makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUtils';
 import {
@@ -8,6 +7,8 @@ import {
   ACTION_GRID,
   ALL_RESOURCES,
   RESOURCE_DEFINITIONS,
+  getResourceLabel,
+  getResourceShortLabel,
   getCreationGroupId,
   getCreationGroupMeta,
   useTechTree,
@@ -95,14 +96,6 @@ function buildArchitecture(plates: ContainerBlock[], blockCount = 0): Architectu
     ...BASE_ARCHITECTURE,
     nodes: [...plates, ...blocks],
   };
-}
-
-function setArchitectureState(architecture: ArchitectureModel): void {
-  const workspace = useArchitectureStore.getState().workspace;
-  useArchitectureStore.setState({
-    workspace: { ...workspace, architecture },
-    validationResult: null,
-  });
 }
 
 describe('useTechTree constants', () => {
@@ -467,13 +460,8 @@ describe('useTechTree constants', () => {
 });
 
 describe('useTechTree hook', () => {
-  beforeEach(() => {
-    useArchitectureStore.getState().resetWorkspace();
-    setArchitectureState(buildArchitecture([], 0));
-  });
-
   it('returns expected state when no plates exist', () => {
-    const { result } = renderHook(() => useTechTree());
+    const { result } = renderHook(() => useTechTree(buildArchitecture([], 0)));
     const techTreeState: TechTreeState = result.current;
 
     expect(techTreeState.hasVNet).toBe(false);
@@ -483,15 +471,16 @@ describe('useTechTree hook', () => {
   });
 
   it('enables network always, and gates subnet/vm/storage on vnet availability', () => {
-    const { result: emptyResult } = renderHook(() => useTechTree());
+    const { result: emptyResult } = renderHook(() => useTechTree(buildArchitecture([], 0)));
 
     expect(emptyResult.current.isEnabled('network')).toBe(true);
     expect(emptyResult.current.isEnabled('subnet')).toBe(false);
     expect(emptyResult.current.isEnabled('vm')).toBe(false);
     expect(emptyResult.current.isEnabled('storage')).toBe(false);
 
-    setArchitectureState(buildArchitecture([NETWORK_PLATE], 2));
-    const { result: vnetResult } = renderHook(() => useTechTree());
+    const { result: vnetResult } = renderHook(() =>
+      useTechTree(buildArchitecture([NETWORK_PLATE], 2)),
+    );
 
     expect(vnetResult.current.hasVNet).toBe(true);
     expect(vnetResult.current.hasSubnet).toBe(false);
@@ -503,14 +492,15 @@ describe('useTechTree hook', () => {
   });
 
   it('returns null disabled reason for enabled resources and custom reason for disabled ones', () => {
-    const { result: emptyResult } = renderHook(() => useTechTree());
+    const { result: emptyResult } = renderHook(() => useTechTree(buildArchitecture([], 0)));
 
     expect(emptyResult.current.getDisabledReason('vm')).toBe(
       'Create a Network first. Virtual Machines need a network to connect to.',
     );
 
-    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
-    const { result: enabledResult } = renderHook(() => useTechTree());
+    const { result: enabledResult } = renderHook(() =>
+      useTechTree(buildArchitecture([NETWORK_PLATE], 0)),
+    );
 
     expect(enabledResult.current.getDisabledReason('vm')).toBeNull();
     expect(enabledResult.current.getDisabledReason('network')).toBeNull();
@@ -527,7 +517,7 @@ describe('useTechTree hook', () => {
     Reflect.set(RESOURCE_DEFINITIONS, 'network', mutatedNetwork);
 
     try {
-      const { result } = renderHook(() => useTechTree());
+      const { result } = renderHook(() => useTechTree(buildArchitecture([], 0)));
 
       expect(result.current.isEnabled('network')).toBe(false);
       expect(result.current.getDisabledReason('network')).toBe(
@@ -539,7 +529,7 @@ describe('useTechTree hook', () => {
   });
 
   it('returns all creation resources from RESOURCE_DEFINITIONS', () => {
-    const { result } = renderHook(() => useTechTree());
+    const { result } = renderHook(() => useTechTree(buildArchitecture([], 0)));
 
     const expectedResourceTypes = ALL_RESOURCES;
     const creationResources = result.current.getCreationResources();
@@ -556,27 +546,28 @@ describe('useTechTree hook', () => {
   });
 
   it('selects target container for vm: subnet first, then network, otherwise null', () => {
-    const { result: emptyResult } = renderHook(() => useTechTree());
+    const { result: emptyResult } = renderHook(() => useTechTree(buildArchitecture([], 0)));
     expect(emptyResult.current.getTargetPlateId('vm')).toBeNull();
 
-    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
-    const { result: networkOnlyResult } = renderHook(() => useTechTree());
+    const { result: networkOnlyResult } = renderHook(() =>
+      useTechTree(buildArchitecture([NETWORK_PLATE], 0)),
+    );
     expect(networkOnlyResult.current.getTargetPlateId('vm')).toBe('net-1');
 
-    setArchitectureState(buildArchitecture([NETWORK_PLATE, SUBNET_PLATE], 0));
-    const { result: withSubnetResult } = renderHook(() => useTechTree());
+    const { result: withSubnetResult } = renderHook(() =>
+      useTechTree(buildArchitecture([NETWORK_PLATE, SUBNET_PLATE], 0)),
+    );
     expect(withSubnetResult.current.getTargetPlateId('vm')).toBe('sub-1');
   });
 
   it('selects network container for non-vnet-required resources like storage', () => {
-    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
-    const { result } = renderHook(() => useTechTree());
+    const { result } = renderHook(() => useTechTree(buildArchitecture([NETWORK_PLATE], 0)));
 
     expect(result.current.getTargetPlateId('storage')).toBe('net-1');
   });
 
   it('returns null target container for non-vnet-required resources when no network exists', () => {
-    const { result } = renderHook(() => useTechTree());
+    const { result } = renderHook(() => useTechTree(buildArchitecture([], 0)));
 
     expect(result.current.getTargetPlateId('storage')).toBeNull();
   });
@@ -617,6 +608,18 @@ describe('getCreationGroupId', () => {
 
   it('maps monitor to operations group', () => {
     expect(getCreationGroupId('monitor')).toBe('operations');
+  });
+});
+
+describe('provider-aware resource labels', () => {
+  it('returns provider-specific labels when defined', () => {
+    expect(getResourceLabel('vm', 'aws')).toBe('EC2');
+    expect(getResourceShortLabel('vm', 'aws')).toBe('EC2');
+  });
+
+  it('falls back to default labels when a provider override is missing', () => {
+    expect(getResourceLabel('subnet', 'gcp')).toBe('Subnet');
+    expect(getResourceShortLabel('subnet', 'gcp')).toBe('Subnet');
   });
 });
 

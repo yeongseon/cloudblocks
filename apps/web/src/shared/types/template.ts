@@ -1,5 +1,5 @@
 import type { ArchitectureModel } from './index';
-import type { GeneratorId } from '../../features/generate/types';
+import type { GeneratorId } from './generator';
 
 // ─── Template Types (extracted from features/templates for FSD compliance) ──
 
