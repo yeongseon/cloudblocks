@@ -21,7 +21,8 @@ import './ContainerBlockSprite.css';
 import { ResizeHandles } from './ResizeHandles';
 
 interface PlateSpriteProps {
-  container: ContainerBlock;
+  containerId?: string;
+  container?: ContainerBlock;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -29,6 +30,7 @@ interface PlateSpriteProps {
 }
 
 export const ContainerBlockSprite = memo(function PlateSprite({
+  containerId,
   container,
   screenX,
   screenY,
@@ -37,21 +39,44 @@ export const ContainerBlockSprite = memo(function PlateSprite({
 }: PlateSpriteProps) {
   type PlateLayer = Exclude<LayerType, 'resource'>;
 
-  const selectedIds = useUIStore((s) => s.selectedIds);
+  const resolvedContainerId = containerId ?? container?.id ?? null;
+  const storeContainer = useArchitectureStore((state) => {
+    if (!resolvedContainerId) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === resolvedContainerId,
+    );
+    return node?.kind === 'container' ? node : null;
+  });
+  const resolvedContainer = storeContainer ?? container ?? null;
+
+  const isSelected = useUIStore((s) =>
+    resolvedContainerId ? s.selectedIds.has(resolvedContainerId) : false,
+  );
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toggleSelection = useUIStore((s) => s.toggleSelection);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
-  const isSelected = selectedIds.has(container.id);
   const isDragActive = draggedBlockCategory !== null;
-  const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, container);
-  const isInvalidDropTarget = isDragActive && !canPlaceBlock(draggedBlockCategory, container);
-  const diffState = diffMode && diffDelta ? getDiffState(container.id, diffDelta) : 'unchanged';
+  const isValidDropTarget =
+    isDragActive && resolvedContainer
+      ? canPlaceBlock(draggedBlockCategory, resolvedContainer)
+      : false;
+  const isInvalidDropTarget =
+    isDragActive && resolvedContainer
+      ? !canPlaceBlock(draggedBlockCategory, resolvedContainer)
+      : false;
+  const diffState =
+    diffMode && diffDelta && resolvedContainerId
+      ? getDiffState(resolvedContainerId, diffDelta)
+      : 'unchanged';
 
   // ── Block status overlay (#1591) ──
-  const containerStatus = useUIStore((s) => s.blockStatuses.get(container.id));
+  const containerStatus = useUIStore((s) =>
+    resolvedContainerId ? s.blockStatuses.get(resolvedContainerId) : undefined,
+  );
   const plateRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,7 +84,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
 
   useEffect(() => {
     const el = plateRef.current;
-    if (containerStatus?.disabled || !el) {
+    if (!resolvedContainerId || containerStatus?.disabled || !el) {
       return;
     }
 
@@ -91,7 +116,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          moveNodePosition(container.id, dWorldX, dWorldZ);
+          moveNodePosition(resolvedContainerId, dWorldX, dWorldZ);
         },
         end() {
           const imgEl = plateRef.current?.querySelector('.container-img') as HTMLElement | null;
@@ -117,7 +142,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
               .workspace.architecture.nodes.filter(
                 (node): node is ContainerBlock => node.kind === 'container',
               )
-              .find((candidate) => candidate.id === container.id);
+              .find((candidate) => candidate.id === resolvedContainerId);
 
             if (currentPlate) {
               const snappedPosition = snapToGrid(currentPlate.position.x, currentPlate.position.z);
@@ -125,7 +150,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
               const deltaZ = snappedPosition.z - currentPlate.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                moveNodePosition(container.id, deltaX, deltaZ);
+                moveNodePosition(resolvedContainerId, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -154,29 +179,33 @@ export const ContainerBlockSprite = memo(function PlateSprite({
       el.querySelector('.container-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [container.id, containerStatus?.disabled, moveNodePosition]);
+  }, [containerStatus?.disabled, moveNodePosition, resolvedContainerId]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (!resolvedContainer || !resolvedContainerId) return;
     if (containerStatus?.disabled) return;
     if (isDragging.current) {
       return;
     }
     e.stopPropagation();
     if (e.shiftKey) {
-      toggleSelection(container.id);
+      toggleSelection(resolvedContainerId);
     } else {
-      setSelectedId(container.id);
+      setSelectedId(resolvedContainerId);
     }
   };
 
-  const containerLayer = container.layer as PlateLayer;
+  if (!resolvedContainer || !resolvedContainerId) {
+    return null;
+  }
+
+  const containerLayer = resolvedContainer.layer as PlateLayer;
   const sizeClass = containerLayer === 'subnet' ? 'container-subnet' : 'container-network';
 
   const profile =
-    container.profileId && isContainerBlockProfileId(container.profileId)
-      ? getContainerBlockProfile(container.profileId)
+    resolvedContainer.profileId && isContainerBlockProfileId(resolvedContainer.profileId)
+      ? getContainerBlockProfile(resolvedContainer.profileId)
       : getContainerBlockProfile(DEFAULT_CONTAINER_BLOCK_PROFILE[containerLayer]);
-  const activeProvider = useUIStore((s) => s.activeProvider);
   const plateColorInput = { type: containerLayer, provider: activeProvider };
   const faceColors = getContainerBlockFaceColors(plateColorInput);
   const typeLabel =
@@ -188,15 +217,15 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         : containerLayer === 'zone'
           ? 'Zone Layer'
           : 'Region Layer');
-  const label = container.name || typeLabel;
+  const label = resolvedContainer.name || typeLabel;
   const iconUrl = getContainerBlockIconUrl(containerLayer, activeProvider);
 
-  if (!container.frame) return null;
+  if (!resolvedContainer.frame) return null;
 
   const { screenWidth, screenHeight } = worldSizeToScreen(
-    container.frame.width,
-    container.frame.height,
-    container.frame.depth,
+    resolvedContainer.frame.width,
+    resolvedContainer.frame.height,
+    resolvedContainer.frame.depth,
   );
 
   const className = [
@@ -219,7 +248,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
     <div
       ref={plateRef}
       className={className}
-      data-container-id={container.id}
+      data-container-id={resolvedContainer.id}
       style={{
         left: `${screenX}px`,
         top: `${screenY}px`,
@@ -232,7 +261,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         className="container-button"
         disabled={!!containerStatus?.disabled}
         aria-disabled={!!containerStatus?.disabled || undefined}
-        aria-label={`Container: ${container.name}`}
+        aria-label={`Container: ${resolvedContainer.name}`}
         style={{
           left: `${-screenWidth / 2}px`,
           top: `${-screenHeight / 2}px`,
@@ -243,9 +272,11 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         <div className="container-img" aria-hidden="true">
           <ContainerBlockSvg
             containerLayer={containerLayer}
-            unitsX={container.frame ? container.frame.width : profile.unitsX}
-            unitsY={container.frame ? container.frame.depth : profile.unitsY}
-            worldHeight={container.frame ? container.frame.height : profile.worldHeight}
+            unitsX={resolvedContainer.frame ? resolvedContainer.frame.width : profile.unitsX}
+            unitsY={resolvedContainer.frame ? resolvedContainer.frame.depth : profile.unitsY}
+            worldHeight={
+              resolvedContainer.frame ? resolvedContainer.frame.height : profile.worldHeight
+            }
             topFaceColor={faceColors.topFaceColor}
             topFaceStroke={faceColors.topFaceStroke}
             leftSideColor={faceColors.leftSideColor}
@@ -258,13 +289,13 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         </div>
       </button>
       {isSelected && <span className="container-label-chip">{label}</span>}
-      {isSelected && !containerStatus?.disabled && container.frame && (
+      {isSelected && !containerStatus?.disabled && resolvedContainer.frame && (
         <ResizeHandles
-          containerId={container.id}
-          frameWidth={container.frame.width}
-          frameDepth={container.frame.depth}
-          frameHeight={container.frame.height}
-          containerLayer={container.layer}
+          containerId={resolvedContainer.id}
+          frameWidth={resolvedContainer.frame.width}
+          frameDepth={resolvedContainer.frame.depth}
+          frameHeight={resolvedContainer.frame.height}
+          containerLayer={resolvedContainer.layer}
         />
       )}
     </div>

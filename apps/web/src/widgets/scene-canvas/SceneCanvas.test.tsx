@@ -3,18 +3,26 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { SceneCanvas } from './SceneCanvas';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ResourceBlock } from '@cloudblocks/schema';
+import type { Connection, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
 vi.mock('../../shared/utils/audioService', () => ({
   audioService: { playSound: vi.fn() },
 }));
+const containerBlockSpriteMock = vi.fn((_props: unknown) => null);
+const blockSpriteMock = vi.fn((_props: unknown) => null);
+const connectionRendererMock = vi.fn((_props: unknown) => null);
 vi.mock('../../entities/container-block/ContainerBlockSprite', () => ({
-  ContainerBlockSprite: () => null,
+  ContainerBlockSprite: (props: unknown) => containerBlockSpriteMock(props),
 }));
-vi.mock('../../entities/block/BlockSprite', () => ({ BlockSprite: () => null }));
-vi.mock('../../entities/connection/ConnectionRenderer', () => ({ ConnectionRenderer: () => null }));
+vi.mock('../../entities/block/BlockSprite', () => ({
+  BlockSprite: (props: unknown) => blockSpriteMock(props),
+}));
+vi.mock('../../entities/connection/ConnectionRenderer', () => ({
+  ConnectionRenderer: (props: unknown) => connectionRendererMock(props),
+}));
 vi.mock('../../entities/connection/ExternalActorSprite', () => ({
   ExternalActorSprite: () => null,
 }));
@@ -23,15 +31,18 @@ vi.mock('./DragGhost', () => ({ DragGhost: () => null }));
 vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
 
 const mockSetSelectedId = vi.fn();
-const mockAddBlock = vi.fn();
+const mockAddNode = vi.fn();
+const mockMoveExternalBlockPosition = vi.fn();
+const mockClearSelection = vi.fn();
+const mockSetSelectedIds = vi.fn();
 const mockCompleteInteraction = vi.fn();
 const mockSetCanvasZoom = vi.fn();
 const mockClearFitToContentRequest = vi.fn();
 let mockFitToContentRequested = false;
 
 const architecture: {
-  nodes: ResourceBlock[];
-  connections: unknown[];
+  nodes: Array<ResourceBlock | ContainerBlock>;
+  connections: Connection[];
   externalActors: unknown[];
 } = {
   nodes: [],
@@ -43,7 +54,8 @@ function setupStoreMocks() {
   vi.mocked(useArchitectureStore).mockImplementation(((selector: unknown) => {
     const state = {
       workspace: { architecture },
-      addBlock: mockAddBlock,
+      addNode: mockAddNode,
+      moveExternalBlockPosition: mockMoveExternalBlockPosition,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useArchitectureStore);
@@ -51,6 +63,8 @@ function setupStoreMocks() {
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
     const state = {
       setSelectedId: mockSetSelectedId,
+      clearSelection: mockClearSelection,
+      setSelectedIds: mockSetSelectedIds,
       interactionState: 'idle' as const,
       draggedBlockCategory: null,
       draggedResourceName: null,
@@ -76,6 +90,8 @@ describe('SceneCanvas ResizeObserver origin update', () => {
     mockFitToContentRequested = false;
     mockSetCanvasZoom.mockClear();
     mockClearFitToContentRequest.mockClear();
+    architecture.nodes = [];
+    architecture.connections = [];
     setupStoreMocks();
     capturedCallback = null;
 
@@ -131,6 +147,8 @@ describe('SceneCanvas pointer capture handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFitToContentRequested = false;
+    architecture.nodes = [];
+    architecture.connections = [];
     setupStoreMocks();
   });
 
@@ -233,6 +251,7 @@ describe('SceneCanvas fit-to-content', () => {
     vi.clearAllMocks();
     mockFitToContentRequested = false;
     architecture.nodes = [];
+    architecture.connections = [];
     setupStoreMocks();
     capturedCallback = null;
 
@@ -301,5 +320,127 @@ describe('SceneCanvas fit-to-content', () => {
       expect(world.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(0.85)');
       expect(mockClearFitToContentRequest).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('passes id-based props to rendered sprites and computes occupied cells per container', () => {
+    const container: ContainerBlock = {
+      id: 'container-1',
+      name: 'Region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'aws',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      frame: { width: 10, height: 0.3, depth: 10 },
+      metadata: {},
+    };
+    const nestedBlock: ResourceBlock = {
+      id: 'block-1',
+      name: 'API',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'compute',
+      provider: 'aws',
+      parentId: container.id,
+      position: { x: 2, y: 0, z: 3 },
+      metadata: {},
+    };
+
+    architecture.nodes = [container, nestedBlock];
+
+    render(<SceneCanvas />);
+
+    expect(containerBlockSpriteMock).toHaveBeenCalled();
+
+    const containerCall = containerBlockSpriteMock.mock.calls.find(
+      ([props]) => (props as { containerId?: string }).containerId === container.id,
+    );
+    expect(containerCall).toBeDefined();
+    const containerProps = containerCall![0] as {
+      containerId: string;
+      occupiedCells?: Set<string>;
+    };
+    expect(containerProps.containerId).toBe(container.id);
+    expect(containerProps.occupiedCells).toEqual(new Set(['2:3', '2:4', '3:3', '3:4']));
+
+    expect(
+      blockSpriteMock.mock.calls.some(
+        ([props]) =>
+          (props as { blockId?: string; onMove?: unknown }).blockId === nestedBlock.id &&
+          (props as { onMove?: unknown }).onMove === undefined,
+      ),
+    ).toBe(true);
+  });
+
+  it('routes root external blocks through the external move handler', () => {
+    const externalBlock: ResourceBlock = {
+      id: 'external-browser',
+      name: 'Browser',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'browser',
+      category: 'delivery',
+      provider: 'aws',
+      parentId: null,
+      position: { x: -2, y: 0, z: 2 },
+      metadata: {},
+    };
+
+    architecture.nodes = [externalBlock];
+
+    render(<SceneCanvas />);
+
+    expect(
+      blockSpriteMock.mock.calls.some(
+        ([props]) =>
+          (props as { blockId?: string; onMove?: unknown }).blockId === externalBlock.id &&
+          (props as { onMove?: unknown }).onMove === mockMoveExternalBlockPosition,
+      ),
+    ).toBe(true);
+  });
+
+  it('skips nested blocks whose parent container cannot be resolved', () => {
+    const orphanedBlock: ResourceBlock = {
+      id: 'orphaned-block',
+      name: 'Orphan',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'compute',
+      provider: 'aws',
+      parentId: 'missing-container',
+      position: { x: 1, y: 0, z: 1 },
+      metadata: {},
+    };
+
+    architecture.nodes = [orphanedBlock];
+
+    render(<SceneCanvas />);
+
+    expect(blockSpriteMock).not.toHaveBeenCalled();
+  });
+
+  it('passes id-based props to connection renderers', () => {
+    architecture.connections = [
+      {
+        id: 'conn-1',
+        from: endpointId('source', 'output', 'data'),
+        to: endpointId('target', 'input', 'data'),
+        metadata: {},
+      },
+    ];
+
+    render(<SceneCanvas />);
+
+    expect(
+      connectionRendererMock.mock.calls.some(
+        ([props]) =>
+          (props as { connectionId?: string; overlapOffset?: number }).connectionId === 'conn-1' &&
+          (props as { overlapOffset?: number }).overlapOffset === 0,
+      ),
+    ).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock, ROOT_ALLOWED_RESOURCE_TYPES } from '../../entities/validation/placement';
@@ -27,44 +28,97 @@ import {
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const plates = architecture.nodes.filter(
-    (node): node is ContainerBlock => node.kind === 'container',
+  const { nodes, connections, addNode, moveExternalBlockPosition } = useArchitectureStore(
+    useShallow((state) => ({
+      nodes: state.workspace.architecture.nodes,
+      connections: state.workspace.architecture.connections,
+      addNode: state.addNode,
+      moveExternalBlockPosition: state.moveExternalBlockPosition,
+    })),
   );
-  const blocks = architecture.nodes.filter(
-    (node): node is ResourceBlock => node.kind === 'resource',
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
+  const containerIds = useMemo(
+    () =>
+      nodes
+        .filter((node): node is ContainerBlock => node.kind === 'container')
+        .map((container) => container.id),
+    [nodes],
   );
-  // Split blocks: those parented to containers vs root external blocks
-  const containerBlocks = blocks.filter((b) => b.parentId !== null);
-  const rootExternalBlocks = blocks.filter(
-    (b) =>
-      b.parentId === null &&
-      (Boolean(b.roles?.includes('external')) || isExternalResourceType(b.resourceType)),
+  const containerById = useMemo(
+    () =>
+      new Map(
+        containerIds
+          .map((containerId) => nodeById.get(containerId))
+          .filter((node): node is ContainerBlock => node?.kind === 'container')
+          .map((container) => [container.id, container]),
+      ),
+    [containerIds, nodeById],
+  );
+  const blockIds = useMemo(
+    () =>
+      nodes
+        .filter((node): node is ResourceBlock => node.kind === 'resource')
+        .map((block) => block.id),
+    [nodes],
+  );
+  const containerBlockIds = useMemo(
+    () =>
+      blockIds.filter((blockId) => {
+        const block = nodeById.get(blockId);
+        return block?.kind === 'resource' && block.parentId !== null;
+      }),
+    [blockIds, nodeById],
+  );
+  const rootExternalBlockIds = useMemo(
+    () =>
+      blockIds.filter((blockId) => {
+        const block = nodeById.get(blockId);
+        return (
+          block?.kind === 'resource' &&
+          block.parentId === null &&
+          (Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType))
+        );
+      }),
+    [blockIds, nodeById],
   );
   const overlapOffsets = useMemo(
-    () => computeOverlapOffsets(architecture.connections, OVERLAP_OFFSET_PX),
-    [architecture.connections],
+    () => computeOverlapOffsets(connections, OVERLAP_OFFSET_PX),
+    [connections],
   );
-  const occupiedCellsByContainer = useMemo(
-    () => computeOccupiedCellsByContainer(architecture.nodes),
-    [architecture.nodes],
+  const occupiedCellsByContainer = useMemo(() => computeOccupiedCellsByContainer(nodes), [nodes]);
+  const {
+    clearSelection,
+    setSelectedIds,
+    interactionState,
+    draggedBlockCategory,
+    draggedResourceName,
+    draggedResourceType,
+    draggedSubtype,
+    activeProvider,
+    completeInteraction,
+    setCanvasZoom,
+    fitToContentRequested,
+    clearFitToContentRequest,
+    isSoundMuted,
+    gridStyle,
+  } = useUIStore(
+    useShallow((state) => ({
+      clearSelection: state.clearSelection,
+      setSelectedIds: state.setSelectedIds,
+      interactionState: state.interactionState,
+      draggedBlockCategory: state.draggedBlockCategory,
+      draggedResourceName: state.draggedResourceName,
+      draggedResourceType: state.draggedResourceType,
+      draggedSubtype: state.draggedSubtype,
+      activeProvider: state.activeProvider,
+      completeInteraction: state.completeInteraction,
+      setCanvasZoom: state.setCanvasZoom,
+      fitToContentRequested: state.fitToContentRequested,
+      clearFitToContentRequest: state.clearFitToContentRequest,
+      isSoundMuted: state.isSoundMuted,
+      gridStyle: state.gridStyle,
+    })),
   );
-  const addNode = useArchitectureStore((s) => s.addNode);
-  const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
-  const clearSelection = useUIStore((s) => s.clearSelection);
-  const setSelectedIds = useUIStore((s) => s.setSelectedIds);
-  const interactionState = useUIStore((s) => s.interactionState);
-  const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
-  const draggedResourceName = useUIStore((s) => s.draggedResourceName);
-  const draggedResourceType = useUIStore((s) => s.draggedResourceType);
-  const draggedSubtype = useUIStore((s) => s.draggedSubtype);
-  const activeProvider = useUIStore((s) => s.activeProvider);
-  const completeInteraction = useUIStore((s) => s.completeInteraction);
-  const setCanvasZoom = useUIStore((s) => s.setCanvasZoom);
-  const fitToContentRequested = useUIStore((s) => s.fitToContentRequested);
-  const clearFitToContentRequest = useUIStore((s) => s.clearFitToContentRequest);
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const gridStyle = useUIStore((s) => s.gridStyle);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
   };
@@ -74,34 +128,38 @@ export function SceneCanvas() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(0.85);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
-  const containerById = useMemo(
-    () => new Map(plates.map((container) => [container.id, container])),
-    [plates],
-  );
-  const sortedPlates = useMemo(
+  const sortedContainerIds = useMemo(
     () =>
-      [...plates].sort((a, b) => {
-        const levelA = a.parentId ? 1 : 0;
-        const levelB = b.parentId ? 1 : 0;
+      [...containerIds].sort((a, b) => {
+        const containerA = containerById.get(a);
+        const containerB = containerById.get(b);
+        if (!containerA || !containerB) return 0;
+        const levelA = containerA.parentId ? 1 : 0;
+        const levelB = containerB.parentId ? 1 : 0;
         if (levelA !== levelB) return levelA - levelB;
-        const depthA = depthKey(a.position.x, a.position.z, a.position.y, 0);
-        const depthB = depthKey(b.position.x, b.position.z, b.position.y, 0);
+        const depthA = depthKey(
+          containerA.position.x,
+          containerA.position.z,
+          containerA.position.y,
+          0,
+        );
+        const depthB = depthKey(
+          containerB.position.x,
+          containerB.position.z,
+          containerB.position.y,
+          0,
+        );
         return depthA - depthB;
       }),
-    [plates],
+    [containerById, containerIds],
   );
 
   const externalLaneBounds = useMemo(() => {
-    return computeExternalLaneBounds(
-      architecture.nodes.filter(
-        (node): node is ResourceBlock =>
-          node.kind === 'resource' &&
-          node.parentId === null &&
-          (Boolean(node.roles?.includes('external')) || isExternalResourceType(node.resourceType)),
-      ),
-      origin,
-    );
-  }, [architecture.nodes, origin]);
+    const externalBlocks = rootExternalBlockIds
+      .map((blockId) => nodeById.get(blockId))
+      .filter((node): node is ResourceBlock => node?.kind === 'resource');
+    return computeExternalLaneBounds(externalBlocks, origin);
+  }, [nodeById, origin, rootExternalBlockIds]);
 
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
@@ -210,7 +268,7 @@ export function SceneCanvas() {
     // Handle lasso completion
     if (lassoStartRef.current) {
       if (lassoRect) {
-        const hitIds = getLassoSelectionIds(architecture.nodes, containerById, origin, lassoRect);
+        const hitIds = getLassoSelectionIds(nodes, containerById, origin, lassoRect);
 
         if (hitIds.length > 0) {
           setSelectedIds(hitIds);
@@ -332,14 +390,14 @@ export function SceneCanvas() {
       return;
     }
 
-    if (architecture.nodes.length === 0) {
+    if (nodes.length === 0) {
       clearFitToContentRequest();
       return;
     }
 
     const rect = containerRef.current.getBoundingClientRect();
     const nextTransform = computeFitToContentTransform(
-      architecture.nodes,
+      nodes,
       containerById,
       { width: rect.width, height: rect.height },
       origin,
@@ -353,7 +411,7 @@ export function SceneCanvas() {
     setPan(nextTransform.pan);
     setZoom(nextTransform.zoom);
     clearFitToContentRequest();
-  }, [architecture.nodes, clearFitToContentRequest, containerById, fitToContentRequested, origin]);
+  }, [clearFitToContentRequest, containerById, fitToContentRequested, nodes, origin]);
 
   return (
     <div
@@ -371,7 +429,9 @@ export function SceneCanvas() {
         }}
       >
         <div className="container-layer">
-          {sortedPlates.map((container) => {
+          {sortedContainerIds.map((containerId) => {
+            const container = containerById.get(containerId);
+            if (!container) return null;
             const screenPos = worldToScreen(
               container.position.x,
               container.position.y,
@@ -386,7 +446,7 @@ export function SceneCanvas() {
             return (
               <ContainerBlockSprite
                 key={container.id}
-                container={container}
+                containerId={container.id}
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
@@ -398,12 +458,10 @@ export function SceneCanvas() {
 
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
-          {architecture.connections.map((conn) => (
+          {connections.map((conn) => (
             <ConnectionRenderer
               key={conn.id}
-              connection={conn}
-              blocks={blocks}
-              plates={plates}
+              connectionId={conn.id}
               originX={origin.x}
               originY={origin.y}
               overlapOffset={overlapOffsets.get(conn.id) ?? 0}
@@ -455,8 +513,10 @@ export function SceneCanvas() {
         )}
 
         <div className="block-layer">
-          {containerBlocks.map((block) => {
-            const parentContainer = block.parentId ? containerById.get(block.parentId) : undefined;
+          {containerBlockIds.map((blockId) => {
+            const block = nodeById.get(blockId);
+            if (block?.kind !== 'resource') return null;
+            const parentContainer = block.parentId ? containerById.get(block.parentId) : null;
             if (!parentContainer?.frame) return null;
             const worldX = parentContainer.position.x + block.position.x;
             const worldY = parentContainer.position.y + parentContainer.frame.height;
@@ -466,15 +526,16 @@ export function SceneCanvas() {
             return (
               <BlockSprite
                 key={block.id}
-                block={block}
-                parentContainer={parentContainer}
+                blockId={block.id}
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
               />
             );
           })}
-          {rootExternalBlocks.map((block) => {
+          {rootExternalBlockIds.map((blockId) => {
+            const block = nodeById.get(blockId);
+            if (block?.kind !== 'resource') return null;
             const screenPos = worldToScreen(
               block.position.x,
               block.position.y,
@@ -486,7 +547,7 @@ export function SceneCanvas() {
             return (
               <BlockSprite
                 key={block.id}
-                block={block}
+                blockId={block.id}
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}

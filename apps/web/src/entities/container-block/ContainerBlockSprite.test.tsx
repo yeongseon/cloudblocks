@@ -554,4 +554,31 @@ describe('PlateSprite', () => {
     expect(playSoundSpy).not.toHaveBeenCalled();
     playSoundSpy.mockRestore();
   });
+
+  it('resolves the container from store when only containerId is provided', () => {
+    const container = { ...makeNetworkPlate(), id: 'container-store-only', name: 'Store Only' };
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [container] as Block[],
+        },
+      },
+    });
+
+    render(<ContainerBlockSprite containerId={container.id} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(
+      screen.getByRole('button', { name: `Container: ${container.name}` }),
+    ).toBeInTheDocument();
+  });
+
+  it('returns null when neither containerId nor container prop resolve to a container', () => {
+    const { container } = render(
+      <ContainerBlockSprite containerId="missing-container" screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
 });
