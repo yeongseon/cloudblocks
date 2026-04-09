@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RightDrawer } from '../RightDrawer';
 import { useUIStore } from '../../../entities/store/uiStore';
@@ -47,6 +47,23 @@ describe('RightDrawer', () => {
     );
 
     expect(screen.getByText('Custom panel content')).toBeInTheDocument();
+  });
+
+  it('renders CodePreview when the code panel is active', async () => {
+    useUIStore.getState().openDrawer('code');
+    render(<RightDrawer />);
+
+    expect(await screen.findByText('⚡ Code Generation')).toBeInTheDocument();
+    expect(useUIStore.getState().showCodePreview).toBe(true);
+  });
+
+  it('hides CodePreview when the code panel is inactive', async () => {
+    useUIStore.getState().openDrawer('properties');
+    render(<RightDrawer />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('⚡ Code Generation')).not.toBeInTheDocument();
+    });
   });
 
   it('closes when close button is clicked', async () => {
@@ -112,6 +129,14 @@ describe('uiStore drawer actions', () => {
     expect(state.drawer.activePanel).toBe('properties');
   });
 
+  it('openDrawer syncs code preview visibility for code panel', () => {
+    useUIStore.getState().openDrawer('code');
+
+    const state = useUIStore.getState();
+    expect(state.drawer).toEqual({ isOpen: true, activePanel: 'code' });
+    expect(state.showCodePreview).toBe(true);
+  });
+
   it('closeDrawer resets state', () => {
     useUIStore.getState().openDrawer('properties');
     useUIStore.getState().closeDrawer();
@@ -119,6 +144,15 @@ describe('uiStore drawer actions', () => {
     const state = useUIStore.getState();
     expect(state.drawer.isOpen).toBe(false);
     expect(state.drawer.activePanel).toBeNull();
+  });
+
+  it('closeDrawer hides code preview when code panel is active', () => {
+    useUIStore.getState().openDrawer('code');
+    useUIStore.getState().closeDrawer();
+
+    const state = useUIStore.getState();
+    expect(state.drawer).toEqual({ isOpen: false, activePanel: null });
+    expect(state.showCodePreview).toBe(false);
   });
 
   it('toggleDrawer opens when closed', () => {
