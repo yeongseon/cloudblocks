@@ -11,9 +11,9 @@ vi.mock('../../entities/store/uiStore');
 vi.mock('../../shared/utils/audioService', () => ({
   audioService: { playSound: vi.fn() },
 }));
-const containerBlockSpriteMock = vi.fn(() => null);
-const blockSpriteMock = vi.fn(() => null);
-const connectionRendererMock = vi.fn(() => null);
+const containerBlockSpriteMock = vi.fn((_props: unknown) => null);
+const blockSpriteMock = vi.fn((_props: unknown) => null);
+const connectionRendererMock = vi.fn((_props: unknown) => null);
 vi.mock('../../entities/container-block/ContainerBlockSprite', () => ({
   ContainerBlockSprite: (props: unknown) => containerBlockSpriteMock(props),
 }));
@@ -357,12 +357,14 @@ describe('SceneCanvas fit-to-content', () => {
 
     const containerCall = containerBlockSpriteMock.mock.calls.find(
       ([props]) => (props as { containerId?: string }).containerId === container.id,
-    )?.[0] as {
+    );
+    expect(containerCall).toBeDefined();
+    const containerProps = containerCall![0] as {
       containerId: string;
       occupiedCells?: Set<string>;
     };
-    expect(containerCall.containerId).toBe(container.id);
-    expect(containerCall.occupiedCells).toEqual(new Set(['2:3', '2:4', '3:3', '3:4']));
+    expect(containerProps.containerId).toBe(container.id);
+    expect(containerProps.occupiedCells).toEqual(new Set(['2:3', '2:4', '3:3', '3:4']));
 
     expect(
       blockSpriteMock.mock.calls.some(

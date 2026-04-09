@@ -664,8 +664,8 @@ describe('ConnectionRenderer', () => {
           ],
           connections: [connection],
           endpoints: [
-            { id: connection.from, blockId: 'source-1', type: 'output', semantic: 'data' },
-            { id: connection.to, blockId: 'target-1', type: 'input', semantic: 'data' },
+            { id: connection.from, blockId: 'source-1', direction: 'output', semantic: 'data' },
+            { id: connection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
           ],
         },
       },
