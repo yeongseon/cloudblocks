@@ -20,15 +20,6 @@ import type { DrawerPanelId } from '../../shared/types/drawer';
 
 export type { DrawerPanelId };
 
-export type DrawerPanelId =
-  | 'properties'
-  | 'validation'
-  | 'connections'
-  | 'scenarios'
-  | 'learning'
-  | 'code'
-  | 'templates';
-
 export interface PanelRegistryEntry {
   id: DrawerPanelId;
   label: string;
