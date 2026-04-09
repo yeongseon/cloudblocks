@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import final, cast
+from typing import cast, final
 from unittest.mock import patch
 
 import httpx
