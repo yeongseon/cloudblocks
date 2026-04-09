@@ -1,15 +1,22 @@
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.core.dependencies import get_ai_api_key_repo, get_current_user, get_key_manager
-from app.core.security import generate_id
-from app.domain.models.ai_entities import AIApiKey
+from app.application.use_cases.ai_keys_use_cases import (
+    DeleteAIKeyUseCase,
+    ListAIKeysUseCase,
+    StoreAIKeyUseCase,
+)
+from app.core.dependencies import (
+    get_current_user,
+    get_delete_ai_key_use_case,
+    get_list_ai_keys_use_case,
+    get_store_ai_key_use_case,
+)
 from app.domain.models.entities import User
-from app.domain.models.repositories import AIApiKeyRepository
 
 router = APIRouter(prefix="/ai/keys", tags=["ai"])
 
@@ -33,25 +40,18 @@ class DeleteAIKeyResponse(BaseModel):
 async def store_ai_key(
     body: StoreAIKeyRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    ai_api_key_repo: Annotated[AIApiKeyRepository, Depends(get_ai_api_key_repo)],
-    key_manager: Annotated[Any, Depends(get_key_manager)],
+    use_case: Annotated[StoreAIKeyUseCase, Depends(get_store_ai_key_use_case)],
 ) -> StoredAIKeyResponse:
-    api_key = AIApiKey(
-        id=generate_id(),
-        user_id=current_user.id,
-        provider=body.provider,
-        encrypted_key=key_manager.encrypt(body.key),
-    )
-    saved = await ai_api_key_repo.upsert(api_key)
+    saved = await use_case.execute(current_user.id, body.provider, body.key)
     return StoredAIKeyResponse(provider=saved.provider, created_at=saved.created_at.isoformat())
 
 
 @router.get("")
 async def list_ai_keys(
     current_user: Annotated[User, Depends(get_current_user)],
-    ai_api_key_repo: Annotated[AIApiKeyRepository, Depends(get_ai_api_key_repo)],
+    use_case: Annotated[ListAIKeysUseCase, Depends(get_list_ai_keys_use_case)],
 ) -> list[StoredAIKeyResponse]:
-    api_keys = await ai_api_key_repo.list_by_user(current_user.id)
+    api_keys = await use_case.execute(current_user.id)
     return [
         StoredAIKeyResponse(provider=item.provider, created_at=item.created_at.isoformat())
         for item in api_keys
@@ -62,7 +62,7 @@ async def list_ai_keys(
 async def delete_ai_key(
     provider: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    ai_api_key_repo: Annotated[AIApiKeyRepository, Depends(get_ai_api_key_repo)],
+    use_case: Annotated[DeleteAIKeyUseCase, Depends(get_delete_ai_key_use_case)],
 ) -> DeleteAIKeyResponse:
-    deleted = await ai_api_key_repo.delete_by_user_and_provider(current_user.id, provider)
+    deleted = await use_case.execute(current_user.id, provider)
     return DeleteAIKeyResponse(provider=provider, deleted=deleted)

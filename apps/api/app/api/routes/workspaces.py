@@ -10,11 +10,22 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.core.dependencies import get_current_user, get_workspace_repo
-from app.core.errors import ForbiddenError, NotFoundError
-from app.core.security import generate_id
+from app.application.use_cases.workspace_use_cases import (
+    CreateWorkspaceUseCase,
+    DeleteWorkspaceUseCase,
+    GetWorkspaceUseCase,
+    ListWorkspacesUseCase,
+    UpdateWorkspaceUseCase,
+)
+from app.core.dependencies import (
+    get_create_workspace_use_case,
+    get_current_user,
+    get_delete_workspace_use_case,
+    get_list_workspaces_use_case,
+    get_update_workspace_use_case,
+    get_workspace_use_case,
+)
 from app.domain.models.entities import User, Workspace
-from app.domain.models.repositories import WorkspaceRepository
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
@@ -65,10 +76,10 @@ def _workspace_to_response(ws: Workspace) -> WorkspaceResponse:
 @router.get("/")
 async def list_workspaces(
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
-) -> dict:
+    use_case: Annotated[ListWorkspacesUseCase, Depends(get_list_workspaces_use_case)],
+) -> dict[str, list[WorkspaceResponse]]:
     """List all workspaces for the current user."""
-    workspaces = await workspace_repo.find_by_owner(current_user.id)
+    workspaces = await use_case.execute(current_user)
     return {"workspaces": [_workspace_to_response(ws) for ws in workspaces]}
 
 
@@ -76,18 +87,16 @@ async def list_workspaces(
 async def create_workspace(
     body: CreateWorkspaceRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    use_case: Annotated[CreateWorkspaceUseCase, Depends(get_create_workspace_use_case)],
 ) -> WorkspaceResponse:
     """Create a new workspace."""
-    workspace = Workspace(
-        id=generate_id(),
-        owner_id=current_user.id,
-        name=body.name,
-        generator=body.generator,
-        provider=body.provider,
-        github_repo=body.github_repo,
+    workspace = await use_case.execute(
+        current_user,
+        body.name,
+        body.generator,
+        body.provider,
+        body.github_repo,
     )
-    workspace = await workspace_repo.create(workspace)
     return _workspace_to_response(workspace)
 
 
@@ -95,14 +104,10 @@ async def create_workspace(
 async def get_workspace(
     workspace_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    use_case: Annotated[GetWorkspaceUseCase, Depends(get_workspace_use_case)],
 ) -> WorkspaceResponse:
     """Get workspace by ID."""
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
+    workspace = await use_case.execute(workspace_id, current_user)
     return _workspace_to_response(workspace)
 
 
@@ -111,27 +116,20 @@ async def update_workspace(
     workspace_id: str,
     body: UpdateWorkspaceRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    use_case: Annotated[UpdateWorkspaceUseCase, Depends(get_update_workspace_use_case)],
 ) -> WorkspaceResponse:
     """Update workspace settings."""
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
-
-    if body.name is not None:
-        workspace.name = body.name
-    if body.generator is not None:
-        workspace.generator = body.generator
-    if body.provider is not None:
-        workspace.provider = body.provider
-    if "github_repo" in body.model_fields_set:
-        workspace.github_repo = body.github_repo
-    if "github_branch" in body.model_fields_set:
-        workspace.github_branch = body.github_branch if body.github_branch is not None else "main"
-
-    workspace = await workspace_repo.update(workspace)
+    workspace = await use_case.execute(
+        workspace_id,
+        current_user,
+        name=body.name,
+        generator=body.generator,
+        provider=body.provider,
+        github_repo=body.github_repo,
+        github_repo_provided="github_repo" in body.model_fields_set,
+        github_branch=body.github_branch,
+        github_branch_provided="github_branch" in body.model_fields_set,
+    )
     return _workspace_to_response(workspace)
 
 
@@ -139,12 +137,7 @@ async def update_workspace(
 async def delete_workspace(
     workspace_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    use_case: Annotated[DeleteWorkspaceUseCase, Depends(get_delete_workspace_use_case)],
 ) -> None:
     """Delete a workspace."""
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
-    await workspace_repo.delete(workspace_id)
+    _ = await use_case.execute(workspace_id, current_user)
