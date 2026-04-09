@@ -16,9 +16,9 @@ import {
   Code,
   LayoutTemplate,
 } from 'lucide-react';
-import type { DrawerPanelId as SharedDrawerPanelId } from '../../shared/types/drawer';
+import type { DrawerPanelId } from '../../shared/types/drawer';
 
-export type DrawerPanelId = SharedDrawerPanelId;
+export type { DrawerPanelId };
 
 export interface PanelRegistryEntry {
   id: DrawerPanelId;
