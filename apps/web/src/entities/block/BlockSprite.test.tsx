@@ -1176,4 +1176,51 @@ describe('BlockSprite', () => {
 
     expect(container.firstElementChild).not.toHaveClass('is-external');
   });
+
+  it('resolves block and parent container from store when only ids are provided', () => {
+    const storeParent = { ...parentContainer, id: 'container-store' };
+    const storeBlock = { ...makeBlock('block-store', 'compute'), parentId: storeParent.id };
+
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [storeParent, storeBlock] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite blockId={storeBlock.id} screenX={8} screenY={12} zIndex={2} />,
+    );
+
+    expect(screen.getByRole('button', { name: `Node: ${storeBlock.name}` })).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('is-unconnected');
+  });
+
+  it('falls back to provided parent container when parentContainerId does not resolve in store', () => {
+    const block = makeBlock('block-parent-fallback', 'compute');
+
+    const { container } = render(
+      <BlockSprite
+        block={block}
+        parentContainerId="missing-container"
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: `Node: ${block.name}` })).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('is-mounted');
+  });
+
+  it('returns null when neither blockId nor block prop resolve to a resource', () => {
+    const { container } = render(<BlockSprite screenX={0} screenY={0} zIndex={1} />);
+
+    expect(container.firstChild).toBeNull();
+  });
 });

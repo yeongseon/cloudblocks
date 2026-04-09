@@ -629,4 +629,114 @@ describe('ConnectionRenderer', () => {
       expect(container.querySelector('g')).toBeNull();
     });
   });
+
+  it('resolves the connection from store when only connectionId is provided', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [
+            {
+              id: 'source-1',
+              name: 'Source',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'web_compute',
+              category: 'compute',
+              provider: 'azure',
+              parentId: 'container-1',
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
+            {
+              id: 'target-1',
+              name: 'Target',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'relational_database',
+              category: 'data',
+              provider: 'azure',
+              parentId: 'container-1',
+              position: { x: 2, y: 0, z: 2 },
+              metadata: {},
+            },
+          ],
+          connections: [connection],
+          endpoints: [
+            { id: connection.from, blockId: 'source-1', type: 'output', semantic: 'data' },
+            { id: connection.to, blockId: 'target-1', type: 'input', semantic: 'data' },
+          ],
+        },
+      },
+    });
+
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer connectionId={connection.id} originX={100} originY={200} />
+      </svg>,
+    );
+
+    expect(container.querySelector('[data-testid="connection-trace"]')).toBeInTheDocument();
+  });
+
+  it('falls back to parsed endpoint ids when store endpoints are missing', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [
+            {
+              id: 'source-1',
+              name: 'Source',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'web_compute',
+              category: 'compute',
+              provider: 'azure',
+              parentId: 'container-1',
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
+            {
+              id: 'target-1',
+              name: 'Target',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'relational_database',
+              category: 'data',
+              provider: 'azure',
+              parentId: 'container-1',
+              position: { x: 2, y: 0, z: 2 },
+              metadata: {},
+            },
+          ],
+          connections: [connection],
+          endpoints: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer connectionId={connection.id} originX={100} originY={200} />
+      </svg>,
+    );
+
+    expect(container.querySelector('[data-testid="connection-trace"]')).toBeInTheDocument();
+  });
+
+  it('returns null when connectionId does not resolve and no connection prop is provided', () => {
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer connectionId="missing-connection" originX={100} originY={200} />
+      </svg>,
+    );
+
+    expect(container.querySelector('g')).toBeNull();
+  });
 });
