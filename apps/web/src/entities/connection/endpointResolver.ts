@@ -1,7 +1,8 @@
 import type { ResourceBlock, ResourceCategory } from '@cloudblocks/schema';
 import { isExternalResourceType } from '@cloudblocks/schema';
+import type { EndpointType as SharedEndpointType } from '../../shared/types/endpoint';
 
-export type EndpointType = ResourceCategory | 'internet' | 'browser';
+export type EndpointType = SharedEndpointType;
 
 export interface EndpointSource {
   id: string;
