@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
+import { useShallow } from 'zustand/react/shallow';
 
 import type {
   ContainerBlock,
@@ -39,7 +40,9 @@ function getBlockScreenSize(
 }
 
 interface BlockSpriteProps {
-  block: ResourceBlock;
+  blockId?: string;
+  block?: ResourceBlock;
+  parentContainerId?: string | null;
   parentContainer?: ContainerBlock;
   screenX: number;
   screenY: number;
@@ -49,27 +52,70 @@ interface BlockSpriteProps {
 }
 
 export const BlockSprite = memo(function BlockSprite({
+  blockId,
   block,
+  parentContainerId,
   parentContainer,
   screenX,
   screenY,
   zIndex,
   onMove,
 }: BlockSpriteProps) {
-  const selectedIds = useUIStore((s) => s.selectedIds);
+  const resolvedBlockId = blockId ?? block?.id ?? null;
+  const storeBlock = useArchitectureStore((state) => {
+    if (!resolvedBlockId) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === resolvedBlockId,
+    );
+    return node?.kind === 'resource' ? node : null;
+  });
+  const resolvedBlock = storeBlock ?? block ?? null;
+  const resolvedParentContainerId =
+    parentContainerId ?? resolvedBlock?.parentId ?? parentContainer?.id ?? null;
+  const storeParentContainer = useArchitectureStore((state) => {
+    if (!resolvedParentContainerId) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === resolvedParentContainerId,
+    );
+    return node?.kind === 'container' ? node : null;
+  });
+  const resolvedParentContainer = storeParentContainer ?? parentContainer ?? undefined;
+
+  const isSelected = useUIStore((s) =>
+    resolvedBlockId ? s.selectedIds.has(resolvedBlockId) : false,
+  );
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toggleSelection = useUIStore((s) => s.toggleSelection);
   const toolMode = useUIStore((s) => s.toolMode);
   const connectionSource = useUIStore((s) => s.connectionSource);
+  const isConnectionSource = useUIStore((s) => s.connectionSource === resolvedBlockId);
   const startConnecting = useUIStore((s) => s.startConnecting);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
-  const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const blocks = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
-  const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
-  const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
+  const sourceNode = useArchitectureStore((state) => {
+    if (!connectionSource) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === connectionSource,
+    );
+    return node?.kind === 'resource' ? node : null;
+  });
+  const relevantConnectionIds = useArchitectureStore(
+    useShallow((state) => {
+      if (!resolvedBlockId) return [] as string[];
+      const endpoints = state.workspace.architecture.endpoints;
+      return state.workspace.architecture.connections
+        .filter((connection) => {
+          const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
+          const toEndpoint = endpoints.find((endpoint) => endpoint.id === connection.to);
+          const fromBlockId = fromEndpoint?.blockId ?? parseEndpointId(connection.from)?.blockId;
+          const toBlockId = toEndpoint?.blockId ?? parseEndpointId(connection.to)?.blockId;
+          return fromBlockId === resolvedBlockId || toBlockId === resolvedBlockId;
+        })
+        .map((connection) => connection.id);
+    }),
+  );
 
   const activeProvider = useUIStore((s) => s.activeProvider);
   const diffMode = useUIStore((s) => s.diffMode);
@@ -80,69 +126,67 @@ export const BlockSprite = memo(function BlockSprite({
   const dragZoomRef = useRef(1);
 
   // Resolve provider-aware presentation for correct short labels / icons
-  const isExternalBlock =
-    block.roles?.includes('external') || isExternalResourceType(block.resourceType);
-  const pres = resolveBlockPresentation(block.subtype ?? block.resourceType, {
-    kind: isExternalBlock ? 'external' : 'resource',
-    provider: activeProvider,
-  });
+  const isExternalBlock = resolvedBlock
+    ? resolvedBlock.roles?.includes('external') ||
+      isExternalResourceType(resolvedBlock.resourceType)
+    : false;
+  const pres = resolvedBlock
+    ? resolveBlockPresentation(resolvedBlock.subtype ?? resolvedBlock.resourceType, {
+        kind: isExternalBlock ? 'external' : 'resource',
+        provider: activeProvider,
+      })
+    : null;
 
-  const isSelected = selectedIds.has(block.id);
-  const isConnectionSource = connectionSource === block.id;
   const isDeleteMode = toolMode === 'delete';
 
   // Connect-mode visual states
   const isConnectMode = toolMode === 'connect';
-  const sourceBlock =
-    isConnectMode && connectionSource ? blocks.find((b) => b.id === connectionSource) : null;
-  const sourceNode =
-    connectionSource && !sourceBlock
-      ? nodes
-          .filter((node): node is ResourceBlock => node.kind === 'resource')
-          .find((node) => node.id === connectionSource)
-      : undefined;
-  const sourceType: EndpointType | null = sourceBlock
-    ? isExternalResourceType(sourceBlock.resourceType)
-      ? (sourceBlock.resourceType as EndpointType)
-      : sourceBlock.category
-    : sourceNode
-      ? isExternalResourceType(sourceNode.resourceType)
-        ? (sourceNode.resourceType as EndpointType)
-        : sourceNode.category
-      : null;
+  const sourceType: EndpointType | null = sourceNode
+    ? isExternalResourceType(sourceNode.resourceType)
+      ? (sourceNode.resourceType as EndpointType)
+      : sourceNode.category
+    : null;
   const isValidConnectTarget =
-    sourceType !== null && block.id !== connectionSource && canConnect(sourceType, block.category);
+    resolvedBlock !== null &&
+    sourceType !== null &&
+    resolvedBlockId !== connectionSource &&
+    canConnect(sourceType, resolvedBlock.category);
   const isInvalidConnectTarget =
     isConnectMode &&
     connectionSource !== null &&
-    block.id !== connectionSource &&
+    resolvedBlockId !== connectionSource &&
     !isValidConnectTarget;
-  const isAlreadyConnected = connections.some((c) => {
-    const fromEp = endpointsList.find((ep) => ep.id === c.from);
-    const toEp = endpointsList.find((ep) => ep.id === c.to);
-    const fromBlockId = fromEp?.blockId ?? parseEndpointId(c.from)?.blockId;
-    const toBlockId = toEp?.blockId ?? parseEndpointId(c.to)?.blockId;
-    return fromBlockId === block.id || toBlockId === block.id;
-  });
+  const isAlreadyConnected = relevantConnectionIds.length > 0;
 
-  const hasValidationWarning = parentContainer
-    ? validatePlacement(block, parentContainer) !== null
+  const hasValidationWarning = resolvedParentContainer
+    ? resolvedBlock !== null && validatePlacement(resolvedBlock, resolvedParentContainer) !== null
     : false;
-  const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
+  const diffState =
+    diffMode && diffDelta && resolvedBlockId
+      ? getDiffState(resolvedBlockId, diffDelta)
+      : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
-  const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
+  const isSnapTarget = useUIStore((s) =>
+    resolvedBlockId ? s.snapTargetBlockIds.has(resolvedBlockId) : false,
+  );
   const triggerSnapAnimation = useUIStore((s) => s.triggerSnapAnimation);
-  const magneticSnapTargetId = useUIStore((s) => s.magneticSnapTargetId);
+  const isMagneticSnapTarget = useUIStore((s) => s.magneticSnapTargetId === resolvedBlockId);
 
   // ── Block status overlay (#1591) ──
-  const blockStatus = useUIStore((s) => s.blockStatuses.get(block.id));
-  const isUpgrading = upgradingBlockId === block.id;
-  const isSnapTarget = snapTargetBlockIds.has(block.id);
-  const isMagneticSnapTarget = magneticSnapTargetId === block.id;
+  const blockStatus = useUIStore((s) =>
+    resolvedBlockId ? s.blockStatuses.get(resolvedBlockId) : undefined,
+  );
+  const isUpgrading = upgradingBlockId === resolvedBlockId;
 
   useEffect(() => {
     const el = blockRef.current;
-    if (toolMode === 'delete' || toolMode === 'connect' || blockStatus?.disabled || !el) {
+    if (
+      !resolvedBlockId ||
+      toolMode === 'delete' ||
+      toolMode === 'connect' ||
+      blockStatus?.disabled ||
+      !el
+    ) {
       return;
     }
 
@@ -174,7 +218,7 @@ export const BlockSprite = memo(function BlockSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          (onMove ?? moveNodePosition)(block.id, dWorldX, dWorldZ);
+          (onMove ?? moveNodePosition)(resolvedBlockId, dWorldX, dWorldZ);
         },
         end() {
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
@@ -198,7 +242,7 @@ export const BlockSprite = memo(function BlockSprite({
               .workspace.architecture.nodes.filter(
                 (node): node is ResourceBlock => node.kind === 'resource',
               )
-              .find((candidate) => candidate.id === block.id);
+              .find((candidate) => candidate.id === resolvedBlockId);
 
             if (currentBlock) {
               const snappedPosition = snapToGrid(currentBlock.position.x, currentBlock.position.z);
@@ -206,7 +250,7 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                (onMove ?? moveNodePosition)(block.id, deltaX, deltaZ);
+                (onMove ?? moveNodePosition)(resolvedBlockId, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -235,9 +279,10 @@ export const BlockSprite = memo(function BlockSprite({
       el.querySelector('.block-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [block.id, blockStatus?.disabled, moveNodePosition, onMove, toolMode]);
+  }, [blockStatus?.disabled, moveNodePosition, onMove, resolvedBlockId, toolMode]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (!resolvedBlock || !resolvedBlockId) return;
     if (blockStatus?.disabled) return;
     if (diffMode && diffState === 'removed') return;
     if (isDragging.current) {
@@ -246,17 +291,17 @@ export const BlockSprite = memo(function BlockSprite({
     e.stopPropagation();
 
     if (toolMode === 'delete') {
-      removeNode(block.id);
+      removeNode(resolvedBlockId);
       return;
     }
 
     if (toolMode === 'connect') {
       if (!connectionSource) {
-        startConnecting(block.id);
-      } else if (connectionSource !== block.id) {
-        const success = addConnection(connectionSource, block.id);
+        startConnecting(resolvedBlockId);
+      } else if (connectionSource !== resolvedBlockId) {
+        const success = addConnection(connectionSource, resolvedBlockId);
         if (success) {
-          triggerSnapAnimation(block.id);
+          triggerSnapAnimation(resolvedBlockId);
           triggerSnapAnimation(connectionSource);
           const { isSoundMuted } = useUIStore.getState();
           if (!isSoundMuted) audioService.playSound('block-snap');
@@ -267,13 +312,21 @@ export const BlockSprite = memo(function BlockSprite({
     }
 
     if (e.shiftKey) {
-      toggleSelection(block.id);
+      toggleSelection(resolvedBlockId);
     } else {
-      setSelectedId(block.id);
+      setSelectedId(resolvedBlockId);
     }
   };
 
-  const blockSize = getBlockScreenSize(block.category, block.provider, block.subtype);
+  if (!resolvedBlock || !resolvedBlockId || !pres) {
+    return null;
+  }
+
+  const blockSize = getBlockScreenSize(
+    resolvedBlock.category,
+    resolvedBlock.provider,
+    resolvedBlock.subtype,
+  );
 
   const className = [
     'block-sprite',
@@ -291,7 +344,7 @@ export const BlockSprite = memo(function BlockSprite({
     diffState === 'removed' && 'diff-removed',
     isUpgrading && 'is-upgrading',
     isSnapTarget && 'is-snap-target',
-    block.roles?.includes('external') && 'is-external',
+    resolvedBlock.roles?.includes('external') && 'is-external',
     // ── Block status overlay (#1591) ── priority: disabled > error > health > unconnected ──
     blockStatus?.disabled && 'is-disabled',
     !blockStatus?.disabled && blockStatus?.error && 'is-error',
@@ -339,23 +392,25 @@ export const BlockSprite = memo(function BlockSprite({
           left: `-${blockSize.width / 2}px`,
           top: `-${blockSize.height / 2}px`,
         }}
-        aria-label={`Node: ${block.name}`}
-        title={pres.displayLabel ?? block.name}
+        aria-label={`Node: ${resolvedBlock.name}`}
+        title={pres.displayLabel ?? resolvedBlock.name}
       >
         <div className="block-img" draggable={false}>
           <BlockSvg
-            category={block.category}
+            category={resolvedBlock.category}
             provider={activeProvider}
-            subtype={isExternalBlock ? undefined : (pres.subtype ?? block.subtype)}
-            resourceType={block.resourceType}
-            name={block.name}
-            aggregationCount={block.aggregation?.count}
-            roles={block.roles}
+            subtype={isExternalBlock ? undefined : (pres.subtype ?? resolvedBlock.subtype)}
+            resourceType={resolvedBlock.resourceType}
+            name={resolvedBlock.name}
+            aggregationCount={resolvedBlock.aggregation?.count}
+            roles={resolvedBlock.roles}
             healthStatus={blockStatus?.disabled ? undefined : blockStatus?.healthStatus}
           />
         </div>
       </button>
-      {block.name && isSelected && <span className="block-label-chip">{block.name}</span>}
+      {resolvedBlock.name && isSelected && (
+        <span className="block-label-chip">{resolvedBlock.name}</span>
+      )}
     </div>
   );
 });

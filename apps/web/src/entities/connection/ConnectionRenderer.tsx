@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import type {
   Connection,
   ConnectionType,
@@ -7,6 +8,7 @@ import type {
   EndpointSemantic,
   ResourceBlock,
 } from '@cloudblocks/schema';
+import { parseEndpointId } from '@cloudblocks/schema';
 import { getDiffState } from '../../shared/utils/diff';
 import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
@@ -35,9 +37,10 @@ import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
 
 interface ConnectionRendererProps {
-  connection: Connection;
-  blocks: ResourceBlock[];
-  plates: ContainerBlock[];
+  connectionId?: string;
+  connection?: Connection;
+  blocks?: ResourceBlock[];
+  plates?: ContainerBlock[];
   originX: number;
   originY: number;
   overlapOffset?: number;
@@ -51,6 +54,32 @@ interface TraceColors {
 }
 
 const HIT_AREA_WIDTH = 20;
+
+function collectRelevantContainers(
+  nodes: readonly (ContainerBlock | ResourceBlock)[],
+  ...parentIds: Array<string | null | undefined>
+): ContainerBlock[] {
+  const containers = new Map(
+    nodes
+      .filter((node): node is ContainerBlock => node.kind === 'container')
+      .map((container) => [container.id, container]),
+  );
+  const relevantContainers: ContainerBlock[] = [];
+  const seen = new Set<string>();
+
+  for (const parentId of parentIds) {
+    let currentId = parentId;
+    while (currentId && !seen.has(currentId)) {
+      const container = containers.get(currentId);
+      if (!container) break;
+      seen.add(currentId);
+      relevantContainers.push(container);
+      currentId = container.parentId;
+    }
+  }
+
+  return relevantContainers;
+}
 
 function getColors(
   semantic: ConnectionRenderSemantic,
@@ -197,13 +226,24 @@ function renderPinhole(
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: rendering component with dual path requires unified control flow
 export const ConnectionRenderer = memo(function ConnectionRenderer({
+  connectionId,
   connection,
-  blocks,
-  plates,
+  blocks = [],
+  plates = [],
   originX,
   originY,
   overlapOffset = 0,
 }: ConnectionRendererProps) {
+  const resolvedConnectionId = connectionId ?? connection?.id ?? null;
+  const storeConnection = useArchitectureStore((state) => {
+    if (!resolvedConnectionId) return null;
+    return (
+      state.workspace.architecture.connections.find(
+        (candidate) => candidate.id === resolvedConnectionId,
+      ) ?? null
+    );
+  });
+  const resolvedConnection = storeConnection ?? connection ?? null;
   const [isHovered, setIsHovered] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
 
@@ -226,40 +266,103 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     return () => el.removeEventListener('animationend', handleEnd);
   }, []);
 
-  const selectedIds = useUIStore((s) => s.selectedIds);
+  const isSelected = useUIStore((s) =>
+    resolvedConnectionId ? s.selectedIds.has(resolvedConnectionId) : false,
+  );
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
-  const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
-
-  const fromEndpoint: Endpoint | undefined = useMemo(
-    () => endpointsList.find((endpoint) => endpoint.id === connection.from),
-    [connection.from, endpointsList],
+  const fromEndpoint = useArchitectureStore((state) => {
+    if (!resolvedConnection) return null;
+    return (
+      state.workspace.architecture.endpoints.find(
+        (endpoint) => endpoint.id === resolvedConnection.from,
+      ) ?? null
+    );
+  });
+  const toEndpoint = useArchitectureStore((state) => {
+    if (!resolvedConnection) return null;
+    return (
+      state.workspace.architecture.endpoints.find(
+        (endpoint) => endpoint.id === resolvedConnection.to,
+      ) ?? null
+    );
+  });
+  const sourceBlockId =
+    fromEndpoint?.blockId ??
+    (resolvedConnection ? parseEndpointId(resolvedConnection.from)?.blockId : null) ??
+    null;
+  const targetBlockId =
+    toEndpoint?.blockId ??
+    (resolvedConnection ? parseEndpointId(resolvedConnection.to)?.blockId : null) ??
+    null;
+  const sourceBlock = useArchitectureStore((state) => {
+    if (!sourceBlockId) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === sourceBlockId,
+    );
+    return node?.kind === 'resource' ? node : null;
+  });
+  const targetBlock = useArchitectureStore((state) => {
+    if (!targetBlockId) return null;
+    const node = state.workspace.architecture.nodes.find(
+      (candidate) => candidate.id === targetBlockId,
+    );
+    return node?.kind === 'resource' ? node : null;
+  });
+  const relevantPlates = useArchitectureStore(
+    useShallow((state) => {
+      if (!resolvedConnection) {
+        return plates;
+      }
+      return collectRelevantContainers(
+        state.workspace.architecture.nodes,
+        sourceBlock?.parentId,
+        targetBlock?.parentId,
+      );
+    }),
   );
+
+  const routeEndpoints = useMemo(
+    () => [fromEndpoint, toEndpoint].filter((endpoint): endpoint is Endpoint => endpoint !== null),
+    [fromEndpoint, toEndpoint],
+  );
+  const routeBlocks = useMemo(() => {
+    if (!resolvedConnection) {
+      return blocks;
+    }
+    return [sourceBlock, targetBlock].filter((block): block is ResourceBlock => block !== null);
+  }, [blocks, resolvedConnection, sourceBlock, targetBlock]);
+  const routePlates = resolvedConnection ? relevantPlates : plates;
 
   const semantic: EndpointSemantic = fromEndpoint?.semantic ?? 'data';
   const renderSemantic: ConnectionRenderSemantic = semantic;
 
-  const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
-  const isSelected = selectedIds.has(connection.id);
+  const diffState =
+    diffMode && diffDelta && resolvedConnectionId
+      ? getDiffState(resolvedConnectionId, diffDelta)
+      : 'unchanged';
   const isHighlighted = isHovered || isSelected;
 
   const connectionErrors = useMemo(() => {
-    if (!validationResult) return [];
+    if (!validationResult || !resolvedConnectionId) return [];
     return [
-      ...validationResult.errors.filter((e) => e.targetId === connection.id),
-      ...validationResult.warnings.filter((w) => w.targetId === connection.id),
+      ...validationResult.errors.filter((e) => e.targetId === resolvedConnectionId),
+      ...validationResult.warnings.filter((w) => w.targetId === resolvedConnectionId),
     ];
-  }, [validationResult, connection.id]);
+  }, [resolvedConnectionId, validationResult]);
 
   const hasValidationError = connectionErrors.length > 0;
 
   const surfaceRoute = useMemo(
-    () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList),
-    [connection, blocks, plates, endpointsList],
+    () =>
+      resolvedConnection
+        ? getConnectionSurfaceRoute(resolvedConnection, routeBlocks, routePlates, routeEndpoints)
+        : null,
+    [resolvedConnection, routeBlocks, routeEndpoints, routePlates],
   );
 
   const surfaceRender = useMemo(() => {
@@ -279,10 +382,10 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     };
   }, [surfaceRoute, originX, originY, overlapOffset]);
 
-  if (!surfaceRender) return null;
+  if (!resolvedConnection || !resolvedConnectionId || !surfaceRender) return null;
 
   // Resolve per-type stroke width and dash pattern.
-  const rawType = connection.metadata?.type;
+  const rawType = resolvedConnection.metadata?.type;
   const connectionType: ConnectionType | undefined =
     typeof rawType === 'string' && Object.hasOwn(CONNECTION_VISUAL_STYLES, rawType)
       ? (rawType as ConnectionType)
@@ -301,16 +404,16 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const casingWidth = isHighlighted
     ? visualStyle.strokeWidth + CASING_WIDTH_OFFSET + HOVER_WIDTH_OFFSET
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
-  const markerId = `arrow-${connection.id}`;
+  const markerId = `arrow-${resolvedConnection.id}`;
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (toolMode === 'delete') {
-      removeConnection(connection.id);
+      removeConnection(resolvedConnection.id);
       return;
     }
-    setSelectedId(connection.id);
+    setSelectedId(resolvedConnection.id);
   };
 
   return (
@@ -336,7 +439,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         </marker>
       </defs>
       <a
-        href={`/connections/${connection.id}`}
+        href={`/connections/${resolvedConnection.id}`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
