@@ -11,6 +11,7 @@ import type {
   RollbackRecord,
   DeploymentVersion,
 } from '../../shared/types/ops';
+import type { DrawerPanelId } from '../../shared/types/drawer';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
@@ -26,15 +27,6 @@ export type RightOverlayId =
   | 'githubPR'
   | 'diff'
   | null;
-export type DrawerPanelId =
-  | 'properties'
-  | 'validation'
-  | 'connections'
-  | 'scenarios'
-  | 'learning'
-  | 'code'
-  | 'templates';
-
 export interface ActivityLogEntry {
   id: string;
   ts: string;
@@ -43,6 +35,7 @@ export interface ActivityLogEntry {
 }
 export type { EditorMode } from '../../shared/types/learning';
 export type { ComplexityLevel } from '../../shared/types';
+export type { DrawerPanelId } from '../../shared/types/drawer';
 
 /** Runtime health/status for a block — not persisted in architecture model. */
 export type BlockHealthStatus = 'ok' | 'warn' | 'error';
