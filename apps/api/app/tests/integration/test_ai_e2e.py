@@ -624,14 +624,14 @@ async def test_e2e_generate_llm_failure_propagates(
 
 
 @pytest.mark.asyncio
-async def test_e2e_suggest_llm_failure_returns_empty(
+async def test_e2e_suggest_llm_failure_propagates(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     test_user: User,
     db: Database,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """LLM errors during suggest return empty suggestions (graceful degradation)."""
+    """LLM errors during suggest propagate as 500 GENERATION_FAILED."""
     await _store_api_key(db, test_user.id)
 
     async def mock_generate_fail(
@@ -653,10 +653,11 @@ async def test_e2e_suggest_llm_failure_returns_empty(
         json={"architecture": VALID_THREE_TIER, "provider": "aws"},
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["suggestions"] == []
-    assert payload["score"] == {}
+    assert response.status_code == 500
+    payload = cast(dict[str, object], response.json())
+    error_payload = cast(dict[str, object], payload["error"])
+    assert error_payload["code"] == "GENERATION_FAILED"
+    assert "Architecture analysis failed" in str(error_payload["message"])
 
 
 @pytest.mark.asyncio
