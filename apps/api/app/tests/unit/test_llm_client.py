@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from dataclasses import dataclass
+from typing import cast, final
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -8,23 +10,101 @@ import pytest
 from app.infrastructure.llm.client import LLMError, OpenAIClient
 
 
+@dataclass
+class _CallArgs:
+    args: tuple[object, ...]
+    kwargs: dict[str, object]
+
+
+@final
+class _MockResponse:
+    status_code: int
+    text: str
+    _payload: dict[str, object]
+
+    def __init__(self, status_code: int, payload: dict[str, object] | None = None, text: str = ""):
+        self.status_code = status_code
+        self.text = text
+        self._payload = payload if payload is not None else {}
+
+    def json(self) -> dict[str, object]:
+        return self._payload
+
+
+@final
+class _AwaitableCall:
+    await_count: int
+    await_args: _CallArgs
+    side_effect: list[object] | BaseException | None
+    return_value: object | None
+
+    def __init__(self) -> None:
+        self.await_count = 0
+        self.await_args = _CallArgs(args=(), kwargs={})
+        self.side_effect = None
+        self.return_value = None
+
+    async def __call__(self, *args: object, **kwargs: object) -> object:
+        self.await_count += 1
+        self.await_args = _CallArgs(args=args, kwargs=kwargs)
+        if isinstance(self.side_effect, BaseException):
+            raise self.side_effect
+        if isinstance(self.side_effect, list):
+            if not self.side_effect:
+                raise RuntimeError("side_effect list is empty")
+            value = self.side_effect.pop(0)
+            if isinstance(value, BaseException):
+                raise value
+            return value
+        if self.side_effect is not None:
+            return self.side_effect
+        return self.return_value
+
+
+@final
+class _MockAsyncClient:
+    post: _AwaitableCall
+
+    def __init__(self) -> None:
+        self.post = _AwaitableCall()
+
+    async def __aenter__(self) -> _MockAsyncClient:
+        return self
+
+    async def __aexit__(self, exc_type: object, exc: object, tb: object) -> bool:
+        return False
+
+
+@final
+class _SleepRecorder:
+    await_count: int
+    await_args: _CallArgs
+
+    def __init__(self) -> None:
+        self.await_count = 0
+        self.await_args = _CallArgs(args=(), kwargs={})
+
+    async def __call__(self, *args: object, **kwargs: object) -> None:
+        self.await_count += 1
+        self.await_args = _CallArgs(args=args, kwargs=kwargs)
+
+    def assert_awaited_once_with(self, *args: object, **kwargs: object) -> None:
+        assert self.await_count == 1
+        assert self.await_args.args == args
+        assert self.await_args.kwargs == kwargs
+
+
 def _make_response(
     status_code: int,
     payload: dict[str, object] | None = None,
     text: str = "",
-) -> MagicMock:
-    response = MagicMock()
-    response.status_code = status_code
-    response.text = text
-    response.json.return_value = payload if payload is not None else {}
-    return response
+) -> _MockResponse:
+    return _MockResponse(status_code, payload, text)
 
 
-def _make_async_client(post_side_effect: object) -> AsyncMock:
-    client = AsyncMock()
-    client.__aenter__.return_value = client
-    client.__aexit__.return_value = False
-    if isinstance(post_side_effect, (list, BaseException)):
+def _make_async_client(post_side_effect: object) -> _MockAsyncClient:
+    client = _MockAsyncClient()
+    if isinstance(post_side_effect, list | BaseException):
         client.post.side_effect = post_side_effect
     else:
         client.post.return_value = post_side_effect
@@ -64,9 +144,10 @@ async def test_generate_with_schema() -> None:
     with patch("app.infrastructure.llm.client.httpx.AsyncClient", return_value=mock_client):
         _ = await client.generate("You are helpful.", "Generate JSON.", response_schema=schema)
 
-    body = mock_client.post.await_args.kwargs["json"]
+    body = cast(dict[str, object], mock_client.post.await_args.kwargs["json"])
     assert body["response_format"] == {"type": "json_object"}
-    system_text = body["messages"][0]["content"]
+    messages = cast(list[dict[str, object]], body["messages"])
+    system_text = cast(str, messages[0]["content"])
     assert "matching this schema exactly" in system_text
     assert '"required":["ok"]' in system_text
 
@@ -77,10 +158,11 @@ async def test_retry_on_rate_limit() -> None:
     success = _make_response(200, {"choices": [{"message": {"content": '{"ok":true}'}}]})
     mock_client = _make_async_client([rate_limited, success])
     client = OpenAIClient(api_key="test-key")
+    sleep_mock = _SleepRecorder()
 
     with (
         patch("app.infrastructure.llm.client.httpx.AsyncClient", return_value=mock_client),
-        patch("app.infrastructure.llm.client.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("app.infrastructure.llm.client.asyncio.sleep", new=sleep_mock),
     ):
         result = await client.generate("system", "user")
 
@@ -95,10 +177,11 @@ async def test_retry_on_server_error() -> None:
     success = _make_response(200, {"choices": [{"message": {"content": '{"ok":true}'}}]})
     mock_client = _make_async_client([server_error, success])
     client = OpenAIClient(api_key="test-key")
+    sleep_mock = _SleepRecorder()
 
     with (
         patch("app.infrastructure.llm.client.httpx.AsyncClient", return_value=mock_client),
-        patch("app.infrastructure.llm.client.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("app.infrastructure.llm.client.asyncio.sleep", new=sleep_mock),
     ):
         result = await client.generate("system", "user")
 

@@ -4,20 +4,15 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.application.use_cases.session_use_cases import BindWorkspaceToSessionUseCase
 from app.core.dependencies import (
+    get_bind_workspace_to_session_use_case,
     get_current_session,
-    get_session_repo,
-    get_workspace_repo,
 )
-from app.core.errors import ForbiddenError, NotFoundError
 from app.domain.models.entities import Session
-from app.domain.models.repositories import (
-    SessionRepository,
-    WorkspaceRepository,
-)
 
 router = APIRouter(prefix="/session", tags=["session"])
 
@@ -35,25 +30,14 @@ class SessionInfoResponse(BaseModel):
 @router.post("/workspace")
 async def bind_workspace(
     body: WorkspaceBindRequest,
-    request: Request,
     session: Annotated[Session, Depends(get_current_session)],
-    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    use_case: Annotated[
+        BindWorkspaceToSessionUseCase, Depends(get_bind_workspace_to_session_use_case)
+    ],
 ) -> SessionInfoResponse:
     """Bind a workspace to the current session.
 
     Validates that the workspace exists and belongs to the session user.
     """
-    workspace = await workspace_repo.find_by_id(body.workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", body.workspace_id)
-    if workspace.owner_id != session.user_id:
-        raise ForbiddenError("Workspace does not belong to current user")
-
-    await session_repo.update_workspace(
-        session.id, body.workspace_id, body.repo_full_name
-    )
-    return SessionInfoResponse(
-        current_workspace_id=body.workspace_id,
-        current_repo_full_name=body.repo_full_name,
-    )
+    session_info = await use_case.execute(session, body.workspace_id, body.repo_full_name)
+    return SessionInfoResponse(**session_info)

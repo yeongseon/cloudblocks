@@ -6,21 +6,23 @@ runs the generator, commits output back, optionally creates a PR.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.application.use_cases.generation_use_cases import (
+    GetGenerationStatusUseCase,
+    PreviewGenerationUseCase,
+    TriggerGenerationUseCase,
+)
 from app.core.dependencies import (
     get_current_user,
-    get_generation_run_repo,
-    get_workspace_repo,
+    get_generation_status_use_case,
+    get_preview_generation_use_case,
+    get_trigger_generation_use_case,
 )
-from app.core.errors import ForbiddenError, NotFoundError
-from app.core.security import generate_id
-from app.domain.models.entities import GenerationRun, GenerationStatus, User
-from app.domain.models.repositories import GenerationRunRepository, WorkspaceRepository
+from app.domain.models.entities import GenerationRun, User
 
 router = APIRouter(tags=["generation"])
 
@@ -66,8 +68,7 @@ async def trigger_generation(
     workspace_id: str,
     body: GenerateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
-    run_repo: Annotated[GenerationRunRepository, Depends(get_generation_run_repo)],
+    use_case: Annotated[TriggerGenerationUseCase, Depends(get_trigger_generation_use_case)],
 ) -> GenerationRunResponse:
     """Trigger code generation for a workspace.
 
@@ -75,20 +76,7 @@ async def trigger_generation(
     For v0.5 MVP, it creates the run record in "pending" status.
     The actual generation + GitHub commit would be handled by a worker.
     """
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
-
-    run = GenerationRun(
-        id=generate_id(),
-        workspace_id=workspace_id,
-        status=GenerationStatus.PENDING,
-        generator=body.generator,
-        started_at=datetime.now(timezone.utc),
-    )
-    run = await run_repo.create(run)
+    run = await use_case.execute(workspace_id, current_user, body.generator)
     return _run_to_response(run)
 
 
@@ -97,19 +85,10 @@ async def get_generation_status(
     workspace_id: str,
     run_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
-    run_repo: Annotated[GenerationRunRepository, Depends(get_generation_run_repo)],
+    use_case: Annotated[GetGenerationStatusUseCase, Depends(get_generation_status_use_case)],
 ) -> GenerationRunResponse:
     """Get the status of a generation run."""
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
-
-    run = await run_repo.find_by_id(run_id)
-    if not run or run.workspace_id != workspace_id:
-        raise NotFoundError("GenerationRun", run_id)
+    run = await use_case.execute(workspace_id, run_id, current_user)
     return _run_to_response(run)
 
 
@@ -117,24 +96,12 @@ async def get_generation_status(
 async def preview_generation(
     workspace_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
-) -> dict:
+    use_case: Annotated[PreviewGenerationUseCase, Depends(get_preview_generation_use_case)],
+) -> dict[str, object]:
     """Preview generated code without committing.
 
     For v0.5, this returns a placeholder. The actual generation
     engine integration will be added as the code generation
     pipeline is ported from the frontend.
     """
-    workspace = await workspace_repo.find_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundError("Workspace", workspace_id)
-    if workspace.owner_id != current_user.id:
-        raise ForbiddenError("You do not own this workspace")
-
-    return {
-        "workspace_id": workspace_id,
-        "generator": workspace.generator,
-        "provider": workspace.provider,
-        "files": [],
-        "message": "Code preview will be available when the generation engine is integrated",
-    }
+    return await use_case.execute(workspace_id, current_user)

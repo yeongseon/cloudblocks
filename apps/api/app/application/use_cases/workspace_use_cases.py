@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from typing import final
+
 from app.core.errors import ForbiddenError, NotFoundError
 from app.core.security import generate_id
 from app.domain.models.entities import User, Workspace
 from app.domain.models.repositories import WorkspaceRepository
 
 
+@final
 class CreateWorkspaceUseCase:
     """Create a new workspace for a user."""
 
     def __init__(self, workspace_repo: WorkspaceRepository) -> None:
-        self._repo = workspace_repo
+        self._repo: WorkspaceRepository = workspace_repo
 
     async def execute(
         self,
@@ -33,11 +36,12 @@ class CreateWorkspaceUseCase:
         return await self._repo.create(workspace)
 
 
+@final
 class GetWorkspaceUseCase:
     """Get a workspace, enforcing ownership."""
 
     def __init__(self, workspace_repo: WorkspaceRepository) -> None:
-        self._repo = workspace_repo
+        self._repo: WorkspaceRepository = workspace_repo
 
     async def execute(self, workspace_id: str, user: User) -> Workspace:
         workspace = await self._repo.find_by_id(workspace_id)
@@ -48,21 +52,23 @@ class GetWorkspaceUseCase:
         return workspace
 
 
+@final
 class ListWorkspacesUseCase:
     """List all workspaces for a user."""
 
     def __init__(self, workspace_repo: WorkspaceRepository) -> None:
-        self._repo = workspace_repo
+        self._repo: WorkspaceRepository = workspace_repo
 
     async def execute(self, user: User) -> list[Workspace]:
         return await self._repo.find_by_owner(user.id)
 
 
+@final
 class DeleteWorkspaceUseCase:
     """Delete a workspace, enforcing ownership."""
 
     def __init__(self, workspace_repo: WorkspaceRepository) -> None:
-        self._repo = workspace_repo
+        self._repo: WorkspaceRepository = workspace_repo
 
     async def execute(self, workspace_id: str, user: User) -> bool:
         workspace = await self._repo.find_by_id(workspace_id)
@@ -71,3 +77,50 @@ class DeleteWorkspaceUseCase:
         if workspace.owner_id != user.id:
             raise ForbiddenError("You do not own this workspace")
         return await self._repo.delete(workspace_id)
+
+
+@final
+class UpdateWorkspaceUseCase:
+    """Update workspace fields with support for partial updates.
+
+    The workspace name, generator, provider, GitHub repository, and GitHub
+    branch can be updated. The ``github_repo_provided`` and
+    ``github_branch_provided`` flags determine whether those optional fields
+    should be changed, allowing callers to distinguish between leaving a value
+    unchanged and explicitly setting or clearing it.
+    """
+
+    def __init__(self, workspace_repo: WorkspaceRepository) -> None:
+        self._repo: WorkspaceRepository = workspace_repo
+
+    async def execute(
+        self,
+        workspace_id: str,
+        user: User,
+        *,
+        name: str | None = None,
+        generator: str | None = None,
+        provider: str | None = None,
+        github_repo: str | None = None,
+        github_repo_provided: bool = False,
+        github_branch: str | None = None,
+        github_branch_provided: bool = False,
+    ) -> Workspace:
+        workspace = await self._repo.find_by_id(workspace_id)
+        if not workspace:
+            raise NotFoundError("Workspace", workspace_id)
+        if workspace.owner_id != user.id:
+            raise ForbiddenError("You do not own this workspace")
+
+        if name is not None:
+            workspace.name = name
+        if generator is not None:
+            workspace.generator = generator
+        if provider is not None:
+            workspace.provider = provider
+        if github_repo_provided:
+            workspace.github_repo = github_repo
+        if github_branch_provided:
+            workspace.github_branch = github_branch if github_branch is not None else "main"
+
+        return await self._repo.update(workspace)
