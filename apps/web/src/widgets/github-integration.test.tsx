@@ -177,7 +177,6 @@ describe('Group 1: OAuth redirect → action preservation → panel restoration'
         status: 'authenticated',
         error: 'Logout failed. Checking session…',
       });
-      return 'available' as const;
     });
     useAuthStore.setState({ logout: logoutMock });
 

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useLearningStore } from '../../entities/store/learningStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { clearWorkspaceDiffUI, syncWorkspaceUI } from '../../entities/store/uiSync';
+import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -82,7 +83,7 @@ export function MenuBar() {
   const diffMode = useUIStore((s) => s.diffMode);
   const drawer = useUIStore((s) => s.drawer);
   const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
-  const activeScenario = useArchitectureStore((s) => s.activeScenario);
+  const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
@@ -95,9 +96,9 @@ export function MenuBar() {
     if (!isSoundMuted) audioService.playSound(name);
   };
 
-  const togglePromoteDialog = useUIStore((s) => s.togglePromoteDialog);
-  const toggleRollbackDialog = useUIStore((s) => s.toggleRollbackDialog);
-  const togglePromoteHistory = useUIStore((s) => s.togglePromoteHistory);
+  const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
+  const toggleRollbackDialog = usePromoteStore((s) => s.toggleRollbackDialog);
+  const togglePromoteHistory = usePromoteStore((s) => s.togglePromoteHistory);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
@@ -191,7 +192,6 @@ export function MenuBar() {
     if (!confirmed) return;
 
     createWorkspace(`My ${providerLabel} Architecture`, newProvider);
-    syncWorkspaceUI();
     toast.success(`Created new ${providerLabel} workspace`);
   };
 
@@ -211,7 +211,6 @@ export function MenuBar() {
     );
     if (confirmed) {
       loadFromStorage();
-      syncWorkspaceUI();
     }
   };
 
@@ -241,7 +240,6 @@ export function MenuBar() {
         if (error) {
           toast.error(`Import failed: ${error}`);
         } else {
-          clearWorkspaceDiffUI();
           toast.success('Architecture imported successfully!');
         }
       }
@@ -258,7 +256,6 @@ export function MenuBar() {
     const confirmed = await confirmDialog('All unsaved changes will be lost.', 'Reset Workspace?');
     if (confirmed) {
       resetWorkspace();
-      clearWorkspaceDiffUI();
     }
   };
 
@@ -740,15 +737,7 @@ export function MenuBar() {
                 </span>
               </button>
               <div className="menu-separator" />
-              <button
-                type="button"
-                className="menu-item"
-                onClick={() =>
-                  handleAction(async () => {
-                    await logout();
-                  })
-                }
-              >
+              <button type="button" className="menu-item" onClick={() => handleAction(logout)}>
                 <span className="menu-item-left">
                   <LogOut size={14} /> Sign Out
                 </span>
