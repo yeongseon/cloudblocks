@@ -104,7 +104,7 @@ def _make_response(
 
 def _make_async_client(post_side_effect: object) -> _MockAsyncClient:
     client = _MockAsyncClient()
-    if isinstance(post_side_effect, (list, BaseException)):
+    if isinstance(post_side_effect, list | BaseException):
         client.post.side_effect = post_side_effect
     else:
         client.post.return_value = post_side_effect
