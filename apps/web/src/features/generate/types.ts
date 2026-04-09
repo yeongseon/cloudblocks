@@ -5,6 +5,9 @@ import type {
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
+import type { GeneratorId as SharedGeneratorId } from '../../shared/types/generator';
+
+export type GeneratorId = SharedGeneratorId;
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
@@ -23,7 +26,6 @@ type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
 // ─── Generator Identity ─────────────────────────────────────
 
-export type GeneratorId = 'terraform' | 'bicep' | 'pulumi';
 export type KnownLanguage = 'hcl' | 'json' | 'bicep' | 'typescript';
 export type FileLanguage = KnownLanguage | (string & {});
 
