@@ -483,8 +483,13 @@ export const useUIStore = create<UIState>((set, get) => ({
       ...(!s.showCodePreview
         ? {
             inspector: { isOpen: true, activeTab: 'code' as const },
+            drawer: { isOpen: true, activePanel: 'code' as const },
           }
-        : { inspector: { ...s.inspector, activeTab: 'properties' as const } }),
+        : {
+            inspector: { ...s.inspector, activeTab: 'properties' as const },
+            drawer:
+              s.drawer.activePanel === 'code' ? { isOpen: false, activePanel: null } : s.drawer,
+          }),
     })),
 
   showAdvancedGeneration: false,
@@ -572,22 +577,45 @@ export const useUIStore = create<UIState>((set, get) => ({
     set((s) => ({
       inspector: { ...s.inspector, activeTab: tab },
       showCodePreview: tab === 'code',
+      drawer:
+        tab === 'code'
+          ? { isOpen: true, activePanel: 'code' }
+          : s.drawer.activePanel === 'code'
+            ? { isOpen: false, activePanel: null }
+            : s.drawer,
     })),
   openInspectorTab: (tab) =>
-    set({
+    set((s) => ({
       inspector: { isOpen: true, activeTab: tab },
       showCodePreview: tab === 'code',
-    }),
+      drawer:
+        tab === 'code'
+          ? { isOpen: true, activePanel: 'code' }
+          : s.drawer.activePanel === 'code'
+            ? { isOpen: false, activePanel: null }
+            : s.drawer,
+    })),
 
   // ── Right drawer ──
   drawer: { isOpen: false, activePanel: null },
-  openDrawer: (panel) => set({ drawer: { isOpen: true, activePanel: panel } }),
-  closeDrawer: () => set({ drawer: { isOpen: false, activePanel: null } }),
+  openDrawer: (panel) =>
+    set({
+      drawer: { isOpen: true, activePanel: panel },
+      showCodePreview: panel === 'code',
+    }),
+  closeDrawer: () =>
+    set((s) => ({
+      drawer: { isOpen: false, activePanel: null },
+      showCodePreview: s.drawer.activePanel === 'code' ? false : s.showCodePreview,
+    })),
   toggleDrawer: (panel) =>
     set((s) =>
       s.drawer.isOpen && s.drawer.activePanel === panel
-        ? { drawer: { isOpen: false, activePanel: null } }
-        : { drawer: { isOpen: true, activePanel: panel } },
+        ? {
+            drawer: { isOpen: false, activePanel: null },
+            showCodePreview: panel === 'code' ? false : s.showCodePreview,
+          }
+        : { drawer: { isOpen: true, activePanel: panel }, showCodePreview: panel === 'code' },
     ),
 
   activityLog: [],

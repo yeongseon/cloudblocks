@@ -210,10 +210,12 @@ describe('useUIStore', () => {
       useUIStore.getState().setInspectorTab('code');
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
 
       useUIStore.getState().setInspectorTab('connections');
       expect(useUIStore.getState().inspector.activeTab).toBe('connections');
       expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('openInspectorTab opens inspector and sets tab', () => {
@@ -222,6 +224,7 @@ describe('useUIStore', () => {
 
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
   });
 
@@ -946,6 +949,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
 
     it('should toggle showCodePreview back from true to false', () => {
@@ -953,6 +957,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
       expect(useUIStore.getState().inspector.activeTab).toBe('properties');
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('should toggle multiple times correctly', () => {
@@ -967,6 +972,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
   });
 
