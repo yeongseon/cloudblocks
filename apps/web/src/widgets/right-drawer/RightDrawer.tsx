@@ -26,6 +26,11 @@ const PropertiesDrawerPanel = lazy(() =>
     default: m.PropertiesDrawerPanel,
   })),
 );
+const CodeDrawerPanel = lazy(() =>
+  import('./panels/CodeDrawerPanel').then((m) => ({
+    default: m.CodeDrawerPanel,
+  })),
+);
 const TemplateGallery = lazy(() =>
   import('../template-gallery/TemplateGallery').then((m) => ({
     default: m.TemplateGallery,
@@ -60,6 +65,12 @@ function DrawerContent({ panelId }: { panelId: DrawerPanelId | null }) {
       return (
         <Suspense fallback={null}>
           <PropertiesDrawerPanel />
+        </Suspense>
+      );
+    case 'code':
+      return (
+        <Suspense fallback={null}>
+          <CodeDrawerPanel />
         </Suspense>
       );
     case 'templates':

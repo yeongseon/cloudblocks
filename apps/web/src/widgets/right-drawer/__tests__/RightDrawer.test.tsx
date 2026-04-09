@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RightDrawer } from '../RightDrawer';
 import { useUIStore } from '../../../entities/store/uiStore';
@@ -14,6 +14,14 @@ describe('RightDrawer', () => {
   it('renders nothing when drawer is closed with no active panel', () => {
     const { container } = render(<RightDrawer />);
     expect(container.innerHTML).toBe('');
+  });
+
+  it('renders a closed drawer shell when a panel remains active', () => {
+    useUIStore.setState({ drawer: { isOpen: false, activePanel: 'code' } });
+    render(<RightDrawer />);
+
+    expect(screen.getByTestId('right-drawer')).toHaveAttribute('data-open', 'false');
+    expect(screen.queryByTestId('drawer-backdrop')).not.toBeInTheDocument();
   });
 
   it('renders drawer when opened via store', () => {
@@ -38,6 +46,27 @@ describe('RightDrawer', () => {
     expect(screen.getByText('Validation')).toBeInTheDocument();
   });
 
+  it('renders template panel metadata from registry', () => {
+    useUIStore.getState().openDrawer('templates');
+    render(<RightDrawer />);
+
+    expect(screen.getByText('Templates')).toBeInTheDocument();
+  });
+
+  it('renders learning panel metadata from registry', () => {
+    useUIStore.getState().openDrawer('learning');
+    render(<RightDrawer />);
+
+    expect(screen.getByText('Learning')).toBeInTheDocument();
+  });
+
+  it('renders scenario panel metadata from registry', () => {
+    useUIStore.getState().openDrawer('scenarios');
+    render(<RightDrawer />);
+
+    expect(screen.getByText('Scenarios')).toBeInTheDocument();
+  });
+
   it('renders children in the body', () => {
     useUIStore.getState().openDrawer('properties');
     render(
@@ -47,6 +76,23 @@ describe('RightDrawer', () => {
     );
 
     expect(screen.getByText('Custom panel content')).toBeInTheDocument();
+  });
+
+  it('renders CodePreview when the code panel is active', async () => {
+    useUIStore.getState().openDrawer('code');
+    render(<RightDrawer />);
+
+    expect(await screen.findByText('⚡ Code Generation')).toBeInTheDocument();
+    expect(useUIStore.getState().showCodePreview).toBe(true);
+  });
+
+  it('hides CodePreview when the code panel is inactive', async () => {
+    useUIStore.getState().openDrawer('properties');
+    render(<RightDrawer />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('⚡ Code Generation')).not.toBeInTheDocument();
+    });
   });
 
   it('closes when close button is clicked', async () => {
@@ -73,6 +119,28 @@ describe('RightDrawer', () => {
     expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 
+  it('closes when Escape is pressed', async () => {
+    const user = userEvent.setup();
+    useUIStore.getState().openDrawer('properties');
+    render(<RightDrawer />);
+
+    screen.getByTestId('right-drawer').focus();
+    await user.keyboard('{Escape}');
+
+    expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
+  });
+
+  it('does not close when a non-Escape key is pressed', async () => {
+    const user = userEvent.setup();
+    useUIStore.getState().openDrawer('properties');
+    render(<RightDrawer />);
+
+    screen.getByTestId('right-drawer').focus();
+    await user.keyboard('{Enter}');
+
+    expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'properties' });
+  });
+
   it('has correct aria-label for close button', () => {
     useUIStore.getState().openDrawer('code');
     render(<RightDrawer />);
@@ -95,6 +163,15 @@ describe('RightDrawer', () => {
     const drawer = screen.getByTestId('right-drawer');
     expect(drawer.style.getPropertyValue('--drawer-width')).toBe('400px');
   });
+
+  it('uses fallback label and width when no panel info exists', () => {
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: null } });
+    render(<RightDrawer />);
+
+    const drawer = screen.getByTestId('right-drawer');
+    expect(drawer).toHaveAttribute('aria-label', 'Panel');
+    expect(drawer.style.getPropertyValue('--drawer-width')).toBe('360px');
+  });
 });
 
 describe('uiStore drawer actions', () => {
@@ -112,6 +189,14 @@ describe('uiStore drawer actions', () => {
     expect(state.drawer.activePanel).toBe('properties');
   });
 
+  it('openDrawer syncs code preview visibility for code panel', () => {
+    useUIStore.getState().openDrawer('code');
+
+    const state = useUIStore.getState();
+    expect(state.drawer).toEqual({ isOpen: true, activePanel: 'code' });
+    expect(state.showCodePreview).toBe(true);
+  });
+
   it('closeDrawer resets state', () => {
     useUIStore.getState().openDrawer('properties');
     useUIStore.getState().closeDrawer();
@@ -119,6 +204,15 @@ describe('uiStore drawer actions', () => {
     const state = useUIStore.getState();
     expect(state.drawer.isOpen).toBe(false);
     expect(state.drawer.activePanel).toBeNull();
+  });
+
+  it('closeDrawer hides code preview when code panel is active', () => {
+    useUIStore.getState().openDrawer('code');
+    useUIStore.getState().closeDrawer();
+
+    const state = useUIStore.getState();
+    expect(state.drawer).toEqual({ isOpen: false, activePanel: null });
+    expect(state.showCodePreview).toBe(false);
   });
 
   it('toggleDrawer opens when closed', () => {

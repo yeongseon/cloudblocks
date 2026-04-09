@@ -210,10 +210,12 @@ describe('useUIStore', () => {
       useUIStore.getState().setInspectorTab('code');
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
 
       useUIStore.getState().setInspectorTab('connections');
       expect(useUIStore.getState().inspector.activeTab).toBe('connections');
       expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('openInspectorTab opens inspector and sets tab', () => {
@@ -222,6 +224,69 @@ describe('useUIStore', () => {
 
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+    });
+
+    it('setInspectorTab preserves non-code drawer state when switching away from code without code drawer', () => {
+      useUIStore.setState({
+        drawer: { isOpen: true, activePanel: 'validation' },
+        showCodePreview: true,
+        inspector: { isOpen: true, activeTab: 'code' },
+      });
+
+      useUIStore.getState().setInspectorTab('connections');
+
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
+    });
+
+    it('setInspectorTab opens the code drawer from another drawer', () => {
+      useUIStore.setState({
+        drawer: { isOpen: true, activePanel: 'validation' },
+        showCodePreview: false,
+      });
+
+      useUIStore.getState().setInspectorTab('code');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+    });
+
+    it('openInspectorTab closes the code drawer when opening a non-code tab', () => {
+      useUIStore.setState({
+        drawer: { isOpen: true, activePanel: 'code' },
+        showCodePreview: true,
+      });
+
+      useUIStore.getState().openInspectorTab('properties');
+
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
+    });
+
+    it('openInspectorTab opens the code drawer from another drawer', () => {
+      useUIStore.setState({
+        drawer: { isOpen: true, activePanel: 'validation' },
+        showCodePreview: false,
+      });
+
+      useUIStore.getState().openInspectorTab('code');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+    });
+
+    it('openInspectorTab preserves non-code drawer state when opening a non-code tab', () => {
+      useUIStore.setState({
+        drawer: { isOpen: true, activePanel: 'validation' },
+        showCodePreview: false,
+      });
+
+      useUIStore.getState().openInspectorTab('properties');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
     });
   });
 
@@ -382,6 +447,21 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().selectedIds.size).toBe(0);
     });
 
+    it('removeFromSelection uses null fallback when iterator yields undefined', () => {
+      useUIStore.getState().setSelectedIds(['a', 'b']);
+      const valuesSpy = vi.spyOn(Set.prototype, 'values').mockImplementation(function () {
+        return [undefined][Symbol.iterator]() as unknown as IterableIterator<string>;
+      });
+
+      try {
+        useUIStore.getState().removeFromSelection('a');
+        expect(useUIStore.getState().selectedIds.size).toBe(1);
+        expect(useUIStore.getState().selectedId).toBe(null);
+      } finally {
+        valuesSpy.mockRestore();
+      }
+    });
+
     it('toggleSelection adds id if not present', () => {
       useUIStore.getState().toggleSelection('a');
       expect(useUIStore.getState().selectedIds.has('a')).toBe(true);
@@ -392,6 +472,22 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleSelection('a');
       expect(useUIStore.getState().selectedIds.has('a')).toBe(false);
       expect(useUIStore.getState().selectedIds.size).toBe(0);
+    });
+
+    it('toggleSelection uses null fallback when iterator yields undefined', () => {
+      useUIStore.getState().setSelectedId('a');
+      useUIStore.getState().addToSelection('b');
+      const valuesSpy = vi.spyOn(Set.prototype, 'values').mockImplementation(function () {
+        return [undefined][Symbol.iterator]() as unknown as IterableIterator<string>;
+      });
+
+      try {
+        useUIStore.getState().toggleSelection('a');
+        expect(useUIStore.getState().selectedIds.size).toBe(1);
+        expect(useUIStore.getState().selectedId).toBe(null);
+      } finally {
+        valuesSpy.mockRestore();
+      }
     });
 
     it('setSelectedIds replaces entire selection from array', () => {
@@ -946,6 +1042,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
 
     it('should toggle showCodePreview back from true to false', () => {
@@ -953,6 +1050,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
       expect(useUIStore.getState().inspector.activeTab).toBe('properties');
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('should toggle multiple times correctly', () => {
@@ -967,6 +1065,89 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+    });
+
+    it('keeps an unrelated drawer open when toggling code preview off', () => {
+      useUIStore.setState({
+        showCodePreview: true,
+        inspector: { isOpen: true, activeTab: 'code' },
+        drawer: { isOpen: true, activePanel: 'validation' },
+      });
+
+      useUIStore.getState().toggleCodePreview();
+
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
+    });
+  });
+
+  describe('drawer and code preview sync', () => {
+    it('openDrawer clears code preview visibility for non-code panels', () => {
+      useUIStore.setState({ showCodePreview: true });
+
+      useUIStore.getState().openDrawer('properties');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'properties' });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('closeDrawer preserves code preview visibility when a non-code panel closes', () => {
+      useUIStore.setState({
+        showCodePreview: true,
+        drawer: { isOpen: true, activePanel: 'validation' },
+      });
+
+      useUIStore.getState().closeDrawer();
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+    });
+
+    it('toggleDrawer closes the code panel and clears code preview visibility', () => {
+      useUIStore.getState().openDrawer('code');
+
+      useUIStore.getState().toggleDrawer('code');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('toggleDrawer switching from code to another panel clears code preview visibility', () => {
+      useUIStore.getState().openDrawer('code');
+
+      useUIStore.getState().toggleDrawer('properties');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'properties' });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('toggleDrawer opening a non-code panel clears code preview visibility', () => {
+      useUIStore.setState({ showCodePreview: true });
+
+      useUIStore.getState().toggleDrawer('validation');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('toggleDrawer opening the code panel from another panel enables code preview visibility', () => {
+      useUIStore.setState({ drawer: { isOpen: true, activePanel: 'validation' } });
+
+      useUIStore.getState().toggleDrawer('code');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+    });
+
+    it('openDrawer opening the code panel from another panel enables code preview visibility', () => {
+      useUIStore.setState({ drawer: { isOpen: true, activePanel: 'validation' } });
+
+      useUIStore.getState().openDrawer('code');
+
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
     });
   });
 
@@ -981,6 +1162,50 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleAdvancedGeneration();
       useUIStore.getState().toggleAdvancedGeneration();
       expect(useUIStore.getState().showAdvancedGeneration).toBe(false);
+    });
+  });
+
+  describe('grid style', () => {
+    it('setGridStyle updates state and persists the selected style', () => {
+      useUIStore.getState().setGridStyle('dot');
+
+      expect(useUIStore.getState().gridStyle).toBe('dot');
+      expect(localStorage.getItem('cloudblocks:grid-style')).toBe('dot');
+    });
+
+    it('cycleGridStyle cycles through paper, dot, none, and back to paper', () => {
+      useUIStore.setState({ gridStyle: 'paper' });
+
+      useUIStore.getState().cycleGridStyle();
+      expect(useUIStore.getState().gridStyle).toBe('dot');
+
+      useUIStore.getState().cycleGridStyle();
+      expect(useUIStore.getState().gridStyle).toBe('none');
+
+      useUIStore.getState().cycleGridStyle();
+      expect(useUIStore.getState().gridStyle).toBe('paper');
+    });
+  });
+
+  describe('label mode cycling', () => {
+    it('cycleLabelMode advances through all label modes and wraps to auto', () => {
+      useUIStore.setState({
+        labelModeOverride: 'auto',
+        canvasZoom: 1,
+        effectiveLabelMode: 'compact',
+      });
+
+      useUIStore.getState().cycleLabelMode();
+      expect(useUIStore.getState().labelModeOverride).toBe('compact');
+
+      useUIStore.getState().cycleLabelMode();
+      expect(useUIStore.getState().labelModeOverride).toBe('learning');
+
+      useUIStore.getState().cycleLabelMode();
+      expect(useUIStore.getState().labelModeOverride).toBe('inspect');
+
+      useUIStore.getState().cycleLabelMode();
+      expect(useUIStore.getState().labelModeOverride).toBe('auto');
     });
   });
 
