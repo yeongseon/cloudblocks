@@ -8,7 +8,7 @@ import {
 import type { ContainerBlock, LayerType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { getDiffState } from '../../features/diff/engine';
+import { getDiffState } from '../../shared/utils/diff';
 import type { DiffDelta } from '../../shared/types/diff';
 import { getContainerBlockIconUrl } from '../../shared/utils/iconResolver';
 import { getContainerLabel } from '../../shared/utils/providerMapping';

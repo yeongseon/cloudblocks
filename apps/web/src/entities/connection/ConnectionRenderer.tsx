@@ -7,7 +7,7 @@ import type {
   EndpointSemantic,
   ResourceBlock,
 } from '@cloudblocks/schema';
-import { getDiffState } from '../../features/diff/engine';
+import { getDiffState } from '../../shared/utils/diff';
 import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';

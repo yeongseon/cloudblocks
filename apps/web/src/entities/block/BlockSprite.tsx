@@ -10,12 +10,12 @@ import type {
 import { isExternalResourceType, parseEndpointId } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
+import { getDiffState } from '../../shared/utils/diff';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canConnect } from '../validation/connection';
-import type { EndpointType } from '../validation/connection';
+import type { EndpointType } from '../../shared/types/endpoint';
 import { validatePlacement } from '../validation/placement';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
