@@ -16,8 +16,8 @@ import {
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
-import { screenToWorld, snapToGrid, worldToScreen } from '../../shared/utils/isometric';
 import { getBlockFaceColors } from '../../entities/block/blockFaceColors';
+import { getSnappedPlacement } from './utils/placementUtils';
 
 interface DragGhostProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -65,9 +65,15 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
     }
 
     const rect = viewport.getBoundingClientRect();
-    const localX = (e.clientX - rect.left - panX) / zoom;
-    const localY = (e.clientY - rect.top - panY) / zoom;
-    setPointerPosition({ x: localX, y: localY });
+    const placement = getSnappedPlacement(
+      e.clientX,
+      e.clientY,
+      { left: rect.left, top: rect.top },
+      { x: panX, y: panY },
+      zoom,
+      { x: originX, y: originY },
+    );
+    setPointerPosition(placement.screenPoint);
   });
 
   useEffect(() => {
@@ -86,14 +92,10 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
     return null;
   }
 
-  const world = screenToWorld(pointerPosition.x, pointerPosition.y, 0, originX, originY);
-  const snapped = snapToGrid(world.worldX, world.worldZ);
-  const snappedScreen = worldToScreen(snapped.x, 0, snapped.z, originX, originY);
-
   return (
     <g
       className="drag-ghost"
-      transform={`translate(${snappedScreen.x - screenWidth / 2}, ${snappedScreen.y - svgHeight / 2})`}
+      transform={`translate(${pointerPosition.x - screenWidth / 2}, ${pointerPosition.y - svgHeight / 2})`}
       opacity={0.5}
       pointerEvents="none"
     >

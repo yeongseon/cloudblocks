@@ -3,8 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock, ROOT_ALLOWED_RESOURCE_TYPES } from '../../entities/validation/placement';
-import { worldToScreen, worldSizeToScreen, depthKey } from '../../shared/utils/isometric';
-import { getBlockDimensions } from '../../shared/types/visualProfile';
+import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 
@@ -17,6 +16,14 @@ import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { isExternalResourceType } from '@cloudblocks/schema';
 import { OVERLAP_OFFSET_PX } from '../../shared/tokens/connectionVisualTokens';
+import { computeOccupiedCellsByContainer } from './utils/placementUtils';
+import { createLassoRect, getLassoSelectionIds } from './utils/selectionUtils';
+import {
+  computeExternalLaneBounds,
+  computeFitToContentTransform,
+  computeViewportOrigin,
+  computeWheelViewportTransform,
+} from './utils/viewportUtils';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -38,28 +45,10 @@ export function SceneCanvas() {
     () => computeOverlapOffsets(architecture.connections, OVERLAP_OFFSET_PX),
     [architecture.connections],
   );
-  const occupiedCellsByContainer = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    for (const node of architecture.nodes) {
-      if (node.kind !== 'resource' || node.parentId === null) {
-        continue;
-      }
-      const block = node;
-      const parentId = block.parentId;
-      if (parentId === null) {
-        continue;
-      }
-      const dims = getBlockDimensions(block.category, block.provider, block.subtype);
-      const set = map.get(parentId) ?? new Set<string>();
-      for (let dx = 0; dx < dims.width; dx++) {
-        for (let dz = 0; dz < dims.depth; dz++) {
-          set.add(`${block.position.x + dx}:${block.position.z + dz}`);
-        }
-      }
-      map.set(parentId, set);
-    }
-    return map;
-  }, [architecture.nodes]);
+  const occupiedCellsByContainer = useMemo(
+    () => computeOccupiedCellsByContainer(architecture.nodes),
+    [architecture.nodes],
+  );
   const addNode = useArchitectureStore((s) => s.addNode);
   const moveExternalBlockPosition = useArchitectureStore((s) => s.moveExternalBlockPosition);
   const clearSelection = useUIStore((s) => s.clearSelection);
@@ -85,47 +74,34 @@ export function SceneCanvas() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(0.85);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const containerById = useMemo(
+    () => new Map(plates.map((container) => [container.id, container])),
+    [plates],
+  );
+  const sortedPlates = useMemo(
+    () =>
+      [...plates].sort((a, b) => {
+        const levelA = a.parentId ? 1 : 0;
+        const levelB = b.parentId ? 1 : 0;
+        if (levelA !== levelB) return levelA - levelB;
+        const depthA = depthKey(a.position.x, a.position.z, a.position.y, 0);
+        const depthB = depthKey(b.position.x, b.position.z, b.position.y, 0);
+        return depthA - depthB;
+      }),
+    [plates],
+  );
 
   const externalLaneBounds = useMemo(() => {
-    const externalBlocks = architecture.nodes.filter(
-      (node): node is ResourceBlock =>
-        node.kind === 'resource' &&
-        node.parentId === null &&
-        (Boolean(node.roles?.includes('external')) || isExternalResourceType(node.resourceType)),
+    return computeExternalLaneBounds(
+      architecture.nodes.filter(
+        (node): node is ResourceBlock =>
+          node.kind === 'resource' &&
+          node.parentId === null &&
+          (Boolean(node.roles?.includes('external')) || isExternalResourceType(node.resourceType)),
+      ),
+      origin,
     );
-    if (externalBlocks.length === 0) return null;
-
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    for (const block of externalBlocks) {
-      const sp = worldToScreen(
-        block.position.x,
-        block.position.y,
-        block.position.z,
-        origin.x,
-        origin.y,
-      );
-      minX = Math.min(minX, sp.x);
-      minY = Math.min(minY, sp.y);
-      maxX = Math.max(maxX, sp.x);
-      maxY = Math.max(maxY, sp.y);
-    }
-
-    const PAD_X = 48;
-    const PAD_Y = 36;
-    const BLOCK_W = 72;
-    const BLOCK_H = 96;
-
-    return {
-      left: minX - PAD_X,
-      top: minY - PAD_Y,
-      width: maxX - minX + BLOCK_W + PAD_X * 2,
-      height: maxY - minY + BLOCK_H + PAD_Y * 2,
-    };
-  }, [architecture.nodes, origin.x, origin.y]);
+  }, [architecture.nodes, origin]);
 
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
@@ -138,14 +114,12 @@ export function SceneCanvas() {
     width: number;
     height: number;
   } | null>(null);
-  const LASSO_THRESHOLD = 5; // min drag distance before lasso activates
-
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     const updateOriginFromRect = (width: number, height: number) => {
-      setOrigin({ x: width / 2, y: height * 0.4 });
+      setOrigin(computeViewportOrigin(width, height));
     };
 
     const rect = el.getBoundingClientRect();
@@ -204,27 +178,19 @@ export function SceneCanvas() {
       const startY = lassoStartRef.current.y;
       const curX = e.clientX;
       const curY = e.clientY;
-      const dx = curX - startX;
-      const dy = curY - startY;
 
       // Only activate lasso after passing threshold (prevents accidental lasso on shift-click)
-      if (Math.abs(dx) >= LASSO_THRESHOLD || Math.abs(dy) >= LASSO_THRESHOLD) {
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          // Convert viewport coords to scene-world coords (account for pan & zoom)
-          const toWorld = (vx: number, vy: number) => ({
-            x: (vx - rect.left - pan.x) / zoom,
-            y: (vy - rect.top - pan.y) / zoom,
-          });
-          const wStart = toWorld(startX, startY);
-          const wCur = toWorld(curX, curY);
-          setLassoRect({
-            x: Math.min(wStart.x, wCur.x),
-            y: Math.min(wStart.y, wCur.y),
-            width: Math.abs(wCur.x - wStart.x),
-            height: Math.abs(wCur.y - wStart.y),
-          });
-        }
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        setLassoRect(
+          createLassoRect(
+            { x: startX, y: startY },
+            { x: curX, y: curY },
+            { left: rect.left, top: rect.top },
+            pan,
+            zoom,
+          ),
+        );
       }
       return;
     }
@@ -242,44 +208,7 @@ export function SceneCanvas() {
     // Handle lasso completion
     if (lassoStartRef.current) {
       if (lassoRect) {
-        // Find blocks/containers whose screen positions fall inside the lasso rect
-        const hitIds: string[] = [];
-        const allNodes = architecture.nodes;
-
-        for (const node of allNodes) {
-          let sx: number;
-          let sy: number;
-
-          if (node.kind === 'resource' && node.parentId !== null) {
-            const parentContainer = plates.find((p) => p.id === node.parentId);
-            if (!parentContainer?.frame) continue;
-            const worldX = parentContainer.position.x + node.position.x;
-            const worldY = parentContainer.position.y + parentContainer.frame.height;
-            const worldZ = parentContainer.position.z + node.position.z;
-            const sp = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
-            sx = sp.x;
-            sy = sp.y;
-          } else {
-            const sp = worldToScreen(
-              node.position.x,
-              node.position.y,
-              node.position.z,
-              origin.x,
-              origin.y,
-            );
-            sx = sp.x;
-            sy = sp.y;
-          }
-
-          if (
-            sx >= lassoRect.x &&
-            sx <= lassoRect.x + lassoRect.width &&
-            sy >= lassoRect.y &&
-            sy <= lassoRect.y + lassoRect.height
-          ) {
-            hitIds.push(node.id);
-          }
-        }
+        const hitIds = getLassoSelectionIds(architecture.nodes, containerById, origin, lassoRect);
 
         if (hitIds.length > 0) {
           setSelectedIds(hitIds);
@@ -318,7 +247,7 @@ export function SceneCanvas() {
       const plateId = plateContainer?.getAttribute('data-container-id');
 
       if (plateId) {
-        const container = plates.find((p) => p.id === plateId);
+        const container = containerById.get(plateId);
         if (
           container &&
           canPlaceBlock(draggedBlockCategory, container, draggedResourceType ?? undefined)
@@ -352,27 +281,38 @@ export function SceneCanvas() {
     }
   };
 
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    if (!containerRef.current) return;
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      if (!containerRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+      const rect = containerRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom((prevZoom) => {
-      const newZoom = Math.max(0.3, Math.min(3.0, prevZoom * zoomDelta));
-      const scaleChange = newZoom / prevZoom;
-
-      setPan((p) => ({
-        x: mouseX - (mouseX - p.x) * scaleChange,
-        y: mouseY - (mouseY - p.y) * scaleChange,
-      }));
-
-      return newZoom;
-    });
-  }, []);
+      setZoom((prevZoom) => {
+        setPan((prevPan) => {
+          const nextTransform = computeWheelViewportTransform(
+            prevPan,
+            prevZoom,
+            mouseX,
+            mouseY,
+            e.deltaY,
+          );
+          return nextTransform.pan;
+        });
+        const nextTransform = computeWheelViewportTransform(
+          pan,
+          prevZoom,
+          mouseX,
+          mouseY,
+          e.deltaY,
+        );
+        return nextTransform.zoom;
+      });
+    },
+    [pan],
+  );
 
   useEffect(() => {
     setCanvasZoom(zoom);
@@ -396,99 +336,28 @@ export function SceneCanvas() {
       return;
     }
 
-    const allNodes = architecture.nodes;
-    if (allNodes.length === 0) {
+    if (architecture.nodes.length === 0) {
       clearFitToContentRequest();
       return;
     }
-
-    const parentContainers = new Map(
-      allNodes
-        .filter((node): node is ContainerBlock => node.kind === 'container')
-        .map((node) => [node.id, node]),
-    );
-
-    let minSX = Infinity;
-    let maxSX = -Infinity;
-    let minSY = Infinity;
-    let maxSY = -Infinity;
-
-    for (const node of allNodes) {
-      if (node.kind === 'container') {
-        const sp = worldToScreen(node.position.x, node.position.y, node.position.z, 0, 0);
-
-        if (node.frame) {
-          const { screenWidth, screenHeight } = worldSizeToScreen(
-            node.frame.width,
-            node.frame.height,
-            node.frame.depth,
-          );
-          minSX = Math.min(minSX, sp.x - screenWidth / 2);
-          maxSX = Math.max(maxSX, sp.x + screenWidth / 2);
-          // Isometric diamond half-height = screenWidth/4 (since TILE_H/TILE_W = 0.5)
-          // Top = back of diamond minus elevation walls; bottom = front of diamond
-          const diamondHalfH = screenWidth / 4;
-          minSY = Math.min(minSY, sp.y - diamondHalfH - (screenHeight - 2 * diamondHalfH));
-          maxSY = Math.max(maxSY, sp.y + diamondHalfH);
-        } else {
-          minSX = Math.min(minSX, sp.x);
-          maxSX = Math.max(maxSX, sp.x);
-          minSY = Math.min(minSY, sp.y);
-          maxSY = Math.max(maxSY, sp.y);
-        }
-        continue;
-      }
-
-      let worldX = node.position.x;
-      let worldY = node.position.y;
-      let worldZ = node.position.z;
-
-      if (node.parentId) {
-        const parent = parentContainers.get(node.parentId);
-        if (parent) {
-          worldX = parent.position.x + node.position.x;
-          worldY = parent.position.y + (parent.frame?.height ?? 0);
-          worldZ = parent.position.z + node.position.z;
-        }
-      }
-
-      const sp = worldToScreen(worldX, worldY, worldZ, 0, 0);
-      const BLOCK_HALF_W = 36;
-      const BLOCK_H = 96;
-      minSX = Math.min(minSX, sp.x - BLOCK_HALF_W);
-      maxSX = Math.max(maxSX, sp.x + BLOCK_HALF_W);
-      minSY = Math.min(minSY, sp.y - BLOCK_H);
-      maxSY = Math.max(maxSY, sp.y);
-    }
-
-    if (!isFinite(minSX) || !isFinite(minSY) || !isFinite(maxSX) || !isFinite(maxSY)) {
-      clearFitToContentRequest();
-      return;
-    }
-
-    const contentWidth = Math.max(1, maxSX - minSX);
-    const contentHeight = Math.max(1, maxSY - minSY);
-    const contentCenterX = (minSX + maxSX) / 2;
-    const contentCenterY = (minSY + maxSY) / 2;
 
     const rect = containerRef.current.getBoundingClientRect();
-    const viewportW = rect.width;
-    const viewportH = rect.height;
-    const PADDING = 80;
-    const fitWidth = Math.max(1, viewportW - PADDING * 2);
-    const fitHeight = Math.max(1, viewportH - PADDING * 2);
+    const nextTransform = computeFitToContentTransform(
+      architecture.nodes,
+      containerById,
+      { width: rect.width, height: rect.height },
+      origin,
+    );
 
-    const zoomX = fitWidth / contentWidth;
-    const zoomY = fitHeight / contentHeight;
-    const newZoom = Math.max(0.3, Math.min(1.2, Math.min(zoomX, zoomY)));
+    if (!nextTransform) {
+      clearFitToContentRequest();
+      return;
+    }
 
-    const newPanX = viewportW / 2 - (origin.x + contentCenterX) * newZoom;
-    const newPanY = viewportH / 2 - (origin.y + contentCenterY) * newZoom;
-
-    setPan({ x: newPanX, y: newPanY });
-    setZoom(newZoom);
+    setPan(nextTransform.pan);
+    setZoom(nextTransform.zoom);
     clearFitToContentRequest();
-  }, [architecture.nodes, clearFitToContentRequest, fitToContentRequested, origin.x, origin.y]);
+  }, [architecture.nodes, clearFitToContentRequest, containerById, fitToContentRequested, origin]);
 
   return (
     <div
@@ -506,38 +375,29 @@ export function SceneCanvas() {
         }}
       >
         <div className="container-layer">
-          {[...plates]
-            .sort((a, b) => {
-              const levelA = a.parentId ? 1 : 0;
-              const levelB = b.parentId ? 1 : 0;
-              if (levelA !== levelB) return levelA - levelB;
-              const depthA = depthKey(a.position.x, a.position.z, a.position.y, 0);
-              const depthB = depthKey(b.position.x, b.position.z, b.position.y, 0);
-              return depthA - depthB;
-            })
-            .map((container) => {
-              const screenPos = worldToScreen(
-                container.position.x,
-                container.position.y,
-                container.position.z,
-                origin.x,
-                origin.y,
-              );
-              const hierarchyBonus = container.parentId ? 500_000 : 0;
-              const zIndex =
-                depthKey(container.position.x, container.position.z, container.position.y, 0) +
-                hierarchyBonus;
-              return (
-                <ContainerBlockSprite
-                  key={container.id}
-                  container={container}
-                  screenX={screenPos.x}
-                  screenY={screenPos.y}
-                  zIndex={zIndex}
-                  occupiedCells={occupiedCellsByContainer.get(container.id)}
-                />
-              );
-            })}
+          {sortedPlates.map((container) => {
+            const screenPos = worldToScreen(
+              container.position.x,
+              container.position.y,
+              container.position.z,
+              origin.x,
+              origin.y,
+            );
+            const hierarchyBonus = container.parentId ? 500_000 : 0;
+            const zIndex =
+              depthKey(container.position.x, container.position.z, container.position.y, 0) +
+              hierarchyBonus;
+            return (
+              <ContainerBlockSprite
+                key={container.id}
+                container={container}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
+                occupiedCells={occupiedCellsByContainer.get(container.id)}
+              />
+            );
+          })}
         </div>
 
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
@@ -587,8 +447,8 @@ export function SceneCanvas() {
           <div
             className="external-lane-zone"
             style={{
-              left: externalLaneBounds.left,
-              top: externalLaneBounds.top,
+              left: externalLaneBounds.x,
+              top: externalLaneBounds.y,
               width: externalLaneBounds.width,
               height: externalLaneBounds.height,
             }}
@@ -600,7 +460,7 @@ export function SceneCanvas() {
 
         <div className="block-layer">
           {containerBlocks.map((block) => {
-            const parentContainer = plates.find((p) => p.id === block.parentId);
+            const parentContainer = block.parentId ? containerById.get(block.parentId) : undefined;
             if (!parentContainer?.frame) return null;
             const worldX = parentContainer.position.x + block.position.x;
             const worldY = parentContainer.position.y + parentContainer.frame.height;
