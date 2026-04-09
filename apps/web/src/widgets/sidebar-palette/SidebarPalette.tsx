@@ -276,7 +276,8 @@ function PaletteExternalGroup({
 }
 
 export function SidebarPalette() {
-  const techTree = useTechTree();
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const techTree = useTechTree(architecture);
   const addNode = useArchitectureStore((s) => s.addNode);
   const addExternalBlock = useArchitectureStore((s) => s.addExternalBlock);
   const activeProvider = useUIStore((s) => s.activeProvider);

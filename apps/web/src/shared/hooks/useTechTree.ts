@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type {
+  ArchitectureModel,
   ProviderType,
   ResourceCategory,
   ResourceType as SchemaResourceType,
@@ -604,93 +604,79 @@ export interface TechTreeState {
   getTargetPlateId: (type: ResourceType) => string | null;
 }
 
-export function useTechTree(): TechTreeState {
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+export function buildTechTreeState(architecture: ArchitectureModel): TechTreeState {
+  const containers = architecture.nodes.filter((node) => node.kind === 'container');
+  const resources = architecture.nodes.filter((node) => node.kind === 'resource');
+  const networkPlates = containers.filter((p) => p.layer === 'region');
+  const subnetPlates = containers.filter((p) => p.layer === 'subnet');
+  const hasVNet = networkPlates.length > 0;
+  const hasSubnet = subnetPlates.length > 0;
 
-  return useMemo(() => {
-    const containers = architecture.nodes.filter((node) => node.kind === 'container');
-    const resources = architecture.nodes.filter((node) => node.kind === 'resource');
-    const networkPlates = containers.filter((p) => p.layer === 'region');
-    const subnetPlates = containers.filter((p) => p.layer === 'subnet');
-    const hasVNet = networkPlates.length > 0;
-    const hasSubnet = subnetPlates.length > 0;
+  const isEnabled = (type: ResourceType): boolean => {
+    const def = RESOURCE_DEFINITIONS[type];
 
-    const isEnabled = (type: ResourceType): boolean => {
-      const def = RESOURCE_DEFINITIONS[type];
+    switch (def.category) {
+      case 'foundation':
+        if (type === 'network') return true;
+        return hasVNet;
+      case 'always':
+      case 'vnet-optional':
+      case 'vnet-required':
+        return hasVNet;
+      default:
+        return false;
+    }
+  };
 
-      switch (def.category) {
-        case 'foundation':
-          // Network is always enabled
-          if (type === 'network') return true;
-          // Subnets require VNet
-          return hasVNet;
+  const getDisabledReason = (type: ResourceType): string | null => {
+    if (isEnabled(type)) return null;
 
-        case 'always':
-          // Always enabled (but needs a container to place on)
-          return hasVNet;
+    const def = RESOURCE_DEFINITIONS[type];
+    if (def.disabledReason) return def.disabledReason;
 
-        case 'vnet-optional':
-          // VNet optional — enabled if we have a network container
-          return hasVNet;
+    if (def.category === 'vnet-required' || def.category === 'vnet-optional') {
+      return 'Create a Network first to unlock this resource.';
+    }
+    if (def.category === 'always') {
+      return 'Create a Network first to place resources.';
+    }
 
-        case 'vnet-required':
-          // Requires VNet to exist
-          return hasVNet;
+    return 'This resource is not available yet.';
+  };
 
-        default:
-          return false;
-      }
-    };
+  const getCreationResources = () => {
+    return ALL_RESOURCES.map((type) => ({
+      resource: RESOURCE_DEFINITIONS[type],
+      enabled: isEnabled(type),
+      disabledReason: getDisabledReason(type),
+    }));
+  };
 
-    const getDisabledReason = (type: ResourceType): string | null => {
-      if (isEnabled(type)) return null;
+  const getTargetPlateId = (type: ResourceType): string | null => {
+    const def = RESOURCE_DEFINITIONS[type];
 
-      const def = RESOURCE_DEFINITIONS[type];
-      if (def.disabledReason) return def.disabledReason;
-
-      // Default reason
-      if (def.category === 'vnet-required' || def.category === 'vnet-optional') {
-        return 'Create a Network first to unlock this resource.';
-      }
-      if (def.category === 'always') {
-        return 'Create a Network first to place resources.';
-      }
-
-      return 'This resource is not available yet.';
-    };
-
-    const getCreationResources = () => {
-      return ALL_RESOURCES.map((type) => ({
-        resource: RESOURCE_DEFINITIONS[type],
-        enabled: isEnabled(type),
-        disabledReason: getDisabledReason(type),
-      }));
-    };
-
-    const getTargetPlateId = (type: ResourceType): string | null => {
-      const def = RESOURCE_DEFINITIONS[type];
-
-      // For VNet-required resources, prefer subnet if available
-      if (def.category === 'vnet-required') {
-        if (subnetPlates.length > 0) return subnetPlates[0].id;
-        if (networkPlates.length > 0) return networkPlates[0].id;
-        return null;
-      }
-
-      // For other blocks, use network container
+    if (def.category === 'vnet-required') {
+      if (subnetPlates.length > 0) return subnetPlates[0].id;
       if (networkPlates.length > 0) return networkPlates[0].id;
       return null;
-    };
+    }
 
-    return {
-      hasVNet,
-      hasSubnet,
-      blockCount: resources.length,
-      plateCount: containers.length,
-      isEnabled,
-      getDisabledReason,
-      getCreationResources,
-      getTargetPlateId,
-    };
-  }, [architecture.nodes]);
+    if (networkPlates.length > 0) return networkPlates[0].id;
+    return null;
+  };
+
+  return {
+    hasVNet,
+    hasSubnet,
+    blockCount: resources.length,
+    plateCount: containers.length,
+    isEnabled,
+    getDisabledReason,
+    getCreationResources,
+    getTargetPlateId,
+  };
+}
+
+export function useTechTree(architecture: ArchitectureModel): TechTreeState {
+  return useMemo(() => buildTechTreeState(architecture), [architecture]);
 }
