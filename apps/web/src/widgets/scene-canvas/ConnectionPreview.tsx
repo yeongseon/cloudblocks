@@ -10,7 +10,7 @@ import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
 import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
-import type { EndpointType } from '../../entities/validation/connection';
+import type { EndpointType } from '../../shared/types/endpoint';
 
 interface ConnectionPreviewProps {
   originX: number;
