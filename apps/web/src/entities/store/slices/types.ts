@@ -141,13 +141,13 @@ export interface ArchitectureState {
   resetWorkspace: () => void;
   renameWorkspace: (name: string) => void;
 
-  createWorkspace: (name: string, provider?: ProviderType) => void;
+  createWorkspace: (name: string, provider: ProviderType) => void;
   switchWorkspace: (id: string) => void;
   deleteWorkspace: (id: string) => void;
   cloneWorkspace: (id: string) => void;
-  importArchitecture: (json: string) => string | null;
+  importArchitecture: (json: string, provider: ProviderType) => string | null;
   exportArchitecture: () => string;
-  loadFromTemplate: (template: ArchitectureTemplate) => void;
+  loadFromTemplate: (template: ArchitectureTemplate, provider: ProviderType) => void;
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
   generate: (prompt: string, provider: string) => Promise<void>;
   suggest: (provider: string) => Promise<void>;

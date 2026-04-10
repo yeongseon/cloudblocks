@@ -629,7 +629,9 @@ describe('persistenceSlice branches', () => {
         ],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(legacy));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(legacy), 'azure');
       const architecture = useArchitectureStore.getState().workspace
         .architecture as ArchitectureModel;
       const container = architecture.nodes.find((node) => node.id === 'container-1');
@@ -667,7 +669,9 @@ describe('persistenceSlice branches', () => {
         externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(model), 'azure');
       const architecture = useArchitectureStore.getState().workspace.architecture;
 
       expect(result).toBeNull();
@@ -756,7 +760,9 @@ describe('persistenceSlice branches', () => {
         ],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(model), 'azure');
       const architecture = useArchitectureStore.getState().workspace.architecture;
 
       expect(result).toBeNull();
@@ -796,7 +802,9 @@ describe('persistenceSlice branches', () => {
         connections: [],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(model), 'azure');
       expect(result).toBe(
         'Invalid architecture format: expected nodes[] or legacy plates[] + blocks[]',
       );
@@ -821,7 +829,9 @@ describe('persistenceSlice branches', () => {
         ],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(model), 'azure');
       expect(result).toBe('Invalid connection at index 0: id must be a string');
     });
 
@@ -851,7 +861,9 @@ describe('persistenceSlice branches', () => {
         ],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(legacy));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(legacy), 'azure');
       const architecture = useArchitectureStore.getState().workspace
         .architecture as ArchitectureModel;
       const subnetPlate = architecture.nodes.find((node) => node.id === 'container-subnet');
@@ -863,7 +875,7 @@ describe('persistenceSlice branches', () => {
     it('returns errors for invalid JSON and oversize payloads', () => {
       const invalidJsonResult = useArchitectureStore
         .getState()
-        .importArchitecture('this-is-not-json');
+        .importArchitecture('this-is-not-json', 'azure');
 
       const oversized = {
         ...makeValidNodesPayload(),
@@ -871,7 +883,7 @@ describe('persistenceSlice branches', () => {
       };
       const oversizeResult = useArchitectureStore
         .getState()
-        .importArchitecture(JSON.stringify(oversized));
+        .importArchitecture(JSON.stringify(oversized), 'azure');
 
       expect(typeof invalidJsonResult).toBe('string');
       expect(oversizeResult).toBe('Import exceeds 5MB limit');
@@ -930,7 +942,9 @@ describe('persistenceSlice branches', () => {
         endpoints: [],
       };
 
-      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const result = useArchitectureStore
+        .getState()
+        .importArchitecture(JSON.stringify(model), 'aws');
       const architecture = useArchitectureStore.getState().workspace.architecture;
       const defaultRegion = architecture.nodes.find(
         (node) => node.id === 'container-region-default',
@@ -1011,7 +1025,7 @@ describe('persistenceSlice branches', () => {
         },
       };
 
-      useArchitectureStore.getState().loadFromTemplate(template);
+      useArchitectureStore.getState().loadFromTemplate(template, 'gcp');
 
       const architecture = useArchitectureStore.getState().workspace.architecture;
       const defaultRegion = architecture.nodes.find(
@@ -1092,7 +1106,7 @@ describe('persistenceSlice branches', () => {
         },
       };
 
-      useArchitectureStore.getState().loadFromTemplate(template);
+      useArchitectureStore.getState().loadFromTemplate(template, 'aws');
 
       const architecture = useArchitectureStore.getState().workspace.architecture;
       const browser = architecture.nodes.find((node) => node.id === 'ext-browser');

@@ -27,6 +27,8 @@ vi.mock('uuid', () => ({
 import { useArchitectureStore } from './architectureStore';
 import { useUIStore } from './uiStore';
 
+const DEFAULT_PROVIDER = 'azure' as const;
+
 function getState() {
   return useArchitectureStore.getState();
 }
@@ -1582,7 +1584,7 @@ describe('architectureStore', () => {
       getState().addPlate('region', 'First', null);
       getState().saveToStorage();
 
-      getState().createWorkspace('Second WS');
+      getState().createWorkspace('Second WS', DEFAULT_PROVIDER);
       getState().addPlate('region', 'SecondPlate', null);
       getState().saveToStorage();
 
@@ -1705,7 +1707,7 @@ describe('architectureStore', () => {
     });
 
     it('auto-suffixes name when renaming to an existing workspace name', () => {
-      getState().createWorkspace('Other');
+      getState().createWorkspace('Other', DEFAULT_PROVIDER);
       getState().renameWorkspace('My Architecture');
       const names = getState().workspaces.map((ws) => ws.name);
       expect(names).toContain('My Architecture');
@@ -1718,7 +1720,7 @@ describe('architectureStore', () => {
   describe('createWorkspace', () => {
     it('creates a new workspace and switches to it', () => {
       const oldId = getState().workspace.id;
-      getState().createWorkspace('New Project');
+      getState().createWorkspace('New Project', DEFAULT_PROVIDER);
 
       expect(getState().workspace.name).toBe('New Project');
       expect(getState().workspace.id).not.toBe(oldId);
@@ -1729,7 +1731,7 @@ describe('architectureStore', () => {
       getState().addPlate('region', 'VNet', null);
       const oldId = getState().workspace.id;
 
-      getState().createWorkspace('New Project');
+      getState().createWorkspace('New Project', DEFAULT_PROVIDER);
 
       const saved = getState().workspaces.find((ws) => ws.id === oldId);
       expect(saved).toBeDefined();
@@ -1740,7 +1742,7 @@ describe('architectureStore', () => {
       getState().addPlate('region', 'VNet', null);
       expect(getState().canUndo).toBe(true);
 
-      getState().createWorkspace('New Project');
+      getState().createWorkspace('New Project', DEFAULT_PROVIDER);
       expect(getState().canUndo).toBe(false);
     });
 
@@ -1751,7 +1753,7 @@ describe('architectureStore', () => {
         }
       });
 
-      getState().createWorkspace('Fail Project');
+      getState().createWorkspace('Fail Project', DEFAULT_PROVIDER);
 
       expect(getState().workspace.name).toBe('Fail Project');
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
@@ -1760,13 +1762,13 @@ describe('architectureStore', () => {
     });
 
     it('auto-suffixes name when a workspace with the same name exists', () => {
-      getState().createWorkspace('Alpha');
+      getState().createWorkspace('Alpha', DEFAULT_PROVIDER);
       expect(getState().workspace.name).toBe('Alpha');
 
-      getState().createWorkspace('Alpha');
+      getState().createWorkspace('Alpha', DEFAULT_PROVIDER);
       expect(getState().workspace.name).toBe('Alpha (2)');
 
-      getState().createWorkspace('Alpha');
+      getState().createWorkspace('Alpha', DEFAULT_PROVIDER);
       expect(getState().workspace.name).toBe('Alpha (3)');
     });
   });
@@ -1776,7 +1778,7 @@ describe('architectureStore', () => {
       getState().addPlate('region', 'Original', null);
       const originalId = getState().workspace.id;
 
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
 
       getState().switchWorkspace(originalId);
       expect(getState().workspace.id).toBe(originalId);
@@ -1785,7 +1787,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops when switching to current workspace', () => {
-      getState().createWorkspace('WS1');
+      getState().createWorkspace('WS1', DEFAULT_PROVIDER);
       const wsId = getState().workspace.id;
 
       getState().switchWorkspace(wsId);
@@ -1800,7 +1802,7 @@ describe('architectureStore', () => {
     });
 
     it('saves current workspace state into list before switching', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
       getState().addPlate('region', 'InSecond', null);
 
@@ -1816,7 +1818,7 @@ describe('architectureStore', () => {
     });
 
     it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
       const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
 
@@ -1837,7 +1839,7 @@ describe('architectureStore', () => {
 
     it('leaves diff UI state unchanged when switching workspaces', () => {
       const initialWorkspaceId = getState().workspace.id;
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       activateDiffState();
 
       getState().switchWorkspace(initialWorkspaceId);
@@ -1852,7 +1854,7 @@ describe('architectureStore', () => {
   describe('deleteWorkspace', () => {
     it('deletes a non-current workspace', () => {
       const firstId = getState().workspace.id;
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
 
       // Add first to workspaces list if not already
       getState().deleteWorkspace(firstId);
@@ -1862,7 +1864,7 @@ describe('architectureStore', () => {
     });
 
     it('switches to first remaining when deleting current', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
 
       getState().deleteWorkspace(secondId);
@@ -1881,7 +1883,7 @@ describe('architectureStore', () => {
     });
 
     it('skips saveActiveWorkspaceId when saveWorkspaces fails on current deletion', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
 
       const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
@@ -1918,7 +1920,7 @@ describe('architectureStore', () => {
       getState().addPlate('region', 'OrigVNet', null);
       const firstId = getState().workspace.id;
 
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
 
       getState().cloneWorkspace(firstId);
 
@@ -1976,7 +1978,7 @@ describe('architectureStore', () => {
     });
 
     it('does not modify current workspace when updating a non-current workspace', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
       const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
 
@@ -2008,7 +2010,7 @@ describe('architectureStore', () => {
     });
 
     it('does not modify current workspace when updating a non-current workspace', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', DEFAULT_PROVIDER);
       const secondId = getState().workspace.id;
       const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
 
@@ -2054,7 +2056,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      const result = getState().importArchitecture(JSON.stringify(arch));
+      const result = getState().importArchitecture(JSON.stringify(arch), DEFAULT_PROVIDER);
 
       expect(result).toBeNull();
       expect(getArch().name).toBe('Imported Arch');
@@ -2067,7 +2069,7 @@ describe('architectureStore', () => {
         nodes: [makeRegionNode('p1')],
       };
 
-      getState().importArchitecture(JSON.stringify(minimal));
+      getState().importArchitecture(JSON.stringify(minimal), DEFAULT_PROVIDER);
 
       expect(getArch().name).toBe('Imported Architecture');
       expect(getArch().version).toBe('1');
@@ -2081,7 +2083,7 @@ describe('architectureStore', () => {
 
     it('returns error string on invalid JSON without crashing', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const result = getState().importArchitecture('not-valid-json');
+      const result = getState().importArchitecture('not-valid-json', DEFAULT_PROVIDER);
       expect(result).toBeTypeOf('string');
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
@@ -2089,7 +2091,10 @@ describe('architectureStore', () => {
 
     it('returns error string when plates/blocks are missing', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const result = getState().importArchitecture(JSON.stringify({ name: 'No data' }));
+      const result = getState().importArchitecture(
+        JSON.stringify({ name: 'No data' }),
+        DEFAULT_PROVIDER,
+      );
       expect(result).toBeTypeOf('string');
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
@@ -2102,7 +2107,7 @@ describe('architectureStore', () => {
         externalActors: { id: 'ext-1' },
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('externalActors must be an array');
@@ -2116,7 +2121,7 @@ describe('architectureStore', () => {
         externalActors: [{ name: 'Internet', type: 'internet' }],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('id must be a string');
@@ -2135,7 +2140,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(valid));
+      getState().importArchitecture(JSON.stringify(valid), DEFAULT_PROVIDER);
 
       expect(getArch().externalActors).toHaveLength(2);
       expect((getArch().externalActors ?? []).map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
@@ -2172,7 +2177,7 @@ describe('architectureStore', () => {
         connections: [connection],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(message);
@@ -2192,7 +2197,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
@@ -2229,7 +2234,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(valid));
+      getState().importArchitecture(JSON.stringify(valid), DEFAULT_PROVIDER);
 
       expect(getArch().connections).toHaveLength(2);
       expect(getArch().connections.map((connection) => connection.id)).toEqual(['c1', 'c2']);
@@ -2244,7 +2249,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
@@ -2262,7 +2267,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('name must be a string');
       spy.mockRestore();
     });
@@ -2278,7 +2283,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
         'category must be one of network, security, delivery, compute, data, messaging, identity, operations',
       );
@@ -2292,7 +2297,7 @@ describe('architectureStore', () => {
         externalActors: ['not-an-object'],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('external actor must be an object');
@@ -2306,7 +2311,7 @@ describe('architectureStore', () => {
         connections: ['not-an-object'],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('connection must be an object');
@@ -2326,7 +2331,7 @@ describe('architectureStore', () => {
         ],
       };
 
-      getState().importArchitecture(JSON.stringify(invalid));
+      getState().importArchitecture(JSON.stringify(invalid), DEFAULT_PROVIDER);
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
@@ -2347,7 +2352,7 @@ describe('architectureStore', () => {
         nodes: [makeRegionNode('p1')],
       };
 
-      const result = getState().importArchitecture(JSON.stringify(arch));
+      const result = getState().importArchitecture(JSON.stringify(arch), DEFAULT_PROVIDER);
 
       expect(result).toBeNull();
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
@@ -2362,7 +2367,7 @@ describe('architectureStore', () => {
         nodes: [makeRegionNode('p1')],
       };
 
-      const result = getState().importArchitecture(JSON.stringify(arch));
+      const result = getState().importArchitecture(JSON.stringify(arch), DEFAULT_PROVIDER);
 
       expect(result).toBeNull();
       const uiState = useUIStore.getState();
@@ -2412,7 +2417,7 @@ describe('architectureStore', () => {
       };
 
       const oldId = getState().workspace.id;
-      getState().loadFromTemplate(template);
+      getState().loadFromTemplate(template, DEFAULT_PROVIDER);
 
       expect(getState().workspace.id).not.toBe(oldId);
       expect(getState().workspace.name).toBe('Test Template');
@@ -2440,7 +2445,7 @@ describe('architectureStore', () => {
         },
       };
 
-      getState().loadFromTemplate(template);
+      getState().loadFromTemplate(template, DEFAULT_PROVIDER);
       expect(getState().canUndo).toBe(false);
     });
 
@@ -2468,7 +2473,7 @@ describe('architectureStore', () => {
         },
       };
 
-      getState().loadFromTemplate(template);
+      getState().loadFromTemplate(template, DEFAULT_PROVIDER);
 
       expect(getState().workspace.name).toBe('Fail Template');
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
@@ -2496,7 +2501,7 @@ describe('architectureStore', () => {
         },
       };
 
-      getState().loadFromTemplate(template);
+      getState().loadFromTemplate(template, DEFAULT_PROVIDER);
 
       const uiState = useUIStore.getState();
       expect(uiState.diffMode).toBe(true);

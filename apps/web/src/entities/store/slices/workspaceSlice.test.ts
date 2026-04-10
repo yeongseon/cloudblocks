@@ -14,6 +14,8 @@ vi.mock('uuid', () => ({
 import { useArchitectureStore } from '../architectureStore';
 import { useUIStore } from '../uiStore';
 
+const DEFAULT_PROVIDER = 'azure' as const;
+
 function getState() {
   return useArchitectureStore.getState();
 }
@@ -82,7 +84,7 @@ describe('workspaceSlice – setLastPrResult', () => {
   });
 
   it('does not modify current workspace when workspaceId does not match', () => {
-    getState().createWorkspace('Second');
+    getState().createWorkspace('Second', DEFAULT_PROVIDER);
     const secondId = getState().workspace.id;
     const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
 

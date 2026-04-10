@@ -8,6 +8,7 @@ import { promptDialog } from '../../shared/ui/PromptDialog';
 import './WorkspaceManager.css';
 
 export function WorkspaceManager() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const show = useUIStore((s) => s.showWorkspaceManager);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
 
@@ -32,7 +33,7 @@ export function WorkspaceManager() {
   const handleCreate = () => {
     const name = newName.trim();
     if (!name) return;
-    createWorkspace(name);
+    createWorkspace(name, activeProvider);
     syncWorkspaceUI();
     setNewName('');
   };

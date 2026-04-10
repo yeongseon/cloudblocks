@@ -237,7 +237,7 @@ export function MenuBar() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        const error = importArchitecture(text);
+        const error = importArchitecture(text, activeProvider);
         if (error) {
           toast.error(`Import failed: ${error}`);
         } else {

@@ -5,6 +5,7 @@ import { clearWorkspaceDiffUI } from '../../entities/store/uiSync';
 import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const containerCount = useArchitectureStore(
     (s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length,
   );
@@ -27,7 +28,7 @@ export function EmptyCanvasOverlay() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        importArchitecture(text);
+        importArchitecture(text, activeProvider);
         clearWorkspaceDiffUI();
       }
     };

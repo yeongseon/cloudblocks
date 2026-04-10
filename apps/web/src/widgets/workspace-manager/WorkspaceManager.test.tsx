@@ -69,7 +69,7 @@ describe('WorkspaceManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showWorkspaceManager: false });
+    useUIStore.setState({ showWorkspaceManager: false, activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-1', 'Default Workspace', 2, 1),
       workspaces: [makeWorkspace('ws-1', 'Default Workspace', 2, 1)],
@@ -122,7 +122,7 @@ describe('WorkspaceManager', () => {
     const input = screen.getByPlaceholderText('New workspace name...');
     await user.type(input, 'My New Workspace');
     await user.click(screen.getByText('+ Create'));
-    expect(createWorkspaceMock).toHaveBeenCalledWith('My New Workspace');
+    expect(createWorkspaceMock).toHaveBeenCalledWith('My New Workspace', 'azure');
   });
 
   it('creates workspace on Enter key', async () => {
@@ -131,7 +131,7 @@ describe('WorkspaceManager', () => {
     render(<WorkspaceManager />);
     const input = screen.getByPlaceholderText('New workspace name...');
     await user.type(input, 'Enter Workspace{Enter}');
-    expect(createWorkspaceMock).toHaveBeenCalledWith('Enter Workspace');
+    expect(createWorkspaceMock).toHaveBeenCalledWith('Enter Workspace', 'azure');
   });
 
   it('does not create workspace with empty name', async () => {
