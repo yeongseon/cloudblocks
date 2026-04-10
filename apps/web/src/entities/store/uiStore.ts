@@ -187,7 +187,6 @@ interface UIState {
   toggleResourceGuide: () => void;
   showValidation: boolean;
   toggleValidation: () => void;
-  showCodePreview: boolean;
   toggleCodePreview: () => void;
   showAdvancedGeneration: boolean;
   toggleAdvancedGeneration: () => void;
@@ -344,7 +343,6 @@ interface UIState {
 
 /** Keys that occupy the right-side panel slot — only one may be open. */
 const RIGHT_PANEL_KEYS = [
-  'showCodePreview',
   'showGitHubLogin',
   'showGitHubRepos',
   'showGitHubSync',
@@ -355,6 +353,27 @@ const RIGHT_PANEL_KEYS = [
 
 type RightPanelKey = (typeof RIGHT_PANEL_KEYS)[number];
 
+function getDrawerState(panel: DrawerPanelId | null): UIState['drawer'] {
+  return panel === null
+    ? { isOpen: false, activePanel: null }
+    : { isOpen: true, activePanel: panel };
+}
+
+function getInspectorDrawerPatch(
+  drawer: UIState['drawer'],
+  tab: InspectorTabId,
+): Pick<UIState, 'drawer'> | Record<string, never> {
+  if (tab === 'code') {
+    return { drawer: getDrawerState('code') };
+  }
+
+  if (drawer.activePanel === 'code') {
+    return { drawer: getDrawerState(null) };
+  }
+
+  return {};
+}
+
 /** Returns a partial state that closes every right panel except the given key. */
 function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
   const patch: Record<string, boolean> = {};
@@ -364,697 +383,671 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
   return patch as Partial<UIState>;
 }
 
-export const useUIStore = create<UIState>((set, get) => ({
-  appView: 'landing' as AppView,
-  setAppView: (view) => {
-    set({ appView: view });
-  },
-  goToLanding: () => {
-    set({ appView: 'landing' });
-  },
-  goToBuilder: () => {
-    set({ appView: 'builder' });
-  },
+export const useUIStore = create<UIState>((set, get) => {
+  const _setActivePanel = (panel: DrawerPanelId | null) => {
+    set({ drawer: getDrawerState(panel) });
+  };
 
-  selectedIds: new Set<string>(),
-  selectedId: null,
-  setSelectedId: (id) => {
-    const selectedIds = id !== null ? new Set([id]) : new Set<string>();
-    set({ selectedIds, selectedId: id });
-    if (id !== null) {
-      get().openDrawer('properties');
-    }
-  },
-  addToSelection: (id) => {
-    const next = new Set(get().selectedIds);
-    next.add(id);
-    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
-    set({ selectedIds: next, selectedId });
-    if (next.size === 1) {
-      get().openDrawer('properties');
-    }
-  },
-  removeFromSelection: (id) => {
-    const next = new Set(get().selectedIds);
-    next.delete(id);
-    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
-    set({ selectedIds: next, selectedId });
-  },
-  toggleSelection: (id) => {
-    const prev = get().selectedIds;
-    const next = new Set(prev);
-    if (prev.has(id)) {
-      next.delete(id);
-    } else {
+  return {
+    appView: 'landing' as AppView,
+    setAppView: (view) => {
+      set({ appView: view });
+    },
+    goToLanding: () => {
+      set({ appView: 'landing' });
+    },
+    goToBuilder: () => {
+      set({ appView: 'builder' });
+    },
+
+    selectedIds: new Set<string>(),
+    selectedId: null,
+    setSelectedId: (id) => {
+      const selectedIds = id !== null ? new Set([id]) : new Set<string>();
+      set({ selectedIds, selectedId: id });
+      if (id !== null) {
+        get().openDrawer('properties');
+      }
+    },
+    addToSelection: (id) => {
+      const next = new Set(get().selectedIds);
       next.add(id);
-    }
-    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
-    set({ selectedIds: next, selectedId });
-    if (next.size === 1) {
-      get().openDrawer('properties');
-    }
-  },
-  setSelectedIds: (ids) => {
-    const next = ids instanceof Set ? new Set(ids) : new Set(ids);
-    const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
-    set({ selectedIds: next, selectedId });
-    if (next.size === 1) {
-      get().openDrawer('properties');
-    }
-  },
-  clearSelection: () => {
-    set({ selectedIds: new Set(), selectedId: null });
-  },
+      const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+      set({ selectedIds: next, selectedId });
+      if (next.size === 1) {
+        get().openDrawer('properties');
+      }
+    },
+    removeFromSelection: (id) => {
+      const next = new Set(get().selectedIds);
+      next.delete(id);
+      const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+      set({ selectedIds: next, selectedId });
+    },
+    toggleSelection: (id) => {
+      const prev = get().selectedIds;
+      const next = new Set(prev);
+      if (prev.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+      set({ selectedIds: next, selectedId });
+      if (next.size === 1) {
+        get().openDrawer('properties');
+      }
+    },
+    setSelectedIds: (ids) => {
+      const next = ids instanceof Set ? new Set(ids) : new Set(ids);
+      const selectedId = next.size > 0 ? (next.values().next().value ?? null) : null;
+      set({ selectedIds: next, selectedId });
+      if (next.size === 1) {
+        get().openDrawer('properties');
+      }
+    },
+    clearSelection: () => {
+      set({ selectedIds: new Set(), selectedId: null });
+    },
 
-  toolMode: 'select',
-  setToolMode: (mode) => set({ toolMode: mode, connectionSource: null }),
+    toolMode: 'select',
+    setToolMode: (mode) => set({ toolMode: mode, connectionSource: null }),
 
-  activeProvider: 'azure',
-  setActiveProvider: (provider) => set({ activeProvider: provider }),
+    activeProvider: 'azure',
+    setActiveProvider: (provider) => set({ activeProvider: provider }),
 
-  connectionSource: null,
-  setConnectionSource: (id) => set({ connectionSource: id }),
+    connectionSource: null,
+    setConnectionSource: (id) => set({ connectionSource: id }),
 
-  interactionState: 'idle',
+    interactionState: 'idle',
 
-  startPlacing: (category, resourceName, resourceType, subtype) =>
-    set({
-      interactionState: 'placing',
-      draggedBlockCategory: category,
-      draggedResourceName: resourceName,
-      draggedResourceType: resourceType ?? null,
-      draggedSubtype: subtype ?? null,
-      toolMode: 'select',
-      connectionSource: null,
-    }),
+    startPlacing: (category, resourceName, resourceType, subtype) =>
+      set({
+        interactionState: 'placing',
+        draggedBlockCategory: category,
+        draggedResourceName: resourceName,
+        draggedResourceType: resourceType ?? null,
+        draggedSubtype: subtype ?? null,
+        toolMode: 'select',
+        connectionSource: null,
+      }),
 
-  startConnecting: (sourceId) =>
-    set({
-      interactionState: 'connecting',
-      connectionSource: sourceId,
-      toolMode: 'connect',
-      draggedBlockCategory: null,
-      draggedResourceName: null,
-    }),
+    startConnecting: (sourceId) =>
+      set({
+        interactionState: 'connecting',
+        connectionSource: sourceId,
+        toolMode: 'connect',
+        draggedBlockCategory: null,
+        draggedResourceName: null,
+      }),
 
-  startDragging: () =>
-    set({
-      interactionState: 'dragging',
-    }),
+    startDragging: () =>
+      set({
+        interactionState: 'dragging',
+      }),
 
-  startSelecting: () =>
-    set({
-      interactionState: 'selecting',
-    }),
+    startSelecting: () =>
+      set({
+        interactionState: 'selecting',
+      }),
 
-  cancelInteraction: () =>
-    set({
-      interactionState: 'idle',
-      connectionSource: null,
-      draggedBlockCategory: null,
-      draggedResourceName: null,
-      draggedResourceType: null,
-      draggedSubtype: null,
-      magneticSnapTargetId: null,
-    }),
+    cancelInteraction: () =>
+      set({
+        interactionState: 'idle',
+        connectionSource: null,
+        draggedBlockCategory: null,
+        draggedResourceName: null,
+        draggedResourceType: null,
+        draggedSubtype: null,
+        magneticSnapTargetId: null,
+      }),
 
-  completeInteraction: () =>
-    set({
-      interactionState: 'idle',
-      connectionSource: null,
-      draggedBlockCategory: null,
-      draggedResourceName: null,
-      draggedResourceType: null,
-      draggedSubtype: null,
-      magneticSnapTargetId: null,
-    }),
+    completeInteraction: () =>
+      set({
+        interactionState: 'idle',
+        connectionSource: null,
+        draggedBlockCategory: null,
+        draggedResourceName: null,
+        draggedResourceType: null,
+        draggedSubtype: null,
+        magneticSnapTargetId: null,
+      }),
 
-  draggedBlockCategory: null,
-  setDraggedBlockCategory: (category) => set({ draggedBlockCategory: category }),
-  draggedResourceName: null,
-  setDraggedResourceName: (name) => set({ draggedResourceName: name }),
-  draggedResourceType: null,
-  draggedSubtype: null,
-  cancelDrag: () =>
-    set({
-      draggedBlockCategory: null,
-      draggedResourceName: null,
-      draggedResourceType: null,
-      draggedSubtype: null,
-    }),
+    draggedBlockCategory: null,
+    setDraggedBlockCategory: (category) => set({ draggedBlockCategory: category }),
+    draggedResourceName: null,
+    setDraggedResourceName: (name) => set({ draggedResourceName: name }),
+    draggedResourceType: null,
+    draggedSubtype: null,
+    cancelDrag: () =>
+      set({
+        draggedBlockCategory: null,
+        draggedResourceName: null,
+        draggedResourceType: null,
+        draggedSubtype: null,
+      }),
 
-  showBlockPalette: true,
-  toggleBlockPalette: () => set((s) => ({ showBlockPalette: !s.showBlockPalette })),
+    showBlockPalette: true,
+    toggleBlockPalette: () => set((s) => ({ showBlockPalette: !s.showBlockPalette })),
 
-  showResourceGuide: true,
-  toggleResourceGuide: () => set((s) => ({ showResourceGuide: !s.showResourceGuide })),
+    showResourceGuide: true,
+    toggleResourceGuide: () => set((s) => ({ showResourceGuide: !s.showResourceGuide })),
 
-  showValidation: false,
-  toggleValidation: () =>
-    set((s) => ({
-      showValidation: !s.showValidation,
-      ...(!s.showValidation
-        ? { drawer: { isOpen: true, activePanel: 'validation' as const } }
-        : {}),
-    })),
+    showValidation: false,
+    toggleValidation: () =>
+      set((s) => ({
+        showValidation: !s.showValidation,
+        ...(!s.showValidation ? { drawer: getDrawerState('validation') } : {}),
+      })),
 
-  showCodePreview: false,
-  toggleCodePreview: () =>
-    set((s) => ({
-      showCodePreview: !s.showCodePreview,
-      ...(!s.showCodePreview
-        ? {
-            inspector: { isOpen: true, activeTab: 'code' as const },
-            drawer: { isOpen: true, activePanel: 'code' as const },
-          }
-        : {
-            inspector: { ...s.inspector, activeTab: 'properties' as const },
-            drawer:
-              s.drawer.activePanel === 'code' ? { isOpen: false, activePanel: null } : s.drawer,
-          }),
-    })),
+    toggleCodePreview: () => {
+      const isCodePanelActive = get().drawer.activePanel === 'code';
 
-  showAdvancedGeneration: false,
-  toggleAdvancedGeneration: () =>
-    set((s) => ({ showAdvancedGeneration: !s.showAdvancedGeneration })),
+      set((s) => ({
+        inspector: isCodePanelActive
+          ? { ...s.inspector, activeTab: 'properties' }
+          : { isOpen: true, activeTab: 'code' },
+        drawer: getDrawerState(isCodePanelActive ? null : 'code'),
+      }));
+    },
 
-  rightOverlay: null,
-  setRightOverlay: (overlay) =>
-    set({
-      rightOverlay: overlay,
-      showGitHubLogin: overlay === 'githubLogin',
-      showGitHubRepos: overlay === 'githubRepos',
-      showGitHubSync: overlay === 'githubSync',
-      showGitHubPR: overlay === 'githubPR',
-    }),
+    showAdvancedGeneration: false,
+    toggleAdvancedGeneration: () =>
+      set((s) => ({ showAdvancedGeneration: !s.showAdvancedGeneration })),
 
-  showWorkspaceManager: false,
-  toggleWorkspaceManager: () => set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
+    rightOverlay: null,
+    setRightOverlay: (overlay) =>
+      set({
+        rightOverlay: overlay,
+        showGitHubLogin: overlay === 'githubLogin',
+        showGitHubRepos: overlay === 'githubRepos',
+        showGitHubSync: overlay === 'githubSync',
+        showGitHubPR: overlay === 'githubPR',
+      }),
 
-  showGitHubLogin: false,
-  toggleGitHubLogin: () =>
-    set((s) => ({
-      showGitHubLogin: !s.showGitHubLogin,
-      showGitHubRepos: false,
-      showGitHubSync: false,
-      showGitHubPR: false,
-      rightOverlay: s.showGitHubLogin ? null : 'githubLogin',
-    })),
+    showWorkspaceManager: false,
+    toggleWorkspaceManager: () => set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
 
-  showGitHubRepos: false,
-  toggleGitHubRepos: () =>
-    set((s) => ({
-      showGitHubRepos: !s.showGitHubRepos,
-      showGitHubLogin: false,
-      showGitHubSync: false,
-      showGitHubPR: false,
-      rightOverlay: s.showGitHubRepos ? null : 'githubRepos',
-    })),
+    showGitHubLogin: false,
+    toggleGitHubLogin: () =>
+      set((s) => ({
+        showGitHubLogin: !s.showGitHubLogin,
+        showGitHubRepos: false,
+        showGitHubSync: false,
+        showGitHubPR: false,
+        rightOverlay: s.showGitHubLogin ? null : 'githubLogin',
+      })),
 
-  showGitHubSync: false,
-  toggleGitHubSync: () =>
-    set((s) => ({
-      showGitHubSync: !s.showGitHubSync,
-      showGitHubLogin: false,
-      showGitHubRepos: false,
-      showGitHubPR: false,
-      rightOverlay: s.showGitHubSync ? null : 'githubSync',
-    })),
+    showGitHubRepos: false,
+    toggleGitHubRepos: () =>
+      set((s) => ({
+        showGitHubRepos: !s.showGitHubRepos,
+        showGitHubLogin: false,
+        showGitHubSync: false,
+        showGitHubPR: false,
+        rightOverlay: s.showGitHubRepos ? null : 'githubRepos',
+      })),
 
-  showGitHubPR: false,
-  toggleGitHubPR: () =>
-    set((s) => ({
-      showGitHubPR: !s.showGitHubPR,
-      showGitHubLogin: false,
-      showGitHubRepos: false,
-      showGitHubSync: false,
-      rightOverlay: s.showGitHubPR ? null : 'githubPR',
-    })),
+    showGitHubSync: false,
+    toggleGitHubSync: () =>
+      set((s) => ({
+        showGitHubSync: !s.showGitHubSync,
+        showGitHubLogin: false,
+        showGitHubRepos: false,
+        showGitHubPR: false,
+        rightOverlay: s.showGitHubSync ? null : 'githubSync',
+      })),
 
-  showSuggestionsPanel: false,
-  toggleSuggestionsPanel: () =>
-    set((s) => ({
-      showSuggestionsPanel: !s.showSuggestionsPanel,
-      ...(!s.showSuggestionsPanel ? closeOtherRightPanels('showSuggestionsPanel') : {}),
-      ...(!s.showSuggestionsPanel ? { rightOverlay: null } : {}),
-    })),
+    showGitHubPR: false,
+    toggleGitHubPR: () =>
+      set((s) => ({
+        showGitHubPR: !s.showGitHubPR,
+        showGitHubLogin: false,
+        showGitHubRepos: false,
+        showGitHubSync: false,
+        rightOverlay: s.showGitHubPR ? null : 'githubPR',
+      })),
 
-  showCostPanel: false,
-  toggleCostPanel: () =>
-    set((s) => ({
-      showCostPanel: !s.showCostPanel,
-      ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
-      ...(!s.showCostPanel ? { rightOverlay: null } : {}),
-    })),
+    showSuggestionsPanel: false,
+    toggleSuggestionsPanel: () =>
+      set((s) => ({
+        showSuggestionsPanel: !s.showSuggestionsPanel,
+        ...(!s.showSuggestionsPanel ? closeOtherRightPanels('showSuggestionsPanel') : {}),
+        ...(!s.showSuggestionsPanel ? { rightOverlay: null } : {}),
+      })),
 
-  sidebar: { isOpen: true },
-  toggleSidebar: () => set((s) => ({ sidebar: { isOpen: !s.sidebar.isOpen } })),
-  setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
+    showCostPanel: false,
+    toggleCostPanel: () =>
+      set((s) => ({
+        showCostPanel: !s.showCostPanel,
+        ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
+        ...(!s.showCostPanel ? { rightOverlay: null } : {}),
+      })),
 
-  inspector: { isOpen: true, activeTab: 'properties' },
-  toggleInspector: () =>
-    set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
-  setInspectorOpen: (open) => set((s) => ({ inspector: { ...s.inspector, isOpen: open } })),
-  setInspectorTab: (tab) =>
-    set((s) => ({
-      inspector: { ...s.inspector, activeTab: tab },
-      showCodePreview: tab === 'code',
-      drawer:
-        tab === 'code'
-          ? { isOpen: true, activePanel: 'code' }
-          : s.drawer.activePanel === 'code'
-            ? { isOpen: false, activePanel: null }
-            : s.drawer,
-    })),
-  openInspectorTab: (tab) =>
-    set((s) => ({
-      inspector: { isOpen: true, activeTab: tab },
-      showCodePreview: tab === 'code',
-      drawer:
-        tab === 'code'
-          ? { isOpen: true, activePanel: 'code' }
-          : s.drawer.activePanel === 'code'
-            ? { isOpen: false, activePanel: null }
-            : s.drawer,
-    })),
+    sidebar: { isOpen: true },
+    toggleSidebar: () => set((s) => ({ sidebar: { isOpen: !s.sidebar.isOpen } })),
+    setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
 
-  // ── Right drawer ──
-  drawer: { isOpen: false, activePanel: null },
-  openDrawer: (panel) =>
-    set({
-      drawer: { isOpen: true, activePanel: panel },
-      showCodePreview: panel === 'code',
-    }),
-  closeDrawer: () =>
-    set((s) => ({
-      drawer: { isOpen: false, activePanel: null },
-      showCodePreview: s.drawer.activePanel === 'code' ? false : s.showCodePreview,
-    })),
-  toggleDrawer: (panel) =>
-    set((s) =>
-      s.drawer.isOpen && s.drawer.activePanel === panel
-        ? {
-            drawer: { isOpen: false, activePanel: null },
-            showCodePreview: panel === 'code' ? false : s.showCodePreview,
-          }
-        : { drawer: { isOpen: true, activePanel: panel }, showCodePreview: panel === 'code' },
-    ),
+    inspector: { isOpen: true, activeTab: 'properties' },
+    toggleInspector: () =>
+      set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
+    setInspectorOpen: (open) => set((s) => ({ inspector: { ...s.inspector, isOpen: open } })),
+    setInspectorTab: (tab) =>
+      set((s) => ({
+        inspector: { ...s.inspector, activeTab: tab },
+        ...getInspectorDrawerPatch(s.drawer, tab),
+      })),
+    openInspectorTab: (tab) =>
+      set((s) => ({
+        inspector: { isOpen: true, activeTab: tab },
+        ...getInspectorDrawerPatch(s.drawer, tab),
+      })),
 
-  activityLog: [],
-  appendLog: (entry) =>
-    set((s) => {
-      const newEntry: ActivityLogEntry = {
-        id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
-        ts: new Date().toISOString(),
-        ...entry,
-      };
-      const log = [...s.activityLog, newEntry];
-      return { activityLog: log.length > 200 ? log.slice(-200) : log };
-    }),
-  clearLog: () => set({ activityLog: [] }),
+    // ── Right drawer ──
+    drawer: { isOpen: false, activePanel: null },
+    openDrawer: (panel) => _setActivePanel(panel),
+    closeDrawer: () => _setActivePanel(null),
+    toggleDrawer: (panel) => {
+      const { drawer } = get();
+      _setActivePanel(drawer.isOpen && drawer.activePanel === panel ? null : panel);
+    },
 
-  backendStatus: 'unknown',
-  setBackendStatus: (status) => set({ backendStatus: status }),
-
-  editorMode: 'build',
-  setEditorMode: (mode) => set({ editorMode: mode }),
-
-  showLearningPanel: false,
-  toggleLearningPanel: () => set((s) => ({ showLearningPanel: !s.showLearningPanel })),
-  setShowLearningPanel: (show) => set({ showLearningPanel: show }),
-  showScenarioGallery: false,
-  toggleScenarioGallery: () => set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
-  setShowScenarioGallery: (show) => set({ showScenarioGallery: show }),
-
-  diffMode: false,
-  diffDelta: null,
-  diffVersion: 0,
-  diffBaseArchitecture: null,
-  setDiffMode: (mode, delta, base) =>
-    set((s) => ({
-      diffMode: mode,
-      diffDelta: delta ?? null,
-      diffBaseArchitecture: base ?? null,
-      diffVersion: s.diffVersion + 1,
-    })),
-  clearDiffState: () =>
-    set({
-      diffMode: false,
-      diffDelta: null,
-      diffBaseArchitecture: null,
-    }),
-
-  isSoundMuted: true,
-  toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
-
-  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'workshop',
-  setThemeVariant: (variant) => {
-    localStorage.setItem('cloudblocks:theme-variant', variant);
-    // Ports are always shown — theme does not affect port visibility
-    set({ themeVariant: variant });
-  },
-
-  showPorts: (() => {
-    // Migration: support old localStorage key 'cloudblocks:show-studs'
-    const oldStored = localStorage.getItem('cloudblocks:show-studs');
-    if (oldStored !== null) {
-      localStorage.setItem('cloudblocks:show-ports', oldStored);
-      localStorage.removeItem('cloudblocks:show-studs');
-      return oldStored === 'true';
-    }
-    const stored = localStorage.getItem('cloudblocks:show-ports');
-    if (stored !== null) return stored === 'true';
-    // Default to true: all blocks render port grids
-    return true;
-  })(),
-  togglePorts: () =>
-    set((s) => {
-      const next = !s.showPorts;
-      localStorage.setItem('cloudblocks:show-ports', String(next));
-      return { showPorts: next };
-    }),
-  setShowPorts: (show) => {
-    localStorage.setItem('cloudblocks:show-ports', String(show));
-    set({ showPorts: show });
-  },
-
-  gridStyle:
-    (localStorage.getItem('cloudblocks:grid-style') as 'paper' | 'dot' | 'none') || 'paper',
-  setGridStyle: (style) => {
-    localStorage.setItem('cloudblocks:grid-style', style);
-    set({ gridStyle: style });
-  },
-  cycleGridStyle: () =>
-    set((s) => {
-      const order: Array<'paper' | 'dot' | 'none'> = ['paper', 'dot', 'none'];
-      const next = order[(order.indexOf(s.gridStyle) + 1) % order.length];
-      localStorage.setItem('cloudblocks:grid-style', next);
-      return { gridStyle: next };
-    }),
-
-  pendingGitHubAction: readPendingGitHubAction(),
-  setPendingGitHubAction: (action) => {
-    writePendingGitHubAction(action);
-    set({ pendingGitHubAction: action });
-  },
-  pendingLinkRepo: null,
-  setPendingLinkRepo: (fullName) => set({ pendingLinkRepo: fullName }),
-
-  compareReviewPrefill: null,
-  setCompareReviewPrefill: (prefill) => set({ compareReviewPrefill: prefill }),
-
-  showOnboarding: !localStorage.getItem('cloudblocks:onboarding-completed'),
-  setShowOnboarding: (show) => set({ showOnboarding: show }),
-
-  complexityLevel: 'beginner',
-
-  upgradingBlockId: null,
-  triggerUpgradeAnimation: (blockId) => {
-    set({ upgradingBlockId: blockId });
-    setTimeout(() => {
-      set((s) => (s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s));
-    }, 1600);
-  },
-
-  snapTargetBlockIds: new Set<string>(),
-  triggerSnapAnimation: (blockId) => {
-    set((s) => {
-      const next = new Set(s.snapTargetBlockIds);
-      next.add(blockId);
-      return { snapTargetBlockIds: next };
-    });
-    setTimeout(() => {
+    activityLog: [],
+    appendLog: (entry) =>
       set((s) => {
-        if (!s.snapTargetBlockIds.has(blockId)) return s;
+        const newEntry: ActivityLogEntry = {
+          id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+          ts: new Date().toISOString(),
+          ...entry,
+        };
+        const log = [...s.activityLog, newEntry];
+        return { activityLog: log.length > 200 ? log.slice(-200) : log };
+      }),
+    clearLog: () => set({ activityLog: [] }),
+
+    backendStatus: 'unknown',
+    setBackendStatus: (status) => set({ backendStatus: status }),
+
+    editorMode: 'build',
+    setEditorMode: (mode) => set({ editorMode: mode }),
+
+    showLearningPanel: false,
+    toggleLearningPanel: () => set((s) => ({ showLearningPanel: !s.showLearningPanel })),
+    setShowLearningPanel: (show) => set({ showLearningPanel: show }),
+    showScenarioGallery: false,
+    toggleScenarioGallery: () => set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
+    setShowScenarioGallery: (show) => set({ showScenarioGallery: show }),
+
+    diffMode: false,
+    diffDelta: null,
+    diffVersion: 0,
+    diffBaseArchitecture: null,
+    setDiffMode: (mode, delta, base) =>
+      set((s) => ({
+        diffMode: mode,
+        diffDelta: delta ?? null,
+        diffBaseArchitecture: base ?? null,
+        diffVersion: s.diffVersion + 1,
+      })),
+    clearDiffState: () =>
+      set({
+        diffMode: false,
+        diffDelta: null,
+        diffBaseArchitecture: null,
+      }),
+
+    isSoundMuted: true,
+    toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+    themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'workshop',
+    setThemeVariant: (variant) => {
+      localStorage.setItem('cloudblocks:theme-variant', variant);
+      // Ports are always shown — theme does not affect port visibility
+      set({ themeVariant: variant });
+    },
+
+    showPorts: (() => {
+      // Migration: support old localStorage key 'cloudblocks:show-studs'
+      const oldStored = localStorage.getItem('cloudblocks:show-studs');
+      if (oldStored !== null) {
+        localStorage.setItem('cloudblocks:show-ports', oldStored);
+        localStorage.removeItem('cloudblocks:show-studs');
+        return oldStored === 'true';
+      }
+      const stored = localStorage.getItem('cloudblocks:show-ports');
+      if (stored !== null) return stored === 'true';
+      // Default to true: all blocks render port grids
+      return true;
+    })(),
+    togglePorts: () =>
+      set((s) => {
+        const next = !s.showPorts;
+        localStorage.setItem('cloudblocks:show-ports', String(next));
+        return { showPorts: next };
+      }),
+    setShowPorts: (show) => {
+      localStorage.setItem('cloudblocks:show-ports', String(show));
+      set({ showPorts: show });
+    },
+
+    gridStyle:
+      (localStorage.getItem('cloudblocks:grid-style') as 'paper' | 'dot' | 'none') || 'paper',
+    setGridStyle: (style) => {
+      localStorage.setItem('cloudblocks:grid-style', style);
+      set({ gridStyle: style });
+    },
+    cycleGridStyle: () =>
+      set((s) => {
+        const order: Array<'paper' | 'dot' | 'none'> = ['paper', 'dot', 'none'];
+        const next = order[(order.indexOf(s.gridStyle) + 1) % order.length];
+        localStorage.setItem('cloudblocks:grid-style', next);
+        return { gridStyle: next };
+      }),
+
+    pendingGitHubAction: readPendingGitHubAction(),
+    setPendingGitHubAction: (action) => {
+      writePendingGitHubAction(action);
+      set({ pendingGitHubAction: action });
+    },
+    pendingLinkRepo: null,
+    setPendingLinkRepo: (fullName) => set({ pendingLinkRepo: fullName }),
+
+    compareReviewPrefill: null,
+    setCompareReviewPrefill: (prefill) => set({ compareReviewPrefill: prefill }),
+
+    showOnboarding: !localStorage.getItem('cloudblocks:onboarding-completed'),
+    setShowOnboarding: (show) => set({ showOnboarding: show }),
+
+    complexityLevel: 'beginner',
+
+    upgradingBlockId: null,
+    triggerUpgradeAnimation: (blockId) => {
+      set({ upgradingBlockId: blockId });
+      setTimeout(() => {
+        set((s) => (s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s));
+      }, 1600);
+    },
+
+    snapTargetBlockIds: new Set<string>(),
+    triggerSnapAnimation: (blockId) => {
+      set((s) => {
         const next = new Set(s.snapTargetBlockIds);
-        next.delete(blockId);
+        next.add(blockId);
         return { snapTargetBlockIds: next };
       });
-    }, 500);
-  },
+      setTimeout(() => {
+        set((s) => {
+          if (!s.snapTargetBlockIds.has(blockId)) return s;
+          const next = new Set(s.snapTargetBlockIds);
+          next.delete(blockId);
+          return { snapTargetBlockIds: next };
+        });
+      }, 500);
+    },
 
-  magneticSnapTargetId: null,
-  setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
+    magneticSnapTargetId: null,
+    setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
 
-  labelModeOverride: 'auto',
-  canvasZoom: 0.85,
-  effectiveLabelMode: computeAutoLabelMode(0.85, 'learning'),
-  labelMode: computeAutoLabelMode(0.85, 'learning'),
-  setLabelModeOverride: (mode) =>
-    set((s) => {
-      const effectiveLabelMode = computeEffectiveLabelMode(
-        mode,
-        s.canvasZoom,
-        s.effectiveLabelMode,
-      );
-      return {
+    labelModeOverride: 'auto',
+    canvasZoom: 0.85,
+    effectiveLabelMode: computeAutoLabelMode(0.85, 'learning'),
+    labelMode: computeAutoLabelMode(0.85, 'learning'),
+    setLabelModeOverride: (mode) =>
+      set((s) => {
+        const effectiveLabelMode = computeEffectiveLabelMode(
+          mode,
+          s.canvasZoom,
+          s.effectiveLabelMode,
+        );
+        return {
+          labelModeOverride: mode,
+          effectiveLabelMode,
+          labelMode: effectiveLabelMode,
+        };
+      }),
+    setCanvasZoom: (zoom) =>
+      set((s) => {
+        const effectiveLabelMode = computeEffectiveLabelMode(
+          s.labelModeOverride,
+          zoom,
+          s.effectiveLabelMode,
+        );
+        return {
+          canvasZoom: zoom,
+          effectiveLabelMode,
+          labelMode: effectiveLabelMode,
+        };
+      }),
+    fitToContentRequested: false,
+    requestFitToContent: () => set({ fitToContentRequested: true }),
+    clearFitToContentRequest: () => set({ fitToContentRequested: false }),
+    setLabelMode: (mode) =>
+      set({
         labelModeOverride: mode,
-        effectiveLabelMode,
-        labelMode: effectiveLabelMode,
-      };
-    }),
-  setCanvasZoom: (zoom) =>
-    set((s) => {
-      const effectiveLabelMode = computeEffectiveLabelMode(
-        s.labelModeOverride,
-        zoom,
-        s.effectiveLabelMode,
-      );
-      return {
-        canvasZoom: zoom,
-        effectiveLabelMode,
-        labelMode: effectiveLabelMode,
-      };
-    }),
-  fitToContentRequested: false,
-  requestFitToContent: () => set({ fitToContentRequested: true }),
-  clearFitToContentRequest: () => set({ fitToContentRequested: false }),
-  setLabelMode: (mode) =>
-    set({
-      labelModeOverride: mode,
-      effectiveLabelMode: mode,
-      labelMode: mode,
-    }),
-  cycleLabelMode: () => {
-    const order: Array<LabelMode | 'auto'> = ['auto', 'compact', 'learning', 'inspect'];
-    const current = get().labelModeOverride;
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    set((s) => {
-      const effectiveLabelMode = computeEffectiveLabelMode(
-        next,
-        s.canvasZoom,
-        s.effectiveLabelMode,
-      );
-      return {
-        labelModeOverride: next,
-        effectiveLabelMode,
-        labelMode: effectiveLabelMode,
-      };
-    });
-  },
+        effectiveLabelMode: mode,
+        labelMode: mode,
+      }),
+    cycleLabelMode: () => {
+      const order: Array<LabelMode | 'auto'> = ['auto', 'compact', 'learning', 'inspect'];
+      const current = get().labelModeOverride;
+      const next = order[(order.indexOf(current) + 1) % order.length];
+      set((s) => {
+        const effectiveLabelMode = computeEffectiveLabelMode(
+          next,
+          s.canvasZoom,
+          s.effectiveLabelMode,
+        );
+        return {
+          labelModeOverride: next,
+          effectiveLabelMode,
+          labelMode: effectiveLabelMode,
+        };
+      });
+    },
 
-  // ── Block status overlay (#1591) ──
-  blockStatuses: new Map<string, BlockStatus>(),
-  setBlockStatus: (blockId, status) => {
-    set((s) => {
-      const next = new Map(s.blockStatuses);
-      next.set(blockId, { ...next.get(blockId), ...status });
-      return { blockStatuses: next };
-    });
-  },
-  clearBlockStatus: (blockId) => {
-    set((s) => {
-      const next = new Map(s.blockStatuses);
-      next.delete(blockId);
-      return { blockStatuses: next };
-    });
-  },
+    // ── Block status overlay (#1591) ──
+    blockStatuses: new Map<string, BlockStatus>(),
+    setBlockStatus: (blockId, status) => {
+      set((s) => {
+        const next = new Map(s.blockStatuses);
+        next.set(blockId, { ...next.get(blockId), ...status });
+        return { blockStatuses: next };
+      });
+    },
+    clearBlockStatus: (blockId) => {
+      set((s) => {
+        const next = new Map(s.blockStatuses);
+        next.delete(blockId);
+        return { blockStatuses: next };
+      });
+    },
 
-  showPromoteDialog: false,
-  promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST },
-  promoting: false,
-  promotionError: null,
-  showRollbackDialog: false,
-  availableVersions: [],
-  selectedRollbackVersion: null,
-  rollingBack: false,
-  rollbackError: null,
-  promotionHistory: [],
-  rollbackHistory: [],
-  showPromoteHistory: false,
-  loadingHistory: false,
-  togglePromoteDialog: () => set((s) => ({ showPromoteDialog: !s.showPromoteDialog })),
-  setShowPromoteDialog: (show) => set({ showPromoteDialog: show }),
-  updateChecklist: (key, value) =>
-    set((s) => ({
-      promotionChecklist: { ...s.promotionChecklist, [key]: value },
-    })),
-  resetChecklist: () => set({ promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST } }),
-  promote: async (imageTag) => {
-    set({ promoting: true, promotionError: null });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const record: PromotionRecord = {
-        id: generatePromotionId(),
-        fromEnvironment: 'staging',
-        toEnvironment: 'production',
-        imageTag,
-        commitSha: 'abc1234',
-        commitMessage: `Promote ${imageTag} to production`,
-        promotedBy: 'current-user',
-        promotedAt: new Date().toISOString(),
-        status: 'success',
-      };
+    showPromoteDialog: false,
+    promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST },
+    promoting: false,
+    promotionError: null,
+    showRollbackDialog: false,
+    availableVersions: [],
+    selectedRollbackVersion: null,
+    rollingBack: false,
+    rollbackError: null,
+    promotionHistory: [],
+    rollbackHistory: [],
+    showPromoteHistory: false,
+    loadingHistory: false,
+    togglePromoteDialog: () => set((s) => ({ showPromoteDialog: !s.showPromoteDialog })),
+    setShowPromoteDialog: (show) => set({ showPromoteDialog: show }),
+    updateChecklist: (key, value) =>
       set((s) => ({
-        promoting: false,
-        promotionHistory: [record, ...s.promotionHistory],
-        promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST },
-        showPromoteDialog: false,
-      }));
-    } catch {
-      set({ promoting: false, promotionError: 'Promotion failed. Please try again.' });
-    }
-  },
-  toggleRollbackDialog: () => set((s) => ({ showRollbackDialog: !s.showRollbackDialog })),
-  setShowRollbackDialog: (show) => set({ showRollbackDialog: show }),
-  selectRollbackVersion: (version) => set({ selectedRollbackVersion: version }),
-  loadAvailableVersions: async () => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const versions: DeploymentVersion[] = [
-        {
-          imageTag: 'v1.4.2-sha-e3f9a01',
-          commitSha: 'e3f9a01',
-          commitMessage: 'fix: resolve memory leak in worker pool',
-          deployedAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
-          environment: 'production',
-        },
-        {
-          imageTag: 'v1.4.1-sha-b7c2d44',
-          commitSha: 'b7c2d44',
-          commitMessage: 'feat: add rate limiting to API gateway',
-          deployedAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
-          environment: 'production',
-        },
-        {
-          imageTag: 'v1.4.0-sha-91a8f33',
-          commitSha: '91a8f33',
-          commitMessage: 'feat: implement batch processing endpoint',
-          deployedAt: new Date(Date.now() - 72 * 3600_000).toISOString(),
-          environment: 'production',
-        },
-        {
-          imageTag: 'v1.3.9-sha-4de56cc',
-          commitSha: '4de56cc',
-          commitMessage: 'fix: correct timezone handling in scheduler',
-          deployedAt: new Date(Date.now() - 168 * 3600_000).toISOString(),
-          environment: 'production',
-        },
-        {
-          imageTag: 'v1.3.8-sha-f0a12bb',
-          commitSha: 'f0a12bb',
-          commitMessage: 'chore: upgrade database driver to v3.2',
-          deployedAt: new Date(Date.now() - 336 * 3600_000).toISOString(),
-          environment: 'production',
-        },
-      ];
-      set({ availableVersions: versions });
-    } catch {
-      set({ rollbackError: 'Failed to load available versions.' });
-    }
-  },
-  rollback: async (version, reason) => {
-    set({ rollingBack: true, rollbackError: null });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const record: RollbackRecord = {
-        id: generatePromotionId(),
-        environment: 'production',
-        fromImageTag: 'v1.4.3-sha-abc1234',
-        toImageTag: version.imageTag,
-        reason,
-        rolledBackBy: 'current-user',
-        rolledBackAt: new Date().toISOString(),
-        status: 'success',
-      };
-      set((s) => ({
-        rollingBack: false,
-        rollbackHistory: [record, ...s.rollbackHistory],
-        selectedRollbackVersion: null,
-        showRollbackDialog: false,
-      }));
-    } catch {
-      set({ rollingBack: false, rollbackError: 'Rollback failed. Please try again.' });
-    }
-  },
-  togglePromoteHistory: () => set((s) => ({ showPromoteHistory: !s.showPromoteHistory })),
-  loadHistory: async () => {
-    set({ loadingHistory: true });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const promotions: PromotionRecord[] = [
-        {
-          id: 'hist-p1',
+        promotionChecklist: { ...s.promotionChecklist, [key]: value },
+      })),
+    resetChecklist: () => set({ promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST } }),
+    promote: async (imageTag) => {
+      set({ promoting: true, promotionError: null });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const record: PromotionRecord = {
+          id: generatePromotionId(),
           fromEnvironment: 'staging',
           toEnvironment: 'production',
-          imageTag: 'v1.4.3-sha-abc1234',
+          imageTag,
           commitSha: 'abc1234',
-          commitMessage: 'feat: add dashboard widgets',
-          promotedBy: 'alice',
-          promotedAt: new Date(Date.now() - 3600_000).toISOString(),
+          commitMessage: `Promote ${imageTag} to production`,
+          promotedBy: 'current-user',
+          promotedAt: new Date().toISOString(),
           status: 'success',
-        },
-        {
-          id: 'hist-p2',
-          fromEnvironment: 'staging',
-          toEnvironment: 'production',
-          imageTag: 'v1.4.2-sha-e3f9a01',
-          commitSha: 'e3f9a01',
-          commitMessage: 'fix: resolve memory leak in worker pool',
-          promotedBy: 'bob',
-          promotedAt: new Date(Date.now() - 86400_000).toISOString(),
-          status: 'success',
-        },
-        {
-          id: 'hist-p3',
-          fromEnvironment: 'staging',
-          toEnvironment: 'production',
-          imageTag: 'v1.4.1-sha-b7c2d44',
-          commitSha: 'b7c2d44',
-          commitMessage: 'feat: add rate limiting to API gateway',
-          promotedBy: 'alice',
-          promotedAt: new Date(Date.now() - 172800_000).toISOString(),
-          status: 'failed',
-        },
-      ];
-      const rollbacks: RollbackRecord[] = [
-        {
-          id: 'hist-r1',
+        };
+        set((s) => ({
+          promoting: false,
+          promotionHistory: [record, ...s.promotionHistory],
+          promotionChecklist: { ...DEFAULT_PROMOTION_CHECKLIST },
+          showPromoteDialog: false,
+        }));
+      } catch {
+        set({ promoting: false, promotionError: 'Promotion failed. Please try again.' });
+      }
+    },
+    toggleRollbackDialog: () => set((s) => ({ showRollbackDialog: !s.showRollbackDialog })),
+    setShowRollbackDialog: (show) => set({ showRollbackDialog: show }),
+    selectRollbackVersion: (version) => set({ selectedRollbackVersion: version }),
+    loadAvailableVersions: async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const versions: DeploymentVersion[] = [
+          {
+            imageTag: 'v1.4.2-sha-e3f9a01',
+            commitSha: 'e3f9a01',
+            commitMessage: 'fix: resolve memory leak in worker pool',
+            deployedAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
+            environment: 'production',
+          },
+          {
+            imageTag: 'v1.4.1-sha-b7c2d44',
+            commitSha: 'b7c2d44',
+            commitMessage: 'feat: add rate limiting to API gateway',
+            deployedAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
+            environment: 'production',
+          },
+          {
+            imageTag: 'v1.4.0-sha-91a8f33',
+            commitSha: '91a8f33',
+            commitMessage: 'feat: implement batch processing endpoint',
+            deployedAt: new Date(Date.now() - 72 * 3600_000).toISOString(),
+            environment: 'production',
+          },
+          {
+            imageTag: 'v1.3.9-sha-4de56cc',
+            commitSha: '4de56cc',
+            commitMessage: 'fix: correct timezone handling in scheduler',
+            deployedAt: new Date(Date.now() - 168 * 3600_000).toISOString(),
+            environment: 'production',
+          },
+          {
+            imageTag: 'v1.3.8-sha-f0a12bb',
+            commitSha: 'f0a12bb',
+            commitMessage: 'chore: upgrade database driver to v3.2',
+            deployedAt: new Date(Date.now() - 336 * 3600_000).toISOString(),
+            environment: 'production',
+          },
+        ];
+        set({ availableVersions: versions });
+      } catch {
+        set({ rollbackError: 'Failed to load available versions.' });
+      }
+    },
+    rollback: async (version, reason) => {
+      set({ rollingBack: true, rollbackError: null });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const record: RollbackRecord = {
+          id: generatePromotionId(),
           environment: 'production',
-          fromImageTag: 'v1.4.1-sha-b7c2d44',
-          toImageTag: 'v1.4.0-sha-91a8f33',
-          reason: 'Rate limiter caused 502 errors under load',
-          rolledBackBy: 'bob',
-          rolledBackAt: new Date(Date.now() - 162000_000).toISOString(),
+          fromImageTag: 'v1.4.3-sha-abc1234',
+          toImageTag: version.imageTag,
+          reason,
+          rolledBackBy: 'current-user',
+          rolledBackAt: new Date().toISOString(),
           status: 'success',
-        },
-        {
-          id: 'hist-r2',
-          environment: 'production',
-          fromImageTag: 'v1.3.5-sha-dd00ee1',
-          toImageTag: 'v1.3.4-sha-cc99ff2',
-          reason: 'Database migration timeout in production',
-          rolledBackBy: 'alice',
-          rolledBackAt: new Date(Date.now() - 604800_000).toISOString(),
-          status: 'success',
-        },
-      ];
-      set({ promotionHistory: promotions, rollbackHistory: rollbacks, loadingHistory: false });
-    } catch {
-      set({ loadingHistory: false });
-    }
-  },
-}));
+        };
+        set((s) => ({
+          rollingBack: false,
+          rollbackHistory: [record, ...s.rollbackHistory],
+          selectedRollbackVersion: null,
+          showRollbackDialog: false,
+        }));
+      } catch {
+        set({ rollingBack: false, rollbackError: 'Rollback failed. Please try again.' });
+      }
+    },
+    togglePromoteHistory: () => set((s) => ({ showPromoteHistory: !s.showPromoteHistory })),
+    loadHistory: async () => {
+      set({ loadingHistory: true });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const promotions: PromotionRecord[] = [
+          {
+            id: 'hist-p1',
+            fromEnvironment: 'staging',
+            toEnvironment: 'production',
+            imageTag: 'v1.4.3-sha-abc1234',
+            commitSha: 'abc1234',
+            commitMessage: 'feat: add dashboard widgets',
+            promotedBy: 'alice',
+            promotedAt: new Date(Date.now() - 3600_000).toISOString(),
+            status: 'success',
+          },
+          {
+            id: 'hist-p2',
+            fromEnvironment: 'staging',
+            toEnvironment: 'production',
+            imageTag: 'v1.4.2-sha-e3f9a01',
+            commitSha: 'e3f9a01',
+            commitMessage: 'fix: resolve memory leak in worker pool',
+            promotedBy: 'bob',
+            promotedAt: new Date(Date.now() - 86400_000).toISOString(),
+            status: 'success',
+          },
+          {
+            id: 'hist-p3',
+            fromEnvironment: 'staging',
+            toEnvironment: 'production',
+            imageTag: 'v1.4.1-sha-b7c2d44',
+            commitSha: 'b7c2d44',
+            commitMessage: 'feat: add rate limiting to API gateway',
+            promotedBy: 'alice',
+            promotedAt: new Date(Date.now() - 172800_000).toISOString(),
+            status: 'failed',
+          },
+        ];
+        const rollbacks: RollbackRecord[] = [
+          {
+            id: 'hist-r1',
+            environment: 'production',
+            fromImageTag: 'v1.4.1-sha-b7c2d44',
+            toImageTag: 'v1.4.0-sha-91a8f33',
+            reason: 'Rate limiter caused 502 errors under load',
+            rolledBackBy: 'bob',
+            rolledBackAt: new Date(Date.now() - 162000_000).toISOString(),
+            status: 'success',
+          },
+          {
+            id: 'hist-r2',
+            environment: 'production',
+            fromImageTag: 'v1.3.5-sha-dd00ee1',
+            toImageTag: 'v1.3.4-sha-cc99ff2',
+            reason: 'Database migration timeout in production',
+            rolledBackBy: 'alice',
+            rolledBackAt: new Date(Date.now() - 604800_000).toISOString(),
+            status: 'success',
+          },
+        ];
+        set({ promotionHistory: promotions, rollbackHistory: rollbacks, loadingHistory: false });
+      } catch {
+        set({ loadingHistory: false });
+      }
+    },
+  };
+});
 
 // One-time cleanup of legacy persona localStorage key
 if (typeof window !== 'undefined') {

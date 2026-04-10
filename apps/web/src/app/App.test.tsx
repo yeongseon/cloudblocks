@@ -86,7 +86,7 @@ describe('App', () => {
       setDiffMode: defaultSetDiffMode,
       draggedBlockCategory: null,
       diffMode: false,
-      showCodePreview: true,
+      drawer: { isOpen: true, activePanel: 'code' },
       showWorkspaceManager: true,
       showGitHubLogin: true,
       showGitHubRepos: true,

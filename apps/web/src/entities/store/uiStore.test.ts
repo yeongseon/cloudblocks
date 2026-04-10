@@ -21,7 +21,6 @@ describe('useUIStore', () => {
       showBlockPalette: true,
       showResourceGuide: true,
       showValidation: false,
-      showCodePreview: false,
       showAdvancedGeneration: false,
       showWorkspaceManager: false,
 
@@ -34,6 +33,7 @@ describe('useUIStore', () => {
       showCostPanel: false,
       sidebar: { isOpen: true },
       inspector: { isOpen: true, activeTab: 'properties' },
+      drawer: { isOpen: false, activePanel: null },
       rightOverlay: null,
       activityLog: [],
       activeProvider: 'azure',
@@ -63,7 +63,7 @@ describe('useUIStore', () => {
       expect(state.showBlockPalette).toBe(true);
       expect(state.showResourceGuide).toBe(true);
       expect(state.showValidation).toBe(false);
-      expect(state.showCodePreview).toBe(false);
+      expect(state.drawer.activePanel === 'code').toBe(false);
       expect(state.showAdvancedGeneration).toBe(false);
       expect(state.showWorkspaceManager).toBe(false);
 
@@ -209,12 +209,12 @@ describe('useUIStore', () => {
     it('setInspectorTab updates active tab and code preview visibility', () => {
       useUIStore.getState().setInspectorTab('code');
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
 
       useUIStore.getState().setInspectorTab('connections');
       expect(useUIStore.getState().inspector.activeTab).toBe('connections');
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
@@ -223,70 +223,65 @@ describe('useUIStore', () => {
       useUIStore.getState().openInspectorTab('code');
 
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
 
     it('setInspectorTab preserves non-code drawer state when switching away from code without code drawer', () => {
       useUIStore.setState({
         drawer: { isOpen: true, activePanel: 'validation' },
-        showCodePreview: true,
         inspector: { isOpen: true, activeTab: 'code' },
       });
 
       useUIStore.getState().setInspectorTab('connections');
 
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
     });
 
     it('setInspectorTab opens the code drawer from another drawer', () => {
       useUIStore.setState({
         drawer: { isOpen: true, activePanel: 'validation' },
-        showCodePreview: false,
       });
 
       useUIStore.getState().setInspectorTab('code');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
     });
 
     it('openInspectorTab closes the code drawer when opening a non-code tab', () => {
       useUIStore.setState({
         drawer: { isOpen: true, activePanel: 'code' },
-        showCodePreview: true,
       });
 
       useUIStore.getState().openInspectorTab('properties');
 
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('openInspectorTab opens the code drawer from another drawer', () => {
       useUIStore.setState({
         drawer: { isOpen: true, activePanel: 'validation' },
-        showCodePreview: false,
       });
 
       useUIStore.getState().openInspectorTab('code');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
     });
 
     it('openInspectorTab preserves non-code drawer state when opening a non-code tab', () => {
       useUIStore.setState({
         drawer: { isOpen: true, activePanel: 'validation' },
-        showCodePreview: false,
       });
 
       useUIStore.getState().openInspectorTab('properties');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
   });
 
@@ -1037,72 +1032,70 @@ describe('useUIStore', () => {
   });
 
   describe('toggleCodePreview', () => {
-    it('should toggle showCodePreview from false to true', () => {
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+    it('should toggle code preview from closed to open', () => {
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
       expect(useUIStore.getState().inspector.activeTab).toBe('code');
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
 
-    it('should toggle showCodePreview back from true to false', () => {
+    it('should toggle code preview back from open to closed', () => {
       useUIStore.getState().toggleCodePreview();
       useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       expect(useUIStore.getState().inspector.activeTab).toBe('properties');
       expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
     });
 
     it('should toggle multiple times correctly', () => {
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
       useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
       useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
     it('opens inspector code tab when toggled on', () => {
       useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
 
-    it('keeps an unrelated drawer open when toggling code preview off', () => {
+    it('uses the drawer state as the source of truth when inspector and drawer are out of sync', () => {
       useUIStore.setState({
-        showCodePreview: true,
         inspector: { isOpen: true, activeTab: 'code' },
         drawer: { isOpen: true, activePanel: 'validation' },
       });
 
       useUIStore.getState().toggleCodePreview();
 
-      expect(useUIStore.getState().showCodePreview).toBe(false);
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
-      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
     });
   });
 
   describe('drawer and code preview sync', () => {
     it('openDrawer clears code preview visibility for non-code panels', () => {
-      useUIStore.setState({ showCodePreview: true });
+      useUIStore.setState({ drawer: { isOpen: true, activePanel: 'code' } });
 
       useUIStore.getState().openDrawer('properties');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'properties' });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
-    it('closeDrawer preserves code preview visibility when a non-code panel closes', () => {
+    it('closeDrawer clears the active panel when a non-code panel closes', () => {
       useUIStore.setState({
-        showCodePreview: true,
         drawer: { isOpen: true, activePanel: 'validation' },
       });
 
       useUIStore.getState().closeDrawer();
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
     it('toggleDrawer closes the code panel and clears code preview visibility', () => {
@@ -1111,7 +1104,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleDrawer('code');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: false, activePanel: null });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
     it('toggleDrawer switching from code to another panel clears code preview visibility', () => {
@@ -1120,16 +1113,16 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleDrawer('properties');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'properties' });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
     it('toggleDrawer opening a non-code panel clears code preview visibility', () => {
-      useUIStore.setState({ showCodePreview: true });
+      useUIStore.setState({ drawer: { isOpen: true, activePanel: 'code' } });
 
       useUIStore.getState().toggleDrawer('validation');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
     });
 
     it('toggleDrawer opening the code panel from another panel enables code preview visibility', () => {
@@ -1138,7 +1131,7 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleDrawer('code');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
     });
 
     it('openDrawer opening the code panel from another panel enables code preview visibility', () => {
@@ -1147,7 +1140,7 @@ describe('useUIStore', () => {
       useUIStore.getState().openDrawer('code');
 
       expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'code' });
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel === 'code').toBe(true);
     });
   });
 

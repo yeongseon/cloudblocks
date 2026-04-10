@@ -76,10 +76,10 @@ describe('CodePreview', () => {
 
   it('closes code preview when close button clicked', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showCodePreview: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'code' } });
     render(<CodePreview />);
     await user.click(screen.getByRole('button', { name: 'Close code preview panel' }));
-    expect(useUIStore.getState().showCodePreview).toBe(false);
+    expect(useUIStore.getState().drawer.activePanel === 'code').toBe(false);
   });
 
   it('renders project and region input fields', () => {

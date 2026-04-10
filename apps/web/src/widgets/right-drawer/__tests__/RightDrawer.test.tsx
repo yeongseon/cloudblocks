@@ -83,7 +83,7 @@ describe('RightDrawer', () => {
     render(<RightDrawer />);
 
     expect(await screen.findByText('⚡ Code Generation')).toBeInTheDocument();
-    expect(useUIStore.getState().showCodePreview).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('code');
   });
 
   it('hides CodePreview when the code panel is inactive', async () => {
@@ -194,7 +194,6 @@ describe('uiStore drawer actions', () => {
 
     const state = useUIStore.getState();
     expect(state.drawer).toEqual({ isOpen: true, activePanel: 'code' });
-    expect(state.showCodePreview).toBe(true);
   });
 
   it('closeDrawer resets state', () => {
@@ -212,7 +211,6 @@ describe('uiStore drawer actions', () => {
 
     const state = useUIStore.getState();
     expect(state.drawer).toEqual({ isOpen: false, activePanel: null });
-    expect(state.showCodePreview).toBe(false);
   });
 
   it('toggleDrawer opens when closed', () => {

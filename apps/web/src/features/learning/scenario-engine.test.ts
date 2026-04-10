@@ -62,7 +62,6 @@ function resetUIStore(): void {
     showBlockPalette: true,
     showResourceGuide: true,
     showValidation: false,
-    showCodePreview: false,
     showWorkspaceManager: false,
 
     showGitHubLogin: false,

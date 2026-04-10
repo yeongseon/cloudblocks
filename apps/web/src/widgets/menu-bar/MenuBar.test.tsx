@@ -140,7 +140,6 @@ describe('MenuBar', () => {
       toolMode: 'select',
       showValidation: false,
       showResourceGuide: true,
-      showCodePreview: false,
       showWorkspaceManager: false,
 
       showGitHubLogin: false,
@@ -579,7 +578,7 @@ describe('MenuBar', () => {
 
     dropdown = await openOverflow(user);
     await user.click(within(dropdown).getByRole('button', { name: /Generate Code/ }));
-    expect(useUIStore.getState().showCodePreview).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('code');
 
     dropdown = await openOverflow(user);
     await user.click(within(dropdown).getByRole('button', { name: /Browse Templates/ }));

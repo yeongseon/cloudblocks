@@ -81,6 +81,7 @@ export function MenuBar() {
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
   const diffMode = useUIStore((s) => s.diffMode);
   const drawer = useUIStore((s) => s.drawer);
+  const isCodePreviewOpen = drawer.activePanel === 'code';
   const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useArchitectureStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -411,6 +412,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            aria-pressed={isCodePreviewOpen}
             onClick={() => handleAction(() => openInspectorTab('code'))}
           >
             <span className="menu-item-left">
