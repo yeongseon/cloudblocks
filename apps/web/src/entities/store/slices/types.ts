@@ -2,9 +2,13 @@ import type { StateCreator } from 'zustand';
 import type { LastPrResult, ContainerBlockProfileId, Workspace } from '../../../shared/types/index';
 import type {
   ArchitectureModel,
+  Connection,
   ConnectionType,
+  ContainerBlock,
+  Endpoint,
   LayerType,
   ProviderType,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
@@ -46,6 +50,10 @@ export interface ArchitectureState {
   workspace: Workspace;
   workspaces: Workspace[];
   validationResult: ValidationResult | null;
+  nodeById: Map<string, ResourceBlock | ContainerBlock>;
+  connectionById: Map<string, Connection>;
+  endpointById: Map<string, Endpoint>;
+  connectionsByEndpoint: Map<string, Connection[]>;
 
   activeScenario: Scenario | null;
   progress: LearningProgress | null;

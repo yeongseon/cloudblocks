@@ -27,16 +27,23 @@ import {
 } from './utils/viewportUtils';
 import './SceneCanvas.css';
 
+const EMPTY_OCCUPIED_CELLS = new Set<string>();
+
 export function SceneCanvas() {
-  const { nodes, connections, addNode, moveExternalBlockPosition } = useArchitectureStore(
+  const { architecture, nodeById, addNode, moveExternalBlockPosition } = useArchitectureStore(
     useShallow((state) => ({
-      nodes: state.workspace.architecture.nodes,
-      connections: state.workspace.architecture.connections,
+      architecture: state.workspace.architecture,
+      nodeById: state.nodeById,
       addNode: state.addNode,
       moveExternalBlockPosition: state.moveExternalBlockPosition,
     })),
   );
-  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
+  const nodes = architecture.nodes;
+  const connections = architecture.connections;
+  const indexedNodeById = useMemo(
+    () => nodeById ?? new Map(nodes.map((node) => [node.id, node])),
+    [nodeById, nodes],
+  );
   const containerIds = useMemo(
     () =>
       nodes
@@ -48,11 +55,11 @@ export function SceneCanvas() {
     () =>
       new Map(
         containerIds
-          .map((containerId) => nodeById.get(containerId))
+          .map((containerId) => indexedNodeById.get(containerId))
           .filter((node): node is ContainerBlock => node?.kind === 'container')
           .map((container) => [container.id, container]),
       ),
-    [containerIds, nodeById],
+    [containerIds, indexedNodeById],
   );
   const blockIds = useMemo(
     () =>
@@ -64,28 +71,31 @@ export function SceneCanvas() {
   const containerBlockIds = useMemo(
     () =>
       blockIds.filter((blockId) => {
-        const block = nodeById.get(blockId);
+        const block = indexedNodeById.get(blockId);
         return block?.kind === 'resource' && block.parentId !== null;
       }),
-    [blockIds, nodeById],
+    [blockIds, indexedNodeById],
   );
   const rootExternalBlockIds = useMemo(
     () =>
       blockIds.filter((blockId) => {
-        const block = nodeById.get(blockId);
+        const block = indexedNodeById.get(blockId);
         return (
           block?.kind === 'resource' &&
           block.parentId === null &&
           (Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType))
         );
       }),
-    [blockIds, nodeById],
+    [blockIds, indexedNodeById],
   );
   const overlapOffsets = useMemo(
     () => computeOverlapOffsets(connections, OVERLAP_OFFSET_PX),
     [connections],
   );
-  const occupiedCellsByContainer = useMemo(() => computeOccupiedCellsByContainer(nodes), [nodes]);
+  const occupiedCellsByContainer = useMemo(
+    () => computeOccupiedCellsByContainer(architecture.nodes),
+    [architecture],
+  );
   const {
     clearSelection,
     setSelectedIds,
@@ -156,10 +166,10 @@ export function SceneCanvas() {
 
   const externalLaneBounds = useMemo(() => {
     const externalBlocks = rootExternalBlockIds
-      .map((blockId) => nodeById.get(blockId))
+      .map((blockId) => indexedNodeById.get(blockId))
       .filter((node): node is ResourceBlock => node?.kind === 'resource');
     return computeExternalLaneBounds(externalBlocks, origin);
-  }, [nodeById, origin, rootExternalBlockIds]);
+  }, [indexedNodeById, origin, rootExternalBlockIds]);
 
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
@@ -450,7 +460,7 @@ export function SceneCanvas() {
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
-                occupiedCells={occupiedCellsByContainer.get(container.id)}
+                occupiedCells={occupiedCellsByContainer.get(container.id) ?? EMPTY_OCCUPIED_CELLS}
               />
             );
           })}
@@ -462,6 +472,7 @@ export function SceneCanvas() {
             <ConnectionRenderer
               key={conn.id}
               connectionId={conn.id}
+              connection={conn}
               originX={origin.x}
               originY={origin.y}
               overlapOffset={overlapOffsets.get(conn.id) ?? 0}
@@ -514,7 +525,7 @@ export function SceneCanvas() {
 
         <div className="block-layer">
           {containerBlockIds.map((blockId) => {
-            const block = nodeById.get(blockId);
+            const block = indexedNodeById.get(blockId);
             if (block?.kind !== 'resource') return null;
             const parentContainer = block.parentId ? containerById.get(block.parentId) : null;
             if (!parentContainer?.frame) return null;
@@ -534,7 +545,7 @@ export function SceneCanvas() {
             );
           })}
           {rootExternalBlockIds.map((blockId) => {
-            const block = nodeById.get(blockId);
+            const block = indexedNodeById.get(blockId);
             if (block?.kind !== 'resource') return null;
             const screenPos = worldToScreen(
               block.position.x,

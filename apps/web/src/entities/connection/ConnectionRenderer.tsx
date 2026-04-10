@@ -56,25 +56,20 @@ interface TraceColors {
 const HIT_AREA_WIDTH = 20;
 
 function collectRelevantContainers(
-  nodes: readonly (ContainerBlock | ResourceBlock)[],
+  nodeById: ReadonlyMap<string, ContainerBlock | ResourceBlock>,
   ...parentIds: Array<string | null | undefined>
 ): ContainerBlock[] {
-  const containers = new Map(
-    nodes
-      .filter((node): node is ContainerBlock => node.kind === 'container')
-      .map((container) => [container.id, container]),
-  );
   const relevantContainers: ContainerBlock[] = [];
   const seen = new Set<string>();
 
   for (const parentId of parentIds) {
     let currentId = parentId;
     while (currentId && !seen.has(currentId)) {
-      const container = containers.get(currentId);
-      if (!container) break;
+      const node = nodeById.get(currentId);
+      if (node?.kind !== 'container') break;
       seen.add(currentId);
-      relevantContainers.push(container);
-      currentId = container.parentId;
+      relevantContainers.push(node);
+      currentId = node.parentId;
     }
   }
 
@@ -237,11 +232,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const resolvedConnectionId = connectionId ?? connection?.id ?? null;
   const storeConnection = useArchitectureStore((state) => {
     if (!resolvedConnectionId) return null;
-    return (
-      state.workspace.architecture.connections.find(
-        (candidate) => candidate.id === resolvedConnectionId,
-      ) ?? null
-    );
+    return state.connectionById.get(resolvedConnectionId) ?? null;
   });
   const resolvedConnection = storeConnection ?? connection ?? null;
   const [isHovered, setIsHovered] = useState(false);
@@ -277,19 +268,11 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const fromEndpoint = useArchitectureStore((state) => {
     if (!resolvedConnection) return null;
-    return (
-      state.workspace.architecture.endpoints.find(
-        (endpoint) => endpoint.id === resolvedConnection.from,
-      ) ?? null
-    );
+    return state.endpointById.get(resolvedConnection.from) ?? null;
   });
   const toEndpoint = useArchitectureStore((state) => {
     if (!resolvedConnection) return null;
-    return (
-      state.workspace.architecture.endpoints.find(
-        (endpoint) => endpoint.id === resolvedConnection.to,
-      ) ?? null
-    );
+    return state.endpointById.get(resolvedConnection.to) ?? null;
   });
   const sourceBlockId =
     fromEndpoint?.blockId ??
@@ -301,16 +284,12 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     null;
   const sourceBlock = useArchitectureStore((state) => {
     if (!sourceBlockId) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === sourceBlockId,
-    );
+    const node = state.nodeById.get(sourceBlockId);
     return node?.kind === 'resource' ? node : null;
   });
   const targetBlock = useArchitectureStore((state) => {
     if (!targetBlockId) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === targetBlockId,
-    );
+    const node = state.nodeById.get(targetBlockId);
     return node?.kind === 'resource' ? node : null;
   });
   const relevantPlates = useArchitectureStore(
@@ -319,7 +298,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         return plates;
       }
       return collectRelevantContainers(
-        state.workspace.architecture.nodes,
+        state.nodeById,
         sourceBlock?.parentId,
         targetBlock?.parentId,
       );

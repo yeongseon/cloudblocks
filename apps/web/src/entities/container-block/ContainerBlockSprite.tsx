@@ -42,9 +42,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
   const resolvedContainerId = containerId ?? container?.id ?? null;
   const storeContainer = useArchitectureStore((state) => {
     if (!resolvedContainerId) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === resolvedContainerId,
-    );
+    const node = state.nodeById.get(resolvedContainerId);
     return node?.kind === 'container' ? node : null;
   });
   const resolvedContainer = storeContainer ?? container ?? null;
@@ -137,12 +135,8 @@ export const ContainerBlockSprite = memo(function PlateSprite({
           }
 
           if (isDragging.current) {
-            const currentPlate = useArchitectureStore
-              .getState()
-              .workspace.architecture.nodes.filter(
-                (node): node is ContainerBlock => node.kind === 'container',
-              )
-              .find((candidate) => candidate.id === resolvedContainerId);
+            const currentNode = useArchitectureStore.getState().nodeById.get(resolvedContainerId);
+            const currentPlate = currentNode?.kind === 'container' ? currentNode : null;
 
             if (currentPlate) {
               const snappedPosition = snapToGrid(currentPlate.position.x, currentPlate.position.z);
