@@ -761,6 +761,38 @@ describe('MenuBar', () => {
     expect(logoutMock).toHaveBeenCalledOnce();
   });
 
+  it('updates backend status when logout falls back with backend failure', async () => {
+    const user = userEvent.setup();
+    const logoutMock = vi.fn<() => Promise<BackendStatus>>().mockResolvedValue('unavailable');
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+      logout: logoutMock,
+    });
+
+    render(<MenuBar />);
+
+    const githubButton = screen.getByRole('button', { name: /octocat/ });
+    await user.click(githubButton);
+
+    const container = githubButton.closest('.menu-dropdown-container');
+    if (!container) throw new Error('Expected GitHub dropdown container');
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
+
+    await user.click(within(githubDropdown).getByRole('button', { name: /Sign Out/ }));
+
+    await waitFor(() => {
+      expect(logoutMock).toHaveBeenCalledOnce();
+      expect(useUIStore.getState().backendStatus).toBe('unavailable');
+    });
+  });
+
   it('disables GitHub sync/pr/compare actions without backend workspace link', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
