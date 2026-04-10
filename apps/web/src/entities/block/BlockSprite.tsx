@@ -8,7 +8,7 @@ import type {
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
-import { isExternalResourceType, parseEndpointId } from '@cloudblocks/schema';
+import { generateEndpointsForBlock, isExternalResourceType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import type { DiffDelta } from '../../shared/types/diff';
@@ -64,9 +64,7 @@ export const BlockSprite = memo(function BlockSprite({
   const resolvedBlockId = blockId ?? block?.id ?? null;
   const storeBlock = useArchitectureStore((state) => {
     if (!resolvedBlockId) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === resolvedBlockId,
-    );
+    const node = state.nodeById.get(resolvedBlockId);
     return node?.kind === 'resource' ? node : null;
   });
   const resolvedBlock = storeBlock ?? block ?? null;
@@ -74,9 +72,7 @@ export const BlockSprite = memo(function BlockSprite({
     parentContainerId ?? resolvedBlock?.parentId ?? parentContainer?.id ?? null;
   const storeParentContainer = useArchitectureStore((state) => {
     if (!resolvedParentContainerId) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === resolvedParentContainerId,
-    );
+    const node = state.nodeById.get(resolvedParentContainerId);
     return node?.kind === 'container' ? node : null;
   });
   const resolvedParentContainer = storeParentContainer ?? parentContainer ?? undefined;
@@ -96,24 +92,19 @@ export const BlockSprite = memo(function BlockSprite({
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const sourceNode = useArchitectureStore((state) => {
     if (!connectionSource) return null;
-    const node = state.workspace.architecture.nodes.find(
-      (candidate) => candidate.id === connectionSource,
-    );
+    const node = state.nodeById.get(connectionSource);
     return node?.kind === 'resource' ? node : null;
   });
   const relevantConnectionIds = useArchitectureStore(
     useShallow((state) => {
       if (!resolvedBlockId) return [] as string[];
-      const endpoints = state.workspace.architecture.endpoints;
-      return state.workspace.architecture.connections
-        .filter((connection) => {
-          const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
-          const toEndpoint = endpoints.find((endpoint) => endpoint.id === connection.to);
-          const fromBlockId = fromEndpoint?.blockId ?? parseEndpointId(connection.from)?.blockId;
-          const toBlockId = toEndpoint?.blockId ?? parseEndpointId(connection.to)?.blockId;
-          return fromBlockId === resolvedBlockId || toBlockId === resolvedBlockId;
-        })
-        .map((connection) => connection.id);
+      const relevantConnectionIds = new Set<string>();
+      for (const endpoint of generateEndpointsForBlock(resolvedBlockId)) {
+        for (const connection of state.connectionsByEndpoint.get(endpoint.id) ?? []) {
+          relevantConnectionIds.add(connection.id);
+        }
+      }
+      return [...relevantConnectionIds];
     }),
   );
 
@@ -237,12 +228,8 @@ export const BlockSprite = memo(function BlockSprite({
           }
 
           if (isDragging.current) {
-            const currentBlock = useArchitectureStore
-              .getState()
-              .workspace.architecture.nodes.filter(
-                (node): node is ResourceBlock => node.kind === 'resource',
-              )
-              .find((candidate) => candidate.id === resolvedBlockId);
+            const currentNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
+            const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
 
             if (currentBlock) {
               const snappedPosition = snapToGrid(currentBlock.position.x, currentBlock.position.z);
