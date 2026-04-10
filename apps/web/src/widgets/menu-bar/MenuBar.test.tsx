@@ -476,7 +476,7 @@ describe('MenuBar', () => {
     }
 
     expect(readAsTextMock).toHaveBeenCalledWith(file);
-    expect(importArchitectureMock).toHaveBeenCalledWith(jsonContent);
+    expect(importArchitectureMock).toHaveBeenCalledWith(jsonContent, 'azure');
     expect(fileInput.value).toBe('');
     expect(getOverflowDropdown().className).not.toContain('show');
 

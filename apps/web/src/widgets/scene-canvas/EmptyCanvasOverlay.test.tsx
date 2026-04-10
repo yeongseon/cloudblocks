@@ -37,6 +37,7 @@ function setupMocks(plateCount: number, templateDrawerOpen = false) {
 
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
     const state = {
+      activeProvider: 'azure' as const,
       drawer: { isOpen: templateDrawerOpen, activePanel: templateDrawerOpen ? 'templates' : null },
       openDrawer: mockOpenDrawer,
     };
@@ -120,7 +121,7 @@ describe('EmptyCanvasOverlay', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await vi.waitFor(() => {
-      expect(mockImportArchitecture).toHaveBeenCalledWith(jsonContent);
+      expect(mockImportArchitecture).toHaveBeenCalledWith(jsonContent, 'azure');
     });
   });
 });

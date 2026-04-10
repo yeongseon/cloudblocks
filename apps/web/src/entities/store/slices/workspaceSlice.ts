@@ -1,8 +1,8 @@
 import type { Workspace } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
+import type { ProviderType } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import { saveWorkspaces, saveActiveWorkspaceId } from '../../../shared/utils/storage';
-import { useUIStore } from '../uiStore';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
@@ -28,16 +28,15 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
   workspace: createDefaultWorkspace(),
   workspaces: [],
 
-  createWorkspace: (name, provider) => {
+  createWorkspace: (name, provider: ProviderType) => {
     const state = get();
-    const resolvedProvider = provider ?? useUIStore.getState().activeProvider;
     const allWorkspaces = upsertCurrentWorkspace(state.workspaces, state.workspace);
     const uniqueName = deduplicateWorkspaceName(name, allWorkspaces);
     const now = new Date().toISOString();
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: uniqueName,
-      provider: resolvedProvider,
+      provider,
       architecture: createBlankArchitecture(generateId('arch'), uniqueName),
       createdAt: now,
       updatedAt: now,

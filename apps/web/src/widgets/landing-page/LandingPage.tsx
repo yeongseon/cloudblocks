@@ -7,6 +7,7 @@ import { LandingNavbar } from '../landing-navbar/LandingNavbar';
 import './LandingPage.css';
 
 export function LandingPage() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const goToBuilder = useUIStore((s) => s.goToBuilder);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
@@ -17,7 +18,7 @@ export function LandingPage() {
   };
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
-    loadFromTemplate(template);
+    loadFromTemplate(template, activeProvider);
     syncWorkspaceUI({ fitToContent: true });
     saveToStorage();
     goToBuilder();

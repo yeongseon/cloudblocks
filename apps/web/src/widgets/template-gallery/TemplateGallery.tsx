@@ -23,6 +23,7 @@ const categoryKeys: Array<TemplateCategory | 'all'> = [
 ];
 
 export function TemplateGallery() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const closeDrawer = useUIStore((s) => s.closeDrawer);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
@@ -32,7 +33,7 @@ export function TemplateGallery() {
     activeCategory === 'all' ? listTemplates() : listTemplatesByCategory(activeCategory);
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
-    loadFromTemplate(template);
+    loadFromTemplate(template, activeProvider);
     syncWorkspaceUI({ fitToContent: true });
     saveToStorage();
     setActiveCategory('all');

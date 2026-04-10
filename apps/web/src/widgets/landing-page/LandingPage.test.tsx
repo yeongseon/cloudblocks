@@ -28,6 +28,7 @@ describe('LandingPage', () => {
     ]);
 
     useUIStore.setState({
+      activeProvider: 'azure',
       goToBuilder: vi.fn(),
     });
 
@@ -53,7 +54,7 @@ describe('LandingPage', () => {
   it('navigates to builder when Start Learning is clicked', async () => {
     const user = userEvent.setup();
     const goToBuilder = vi.fn();
-    useUIStore.setState({ goToBuilder });
+    useUIStore.setState({ activeProvider: 'azure', goToBuilder });
 
     render(<LandingPage />);
 
@@ -67,14 +68,14 @@ describe('LandingPage', () => {
     const loadFromTemplate = vi.fn();
     const saveToStorage = vi.fn();
 
-    useUIStore.setState({ goToBuilder });
+    useUIStore.setState({ activeProvider: 'azure', goToBuilder });
     useArchitectureStore.setState({ loadFromTemplate, saveToStorage });
 
     render(<LandingPage />);
 
     await user.click(screen.getAllByRole('button', { name: 'Use This Template' })[0]);
 
-    expect(loadFromTemplate).toHaveBeenCalledWith(expect.objectContaining({ id: 't1' }));
+    expect(loadFromTemplate).toHaveBeenCalledWith(expect.objectContaining({ id: 't1' }), 'azure');
     expect(saveToStorage).toHaveBeenCalledOnce();
     expect(goToBuilder).toHaveBeenCalledOnce();
   });
