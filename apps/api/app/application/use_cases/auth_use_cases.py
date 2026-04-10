@@ -86,8 +86,11 @@ class CompleteGitHubOAuthUseCase:
         if not state_data or state_data.get("state") != state:
             raise UnauthorizedError("Invalid OAuth state")
 
-        created_raw = state_data.get("created_at", 0)
-        created_at = int(created_raw)
+        try:
+            created_raw = state_data["created_at"]
+            created_at = int(created_raw)
+        except (TypeError, ValueError, KeyError) as exc:
+            raise UnauthorizedError("Invalid OAuth state") from exc
         if int(time.time()) - created_at > self._oauth_state_ttl_minutes * 60:
             raise UnauthorizedError("OAuth state expired")
 
@@ -95,7 +98,15 @@ class CompleteGitHubOAuthUseCase:
         access_token = token_data["access_token"]
 
         github_user = cast(dict[str, object], await self._github_service.get_user(access_token))
-        github_id = str(github_user.get("id", ""))
+        try:
+            github_id_raw = github_user["id"]
+            if github_id_raw is None:
+                raise TypeError("GitHub id is required")
+            github_id = str(github_id_raw).strip()
+            if not github_id:
+                raise ValueError("GitHub id must be a non-empty string")
+        except (TypeError, ValueError, KeyError) as exc:
+            raise UnauthorizedError("Invalid OAuth state") from exc
 
         emails = cast(
             list[dict[str, object]], await self._github_service.get_user_emails(access_token)
