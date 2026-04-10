@@ -37,16 +37,18 @@ def _build_use_case() -> (
 async def test_complete_github_oauth_use_case_rejects_missing_created_at() -> None:
     use_case, github_service, user_repo, identity_repo, session_repo = _build_use_case()
 
-    with patch(
-        "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
-        return_value={"state": "expected-state"},
+    with (
+        patch(
+            "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
+            return_value={"state": "expected-state"},
+        ),
+        pytest.raises(UnauthorizedError, match="Invalid OAuth state"),
     ):
-        with pytest.raises(UnauthorizedError, match="Invalid OAuth state"):
-            await use_case.execute(
-                code="oauth-code",
-                state="expected-state",
-                encrypted_state="encrypted-state",
-            )
+        await use_case.execute(
+            code="oauth-code",
+            state="expected-state",
+            encrypted_state="encrypted-state",
+        )
 
     github_service.exchange_code.assert_not_awaited()
     user_repo.find_by_github_id.assert_not_awaited()
@@ -57,16 +59,18 @@ async def test_complete_github_oauth_use_case_rejects_missing_created_at() -> No
 async def test_complete_github_oauth_use_case_rejects_null_created_at() -> None:
     use_case, github_service, user_repo, identity_repo, session_repo = _build_use_case()
 
-    with patch(
-        "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
-        return_value={"state": "expected-state", "created_at": None},
+    with (
+        patch(
+            "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
+            return_value={"state": "expected-state", "created_at": None},
+        ),
+        pytest.raises(UnauthorizedError, match="Invalid OAuth state"),
     ):
-        with pytest.raises(UnauthorizedError, match="Invalid OAuth state"):
-            await use_case.execute(
-                code="oauth-code",
-                state="expected-state",
-                encrypted_state="encrypted-state",
-            )
+        await use_case.execute(
+            code="oauth-code",
+            state="expected-state",
+            encrypted_state="encrypted-state",
+        )
 
     github_service.exchange_code.assert_not_awaited()
     user_repo.find_by_github_id.assert_not_awaited()
@@ -77,16 +81,18 @@ async def test_complete_github_oauth_use_case_rejects_null_created_at() -> None:
 async def test_complete_github_oauth_use_case_rejects_non_numeric_created_at() -> None:
     use_case, github_service, user_repo, identity_repo, session_repo = _build_use_case()
 
-    with patch(
-        "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
-        return_value={"state": "expected-state", "created_at": "not_a_number"},
+    with (
+        patch(
+            "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
+            return_value={"state": "expected-state", "created_at": "not_a_number"},
+        ),
+        pytest.raises(UnauthorizedError, match="Invalid OAuth state"),
     ):
-        with pytest.raises(UnauthorizedError, match="Invalid OAuth state"):
-            await use_case.execute(
-                code="oauth-code",
-                state="expected-state",
-                encrypted_state="encrypted-state",
-            )
+        await use_case.execute(
+            code="oauth-code",
+            state="expected-state",
+            encrypted_state="encrypted-state",
+        )
 
     github_service.exchange_code.assert_not_awaited()
     user_repo.find_by_github_id.assert_not_awaited()
@@ -108,19 +114,19 @@ async def test_complete_github_oauth_use_case_rejects_missing_or_empty_github_id
     github_service.exchange_code.return_value = {"access_token": "gh-token"}
     github_service.get_user.return_value = github_user
 
-    with patch(
-        "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
-        return_value={"state": "expected-state", "created_at": 1_700_000_000},
+    with (
+        patch(
+            "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
+            return_value={"state": "expected-state", "created_at": 1_700_000_000},
+        ),
+        patch("app.application.use_cases.auth_use_cases.time.time", return_value=1_700_000_001),
+        pytest.raises(UnauthorizedError, match="Invalid OAuth state"),
     ):
-        with patch(
-            "app.application.use_cases.auth_use_cases.time.time", return_value=1_700_000_001
-        ):
-            with pytest.raises(UnauthorizedError, match="Invalid OAuth state"):
-                await use_case.execute(
-                    code="oauth-code",
-                    state="expected-state",
-                    encrypted_state="encrypted-state",
-                )
+        await use_case.execute(
+            code="oauth-code",
+            state="expected-state",
+            encrypted_state="encrypted-state",
+        )
 
     github_service.get_user_emails.assert_not_awaited()
     user_repo.find_by_github_id.assert_not_awaited()
@@ -147,34 +153,34 @@ async def test_complete_github_oauth_use_case_accepts_valid_state() -> None:
     identity_repo.create.side_effect = lambda identity: identity
     session_repo.create.side_effect = lambda session: session
 
-    with patch(
-        "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
-        return_value={"state": "expected-state", "created_at": 1_700_000_000},
+    with (
+        patch(
+            "app.application.use_cases.auth_use_cases.decrypt_oauth_state",
+            return_value={"state": "expected-state", "created_at": 1_700_000_000},
+        ),
+        patch("app.application.use_cases.auth_use_cases.time.time", return_value=1_700_000_001),
+        patch(
+            "app.application.use_cases.auth_use_cases.generate_id",
+            side_effect=["user-generated", "identity-generated"],
+        ),
+        patch(
+            "app.application.use_cases.auth_use_cases.generate_session_token",
+            return_value="session-token",
+        ),
+        patch(
+            "app.application.use_cases.auth_use_cases.hash_token",
+            return_value="token-hash",
+        ),
+        patch(
+            "app.application.use_cases.auth_use_cases.encrypt_token",
+            return_value="encrypted-token",
+        ),
     ):
-        with patch(
-            "app.application.use_cases.auth_use_cases.time.time", return_value=1_700_000_001
-        ):
-            with patch(
-                "app.application.use_cases.auth_use_cases.generate_id",
-                side_effect=["user-generated", "identity-generated"],
-            ):
-                with patch(
-                    "app.application.use_cases.auth_use_cases.generate_session_token",
-                    return_value="session-token",
-                ):
-                    with patch(
-                        "app.application.use_cases.auth_use_cases.hash_token",
-                        return_value="token-hash",
-                    ):
-                        with patch(
-                            "app.application.use_cases.auth_use_cases.encrypt_token",
-                            return_value="encrypted-token",
-                        ):
-                            result = await use_case.execute(
-                                code="oauth-code",
-                                state="expected-state",
-                                encrypted_state="encrypted-state",
-                            )
+        result = await use_case.execute(
+            code="oauth-code",
+            state="expected-state",
+            encrypted_state="encrypted-state",
+        )
 
     assert result.session_token == "session-token"
     user_repo.find_by_github_id.assert_awaited_once_with("12345")
