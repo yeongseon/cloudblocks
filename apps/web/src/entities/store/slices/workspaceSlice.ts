@@ -123,8 +123,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
         saveActiveWorkspaceId(next.id);
       }
 
-      useUIStore.getState().clearDiffState();
-
       set({
         workspace: next,
         workspaces: filtered,

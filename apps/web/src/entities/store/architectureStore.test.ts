@@ -1928,9 +1928,9 @@ describe('architectureStore', () => {
   describe('deleteWorkspaces', () => {
     it('deletes multiple non-current workspaces', () => {
       const firstId = getState().workspace.id;
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', 'azure');
       const secondId = getState().workspace.id;
-      getState().createWorkspace('Third');
+      getState().createWorkspace('Third', 'azure');
       const currentId = getState().workspace.id;
 
       getState().deleteWorkspaces([firstId, secondId]);
@@ -1941,7 +1941,7 @@ describe('architectureStore', () => {
     });
 
     it('switches to first remaining when deleting current workspace', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', 'azure');
       const currentId = getState().workspace.id;
       const expectedNext = getState().workspaces.find((ws) => ws.id !== currentId)?.id;
 
@@ -1962,9 +1962,9 @@ describe('architectureStore', () => {
     });
 
     it('deletes non-current workspaces without affecting current', () => {
-      getState().createWorkspace('Second');
+      getState().createWorkspace('Second', 'azure');
       const secondId = getState().workspace.id;
-      getState().createWorkspace('Third');
+      getState().createWorkspace('Third', 'azure');
       const currentId = getState().workspace.id;
 
       getState().deleteWorkspaces([secondId]);
