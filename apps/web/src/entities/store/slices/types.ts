@@ -8,7 +8,7 @@ import type {
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
-import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../features/ai/api';
+import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../shared/types/ai';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { Scenario, LearningProgress } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
