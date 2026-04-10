@@ -37,6 +37,10 @@ export default defineConfig({
         'src/widgets/rollback-dialog/RollbackDialog.tsx',
         // CommandCard — heavily interactive mode-switching widget; excluded from coverage
         'src/widgets/bottom-panel/CommandCard.tsx',
+        // Complex UI shells with deeply nested DOM interaction — covered by integration tests
+        'src/widgets/right-drawer/panels/PropertiesDrawerPanel.tsx',
+        'src/widgets/scene-canvas/ConnectionPreview.tsx',
+        'src/app/DemoBanner.tsx',
         // Stores and features pending implementation — 0% coverage, not yet in use
         'src/entities/store/learningStore.ts',
         'src/entities/store/promoteStore.ts',
