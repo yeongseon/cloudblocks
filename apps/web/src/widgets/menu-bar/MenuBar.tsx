@@ -79,6 +79,7 @@ export function MenuBar() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+  const setBackendStatus = useUIStore((s) => s.setBackendStatus);
   const diffMode = useUIStore((s) => s.diffMode);
   const drawer = useUIStore((s) => s.drawer);
   const isCodePreviewOpen = drawer.activePanel === 'code';
@@ -747,7 +748,10 @@ export function MenuBar() {
                 className="menu-item"
                 onClick={() =>
                   handleAction(async () => {
-                    await logout();
+                    const nextBackendStatus = await logout();
+                    if (nextBackendStatus !== 'available') {
+                      setBackendStatus(nextBackendStatus);
+                    }
                   })
                 }
               >
