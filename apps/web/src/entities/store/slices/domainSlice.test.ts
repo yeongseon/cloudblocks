@@ -408,6 +408,17 @@ describe('domainSlice – targeted branch coverage', () => {
         beforeOtherNode.position,
       );
     });
+
+    it('rejects move when target position overlaps a root sibling', () => {
+      const extA = makeExternalBlock('ext-a', 'internet', { x: -3, y: 0, z: 5 });
+      const extB = makeExternalBlock('ext-b', 'browser', { x: 1, y: 0, z: 5 });
+      seedState({ nodes: [extA, extB], externalActors: [] });
+
+      getState().moveExternalBlockPosition('ext-b', -3, 0);
+
+      const unchanged = getBlocks().find((block) => block.id === 'ext-b')!;
+      expect(unchanged.position).toEqual(extB.position);
+    });
   });
 
   describe('addConnection – external block in nodes[] (new path)', () => {
@@ -858,6 +869,122 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(moved.position.x).toBe(origX + 3);
       expect(moved.position.z).toBe(origZ - 2);
       expect(moved.position.y).toBe(rootBlock.position.y);
+    });
+
+    it('moveBlockPosition rejects root-level move when it would overlap a sibling', () => {
+      const rootA = makeExternalBlock('root-a', 'internet', { x: -3, y: 0, z: 5 });
+      const rootB = makeExternalBlock('root-b', 'browser', { x: 1, y: 0, z: 5 });
+      seedState({ nodes: [rootA, rootB], externalActors: [] });
+
+      getState().moveBlockPosition('root-b', -3, 0);
+
+      const unchanged = getBlocks().find((block) => block.id === 'root-b')!;
+      expect(unchanged.position).toEqual(rootB.position);
+    });
+
+    it('moveBlockPosition rejects container child move when it would overlap a sibling', () => {
+      const subnet = makeContainerNode('subnet-1', {
+        layer: 'subnet',
+        frame: { width: 12, height: 0.3, depth: 12 },
+      });
+      const blockA = makeLeafNode('block-a', 'subnet-1', 'compute', {
+        position: { x: 0, y: 0.5, z: 0 },
+      });
+      const blockB = makeLeafNode('block-b', 'subnet-1', 'compute', {
+        position: { x: 4, y: 0.5, z: 0 },
+      });
+      seedState({ nodes: [subnet, blockA, blockB], externalActors: [] });
+
+      getState().moveBlockPosition('block-b', -3, 0);
+
+      const unchanged = getBlocks().find((block) => block.id === 'block-b')!;
+      expect(unchanged.position).toEqual(blockB.position);
+    });
+
+    it('moveBlockPosition allows edge-contact (touching but not overlapping) for root blocks', () => {
+      // Two root blocks separated: root-a at x=-3, root-b at x=1.
+      // Moving root-b to x=-1 would place edges at x=-2..0 vs -4..-2 -> touching at x=-2.
+      // Touching edges should NOT be rejected (strict inequality).
+      const rootA = makeExternalBlock('root-a', 'internet', { x: -3, y: 0, z: 5 });
+      const rootB = makeExternalBlock('root-b', 'browser', { x: 3, y: 0, z: 5 });
+      seedState({ nodes: [rootA, rootB], externalActors: [] });
+
+      // Move root-b so that it touches root-a edge-to-edge (block size = 2x2).
+      // root-a center x=-3, half-width=1, right edge at x=-2.
+      // Move root-b to x=-1 -> left edge at x=-2 (touching).
+      getState().moveBlockPosition('root-b', -4, 0);
+
+      const moved = getBlocks().find((block) => block.id === 'root-b')!;
+      expect(moved.position.x).toBe(-1);
+    });
+
+    it('moveBlockPosition allows escape from already-overlapping state', () => {
+      // Legacy/imported model where two blocks are at the exact same position.
+      const rootA = makeExternalBlock('root-a', 'internet', { x: 0, y: 0, z: 0 });
+      const rootB = makeExternalBlock('root-b', 'browser', { x: 0, y: 0, z: 0 });
+      seedState({ nodes: [rootA, rootB], externalActors: [] });
+
+      // Move root-b away — should succeed despite currently overlapping.
+      getState().moveBlockPosition('root-b', 5, 0);
+
+      const moved = getBlocks().find((block) => block.id === 'root-b')!;
+      expect(moved.position.x).toBe(5);
+    });
+
+    it('moveExternalBlockPosition allows escape from already-overlapping state', () => {
+      const extA = makeExternalBlock('ext-a', 'internet', { x: 0, y: 0, z: 0 });
+      const extB = makeExternalBlock('ext-b', 'browser', { x: 0, y: 0, z: 0 });
+      seedState({
+        nodes: [extA, extB],
+        externalActors: [
+          { id: 'ext-a', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } },
+          { id: 'ext-b', name: 'Client', type: 'browser', position: { x: 0, y: 0, z: 0 } },
+        ],
+      });
+
+      getState().moveExternalBlockPosition('ext-b', 5, 0);
+
+      const moved = getBlocks().find((block) => block.id === 'ext-b')!;
+      expect(moved.position.x).toBe(5);
+    });
+
+    it('moveExternalBlockPosition keeps externalActors unchanged on rejected move', () => {
+      const extA = makeExternalBlock('ext-a', 'internet', { x: -3, y: 0, z: 5 });
+      const extB = makeExternalBlock('ext-b', 'browser', { x: 1, y: 0, z: 5 });
+      seedState({
+        nodes: [extA, extB],
+        externalActors: [
+          { id: 'ext-a', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          { id: 'ext-b', name: 'Client', type: 'browser', position: { x: 1, y: 0, z: 5 } },
+        ],
+      });
+
+      // Try to move ext-b on top of ext-a — should be rejected.
+      getState().moveExternalBlockPosition('ext-b', -4, 0);
+
+      const actors = getArch().externalActors;
+      expect(actors).toHaveLength(2);
+      const actorB = actors?.find((a) => a.id === 'ext-b');
+      expect(actorB?.position).toEqual({ x: 1, y: 0, z: 5 });
+    });
+
+    it('moveExternalBlockPosition syncs externalActors on accepted move', () => {
+      const extA = makeExternalBlock('ext-a', 'internet', { x: -3, y: 0, z: 5 });
+      const extB = makeExternalBlock('ext-b', 'browser', { x: 5, y: 0, z: 5 });
+      seedState({
+        nodes: [extA, extB],
+        externalActors: [
+          { id: 'ext-a', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          { id: 'ext-b', name: 'Client', type: 'browser', position: { x: 5, y: 0, z: 5 } },
+        ],
+      });
+
+      // Move ext-b to x=7 — should succeed (no overlap).
+      getState().moveExternalBlockPosition('ext-b', 2, 0);
+
+      const actors = getArch().externalActors;
+      const actorB = actors?.find((a) => a.id === 'ext-b');
+      expect(actorB?.position.x).toBe(7);
     });
 
     it('handles addConnection branches with actors and endpoint parse fallback', () => {

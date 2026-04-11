@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
+  blocksOverlapAABB,
   containerBlocksOverlap,
   overlapsSibling,
+  overlapsAnySiblingResource,
   findNonOverlappingPosition,
+  resourceBlocksOverlap,
   resolveMoveDelta,
 } from './helpers';
 
@@ -144,5 +147,176 @@ describe('resolveMoveDelta', () => {
     const siblings = [{ id: 's1', position: { x: 5, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = resolveMoveDelta(container, 5, 0, siblings);
     expect(result.deltaX).toBeLessThan(5);
+  });
+});
+
+describe('resourceBlocksOverlap', () => {
+  it('returns true when resource blocks overlap', () => {
+    expect(
+      resourceBlocksOverlap(
+        { x: 0, z: 0 },
+        { width: 2, depth: 2 },
+        { x: 1, z: 0 },
+        { width: 2, depth: 2 },
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when resource blocks touch edges', () => {
+    expect(
+      resourceBlocksOverlap(
+        { x: 0, z: 0 },
+        { width: 2, depth: 2 },
+        { x: 2, z: 0 },
+        { width: 2, depth: 2 },
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('overlapsAnySiblingResource', () => {
+  const siblings = [
+    {
+      id: 'a',
+      position: { x: 0, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+    {
+      id: 'b',
+      position: { x: 4, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+  ];
+
+  it('returns true when candidate overlaps any sibling', () => {
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate'),
+    ).toBe(true);
+  });
+
+  it('returns false when overlap is only with excluded id', () => {
+    expect(overlapsAnySiblingResource({ x: 0, z: 0 }, { width: 2, depth: 2 }, siblings, 'a')).toBe(
+      false,
+    );
+  });
+});
+
+describe('overlapsAnySiblingResource — escape hatch', () => {
+  const siblings = [
+    {
+      id: 'a',
+      position: { x: 0, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+    {
+      id: 'b',
+      position: { x: 4, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+  ];
+
+  it('allows move when block is already overlapping at current position', () => {
+    // Block at x=0.5 already overlaps sibling 'a' at x=0 (both 2×2).
+    // Moving to x=1 should be allowed (escape hatch).
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate', {
+        x: 0.5,
+        z: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects move when block is NOT currently overlapping', () => {
+    // Block at x=6 does NOT overlap anyone.
+    // Moving to x=1 would overlap sibling 'a' — should be rejected.
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate', {
+        x: 6,
+        z: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it('allows move that overlaps a DIFFERENT sibling while already invalid (intentional)', () => {
+    // Block 'candidate' is at x=0.5 — overlapping sibling 'a' (at x=0).
+    // Moving to x=3.5 would overlap sibling 'b' (at x=4).
+    // Because candidate is already invalid, the escape hatch allows this move
+    // so the user is never trapped. Post-placement validation will surface
+    // the remaining overlap.
+    const threeWay = [
+      {
+        id: 'a',
+        position: { x: 0, z: 0 },
+        category: 'compute' as const,
+        provider: 'azure' as const,
+      },
+      {
+        id: 'b',
+        position: { x: 4, z: 0 },
+        category: 'compute' as const,
+        provider: 'azure' as const,
+      },
+    ];
+    expect(
+      overlapsAnySiblingResource(
+        { x: 3.5, z: 0 }, // candidate pos (overlaps 'b')
+        { width: 2, depth: 2 },
+        threeWay,
+        'candidate',
+        { x: 0.5, z: 0 }, // current pos (overlaps 'a') → escape hatch fires
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('blocksOverlapAABB', () => {
+  it('is used by both containerBlocksOverlap and resourceBlocksOverlap', () => {
+    const posA = { x: 0, z: 0 };
+    const sizeA = { width: 4, depth: 4 };
+    const posB = { x: 2, z: 2 };
+    const sizeB = { width: 4, depth: 4 };
+    expect(blocksOverlapAABB(posA, sizeA, posB, sizeB)).toBe(true);
+    expect(containerBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
+    expect(resourceBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
+  });
+});
+
+// --- Integration: post-placement validation correctly catches overlaps ---
+import { validateNoOverlap } from '../../validation/placement';
+import type { ResourceBlock, Size } from '@cloudblocks/schema';
+
+describe('validateNoOverlap — post-placement safety net', () => {
+  const getSize = (): Size => ({ width: 2, height: 2, depth: 2 });
+
+  const makeResource = (id: string, x: number, z: number): ResourceBlock => ({
+    id,
+    name: id,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'virtual_machine',
+    category: 'compute',
+    provider: 'azure',
+    parentId: 'subnet-1',
+    position: { x, y: 0, z },
+    metadata: {},
+  });
+
+  it('detects overlap on legacy/imported data where blocks were placed on top of each other', () => {
+    const blockA = makeResource('res-a', 0, 0);
+    const blockB = makeResource('res-b', 1, 0); // overlaps blockA
+    const result = validateNoOverlap(blockA, [blockB], getSize);
+    expect(result).not.toBeNull();
+    expect(result!.ruleId).toBe('rule-no-overlap');
+    expect(result!.severity).toBe('error');
+  });
+
+  it('does NOT report overlap when blocks are properly separated', () => {
+    const blockA = makeResource('res-a', 0, 0);
+    const blockC = makeResource('res-c', 5, 0); // far away
+    expect(validateNoOverlap(blockA, [blockC], getSize)).toBeNull();
   });
 });

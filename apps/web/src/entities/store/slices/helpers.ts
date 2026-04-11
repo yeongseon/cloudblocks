@@ -2,6 +2,7 @@ import type { Workspace } from '../../../shared/types/index';
 import type { ArchitectureModel, Position, ResourceBlock } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_CONTAINER_BLOCK_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
+import { getBlockDimensions } from '../../../shared/types/visualProfile';
 import {
   canRedo as historyCanRedo,
   canUndo as historyCanUndo,
@@ -121,8 +122,12 @@ export function resetTransientState(): Pick<
   };
 }
 
-/** AABB overlap on XZ plane (touching edges excluded). */
-export function containerBlocksOverlap(
+/**
+ * Generic AABB overlap on XZ plane (touching edges excluded).
+ * Both container and resource blocks use center-based positions with
+ * half-width/half-depth extents, so a single implementation covers both.
+ */
+export function blocksOverlapAABB(
   posA: { x: number; z: number },
   sizeA: { width: number; depth: number },
   posB: { x: number; z: number },
@@ -137,6 +142,62 @@ export function containerBlocksOverlap(
   const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
 
   return overlapX && overlapZ;
+}
+
+/** @deprecated Use `blocksOverlapAABB` — kept as alias for existing call sites. */
+export const containerBlocksOverlap = blocksOverlapAABB;
+
+/** @deprecated Use `blocksOverlapAABB` — kept as alias for existing call sites. */
+export const resourceBlocksOverlap = blocksOverlapAABB;
+
+/**
+ * Check whether moving a resource block to `candidatePos` would overlap any sibling.
+ *
+ * **Escape-hatch behaviour**: when `currentPos` is provided and the block is
+ * already overlapping at that position, the function returns `false` (no overlap)
+ * unconditionally — even if `candidatePos` would overlap a *different* sibling.
+ * This is intentional: the goal is to never trap the user. Once the block reaches
+ * a valid (non-overlapping) position, normal collision checks resume.
+ *
+ * Why "allow any move while invalid"?
+ * - The user may need to traverse through other blocks to reach an open space.
+ * - A stricter "only allow moves that reduce overlap" policy would still trap
+ *   blocks in tight layouts where the only exit path crosses another sibling.
+ * - Post-placement validation (`validateNoOverlap` in placement.ts) ensures that
+ *   any remaining overlap is surfaced as a validation error for the user to fix.
+ */
+export function overlapsAnySiblingResource(
+  candidatePos: { x: number; z: number },
+  candidateSize: { width: number; depth: number },
+  siblings: ReadonlyArray<{
+    id: string;
+    position: { x: number; z: number };
+    category: ResourceBlock['category'];
+    provider: ResourceBlock['provider'];
+    subtype?: ResourceBlock['subtype'];
+  }>,
+  excludeId: string,
+  currentPos?: { x: number; z: number },
+): boolean {
+  // Escape hatch: if block is already overlapping at its current position,
+  // allow the move so the user can drag it out of the invalid state.
+  if (currentPos) {
+    const alreadyOverlapping = siblings.some((sibling) => {
+      if (sibling.id === excludeId) return false;
+      const siblingSize = getBlockDimensions(sibling.category, sibling.provider, sibling.subtype);
+      return blocksOverlapAABB(currentPos, candidateSize, sibling.position, siblingSize);
+    });
+    if (alreadyOverlapping) return false;
+  }
+
+  return siblings.some((sibling) => {
+    if (sibling.id === excludeId) {
+      return false;
+    }
+
+    const siblingSize = getBlockDimensions(sibling.category, sibling.provider, sibling.subtype);
+    return blocksOverlapAABB(candidatePos, candidateSize, sibling.position, siblingSize);
+  });
 }
 
 export function overlapsSibling(
