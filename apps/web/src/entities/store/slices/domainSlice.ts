@@ -920,7 +920,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             z: block.position.z + deltaZ,
           };
           const rootResources = resources.filter((candidate) => candidate.parentId === null);
-          if (overlapsAnySiblingResource(candidatePosition, blockSize, rootResources, id)) {
+          if (
+            overlapsAnySiblingResource(
+              candidatePosition,
+              blockSize,
+              rootResources,
+              id,
+              block.position,
+            )
+          ) {
             return state;
           }
 
@@ -955,7 +963,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const siblingResources = resources.filter(
         (candidate) => candidate.parentId === block.parentId,
       );
-      if (overlapsAnySiblingResource(clampedPosition, blockSize, siblingResources, id)) {
+      if (
+        overlapsAnySiblingResource(clampedPosition, blockSize, siblingResources, id, block.position)
+      ) {
         return state;
       }
 
@@ -993,7 +1003,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         z: block.position.z + deltaZ,
       };
       const rootResources = resources.filter((candidate) => candidate.parentId === null);
-      if (overlapsAnySiblingResource(candidatePosition, blockSize, rootResources, id)) {
+      if (
+        overlapsAnySiblingResource(candidatePosition, blockSize, rootResources, id, block.position)
+      ) {
         return state;
       }
 

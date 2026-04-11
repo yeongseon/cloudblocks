@@ -122,8 +122,12 @@ export function resetTransientState(): Pick<
   };
 }
 
-/** AABB overlap on XZ plane (touching edges excluded). */
-export function containerBlocksOverlap(
+/**
+ * Generic AABB overlap on XZ plane (touching edges excluded).
+ * Both container and resource blocks use center-based positions with
+ * half-width/half-depth extents, so a single implementation covers both.
+ */
+export function blocksOverlapAABB(
   posA: { x: number; z: number },
   sizeA: { width: number; depth: number },
   posB: { x: number; z: number },
@@ -140,23 +144,20 @@ export function containerBlocksOverlap(
   return overlapX && overlapZ;
 }
 
-export function resourceBlocksOverlap(
-  posA: { x: number; z: number },
-  sizeA: { width: number; depth: number },
-  posB: { x: number; z: number },
-  sizeB: { width: number; depth: number },
-): boolean {
-  const halfWA = sizeA.width / 2;
-  const halfDA = sizeA.depth / 2;
-  const halfWB = sizeB.width / 2;
-  const halfDB = sizeB.depth / 2;
+/** @deprecated Use `blocksOverlapAABB` — kept as alias for existing call sites. */
+export const containerBlocksOverlap = blocksOverlapAABB;
 
-  const overlapX = posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
-  const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
+/** @deprecated Use `blocksOverlapAABB` — kept as alias for existing call sites. */
+export const resourceBlocksOverlap = blocksOverlapAABB;
 
-  return overlapX && overlapZ;
-}
-
+/**
+ * Check whether moving a resource block to `candidatePos` would overlap any sibling.
+ *
+ * Escape-hatch: if the block is already overlapping at `currentPos`, the move is
+ * always allowed so the user can drag the block out of the invalid state.
+ * This handles legacy/imported models where blocks may have been placed on top
+ * of each other.
+ */
 export function overlapsAnySiblingResource(
   candidatePos: { x: number; z: number },
   candidateSize: { width: number; depth: number },
@@ -168,14 +169,26 @@ export function overlapsAnySiblingResource(
     subtype?: ResourceBlock['subtype'];
   }>,
   excludeId: string,
+  currentPos?: { x: number; z: number },
 ): boolean {
+  // Escape hatch: if block is already overlapping at its current position,
+  // allow the move so the user can drag it out of the invalid state.
+  if (currentPos) {
+    const alreadyOverlapping = siblings.some((sibling) => {
+      if (sibling.id === excludeId) return false;
+      const siblingSize = getBlockDimensions(sibling.category, sibling.provider, sibling.subtype);
+      return blocksOverlapAABB(currentPos, candidateSize, sibling.position, siblingSize);
+    });
+    if (alreadyOverlapping) return false;
+  }
+
   return siblings.some((sibling) => {
     if (sibling.id === excludeId) {
       return false;
     }
 
     const siblingSize = getBlockDimensions(sibling.category, sibling.provider, sibling.subtype);
-    return resourceBlocksOverlap(candidatePos, candidateSize, sibling.position, siblingSize);
+    return blocksOverlapAABB(candidatePos, candidateSize, sibling.position, siblingSize);
   });
 }
 

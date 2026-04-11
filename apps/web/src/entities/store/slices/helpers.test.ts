@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  blocksOverlapAABB,
   containerBlocksOverlap,
   overlapsSibling,
   overlapsAnySiblingResource,
@@ -199,5 +200,56 @@ describe('overlapsAnySiblingResource', () => {
     expect(overlapsAnySiblingResource({ x: 0, z: 0 }, { width: 2, depth: 2 }, siblings, 'a')).toBe(
       false,
     );
+  });
+});
+
+describe('overlapsAnySiblingResource — escape hatch', () => {
+  const siblings = [
+    {
+      id: 'a',
+      position: { x: 0, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+    {
+      id: 'b',
+      position: { x: 4, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+  ];
+
+  it('allows move when block is already overlapping at current position', () => {
+    // Block at x=0.5 already overlaps sibling 'a' at x=0 (both 2×2).
+    // Moving to x=1 should be allowed (escape hatch).
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate', {
+        x: 0.5,
+        z: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects move when block is NOT currently overlapping', () => {
+    // Block at x=6 does NOT overlap anyone.
+    // Moving to x=1 would overlap sibling 'a' — should be rejected.
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate', {
+        x: 6,
+        z: 0,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('blocksOverlapAABB', () => {
+  it('is used by both containerBlocksOverlap and resourceBlocksOverlap', () => {
+    const posA = { x: 0, z: 0 };
+    const sizeA = { width: 4, depth: 4 };
+    const posB = { x: 2, z: 2 };
+    const sizeB = { width: 4, depth: 4 };
+    expect(blocksOverlapAABB(posA, sizeA, posB, sizeB)).toBe(true);
+    expect(containerBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
+    expect(resourceBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
   });
 });
