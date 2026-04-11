@@ -67,9 +67,9 @@ export function validatePlacement(
     return {
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: `"${resource.name}" needs a container.`,
+      message: `"${resource.name}" needs a container — place it on a Subnet or Region container.`,
       suggestion:
-        'Drag it onto a Subnet or Region container. Most resources need a parent container to define their network scope.',
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: resource.id,
     };
   }
@@ -80,12 +80,12 @@ export function validatePlacement(
     const allowed = getAllowedParents(resource.resourceType);
     const parentTypes = allowed?.filter((p): p is string => p !== null) ?? [];
     const labels = parentTypes.map((t) => PARENT_LABEL[t] ?? t);
-    const destination = labels.length > 0 ? labels.join(' or ') : 'a valid container';
+    const destination = labels.length > 0 ? labels.join(' or ') : 'valid container';
     return {
       ruleId: `rule-${resource.category}-parent`,
       severity: 'error',
-      message: `"${resource.name}" is on the wrong container type.`,
-      suggestion: `Move it to a ${destination}. Each resource type has specific container requirements based on its cloud infrastructure role.`,
+      message: `"${resource.name}" is on the wrong container type — it needs a ${destination}.`,
+      suggestion: `Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.`,
       targetId: resource.id,
     };
   }

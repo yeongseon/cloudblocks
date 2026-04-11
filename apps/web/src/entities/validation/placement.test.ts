@@ -67,9 +67,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: '"Compute A" needs a container.',
+      message: '"Compute A" needs a container \u2014 place it on a Subnet or Region container.',
       suggestion:
-        'Drag it onto a Subnet or Region container. Most resources need a parent container to define their network scope.',
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'compute-1',
     });
   });
@@ -81,9 +81,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: '"Compute B" is on the wrong container type.',
+      message: '"Compute B" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'compute-2',
     });
   });
@@ -102,9 +102,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
-      message: '"Database A" is on the wrong container type.',
+      message: '"Database A" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'db-1',
     });
   });
@@ -123,9 +123,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-delivery-parent',
       severity: 'error',
-      message: '"Gateway A" is on the wrong container type.',
+      message: '"Gateway A" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'gw-1',
     });
   });
@@ -144,9 +144,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
-      message: '"Storage A" is on the wrong container type.',
+      message: '"Storage A" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'storage-1',
     });
   });
@@ -172,9 +172,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: '"Block" is on the wrong container type.',
+      message: '"Block" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'block-1',
     });
   });
@@ -191,9 +191,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: '"QueueA" is on the wrong container type.',
+      message: '"QueueA" is on the wrong container type \u2014 it needs a Region container.',
       suggestion:
-        'Move it to a Region container. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'queue-1',
     });
   });
@@ -217,9 +217,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: '"EventA" is on the wrong container type.',
+      message: '"EventA" is on the wrong container type \u2014 it needs a Region container.',
       suggestion:
-        'Move it to a Region container. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'event-1',
     });
   });
@@ -238,9 +238,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
-      message: '"AnalyticsA" is on the wrong container type.',
+      message: '"AnalyticsA" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'analytics-1',
     });
   });
@@ -252,9 +252,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-security-parent',
       severity: 'error',
-      message: '"IdentityA" is on the wrong container type.',
+      message: '"IdentityA" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'identity-1',
     });
   });
@@ -270,9 +270,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
-      message: '"ObservabilityA" is on the wrong container type.',
+      message: '"ObservabilityA" is on the wrong container type \u2014 it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'observability-1',
     });
   });
@@ -314,9 +314,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(computeBlock, region)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: '"VM" is on the wrong container type.',
+      message: '"VM" is on the wrong container type — it needs a Subnet.',
       suggestion:
-        'Move it to a Subnet. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'vm-1',
     });
 
@@ -324,9 +324,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(msgBlock, subnet)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: '"Queue" is on the wrong container type.',
+      message: '"Queue" is on the wrong container type — it needs a Region container.',
       suggestion:
-        'Move it to a Region container. Each resource type has specific container requirements based on its cloud infrastructure role.',
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'mq-1',
     });
   });
@@ -383,9 +383,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: '"VM" needs a container.',
+      message: '"VM" needs a container — place it on a Subnet or Region container.',
       suggestion:
-        'Drag it onto a Subnet or Region container. Most resources need a parent container to define their network scope.',
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'vm-1',
     });
   });
@@ -400,9 +400,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: '"SQL DB" needs a container.',
+      message: '"SQL DB" needs a container — place it on a Subnet or Region container.',
       suggestion:
-        'Drag it onto a Subnet or Region container. Most resources need a parent container to define their network scope.',
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'sql-1',
     });
   });
@@ -423,7 +423,7 @@ describe('validatePlacement', () => {
       ruleId: 'rule-delivery-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
-      suggestion: expect.stringContaining('Move it to'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'dns-1',
     });
   });
@@ -441,7 +441,7 @@ describe('validatePlacement', () => {
       ruleId: 'rule-network-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
-      suggestion: expect.stringContaining('Move it to'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'pip-1',
     });
   });
@@ -459,7 +459,7 @@ describe('validatePlacement', () => {
       ruleId: 'rule-data-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
-      suggestion: expect.stringContaining('Move it to'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'blob-1',
     });
   });
@@ -477,7 +477,7 @@ describe('validatePlacement', () => {
       ruleId: 'rule-identity-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
-      suggestion: expect.stringContaining('Move it to'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'mi-1',
     });
   });
@@ -495,7 +495,7 @@ describe('validatePlacement', () => {
       ruleId: 'rule-identity-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
-      suggestion: expect.stringContaining('Move it to'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'sa-1',
     });
   });
