@@ -985,8 +985,8 @@ describe('architectureStore', () => {
       const subnetRelX = subnetAfter.position.x - regionAfter.position.x;
       expect(subnetRelX).toBeLessThanOrEqual(1);
 
-      // Block position should be within new bounds: max x = (8/2) - (2.4/2) = 2.8
-      expect(blockAfter.position.x).toBeLessThanOrEqual(2.8);
+      // Block position should be within new bounds: max x = (8/2) - (2/2) = 3 (compute = medium tier = 2×2)
+      expect(blockAfter.position.x).toBeLessThanOrEqual(3);
     });
   });
 
@@ -1152,8 +1152,8 @@ describe('architectureStore', () => {
       const blockAfter = getArch().blocks.find((b) => b.id === blockId)!;
 
       // Block relative position should be within bounds
-      // Max relative x for block = (6 - 2.4) / 2 = 1.8
-      expect(Math.abs(blockAfter.position.x)).toBeLessThanOrEqual(1.8 + 0.01);
+      // Max relative x for block = (6 - 2) / 2 = 2 (compute = medium tier = 2×2)
+      expect(Math.abs(blockAfter.position.x)).toBeLessThanOrEqual(2 + 0.01);
     });
 
     it('returns unchanged state when container not found', () => {

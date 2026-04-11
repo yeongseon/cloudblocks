@@ -8,7 +8,6 @@ import type {
 } from '@cloudblocks/schema';
 import {
   buildContainerBlockSizeFromProfileId,
-  DEFAULT_BLOCK_SIZE,
   inferLegacyContainerBlockProfileId,
 } from '../../../shared/types/index';
 import { getBlockDimensions } from '../../../shared/types/visualProfile';
@@ -350,11 +349,17 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         const rootSiblings = rootResources.map((candidate) => ({
           id: candidate.id,
           position: { x: candidate.position.x, z: candidate.position.z },
-          frame: { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
+          frame: {
+            width: getBlockDimensions(category, provider, subtype).width,
+            depth: getBlockDimensions(category, provider, subtype).depth,
+          },
         }));
         const nonOverlappingPosition = findNonOverlappingPosition(
           { x: -3, z: -3 },
-          { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
+          {
+            width: getBlockDimensions(category, provider, subtype).width,
+            depth: getBlockDimensions(category, provider, subtype).depth,
+          },
           rootSiblings,
         );
 
@@ -402,7 +407,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         category,
         provider: provider ?? 'azure',
         parentId: placementId,
-        position: nextGridPosition(existingBlocksOnPlate, container.frame),
+        position: nextGridPosition(
+          existingBlocksOnPlate,
+          container.frame,
+          getBlockDimensions(category, provider, subtype),
+        ),
         metadata: {},
         ...(subtype ? { subtype } : {}),
         ...(config ? { config } : {}),
@@ -440,15 +449,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         (candidate) => candidate.parentId === sourceBlock.parentId,
       );
 
-      const unclampedPosition = nextGridPosition(siblingsOnPlate, {
-        width: parentPlate.frame.width,
-        depth: parentPlate.frame.depth,
-      });
+      const unclampedPosition = nextGridPosition(
+        siblingsOnPlate,
+        {
+          width: parentPlate.frame.width,
+          depth: parentPlate.frame.depth,
+        },
+        getBlockDimensions(sourceBlock.category, sourceBlock.provider, sourceBlock.resourceType),
+      );
 
       const clampedXZ = clampWithinParent(
         { x: unclampedPosition.x, z: unclampedPosition.z },
         parentPlate.frame,
-        DEFAULT_BLOCK_SIZE,
+        getBlockDimensions(sourceBlock.category, sourceBlock.provider, sourceBlock.resourceType),
       );
 
       const position = {
@@ -568,7 +581,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       }
 
       const blocksOnTarget = resources.filter((candidate) => candidate.parentId === newPlacementId);
-      const newPosition = nextGridPosition(blocksOnTarget, targetPlate.frame);
+      const newPosition = nextGridPosition(
+        blocksOnTarget,
+        targetPlate.frame,
+        getBlockDimensions(block.category, block.provider, block.resourceType),
+      );
 
       return withHistory(state, {
         ...arch,
@@ -675,7 +692,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         const clamped = clampWithinParent(
           { x: candidate.position.x, z: candidate.position.z },
           { width: nextSize.width, depth: nextSize.depth },
-          DEFAULT_BLOCK_SIZE,
+          getBlockDimensions(candidate.category, candidate.provider, candidate.resourceType),
         );
         return {
           ...candidate,
@@ -793,7 +810,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         const clamped = clampWithinParent(
           { x: candidate.position.x, z: candidate.position.z },
           { width: nextFrame.width, depth: nextFrame.depth },
-          DEFAULT_BLOCK_SIZE,
+          getBlockDimensions(candidate.category, candidate.provider, candidate.resourceType),
         );
         return {
           ...candidate,

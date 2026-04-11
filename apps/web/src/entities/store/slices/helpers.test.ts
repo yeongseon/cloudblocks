@@ -2,12 +2,16 @@ import { describe, it, expect } from 'vitest';
 import {
   blocksOverlapAABB,
   containerBlocksOverlap,
+  nextGridPosition,
   overlapsSibling,
   overlapsAnySiblingResource,
   findNonOverlappingPosition,
   resourceBlocksOverlap,
   resolveMoveDelta,
 } from './helpers';
+import { getBlockDimensions } from '../../../shared/types/visualProfile';
+import { validateNoOverlap } from '../../validation/placement';
+import type { ResourceBlock, Size } from '@cloudblocks/schema';
 
 describe('platesOverlap', () => {
   it('returns true when plates fully overlap at same position', () => {
@@ -285,10 +289,6 @@ describe('blocksOverlapAABB', () => {
   });
 });
 
-// --- Integration: post-placement validation correctly catches overlaps ---
-import { validateNoOverlap } from '../../validation/placement';
-import type { ResourceBlock, Size } from '@cloudblocks/schema';
-
 describe('validateNoOverlap — post-placement safety net', () => {
   const getSize = (): Size => ({ width: 2, height: 2, depth: 2 });
 
@@ -318,5 +318,87 @@ describe('validateNoOverlap — post-placement safety net', () => {
     const blockA = makeResource('res-a', 0, 0);
     const blockC = makeResource('res-c', 5, 0); // far away
     expect(validateNoOverlap(blockA, [blockC], getSize)).toBeNull();
+  });
+});
+
+describe('nextGridPosition — blockSize parameter', () => {
+  it('uses default block size when blockSize is omitted', () => {
+    const pos = nextGridPosition([], { width: 10, depth: 10 });
+    expect(pos).toBeDefined();
+    expect(pos.y).toBe(0.5);
+  });
+
+  it('uses custom block size when provided', () => {
+    nextGridPosition([], { width: 10, depth: 10 }); // ensure no error without blockSize
+    const posLarge = nextGridPosition([], { width: 10, depth: 10 }, { width: 3, depth: 3 });
+    // Both should return the first position (index 0), but spacing differs.
+    // With larger blocks the grid step is bigger, so startX may differ.
+    expect(posLarge).toBeDefined();
+    expect(posLarge.y).toBe(0.5);
+  });
+
+  it('computes fewer columns for larger block size', () => {
+    // plateSize 10×10, medium block (2×2, spacing 0.2): step=2.2, maxCols=floor((10-2)/2.2)+1=4
+    const posMedium = nextGridPosition(
+      Array.from({ length: 4 }, (_, i) => ({ id: `b${i}` }) as ResourceBlock),
+      { width: 10, depth: 10 },
+      { width: 2, depth: 2 },
+    );
+    // large block (3×3, spacing 0.2): step=3.2, maxCols=floor((10-3)/3.2)+1=3
+    const posLarge = nextGridPosition(
+      Array.from({ length: 3 }, (_, i) => ({ id: `b${i}` }) as ResourceBlock),
+      { width: 10, depth: 10 },
+      { width: 3, depth: 3 },
+    );
+    // Medium index=4 should be row 1 (maxCols=4), large index=3 should also be row 1 (maxCols=3)
+    expect(posMedium.z).toBeLessThan(0); // negative z = further row
+    expect(posLarge.z).toBeLessThan(0);
+  });
+});
+
+describe('getBlockDimensions — size hierarchy', () => {
+  it('returns large (3×3) for network category', () => {
+    const dims = getBlockDimensions('network');
+    expect(dims.width).toBe(3);
+    expect(dims.depth).toBe(3);
+  });
+
+  it('returns large (3×3) for data category', () => {
+    const dims = getBlockDimensions('data');
+    expect(dims.width).toBe(3);
+    expect(dims.depth).toBe(3);
+  });
+
+  it('returns medium (2×2) for compute category', () => {
+    const dims = getBlockDimensions('compute');
+    expect(dims.width).toBe(2);
+    expect(dims.depth).toBe(2);
+  });
+
+  it('returns medium (2×2) for security category', () => {
+    const dims = getBlockDimensions('security');
+    expect(dims.width).toBe(2);
+    expect(dims.depth).toBe(2);
+  });
+
+  it('returns medium (2×2) for delivery category', () => {
+    const dims = getBlockDimensions('delivery');
+    expect(dims.width).toBe(2);
+    expect(dims.depth).toBe(2);
+  });
+
+  it('returns medium (2×2) for messaging category', () => {
+    const dims = getBlockDimensions('messaging');
+    expect(dims.width).toBe(2);
+    expect(dims.depth).toBe(2);
+  });
+
+  it('foundational categories (network, data) are larger than others', () => {
+    const network = getBlockDimensions('network');
+    const data = getBlockDimensions('data');
+    const compute = getBlockDimensions('compute');
+    const security = getBlockDimensions('security');
+    expect(network.width).toBeGreaterThan(compute.width);
+    expect(data.width).toBeGreaterThan(security.width);
   });
 });

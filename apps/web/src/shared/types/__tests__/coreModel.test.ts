@@ -141,36 +141,41 @@ describe('SUBTYPE_SIZE_OVERRIDES', () => {
 
 describe('getBlockDimensions', () => {
   const mediumDims = { width: 2, depth: 2, height: 2 };
+  const largeDims = { width: 3, depth: 3, height: 2 };
 
-  it('returns medium dimensions for any provider+subtype (uniform sizing)', () => {
+  it('returns correct tier dimensions for any provider+subtype', () => {
     expect(getBlockDimensions('compute', 'aws', 'ec2')).toEqual(mediumDims);
-    expect(getBlockDimensions('data', 'azure', 'cosmos-db')).toEqual(mediumDims);
+    expect(getBlockDimensions('data', 'azure', 'cosmos-db')).toEqual(largeDims);
     expect(getBlockDimensions('compute', 'gcp', 'cloud-functions')).toEqual(mediumDims);
   });
 
-  it('falls back to medium when subtype is unknown', () => {
+  it('falls back to category tier when subtype is unknown', () => {
     const dims = getBlockDimensions('compute', 'aws', 'UnknownService');
     expect(dims).toEqual(mediumDims);
   });
 
-  it('falls back to medium when provider is undefined', () => {
+  it('falls back to category tier when provider is undefined', () => {
     const dims = getBlockDimensions('data');
     const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['data']];
     expect(dims).toEqual(expected);
-    expect(dims).toEqual(mediumDims);
+    expect(dims).toEqual(largeDims);
   });
 
-  it('falls back to medium when subtype is undefined', () => {
+  it('falls back to category tier when subtype is undefined', () => {
     const dims = getBlockDimensions('delivery', 'azure');
     const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['delivery']];
     expect(dims).toEqual(expected);
     expect(dims).toEqual(mediumDims);
   });
 
-  it('returns uniform medium for all categories', () => {
+  it('returns tiered dimensions per category (network/data → large, others → medium)', () => {
     for (const category of blockCategories) {
       const dims = getBlockDimensions(category);
-      expect(dims, `${category} should be medium (2×2×2)`).toEqual(mediumDims);
+      if (category === 'network' || category === 'data') {
+        expect(dims, `${category} should be large (3×3×2)`).toEqual(largeDims);
+      } else {
+        expect(dims, `${category} should be medium (2×2×2)`).toEqual(mediumDims);
+      }
     }
   });
 
