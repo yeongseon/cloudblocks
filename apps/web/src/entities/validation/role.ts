@@ -22,8 +22,8 @@ export function validateRoles(block: ResourceBlock): ValidationError | null {
     return {
       ruleId: 'rule-role-invalid',
       severity: 'error',
-      message: `Block "${block.name}" has invalid role(s): ${invalidRoles.join(', ')}`,
-      suggestion: `Valid roles: ${BLOCK_ROLES.join(', ')}`,
+      message: `"${block.name}" has unrecognized role(s): ${invalidRoles.join(', ')}.`,
+      suggestion: `Valid roles are: ${BLOCK_ROLES.join(', ')}. Roles are visual tags that help communicate a block's purpose in your architecture.`,
       targetId: block.id,
     };
   }
@@ -35,8 +35,8 @@ export function validateRoles(block: ResourceBlock): ValidationError | null {
     return {
       ruleId: 'rule-role-duplicate',
       severity: 'warning',
-      message: `Block "${block.name}" has duplicate role(s): ${[...new Set(duplicates)].join(', ')}`,
-      suggestion: 'Remove duplicate roles',
+      message: `"${block.name}" has duplicate role(s): ${[...new Set(duplicates)].join(', ')}.`,
+      suggestion: 'Remove the duplicate - each role only needs to be assigned once.',
       targetId: block.id,
     };
   }

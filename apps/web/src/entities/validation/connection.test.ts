@@ -67,8 +67,9 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-source',
       severity: 'error',
-      message: 'Connection source "missing-source" not found',
-      suggestion: 'Remove this connection or update the source',
+      message: 'Connection source "missing-source" is missing.',
+      suggestion:
+        'The source block may have been deleted. Remove this connection or reconnect it to an existing block.',
       targetId: 'conn-source-missing',
     });
   });
@@ -84,8 +85,9 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-target',
       severity: 'error',
-      message: 'Connection target "missing-target" not found',
-      suggestion: 'Remove this connection or update the target',
+      message: 'Connection target "missing-target" is missing.',
+      suggestion:
+        'The target block may have been deleted. Remove this connection or reconnect it to an existing block.',
       targetId: 'conn-target-missing',
     });
   });
@@ -101,8 +103,9 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toEqual({
       ruleId: 'rule-conn-self',
       severity: 'error',
-      message: 'A node cannot connect to itself',
-      suggestion: 'Connect to a different node',
+      message: "A block can't connect to itself.",
+      suggestion:
+        'Connect it to a different block. Connections represent data flow between separate components.',
       targetId: 'conn-self',
     });
   });
@@ -241,14 +244,16 @@ describe('validateConnection', () => {
 
     expect(validateConnection(dbAsSource, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Invalid connection: data → compute',
-      suggestion: 'data cannot initiate a request to compute',
+      message: "data can't connect to compute.",
+      suggestion:
+        "This connection direction isn't supported. Check the allowed connection patterns: e.g., Edge → Compute, Compute → Data.",
       targetId: 'conn-db-source',
     });
     expect(validateConnection(storageAsSource, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Invalid connection: data → compute',
-      suggestion: 'data cannot initiate a request to compute',
+      message: "data can't connect to compute.",
+      suggestion:
+        "This connection direction isn't supported. Check the allowed connection patterns: e.g., Edge → Compute, Compute → Data.",
       targetId: 'conn-storage-source',
     });
   });
@@ -270,7 +275,7 @@ describe('validateConnection', () => {
 
     expect(validateConnection(connection, endpoints, blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Connection endpoints must belong to existing nodes',
+      message: 'Connection endpoints are invalid.',
       targetId: 'conn-orphan-endpoint',
     });
   });
@@ -288,7 +293,7 @@ describe('validateConnection', () => {
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Source endpoint must have output direction',
+      message: "The source endpoint isn't an output port.",
       targetId: 'conn-source-input',
     });
   });
@@ -306,7 +311,7 @@ describe('validateConnection', () => {
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Target endpoint must have input direction',
+      message: "The target endpoint isn't an input port.",
       targetId: 'conn-target-output',
     });
   });
@@ -324,7 +329,7 @@ describe('validateConnection', () => {
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Source and target endpoints must have matching semantics',
+      message: "Port types don't match.",
       targetId: 'conn-semantic-mismatch',
     });
   });
@@ -342,8 +347,9 @@ describe('validateConnection', () => {
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks)).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Invalid semantic for compute → data: event',
-      suggestion: 'Use a valid semantic for compute → data',
+      message: 'Wrong protocol for compute → data: "event".',
+      suggestion:
+        'This connection type doesn\'t support the "event" protocol. Use a supported protocol for this connection pair.',
       targetId: 'conn-invalid-semantic',
     });
   });
@@ -681,7 +687,7 @@ describe('canConnect', () => {
 
     expect(canConnect(fromEndpoint, toEndpoint, undefined, undefined)).toEqual({
       valid: false,
-      reason: 'Connection endpoints must belong to existing nodes',
+      reason: 'Both endpoints must belong to existing blocks.',
     });
   });
 
@@ -710,7 +716,8 @@ describe('canConnect', () => {
 
     expect(canConnect(sourceInput, semanticMismatchTarget, edge, compute)).toEqual({
       valid: false,
-      reason: 'Source endpoint must have output direction',
+      reason:
+        'Connections flow from output ports to input ports. Use an output port as the starting point.',
     });
     expect(
       canConnect(
@@ -726,7 +733,8 @@ describe('canConnect', () => {
       ),
     ).toEqual({
       valid: false,
-      reason: 'Target endpoint must have input direction',
+      reason:
+        'Connections flow from output ports to input ports. Use an input port as the destination.',
     });
     expect(
       canConnect(
@@ -742,7 +750,7 @@ describe('canConnect', () => {
       ),
     ).toEqual({
       valid: false,
-      reason: 'Source and target endpoints must have matching semantics',
+      reason: 'Both ports must use the same protocol (e.g., both HTTP or both Data).',
     });
   });
 
@@ -764,7 +772,7 @@ describe('canConnect', () => {
 
     expect(canConnect(sourceEndpoint, targetEndpoint, sourceNode, targetNode)).toEqual({
       valid: false,
-      reason: 'Invalid connection: compute → delivery',
+      reason: "compute can't connect to delivery.",
     });
 
     expect(
@@ -781,7 +789,7 @@ describe('canConnect', () => {
       ),
     ).toEqual({
       valid: false,
-      reason: 'Invalid semantic for compute → data: event',
+      reason: 'Wrong protocol for compute → data: "event".',
     });
   });
 

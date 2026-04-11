@@ -46,8 +46,9 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Block "ZeroCount" has invalid aggregation count: 0 (must be >= 1)',
-      suggestion: 'Set the aggregation count to 1 or greater',
+      message: '"ZeroCount" has an aggregation count of 0, which is too low.',
+      suggestion:
+        'Set the count to 1 or higher. The aggregation count represents how many instances of this resource run in your architecture.',
       targetId: 'b1',
     });
   });
@@ -62,8 +63,9 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Block "NegativeCount" has invalid aggregation count: -3 (must be >= 1)',
-      suggestion: 'Set the aggregation count to 1 or greater',
+      message: '"NegativeCount" has an aggregation count of -3, which is too low.',
+      suggestion:
+        'Set the count to 1 or higher. The aggregation count represents how many instances of this resource run in your architecture.',
       targetId: 'b2',
     });
   });
@@ -78,8 +80,9 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Block "FractionalCount" has non-integer aggregation count: 2.5',
-      suggestion: 'Set the aggregation count to a whole number',
+      message: '"FractionalCount" has a non-whole-number aggregation count: 2.5.',
+      suggestion:
+        "Use a whole number (like 1, 2, or 3). The count represents distinct resource instances, so fractions don't make sense.",
       targetId: 'b3',
     });
   });

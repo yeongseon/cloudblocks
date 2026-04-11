@@ -67,8 +67,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: 'Resource "Compute A" is not placed on any container',
-      suggestion: 'Place the resource on a valid subnet container',
+      message: '"Compute A" needs a container \u2014 place it on a Subnet or Region container.',
+      suggestion:
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'compute-1',
     });
   });
@@ -80,8 +81,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: 'Compute resource "Compute B" must be placed on a Subnet',
-      suggestion: 'Move the Compute resource to a Subnet',
+      message: '"Compute B" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'compute-2',
     });
   });
@@ -100,8 +102,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
-      message: 'Data resource "Database A" must be placed on a Subnet',
-      suggestion: 'Move the Data resource to a Subnet',
+      message: '"Database A" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'db-1',
     });
   });
@@ -120,8 +123,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-delivery-parent',
       severity: 'error',
-      message: 'Delivery resource "Gateway A" must be placed on a Subnet',
-      suggestion: 'Move the Delivery resource to a Subnet',
+      message: '"Gateway A" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'gw-1',
     });
   });
@@ -140,8 +144,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
-      message: 'Data resource "Storage A" must be placed on a Subnet',
-      suggestion: 'Move the Data resource to a Subnet',
+      message: '"Storage A" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'storage-1',
     });
   });
@@ -167,8 +172,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: 'Compute resource "Block" must be placed on a Subnet',
-      suggestion: 'Move the Compute resource to a Subnet',
+      message: '"Block" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'block-1',
     });
   });
@@ -185,8 +191,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: 'Messaging resource "QueueA" must be placed on a Region container',
-      suggestion: 'Move the Messaging resource to a Region container',
+      message: '"QueueA" is on the wrong container type \u2014 it needs a Region container.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'queue-1',
     });
   });
@@ -210,8 +217,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: 'Messaging resource "EventA" must be placed on a Region container',
-      suggestion: 'Move the Messaging resource to a Region container',
+      message: '"EventA" is on the wrong container type \u2014 it needs a Region container.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'event-1',
     });
   });
@@ -230,8 +238,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
-      message: 'Operations resource "AnalyticsA" must be placed on a Subnet',
-      suggestion: 'Move the Operations resource to a Subnet',
+      message: '"AnalyticsA" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'analytics-1',
     });
   });
@@ -243,8 +252,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-security-parent',
       severity: 'error',
-      message: 'Security resource "IdentityA" must be placed on a Subnet',
-      suggestion: 'Move the Security resource to a Subnet',
+      message: '"IdentityA" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'identity-1',
     });
   });
@@ -260,8 +270,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
-      message: 'Operations resource "ObservabilityA" must be placed on a Subnet',
-      suggestion: 'Move the Operations resource to a Subnet',
+      message: '"ObservabilityA" is on the wrong container type \u2014 it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'observability-1',
     });
   });
@@ -303,8 +314,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(computeBlock, region)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
-      message: 'Compute resource "VM" must be placed on a Subnet',
-      suggestion: 'Move the Compute resource to a Subnet',
+      message: '"VM" is on the wrong container type — it needs a Subnet.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'vm-1',
     });
 
@@ -312,8 +324,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(msgBlock, subnet)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
-      message: 'Messaging resource "Queue" must be placed on a Region container',
-      suggestion: 'Move the Messaging resource to a Region container',
+      message: '"Queue" is on the wrong container type — it needs a Region container.',
+      suggestion:
+        'Each resource type has specific container requirements based on its cloud infrastructure role. Move this block to the correct container.',
       targetId: 'mq-1',
     });
   });
@@ -370,8 +383,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: 'Resource "VM" is not placed on any container',
-      suggestion: 'Place the resource on a valid subnet container',
+      message: '"VM" needs a container — place it on a Subnet or Region container.',
+      suggestion:
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'vm-1',
     });
   });
@@ -386,8 +400,9 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: 'Resource "SQL DB" is not placed on any container',
-      suggestion: 'Place the resource on a valid subnet container',
+      message: '"SQL DB" needs a container — place it on a Subnet or Region container.',
+      suggestion:
+        'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
       targetId: 'sql-1',
     });
   });
@@ -407,8 +422,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-delivery-parent',
       severity: 'error',
-      message: expect.stringContaining('must be placed'),
-      suggestion: expect.stringContaining('Move'),
+      message: expect.stringContaining('wrong container type'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'dns-1',
     });
   });
@@ -425,8 +440,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-network-parent',
       severity: 'error',
-      message: expect.stringContaining('must be placed'),
-      suggestion: expect.stringContaining('Move'),
+      message: expect.stringContaining('wrong container type'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'pip-1',
     });
   });
@@ -443,8 +458,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
-      message: expect.stringContaining('must be placed'),
-      suggestion: expect.stringContaining('Move'),
+      message: expect.stringContaining('wrong container type'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'blob-1',
     });
   });
@@ -461,8 +476,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-identity-parent',
       severity: 'error',
-      message: expect.stringContaining('must be placed'),
-      suggestion: expect.stringContaining('Move'),
+      message: expect.stringContaining('wrong container type'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'mi-1',
     });
   });
@@ -479,8 +494,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-identity-parent',
       severity: 'error',
-      message: expect.stringContaining('must be placed'),
-      suggestion: expect.stringContaining('Move'),
+      message: expect.stringContaining('wrong container type'),
+      suggestion: expect.stringContaining('Move this block'),
       targetId: 'sa-1',
     });
   });
@@ -672,9 +687,9 @@ describe('validateLayerPlacement', () => {
     expect(validateLayerPlacement(block, invalidContainer)).toEqual({
       ruleId: 'rule-layer-hierarchy',
       severity: 'error',
-      message:
-        'Resource "InvalidLayerBlock" cannot be placed on a "resource" container (invalid layer hierarchy)',
-      suggestion: 'Valid parent layers for resources: subnet, zone, region, edge, global',
+      message: '"InvalidLayerBlock" can\'t go inside a "resource" container.',
+      suggestion:
+        'Resources can be placed on: subnet, zone, region, edge, global. This hierarchy mirrors how cloud providers organize infrastructure layers.',
       targetId: 'b-invalid',
     });
   });
@@ -702,8 +717,9 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Resource "BadX" position (1.5, 0) is not CU-aligned',
-      suggestion: 'Snap the resource to integer grid positions',
+      message: '"BadX" is off the grid.',
+      suggestion:
+        'Snap it to a grid position. All blocks align to a uniform grid to keep architectures tidy and readable.',
       targetId: 'b1',
     });
   });
@@ -714,8 +730,9 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Resource "BadZ" position (0, 2.7) is not CU-aligned',
-      suggestion: 'Snap the resource to integer grid positions',
+      message: '"BadZ" is off the grid.',
+      suggestion:
+        'Snap it to a grid position. All blocks align to a uniform grid to keep architectures tidy and readable.',
       targetId: 'b2',
     });
   });
@@ -726,8 +743,9 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Resource "BadBoth" position (0.1, 0.9) is not CU-aligned',
-      suggestion: 'Snap the resource to integer grid positions',
+      message: '"BadBoth" is off the grid.',
+      suggestion:
+        'Snap it to a grid position. All blocks align to a uniform grid to keep architectures tidy and readable.',
       targetId: 'b3',
     });
   });
@@ -775,8 +793,9 @@ describe('validateNoOverlap', () => {
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
       severity: 'error',
-      message: 'Resource "A" overlaps with "B"',
-      suggestion: 'Move the resource to a non-overlapping position',
+      message: '"A" overlaps with "B".',
+      suggestion:
+        "Move one of them so they don't overlap. Each resource needs its own space on the container.",
       targetId: 'a',
     });
   });
@@ -788,8 +807,9 @@ describe('validateNoOverlap', () => {
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
       severity: 'error',
-      message: 'Resource "A" overlaps with "B"',
-      suggestion: 'Move the resource to a non-overlapping position',
+      message: '"A" overlaps with "B".',
+      suggestion:
+        "Move one of them so they don't overlap. Each resource needs its own space on the container.",
       targetId: 'a',
     });
   });
