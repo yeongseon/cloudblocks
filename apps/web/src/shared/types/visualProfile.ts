@@ -24,14 +24,19 @@ export const TIER_DIMENSIONS: Record<BlockTier, BlockDimensionsCU> = {
 };
 
 /** Maps each category to its v2.0 tier. See CLOUDBLOCKS_SPEC_V2.md §5.2. */
-// Unified: all resource blocks use 'medium' tier (2×2×2) for consistent visual sizing.
-// VNet/Subnet containers are unaffected (rendered via ContainerBlockSvg).
+/** Maps each category to its v2.0 tier. See CLOUDBLOCKS_SPEC_V2.md §5.2.
+ *
+ * Foundational categories (network, data) use 'large' (3×3×2 CU) to
+ * visually communicate their role as base infrastructure that other
+ * resources depend on.  All other categories use 'medium' (2×2×2 CU).
+ * VNet/Subnet containers are unaffected (rendered via ContainerBlockSvg).
+ */
 export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
-  network: 'medium',
+  network: 'large',
   security: 'medium',
   delivery: 'medium',
   compute: 'medium',
-  data: 'medium',
+  data: 'large',
   messaging: 'medium',
   identity: 'medium',
   operations: 'medium',
@@ -56,12 +61,12 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
-// All resource blocks use uniform rect (cube) silhouette.
+// All resource blocks use uniform rect (cube) silhouette with 3×4 footprint.
 // Silhouette differentiation was removed — all blocks are cubes.
-// All blocks use medium tier and 3×4 footprint. Only color and icon differ.
+// Tier varies by category (network/data → large, others → medium). Only color and icon differ.
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
   network: {
-    tier: 'medium',
+    tier: 'large',
     surface: 'ported',
     silhouette: 'rect',
     footprint: [3, 4],
@@ -93,7 +98,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
     appCapacity: 4,
   },
   data: {
-    tier: 'medium',
+    tier: 'large',
     surface: 'ported',
     silhouette: 'rect',
     footprint: [3, 4],
@@ -137,10 +142,9 @@ export function getBlockVisualProfile(category: ResourceCategory): BlockVisualPr
 
 // ─── v2.0 Subtype Size Overrides ──────────────────────────────────
 //
-// All resource blocks now use uniform medium (2×2×2) sizing.
-// Subtype overrides are intentionally empty — all blocks are the same size.
-// The override map is kept for forward-compatibility if per-subtype sizing
-// is reintroduced in a future milestone.
+// Subtype overrides are intentionally empty — all blocks of the same
+// category share that category's tier size. The override map is kept
+// for forward-compatibility if per-subtype sizing is reintroduced.
 export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {};
 
 /**

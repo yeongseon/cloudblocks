@@ -352,10 +352,16 @@ describe('resolveGlobalBlocks', () => {
     );
     const result = resolveGlobalBlocks(nodes);
     expect(result).toHaveLength(categories.length);
-    // All categories map to medium tier (2×2×2)
+    // network and data categories map to large tier (3×3), others to medium (2×2)
     for (const block of result) {
-      expect(block.width).toBe(2);
-      expect(block.depth).toBe(2);
+      const cat = block.id.replace('block-', '');
+      if (cat === 'network' || cat === 'data') {
+        expect(block.width, `${cat} should be large`).toBe(3);
+        expect(block.depth, `${cat} should be large`).toBe(3);
+      } else {
+        expect(block.width, `${cat} should be medium`).toBe(2);
+        expect(block.depth, `${cat} should be medium`).toBe(2);
+      }
     }
   });
 });

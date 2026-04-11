@@ -169,17 +169,34 @@ describe('BlockSvg CU-based dimensions', () => {
     expect(vb.height).toBe(svgHeight);
   });
 
-  it('all categories render with uniform medium dimensions (128×138)', () => {
-    // After block unification, all categories are medium (2×2×2)
-    const cu = TIER_DIMENSIONS.medium;
-    const { screenWidth, svgHeight } = expectedDims(cu);
+  it('medium-tier categories render with 128×138 and large-tier with 192×202', () => {
+    const mediumCu = TIER_DIMENSIONS.medium;
+    const largeCu = TIER_DIMENSIONS.large;
+    const mediumDims = expectedDims(mediumCu);
+    const largeDims = expectedDims(largeCu);
 
-    ALL_CATEGORIES.forEach((category) => {
+    const mediumCategories: ResourceCategory[] = [
+      'compute',
+      'delivery',
+      'messaging',
+      'operations',
+      'security',
+      'identity',
+    ];
+    const largeCategories: ResourceCategory[] = ['network', 'data'];
+
+    mediumCategories.forEach((category) => {
       const { container } = render(<BlockSvg category={category} />);
       const vb = getViewBox(container);
+      expect(vb.width).toBe(mediumDims.screenWidth); // 128
+      expect(vb.height).toBe(mediumDims.svgHeight); // 138
+    });
 
-      expect(vb.width).toBe(screenWidth); // 128
-      expect(vb.height).toBe(svgHeight); // 138
+    largeCategories.forEach((category) => {
+      const { container } = render(<BlockSvg category={category} />);
+      const vb = getViewBox(container);
+      expect(vb.width).toBe(largeDims.screenWidth); // 192
+      expect(vb.height).toBe(largeDims.svgHeight); // 202
     });
   });
 
@@ -313,19 +330,22 @@ describe('BlockSvg category-tier mapping consistency', () => {
     expect(TIER_DIMENSIONS.wide).toEqual({ width: 3, depth: 1, height: 1 });
   });
 
-  it('all categories map to medium tier (unified block sizing)', () => {
-    const categories: ResourceCategory[] = [
+  it('all categories map to their assigned tier (network/data=large, rest=medium)', () => {
+    const mediumCategories: ResourceCategory[] = [
       'compute',
-      'data',
       'delivery',
       'messaging',
-      'network',
       'identity',
       'operations',
       'security',
     ];
-    categories.forEach((category) => {
+    const largeCategories: ResourceCategory[] = ['network', 'data'];
+
+    mediumCategories.forEach((category) => {
       expect(CATEGORY_TIER_MAP[category]).toBe('medium');
+    });
+    largeCategories.forEach((category) => {
+      expect(CATEGORY_TIER_MAP[category]).toBe('large');
     });
   });
 });

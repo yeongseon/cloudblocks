@@ -38,9 +38,10 @@ function roundToTenth(value: number): number {
 export function nextGridPosition(
   existingBlocks: ResourceBlock[],
   plateSize: { width: number; depth: number },
+  blockSize?: { width: number; depth: number },
 ): Position {
-  const blockWidth = DEFAULT_BLOCK_SIZE.width;
-  const blockDepth = DEFAULT_BLOCK_SIZE.depth;
+  const blockWidth = blockSize?.width ?? DEFAULT_BLOCK_SIZE.width;
+  const blockDepth = blockSize?.depth ?? DEFAULT_BLOCK_SIZE.depth;
   const spacing = 0.2;
   const stepX = blockWidth + spacing;
   const stepZ = blockDepth + spacing;

@@ -79,8 +79,8 @@ describe('resolveSurfacePort', () => {
     expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-x');
-    expect(result.surfaceBase).toEqual([12, 3, 25]);
-    expect(result.surfaceExit).toEqual([11.25, 3, 25]);
+    expect(result.surfaceBase).toEqual([12, 3, 25.5]);
+    expect(result.surfaceExit).toEqual([11.25, 3, 25.5]);
   });
 
   it('resolves outbound side using t=0.25 for three-port distribution', () => {

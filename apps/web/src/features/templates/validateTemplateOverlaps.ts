@@ -12,7 +12,7 @@
  * relative to the parent container's center. Bounding boxes are computed as
  * [center - size/2, center + size/2] on the X-Z plane.
  *
- * All resource blocks are 2×2×2 CU (medium tier).
+ * Resource block sizes are determined by category tier (see CATEGORY_TIER_MAP).
  *
  * NOTE: This validator only inspects `architecture.nodes`. External actors
  * are expected to be migrated/mirrored into the nodes array. If that assumption
