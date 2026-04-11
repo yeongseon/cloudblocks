@@ -982,7 +982,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
-      return withHistory(state, { ...arch, nodes });
+      // Sync externalActors[] from the computed node position (single source of truth)
+      const updatedNode = nodes.find((n) => n.id === id);
+      const externalActors = arch.externalActors?.map((actor) => {
+        if (actor.id === id && updatedNode) {
+          return {
+            ...actor,
+            position: { ...updatedNode.position },
+          };
+        }
+        return actor;
+      });
+
+      return withHistory(state, { ...arch, nodes, ...(externalActors ? { externalActors } : {}) });
     });
   },
 

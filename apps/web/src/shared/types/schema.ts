@@ -24,6 +24,11 @@ import {
   SCHEMA_VERSION,
 } from '@cloudblocks/schema';
 
+const EXTERNAL_ACTOR_DEFAULT_POSITIONS: Record<string, Position> = {
+  browser: { x: 1, y: 0, z: 10 },
+  internet: { x: 7, y: 0, z: 10 },
+};
+
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: 4, y: 0, z: 10 };
 
 /**
@@ -53,7 +58,9 @@ export function migrateExternalActorsToBlocks(
         category: 'delivery',
         provider,
         parentId: null,
-        position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+        position: actor.position ?? {
+          ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[actor.type] ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+        },
         metadata: {},
         roles: ['external'],
       }),
@@ -452,6 +459,54 @@ export function deserialize(json: string): Workspace[] {
         }
       }
 
+      // ── Self-heal: fix external blocks stuck at the old shared default ──────
+      // Before M38 all external actors fell back to a single shared position
+      // {x:4, y:0, z:10}. If BOTH browser and internet still sit at exactly
+      // that old default, spread them to per-type defaults. Any other overlap
+      // (including intentional user stacking) is left untouched.
+      if (Array.isArray(architectureUnknown.nodes)) {
+        const OLD_SHARED_DEFAULT: Position = { x: 4, y: 0, z: 10 };
+        const extBrowser = (architectureUnknown.nodes as ResourceBlock[]).find(
+          (n) => n.id === 'ext-browser' || (n.kind === 'resource' && n.resourceType === 'browser'),
+        );
+        const extInternet = (architectureUnknown.nodes as ResourceBlock[]).find(
+          (n) =>
+            n.id === 'ext-internet' || (n.kind === 'resource' && n.resourceType === 'internet'),
+        );
+        if (
+          extBrowser &&
+          extInternet &&
+          extBrowser.position.x === OLD_SHARED_DEFAULT.x &&
+          extBrowser.position.z === OLD_SHARED_DEFAULT.z &&
+          extInternet.position.x === OLD_SHARED_DEFAULT.x &&
+          extInternet.position.z === OLD_SHARED_DEFAULT.z
+        ) {
+          extBrowser.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.browser ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
+          extInternet.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.internet ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
+
+          // Sync repaired positions into externalActors[] if present
+          if (Array.isArray(architectureUnknown.externalActors)) {
+            for (const actor of architectureUnknown.externalActors as Array<
+              Record<string, unknown>
+            >) {
+              if (!isRecord(actor)) continue;
+              if (actor.id === extBrowser.id || (actor as { type?: string }).type === 'browser') {
+                (actor as { position?: Position }).position = { ...extBrowser.position };
+              } else if (
+                actor.id === extInternet.id ||
+                (actor as { type?: string }).type === 'internet'
+              ) {
+                (actor as { position?: Position }).position = { ...extInternet.position };
+              }
+            }
+          }
+        }
+      }
+
       const nodeIds = architectureUnknown.nodes
         .filter(isRecord)
         .map((node) => node.id)
@@ -487,7 +542,10 @@ export function deserialize(json: string): Workspace[] {
         }
         const legacyActor = actor as typeof actor & { position?: Position };
         if (!legacyActor.position) {
-          legacyActor.position = { ...DEFAULT_EXTERNAL_ACTOR_POSITION };
+          legacyActor.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[legacyActor.type as string] ??
+              DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
         }
       }
     }
@@ -516,7 +574,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: 4, y: 0, z: 10 },
+        position: { x: 1, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -546,7 +604,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 1, y: 0, z: 10 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
     createdAt: now,
