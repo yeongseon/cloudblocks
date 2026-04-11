@@ -24,6 +24,11 @@ import {
   SCHEMA_VERSION,
 } from '@cloudblocks/schema';
 
+const EXTERNAL_ACTOR_DEFAULT_POSITIONS: Record<string, Position> = {
+  browser: { x: 1, y: 0, z: 10 },
+  internet: { x: 7, y: 0, z: 10 },
+};
+
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: 4, y: 0, z: 10 };
 
 /**
@@ -53,7 +58,9 @@ export function migrateExternalActorsToBlocks(
         category: 'delivery',
         provider,
         parentId: null,
-        position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+        position: actor.position ?? {
+          ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[actor.type] ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+        },
         metadata: {},
         roles: ['external'],
       }),
@@ -452,6 +459,29 @@ export function deserialize(json: string): Workspace[] {
         }
       }
 
+      if (Array.isArray(architectureUnknown.nodes)) {
+        const extBrowser = (architectureUnknown.nodes as ResourceBlock[]).find(
+          (n) => n.id === 'ext-browser' || (n.kind === 'resource' && n.resourceType === 'browser'),
+        );
+        const extInternet = (architectureUnknown.nodes as ResourceBlock[]).find(
+          (n) =>
+            n.id === 'ext-internet' || (n.kind === 'resource' && n.resourceType === 'internet'),
+        );
+        if (
+          extBrowser &&
+          extInternet &&
+          extBrowser.position.x === extInternet.position.x &&
+          extBrowser.position.z === extInternet.position.z
+        ) {
+          extBrowser.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.browser ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
+          extInternet.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.internet ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
+        }
+      }
+
       const nodeIds = architectureUnknown.nodes
         .filter(isRecord)
         .map((node) => node.id)
@@ -487,7 +517,10 @@ export function deserialize(json: string): Workspace[] {
         }
         const legacyActor = actor as typeof actor & { position?: Position };
         if (!legacyActor.position) {
-          legacyActor.position = { ...DEFAULT_EXTERNAL_ACTOR_POSITION };
+          legacyActor.position = {
+            ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[legacyActor.type as string] ??
+              DEFAULT_EXTERNAL_ACTOR_POSITION),
+          };
         }
       }
     }
@@ -516,7 +549,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: 4, y: 0, z: 10 },
+        position: { x: 1, y: 0, z: 10 },
         metadata: {},
       },
       {
@@ -546,7 +579,7 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 1, y: 0, z: 10 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 7, y: 0, z: 10 } },
     ],
     createdAt: now,

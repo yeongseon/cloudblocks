@@ -686,8 +686,8 @@ describe('persistenceSlice branches', () => {
         parentId: null,
         roles: ['external'],
       });
-      // Position fallback: actor had no position, so defaults to { x: 4, y: 0, z: 10 }
-      expect(architecture.nodes[0].position).toEqual({ x: 4, y: 0, z: 10 });
+      // Position fallback: actor had no position, so defaults to { x: 7, y: 0, z: 10 }
+      expect(architecture.nodes[0].position).toEqual({ x: 7, y: 0, z: 10 });
       expect(architecture.externalActors).toEqual([
         { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: 4, y: 0, z: 10 } },
       ]);

@@ -982,7 +982,21 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
-      return withHistory(state, { ...arch, nodes });
+      const externalActors = arch.externalActors?.map((actor) => {
+        if (actor.id === id) {
+          return {
+            ...actor,
+            position: {
+              x: (actor.position?.x ?? 0) + deltaX,
+              y: actor.position?.y ?? 0,
+              z: (actor.position?.z ?? 0) + deltaZ,
+            },
+          };
+        }
+        return actor;
+      });
+
+      return withHistory(state, { ...arch, nodes, ...(externalActors ? { externalActors } : {}) });
     });
   },
 

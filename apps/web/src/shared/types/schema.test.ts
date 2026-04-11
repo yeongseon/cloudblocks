@@ -373,7 +373,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(legacyData));
 
-    expect(result[0].architecture.externalActors?.[0]?.position).toEqual({ x: 4, y: 0, z: 10 });
+    expect(result[0].architecture.externalActors?.[0]?.position).toEqual({ x: 7, y: 0, z: 10 });
   });
 
   it('rejects legacy 0.1.0 schema (clean start — no migration)', () => {
@@ -594,7 +594,7 @@ describe('schema utilities', () => {
           provider: 'azure',
           parentId: null,
           roles: ['external'],
-          position: { x: 4, y: 0, z: 10 },
+          position: { x: 1, y: 0, z: 10 },
           metadata: {},
         },
         {
@@ -694,7 +694,7 @@ describe('schema utilities', () => {
         },
       ],
       externalActors: [
-        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 4, y: 0, z: 10 } },
+        { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: 1, y: 0, z: 10 } },
         {
           id: 'ext-internet',
           name: 'Internet',
@@ -754,6 +754,9 @@ it('roundtrips createBlankArchitecture through serialize and deserialize', () =>
   expect(internetNode?.resourceType).toBe('internet');
   expect(browserNode?.roles).toEqual(['external']);
   expect(internetNode?.roles).toEqual(['external']);
+  expect(browserNode?.position).toEqual({ x: 1, y: 0, z: 10 });
+  expect(internetNode?.position).toEqual({ x: 7, y: 0, z: 10 });
+  expect(browserNode?.position).not.toEqual(internetNode?.position);
 
   // Endpoints should include both blocks (6 each = 12 total)
   const browserEps = loaded.architecture.endpoints.filter((ep) => ep.id.includes('ext-browser'));
@@ -765,6 +768,25 @@ it('roundtrips createBlankArchitecture through serialize and deserialize', () =>
   expect(loaded.architecture.connections).toHaveLength(1);
   expect(loaded.architecture.connections[0].from).toContain('ext-browser');
   expect(loaded.architecture.connections[0].to).toContain('ext-internet');
+});
+
+it('roundtrip keeps browser and internet at distinct default positions', () => {
+  const workspace: Workspace = {
+    id: 'ws-distinct',
+    name: 'Distinct External Positions',
+    provider: 'azure',
+    architecture: createBlankArchitecture('arch-distinct', 'Distinct External Positions'),
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const [loaded] = deserialize(serialize([workspace]));
+  const browserNode = loaded.architecture.nodes.find((n) => n.id === 'ext-browser');
+  const internetNode = loaded.architecture.nodes.find((n) => n.id === 'ext-internet');
+
+  expect(browserNode?.position).toEqual({ x: 1, y: 0, z: 10 });
+  expect(internetNode?.position).toEqual({ x: 7, y: 0, z: 10 });
+  expect(browserNode?.position).not.toEqual(internetNode?.position);
 });
 
 it('remaps legacy 10-category names to 7-category names during plates+blocks migration', () => {
@@ -1128,7 +1150,7 @@ describe('migrateExternalActorsToBlocks', () => {
     expect(result).toHaveLength(0);
   });
 
-  it('uses default position when actor position is missing', () => {
+  it('uses per-type default positions when actor position is missing', () => {
     const actors = [
       {
         id: 'ext-internet',
@@ -1136,11 +1158,20 @@ describe('migrateExternalActorsToBlocks', () => {
         type: 'internet' as const,
         position: undefined as unknown as { x: number; y: number; z: number },
       },
+      {
+        id: 'ext-browser',
+        name: 'Client',
+        type: 'browser' as const,
+        position: undefined as unknown as { x: number; y: number; z: number },
+      },
     ];
     const result = migrateExternalActorsToBlocks(actors, new Set(), 'gcp');
 
-    expect(result).toHaveLength(1);
-    expect(result[0].position).toEqual({ x: 4, y: 0, z: 10 });
+    expect(result).toHaveLength(2);
+    const internet = result.find((node) => node.id === 'ext-internet');
+    const browser = result.find((node) => node.id === 'ext-browser');
+    expect(internet?.position).toEqual({ x: 7, y: 0, z: 10 });
+    expect(browser?.position).toEqual({ x: 1, y: 0, z: 10 });
   });
 });
 
@@ -1261,6 +1292,65 @@ describe('deserialize — externalActors migration', () => {
     // Should NOT duplicate — still just 1 node
     expect(ws.architecture.nodes).toHaveLength(1);
     expect(ws.architecture.nodes[0].id).toBe('ext-internet');
+  });
+
+  it('self-heals external blocks when browser and internet overlap', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'azure',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [
+              {
+                id: 'ext-browser',
+                name: 'Client',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'browser',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 4, y: 0, z: 10 },
+                metadata: {},
+                roles: ['external'],
+              },
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'internet',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 4, y: 0, z: 10 },
+                metadata: {},
+                roles: ['external'],
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+    const browserNode = ws.architecture.nodes.find((n) => n.id === 'ext-browser');
+    const internetNode = ws.architecture.nodes.find((n) => n.id === 'ext-internet');
+
+    expect(browserNode?.position).toEqual({ x: 1, y: 0, z: 10 });
+    expect(internetNode?.position).toEqual({ x: 7, y: 0, z: 10 });
   });
 
   it('loads new block-only data without externalActors field', () => {
