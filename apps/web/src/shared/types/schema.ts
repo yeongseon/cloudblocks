@@ -459,7 +459,13 @@ export function deserialize(json: string): Workspace[] {
         }
       }
 
+      // ── Self-heal: fix external blocks stuck at the old shared default ──────
+      // Before M38 all external actors fell back to a single shared position
+      // {x:4, y:0, z:10}. If BOTH browser and internet still sit at exactly
+      // that old default, spread them to per-type defaults. Any other overlap
+      // (including intentional user stacking) is left untouched.
       if (Array.isArray(architectureUnknown.nodes)) {
+        const OLD_SHARED_DEFAULT: Position = { x: 4, y: 0, z: 10 };
         const extBrowser = (architectureUnknown.nodes as ResourceBlock[]).find(
           (n) => n.id === 'ext-browser' || (n.kind === 'resource' && n.resourceType === 'browser'),
         );
@@ -470,8 +476,10 @@ export function deserialize(json: string): Workspace[] {
         if (
           extBrowser &&
           extInternet &&
-          extBrowser.position.x === extInternet.position.x &&
-          extBrowser.position.z === extInternet.position.z
+          extBrowser.position.x === OLD_SHARED_DEFAULT.x &&
+          extBrowser.position.z === OLD_SHARED_DEFAULT.z &&
+          extInternet.position.x === OLD_SHARED_DEFAULT.x &&
+          extInternet.position.z === OLD_SHARED_DEFAULT.z
         ) {
           extBrowser.position = {
             ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.browser ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
@@ -479,6 +487,23 @@ export function deserialize(json: string): Workspace[] {
           extInternet.position = {
             ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS.internet ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
           };
+
+          // Sync repaired positions into externalActors[] if present
+          if (Array.isArray(architectureUnknown.externalActors)) {
+            for (const actor of architectureUnknown.externalActors as Array<
+              Record<string, unknown>
+            >) {
+              if (!isRecord(actor)) continue;
+              if (actor.id === extBrowser.id || (actor as { type?: string }).type === 'browser') {
+                (actor as { position?: Position }).position = { ...extBrowser.position };
+              } else if (
+                actor.id === extInternet.id ||
+                (actor as { type?: string }).type === 'internet'
+              ) {
+                (actor as { position?: Position }).position = { ...extInternet.position };
+              }
+            }
+          }
         }
       }
 

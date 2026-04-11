@@ -1353,6 +1353,153 @@ describe('deserialize — externalActors migration', () => {
     expect(internetNode?.position).toEqual({ x: 7, y: 0, z: 10 });
   });
 
+  it('does NOT self-heal when external blocks overlap at a non-default position', () => {
+    // Users may intentionally place browser and internet at the same spot.
+    // Self-heal should only fire at the old shared default {x:4, y:0, z:10}.
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'azure',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [
+              {
+                id: 'ext-browser',
+                name: 'Client',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'browser',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 2, y: 0, z: 8 },
+                metadata: {},
+                roles: ['external'],
+              },
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'internet',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 2, y: 0, z: 8 },
+                metadata: {},
+                roles: ['external'],
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+    const browserNode = ws.architecture.nodes.find((n) => n.id === 'ext-browser');
+    const internetNode = ws.architecture.nodes.find((n) => n.id === 'ext-internet');
+
+    // Positions should remain unchanged — intentional overlap preserved
+    expect(browserNode?.position).toEqual({ x: 2, y: 0, z: 8 });
+    expect(internetNode?.position).toEqual({ x: 2, y: 0, z: 8 });
+  });
+
+  it('keeps nodes[] and externalActors[] positions in sync after self-heal roundtrip', () => {
+    // After self-heal in deserialize(), externalActors[] should mirror repaired node positions.
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          provider: 'azure',
+          architecture: {
+            id: 'arch-1',
+            name: 'Arch',
+            version: '1',
+            nodes: [
+              {
+                id: 'ext-browser',
+                name: 'Client',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'browser',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 4, y: 0, z: 10 },
+                metadata: {},
+                roles: ['external'],
+              },
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'internet',
+                category: 'delivery',
+                provider: 'azure',
+                parentId: null,
+                position: { x: 4, y: 0, z: 10 },
+                metadata: {},
+                roles: ['external'],
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            externalActors: [
+              {
+                id: 'ext-browser',
+                name: 'Client',
+                type: 'browser',
+                position: { x: 4, y: 0, z: 10 },
+              },
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: 4, y: 0, z: 10 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const [ws] = deserialize(JSON.stringify(data));
+    const browserNode = ws.architecture.nodes.find((n) => n.id === 'ext-browser');
+    const internetNode = ws.architecture.nodes.find((n) => n.id === 'ext-internet');
+    const browserActor = ws.architecture.externalActors?.find((a) => a.id === 'ext-browser');
+    const internetActor = ws.architecture.externalActors?.find((a) => a.id === 'ext-internet');
+
+    // nodes[] should have repaired positions
+    expect(browserNode?.position).toEqual({ x: 1, y: 0, z: 10 });
+    expect(internetNode?.position).toEqual({ x: 7, y: 0, z: 10 });
+
+    // externalActors[] should mirror the repaired node positions exactly
+    expect(browserActor?.position).toEqual({ x: 1, y: 0, z: 10 });
+    expect(internetActor?.position).toEqual({ x: 7, y: 0, z: 10 });
+
+    // Parity: node and actor positions must be identical
+    expect(browserNode?.position).toEqual(browserActor?.position);
+    expect(internetNode?.position).toEqual(internetActor?.position);
+  });
+
   it('loads new block-only data without externalActors field', () => {
     const data = {
       schemaVersion: SCHEMA_VERSION,

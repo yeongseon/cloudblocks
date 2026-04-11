@@ -982,15 +982,13 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
+      // Sync externalActors[] from the computed node position (single source of truth)
+      const updatedNode = nodes.find((n) => n.id === id);
       const externalActors = arch.externalActors?.map((actor) => {
-        if (actor.id === id) {
+        if (actor.id === id && updatedNode) {
           return {
             ...actor,
-            position: {
-              x: (actor.position?.x ?? 0) + deltaX,
-              y: actor.position?.y ?? 0,
-              z: (actor.position?.z ?? 0) + deltaZ,
-            },
+            position: { ...updatedNode.position },
           };
         }
         return actor;
