@@ -204,7 +204,7 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('templates');
 
-    await user.click(screen.getByRole('button', { name: 'Validate' }));
+    await user.click(screen.getByRole('button', { name: /Validate architecture/ }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
@@ -655,7 +655,7 @@ describe('MenuBar', () => {
     useUIStore.setState({ showValidation: true });
     render(<MenuBar />);
 
-    await user.click(screen.getByRole('button', { name: 'Validate' }));
+    await user.click(screen.getByRole('button', { name: /Validate architecture/ }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
@@ -1057,7 +1057,28 @@ describe('MenuBar', () => {
     const validationBtn = screen.getByTitle('Validate Architecture');
     const badge = validationBtn.querySelector('.panel-btn-badge');
     expect(badge).toBeInTheDocument();
-    expect(badge?.textContent).toBe('!');
+    expect(badge?.textContent).toBe('1');
+    expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture (1 error)');
+  });
+
+  it('shows plural error count in badge and aria-label for 2 errors', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [
+          { ruleId: 'r1', message: 'err 1', severity: 'error', targetId: 'block-1' },
+          { ruleId: 'r2', message: 'err 2', severity: 'error', targetId: 'block-2' },
+        ],
+        warnings: [],
+      },
+    });
+    render(<MenuBar />);
+
+    const validationBtn = screen.getByTitle('Validate Architecture');
+    const badge = validationBtn.querySelector('.panel-btn-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.textContent).toBe('2');
+    expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture (2 errors)');
   });
 
   it('does not show validation badge when validation passes', () => {
@@ -1069,5 +1090,25 @@ describe('MenuBar', () => {
     const validationBtn = screen.getByTitle('Validate Architecture');
     const badge = validationBtn.querySelector('.panel-btn-badge');
     expect(badge).not.toBeInTheDocument();
+    expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture');
+  });
+
+  it('caps the validation badge at 9+ for more than 9 errors', () => {
+    const errors = Array.from({ length: 12 }, (_, i) => ({
+      ruleId: `r${i}`,
+      message: `err ${i}`,
+      severity: 'error' as const,
+      targetId: `block-${i}`,
+    }));
+    useArchitectureStore.setState({
+      validationResult: { valid: false, errors, warnings: [] },
+    });
+    render(<MenuBar />);
+
+    const validationBtn = screen.getByTitle('Validate Architecture');
+    const badge = validationBtn.querySelector('.panel-btn-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.textContent).toBe('9+');
+    expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture (9 or more errors)');
   });
 });

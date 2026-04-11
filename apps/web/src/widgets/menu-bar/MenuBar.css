@@ -340,6 +340,12 @@
   border: 1px solid var(--bg-surface);
   pointer-events: none;
 }
+.core-btn .panel-btn-badge {
+  min-width: 14px;
+  width: auto;
+  padding: 0 3px;
+  box-sizing: border-box;
+}
 
 .core-actions {
   display: flex;
