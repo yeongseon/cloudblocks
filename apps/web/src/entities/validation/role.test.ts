@@ -53,7 +53,7 @@ describe('validateRoles', () => {
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('rule-role-invalid');
     expect(result!.severity).toBe('error');
-    expect(result!.message).toContain('invalid-role');
+    expect(result!.message).toBe('"BadRole" has unrecognized role(s): invalid-role.');
     expect(result!.targetId).toBe('b1');
   });
 
@@ -67,8 +67,7 @@ describe('validateRoles', () => {
     const result = validateRoles(block);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('rule-role-invalid');
-    expect(result!.message).toContain('bogus');
-    expect(result!.message).toContain('fake');
+    expect(result!.message).toBe('"MultiInvalid" has unrecognized role(s): bogus, fake.');
   });
 
   it('returns warning for duplicate roles', () => {
@@ -82,7 +81,7 @@ describe('validateRoles', () => {
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('rule-role-duplicate');
     expect(result!.severity).toBe('warning');
-    expect(result!.message).toContain('public');
+    expect(result!.message).toBe('"DupeRole" has duplicate role(s): public.');
     expect(result!.targetId).toBe('b3');
   });
 
@@ -96,8 +95,7 @@ describe('validateRoles', () => {
     const result = validateRoles(block);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('rule-role-duplicate');
-    expect(result!.message).toContain('reader');
-    expect(result!.message).toContain('writer');
+    expect(result!.message).toBe('"MultiDupe" has duplicate role(s): reader, writer.');
   });
 
   it('invalid role takes precedence over duplicates', () => {
