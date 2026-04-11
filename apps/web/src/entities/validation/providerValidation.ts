@@ -62,8 +62,9 @@ function validateBlockProviderRules(
     warnings.push({
       ruleId: 'rule-provider-aws-lambda-subnet',
       severity: 'warning',
-      message: `AWS Lambda "${block.name}" is placed on a subnet. Lambda functions are serverless and typically don't require VPC placement unless accessing private resources.`,
-      suggestion: 'Consider whether VPC placement is intentional for private resource access.',
+      message: `AWS Lambda "${block.name}" is inside a subnet.`,
+      suggestion:
+        "Lambda is serverless — it usually doesn't need VPC placement. If you need private resource access, keep it here; otherwise, consider placing it outside the subnet.",
       targetId: block.id,
     });
   }
@@ -76,9 +77,9 @@ function validateBlockProviderRules(
     warnings.push({
       ruleId: 'rule-provider-gcp-sql-public',
       severity: 'warning',
-      message: `GCP Cloud SQL "${block.name}" is on a subnet. Database instances should typically be secured with appropriate VPC firewall rules or private service access.`,
+      message: `GCP Cloud SQL "${block.name}" is on a subnet without explicit security.`,
       suggestion:
-        'Ensure proper VPC firewall rules or private service access are configured for this subnet.',
+        'Database instances should be protected with VPC firewall rules or private service access. This is a reminder to configure network security for your database.',
       targetId: block.id,
     });
   }
@@ -91,8 +92,8 @@ function validateBlockProviderRules(
       warnings.push({
         ruleId: 'rule-provider-unknown-subtype',
         severity: 'warning',
-        message: `Block "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
-        suggestion: `Check available subtypes for ${block.provider} ${block.category} resources.`,
+        message: `"${block.name}" uses an unrecognized subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
+        suggestion: `This subtype may not be a standard ${block.provider} service. Check available subtypes for ${block.provider} ${block.category} resources, or verify the spelling.`,
         targetId: block.id,
       });
     }

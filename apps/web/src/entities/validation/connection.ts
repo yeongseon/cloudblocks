@@ -66,8 +66,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-source',
       severity: 'error',
-      message: `Connection source "${sourceLabel}" not found`,
-      suggestion: 'Remove this connection or update the source',
+      message: `Connection source "${sourceLabel}" is missing.`,
+      suggestion:
+        'The source block may have been deleted. Remove this connection or reconnect it to an existing block.',
       targetId: connection.id,
     };
   }
@@ -79,8 +80,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-target',
       severity: 'error',
-      message: `Connection target "${targetLabel}" not found`,
-      suggestion: 'Remove this connection or update the target',
+      message: `Connection target "${targetLabel}" is missing.`,
+      suggestion:
+        'The target block may have been deleted. Remove this connection or reconnect it to an existing block.',
       targetId: connection.id,
     };
   }
@@ -89,8 +91,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-self',
       severity: 'error',
-      message: 'A node cannot connect to itself',
-      suggestion: 'Connect to a different node',
+      message: "A block can't connect to itself.",
+      suggestion:
+        'Connect it to a different block. Connections represent data flow between separate components.',
       targetId: connection.id,
     };
   }
@@ -105,8 +108,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: 'Connection endpoints must belong to existing nodes',
-      suggestion: 'Remove this connection or update the endpoints',
+      message: 'Connection endpoints are invalid.',
+      suggestion:
+        'Both endpoints must belong to existing blocks. Remove this connection and create a new one.',
       targetId: connection.id,
     };
   }
@@ -116,8 +120,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: 'Source endpoint must have output direction',
-      suggestion: 'Use an output endpoint as the connection source',
+      message: "The source endpoint isn't an output port.",
+      suggestion:
+        'Connections flow from output ports to input ports. Use an output port as the starting point.',
       targetId: connection.id,
     };
   }
@@ -126,8 +131,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: 'Target endpoint must have input direction',
-      suggestion: 'Use an input endpoint as the connection target',
+      message: "The target endpoint isn't an input port.",
+      suggestion:
+        'Connections flow from output ports to input ports. Use an input port as the destination.',
       targetId: connection.id,
     };
   }
@@ -137,8 +143,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: 'Source and target endpoints must have matching semantics',
-      suggestion: 'Use endpoints with the same semantic type',
+      message: "Port types don't match.",
+      suggestion:
+        'Both ports must use the same protocol (e.g., both HTTP or both Data). Match the port types to create a valid connection.',
       targetId: connection.id,
     };
   }
@@ -151,8 +158,9 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: `Invalid connection: ${fromType} \u2192 ${toType}`,
-      suggestion: `${fromType} cannot initiate a request to ${toType}`,
+      message: `${fromType} can't connect to ${toType}.`,
+      suggestion:
+        "This connection direction isn't supported. Check the allowed connection patterns: e.g., Edge → Compute, Compute → Data.",
       targetId: connection.id,
     };
   }
@@ -161,8 +169,8 @@ export function validateConnection(
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: `Invalid semantic for ${fromType} \u2192 ${toType}: ${fromEndpoint.semantic}`,
-      suggestion: `Use a valid semantic for ${fromType} \u2192 ${toType}`,
+      message: `Wrong protocol for ${fromType} → ${toType}: "${fromEndpoint.semantic}".`,
+      suggestion: `This connection type doesn't support the "${fromEndpoint.semantic}" protocol. Use a supported protocol for this connection pair.`,
       targetId: connection.id,
     };
   }
@@ -191,8 +199,8 @@ export function validatePortIndices(
         return {
           ruleId: 'rule-conn-endpoint-source',
           severity: 'error',
-          message: `Source endpoint index ${semanticIndex} exceeds outbound capacity ${fromPorts.outbound} for ${fromType}`,
-          suggestion: 'Use a semantic that fits the source category port capacity',
+          message: `Source port exceeds ${fromType}'s outbound capacity.`,
+          suggestion: `${fromType} blocks support up to ${fromPorts.outbound} outbound connection types. Use a different protocol or connection path.`,
           targetId: connection.id,
         };
       }
@@ -208,8 +216,8 @@ export function validatePortIndices(
         return {
           ruleId: 'rule-conn-endpoint-target',
           severity: 'error',
-          message: `Target endpoint index ${semanticIndex} exceeds inbound capacity ${toPorts.inbound} for ${toType}`,
-          suggestion: 'Use a semantic that fits the target category port capacity',
+          message: `Target port exceeds ${toType}'s inbound capacity.`,
+          suggestion: `${toType} blocks support up to ${toPorts.inbound} inbound connection types. Use a different protocol or connection path.`,
           targetId: connection.id,
         };
       }
@@ -248,19 +256,30 @@ export function canConnect(
   const fromEndpoint = source;
   const toEndpoint = target;
   if (!fromNode || !toNode) {
-    return { valid: false, reason: 'Connection endpoints must belong to existing nodes' };
+    return { valid: false, reason: 'Both endpoints must belong to existing blocks.' };
   }
 
   if (fromEndpoint.direction !== 'output') {
-    return { valid: false, reason: 'Source endpoint must have output direction' };
+    return {
+      valid: false,
+      reason:
+        'Connections flow from output ports to input ports. Use an output port as the starting point.',
+    };
   }
 
   if (toEndpoint.direction !== 'input') {
-    return { valid: false, reason: 'Target endpoint must have input direction' };
+    return {
+      valid: false,
+      reason:
+        'Connections flow from output ports to input ports. Use an input port as the destination.',
+    };
   }
 
   if (fromEndpoint.semantic !== toEndpoint.semantic) {
-    return { valid: false, reason: 'Source and target endpoints must have matching semantics' };
+    return {
+      valid: false,
+      reason: 'Both ports must use the same protocol (e.g., both HTTP or both Data).',
+    };
   }
 
   const fromType = getEffectiveEndpointType(fromNode);
@@ -269,13 +288,13 @@ export function canConnect(
   const allowedSemantics = ALLOWED_CONNECTIONS[ruleKey];
 
   if (!allowedSemantics) {
-    return { valid: false, reason: `Invalid connection: ${fromType} \u2192 ${toType}` };
+    return { valid: false, reason: `${fromType} can't connect to ${toType}.` };
   }
 
   if (!allowedSemantics.includes(fromEndpoint.semantic)) {
     return {
       valid: false,
-      reason: `Invalid semantic for ${fromType} \u2192 ${toType}: ${fromEndpoint.semantic}`,
+      reason: `Wrong protocol for ${fromType} → ${toType}: "${fromEndpoint.semantic}".`,
     };
   }
 

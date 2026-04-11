@@ -67,8 +67,9 @@ export function validatePlacement(
     return {
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: `Resource "${resource.name}" is not placed on any container`,
-      suggestion: 'Place the resource on a valid subnet container',
+      message: `"${resource.name}" needs a container.`,
+      suggestion:
+        'Drag it onto a Subnet or Region container. Most resources need a parent container to define their network scope.',
       targetId: resource.id,
     };
   }
@@ -80,12 +81,11 @@ export function validatePlacement(
     const parentTypes = allowed?.filter((p): p is string => p !== null) ?? [];
     const labels = parentTypes.map((t) => PARENT_LABEL[t] ?? t);
     const destination = labels.length > 0 ? labels.join(' or ') : 'a valid container';
-    const cat = resource.category.charAt(0).toUpperCase() + resource.category.slice(1);
     return {
       ruleId: `rule-${resource.category}-parent`,
       severity: 'error',
-      message: `${cat} resource "${resource.name}" must be placed on a ${destination}`,
-      suggestion: `Move the ${cat} resource to a ${destination}`,
+      message: `"${resource.name}" is on the wrong container type.`,
+      suggestion: `Move it to a ${destination}. Each resource type has specific container requirements based on its cloud infrastructure role.`,
       targetId: resource.id,
     };
   }
@@ -153,8 +153,8 @@ export function validateLayerPlacement(
     return {
       ruleId: 'rule-layer-hierarchy',
       severity: 'error',
-      message: `Resource "${resource.name}" cannot be placed on a "${container.layer}" container (invalid layer hierarchy)`,
-      suggestion: `Valid parent layers for resources: ${validParents.join(', ')}`,
+      message: `"${resource.name}" can't go inside a "${container.layer}" container.`,
+      suggestion: `Resources can be placed on: ${validParents.join(', ')}. This hierarchy mirrors how cloud providers organize infrastructure layers.`,
       targetId: resource.id,
     };
   }
@@ -174,8 +174,9 @@ export function validateGridAlignment(resource: ResourceBlock): ValidationError 
     return {
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: `Resource "${resource.name}" position (${x}, ${z}) is not CU-aligned`,
-      suggestion: 'Snap the resource to integer grid positions',
+      message: `"${resource.name}" is off the grid.`,
+      suggestion:
+        'Snap it to a grid position. All blocks align to a uniform grid to keep architectures tidy and readable.',
       targetId: resource.id,
     };
   }
@@ -219,8 +220,9 @@ export function validateNoOverlap(
       return {
         ruleId: 'rule-no-overlap',
         severity: 'error',
-        message: `Resource "${resource.name}" overlaps with "${sibling.name}"`,
-        suggestion: 'Move the resource to a non-overlapping position',
+        message: `"${resource.name}" overlaps with "${sibling.name}".`,
+        suggestion:
+          "Move one of them so they don't overlap. Each resource needs its own space on the container.",
         targetId: resource.id,
       };
     }

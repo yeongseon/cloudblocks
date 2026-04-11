@@ -18,8 +18,9 @@ export function validateAggregation(block: ResourceBlock): ValidationError | nul
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Block "${block.name}" has invalid aggregation count: ${aggregation.count} (must be >= 1)`,
-      suggestion: 'Set the aggregation count to 1 or greater',
+      message: `"${block.name}" has an aggregation count of ${aggregation.count}, which is too low.`,
+      suggestion:
+        'Set the count to 1 or higher. The aggregation count represents how many instances of this resource run in your architecture.',
       targetId: block.id,
     };
   }
@@ -28,8 +29,9 @@ export function validateAggregation(block: ResourceBlock): ValidationError | nul
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Block "${block.name}" has non-integer aggregation count: ${aggregation.count}`,
-      suggestion: 'Set the aggregation count to a whole number',
+      message: `"${block.name}" has a non-whole-number aggregation count: ${aggregation.count}.`,
+      suggestion:
+        "Use a whole number (like 1, 2, or 3). The count represents distinct resource instances, so fractions don't make sense.",
       targetId: block.id,
     };
   }
