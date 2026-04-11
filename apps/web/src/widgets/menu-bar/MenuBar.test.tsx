@@ -1061,6 +1061,26 @@ describe('MenuBar', () => {
     expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture (1 error)');
   });
 
+  it('shows plural error count in badge and aria-label for 2 errors', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [
+          { ruleId: 'r1', message: 'err 1', severity: 'error', targetId: 'block-1' },
+          { ruleId: 'r2', message: 'err 2', severity: 'error', targetId: 'block-2' },
+        ],
+        warnings: [],
+      },
+    });
+    render(<MenuBar />);
+
+    const validationBtn = screen.getByTitle('Validate Architecture');
+    const badge = validationBtn.querySelector('.panel-btn-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.textContent).toBe('2');
+    expect(validationBtn).toHaveAttribute('aria-label', 'Validate architecture (2 errors)');
+  });
+
   it('does not show validation badge when validation passes', () => {
     useArchitectureStore.setState({
       validationResult: { valid: true, errors: [], warnings: [] },
