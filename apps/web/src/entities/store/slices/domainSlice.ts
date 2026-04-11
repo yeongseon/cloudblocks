@@ -350,8 +350,16 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           id: candidate.id,
           position: { x: candidate.position.x, z: candidate.position.z },
           frame: {
-            width: getBlockDimensions(category, provider, subtype).width,
-            depth: getBlockDimensions(category, provider, subtype).depth,
+            width: getBlockDimensions(
+              candidate.category,
+              candidate.provider,
+              candidate.resourceType,
+            ).width,
+            depth: getBlockDimensions(
+              candidate.category,
+              candidate.provider,
+              candidate.resourceType,
+            ).depth,
           },
         }));
         const nonOverlappingPosition = findNonOverlappingPosition(

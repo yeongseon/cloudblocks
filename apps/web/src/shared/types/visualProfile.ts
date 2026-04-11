@@ -61,9 +61,9 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
-// All resource blocks use uniform rect (cube) silhouette.
+// All resource blocks use uniform rect (cube) silhouette with 3×4 footprint.
 // Silhouette differentiation was removed — all blocks are cubes.
-// All blocks use medium tier and 3×4 footprint. Only color and icon differ.
+// Tier varies by category (network/data → large, others → medium). Only color and icon differ.
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
   network: {
     tier: 'large',
