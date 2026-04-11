@@ -624,11 +624,18 @@ export function MenuBar() {
           className="core-btn"
           onClick={handleValidate}
           title="Validate Architecture"
+          aria-label={
+            validationResult && !validationResult.valid && validationResult.errors.length > 0
+              ? `Validate architecture (${validationResult.errors.length > 9 ? '9 or more' : validationResult.errors.length} error${validationResult.errors.length === 1 ? '' : 's'})`
+              : 'Validate architecture'
+          }
         >
           <CheckCircle size={14} />
           <span className="core-btn-label">Validate</span>
-          {validationResult && !validationResult.valid && (
-            <span className="panel-btn-badge">!</span>
+          {validationResult && !validationResult.valid && validationResult.errors.length > 0 && (
+            <span className="panel-btn-badge" aria-hidden="true">
+              {validationResult.errors.length > 9 ? '9+' : validationResult.errors.length}
+            </span>
           )}
         </button>
       </div>
