@@ -898,6 +898,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
+  // Overlap prevention: drag-time checks below prevent users from creating
+  // NEW overlaps. For legacy/imported data that already contains overlaps,
+  // `validateNoOverlap()` in placement.ts will surface them as validation
+  // errors. NOTE: validateNoOverlap is not yet wired into the validation
+  // engine (engine.ts) — that is a separate wiring task.
   moveBlockPosition: (id, deltaX, deltaZ) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -957,7 +962,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const clampedPosition = clampWithinParent(
         unclampedPosition,
         { width: parentPlate.frame.width, depth: parentPlate.frame.depth },
-        { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
+        { width: blockSize.width, depth: blockSize.depth },
       );
 
       const siblingResources = resources.filter(

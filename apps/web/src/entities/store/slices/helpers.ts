@@ -153,10 +153,18 @@ export const resourceBlocksOverlap = blocksOverlapAABB;
 /**
  * Check whether moving a resource block to `candidatePos` would overlap any sibling.
  *
- * Escape-hatch: if the block is already overlapping at `currentPos`, the move is
- * always allowed so the user can drag the block out of the invalid state.
- * This handles legacy/imported models where blocks may have been placed on top
- * of each other.
+ * **Escape-hatch behaviour**: when `currentPos` is provided and the block is
+ * already overlapping at that position, the function returns `false` (no overlap)
+ * unconditionally — even if `candidatePos` would overlap a *different* sibling.
+ * This is intentional: the goal is to never trap the user. Once the block reaches
+ * a valid (non-overlapping) position, normal collision checks resume.
+ *
+ * Why "allow any move while invalid"?
+ * - The user may need to traverse through other blocks to reach an open space.
+ * - A stricter "only allow moves that reduce overlap" policy would still trap
+ *   blocks in tight layouts where the only exit path crosses another sibling.
+ * - Post-placement validation (`validateNoOverlap` in placement.ts) ensures that
+ *   any remaining overlap is surfaced as a validation error for the user to fix.
  */
 export function overlapsAnySiblingResource(
   candidatePos: { x: number; z: number },

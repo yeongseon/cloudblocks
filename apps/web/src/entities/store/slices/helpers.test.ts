@@ -240,6 +240,37 @@ describe('overlapsAnySiblingResource — escape hatch', () => {
       }),
     ).toBe(true);
   });
+
+  it('allows move that overlaps a DIFFERENT sibling while already invalid (intentional)', () => {
+    // Block 'candidate' is at x=0.5 — overlapping sibling 'a' (at x=0).
+    // Moving to x=3.5 would overlap sibling 'b' (at x=4).
+    // Because candidate is already invalid, the escape hatch allows this move
+    // so the user is never trapped. Post-placement validation will surface
+    // the remaining overlap.
+    const threeWay = [
+      {
+        id: 'a',
+        position: { x: 0, z: 0 },
+        category: 'compute' as const,
+        provider: 'azure' as const,
+      },
+      {
+        id: 'b',
+        position: { x: 4, z: 0 },
+        category: 'compute' as const,
+        provider: 'azure' as const,
+      },
+    ];
+    expect(
+      overlapsAnySiblingResource(
+        { x: 3.5, z: 0 }, // candidate pos (overlaps 'b')
+        { width: 2, depth: 2 },
+        threeWay,
+        'candidate',
+        { x: 0.5, z: 0 }, // current pos (overlaps 'a') → escape hatch fires
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('blocksOverlapAABB', () => {
@@ -251,5 +282,41 @@ describe('blocksOverlapAABB', () => {
     expect(blocksOverlapAABB(posA, sizeA, posB, sizeB)).toBe(true);
     expect(containerBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
     expect(resourceBlocksOverlap(posA, sizeA, posB, sizeB)).toBe(true);
+  });
+});
+
+// --- Integration: post-placement validation correctly catches overlaps ---
+import { validateNoOverlap } from '../../validation/placement';
+import type { ResourceBlock, Size } from '@cloudblocks/schema';
+
+describe('validateNoOverlap — post-placement safety net', () => {
+  const getSize = (): Size => ({ width: 2, height: 2, depth: 2 });
+
+  const makeResource = (id: string, x: number, z: number): ResourceBlock => ({
+    id,
+    name: id,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'virtual_machine',
+    category: 'compute',
+    provider: 'azure',
+    parentId: 'subnet-1',
+    position: { x, y: 0, z },
+    metadata: {},
+  });
+
+  it('detects overlap on legacy/imported data where blocks were placed on top of each other', () => {
+    const blockA = makeResource('res-a', 0, 0);
+    const blockB = makeResource('res-b', 1, 0); // overlaps blockA
+    const result = validateNoOverlap(blockA, [blockB], getSize);
+    expect(result).not.toBeNull();
+    expect(result!.ruleId).toBe('rule-no-overlap');
+    expect(result!.severity).toBe('error');
+  });
+
+  it('does NOT report overlap when blocks are properly separated', () => {
+    const blockA = makeResource('res-a', 0, 0);
+    const blockC = makeResource('res-c', 5, 0); // far away
+    expect(validateNoOverlap(blockA, [blockC], getSize)).toBeNull();
   });
 });
