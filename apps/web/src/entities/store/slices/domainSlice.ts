@@ -11,6 +11,7 @@ import {
   DEFAULT_BLOCK_SIZE,
   inferLegacyContainerBlockProfileId,
 } from '../../../shared/types/index';
+import { getBlockDimensions } from '../../../shared/types/visualProfile';
 import {
   CATEGORY_DEFAULT_RESOURCE_TYPE,
   connectionTypeToSemantic,
@@ -38,6 +39,7 @@ import {
   DEFAULT_PLATE_SIZE,
   findNonOverlappingPosition,
   nextGridPosition,
+  overlapsAnySiblingResource,
   resolveMoveDelta,
   withHistory,
 } from './helpers';
@@ -907,18 +909,29 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const blockSize = getBlockDimensions(block.category, block.provider, block.subtype);
+
       const parentPlate = containers.find((candidate) => candidate.id === block.parentId);
 
       if (!parentPlate) {
         if (block.parentId === null) {
+          const candidatePosition = {
+            x: block.position.x + deltaX,
+            z: block.position.z + deltaZ,
+          };
+          const rootResources = resources.filter((candidate) => candidate.parentId === null);
+          if (overlapsAnySiblingResource(candidatePosition, blockSize, rootResources, id)) {
+            return state;
+          }
+
           const nodes = arch.nodes.map((candidate) => {
             if (candidate.id === id && candidate.kind === 'resource') {
               return {
                 ...candidate,
                 position: {
-                  x: candidate.position.x + deltaX,
+                  x: candidatePosition.x,
                   y: candidate.position.y,
-                  z: candidate.position.z + deltaZ,
+                  z: candidatePosition.z,
                 },
               };
             }
@@ -938,6 +951,13 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         { width: parentPlate.frame.width, depth: parentPlate.frame.depth },
         { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
       );
+
+      const siblingResources = resources.filter(
+        (candidate) => candidate.parentId === block.parentId,
+      );
+      if (overlapsAnySiblingResource(clampedPosition, blockSize, siblingResources, id)) {
+        return state;
+      }
 
       const nodes = arch.nodes.map((candidate) => {
         if (candidate.id === id && candidate.kind === 'resource') {
@@ -967,15 +987,25 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const blockSize = getBlockDimensions(block.category, block.provider, block.subtype);
+      const candidatePosition = {
+        x: block.position.x + deltaX,
+        z: block.position.z + deltaZ,
+      };
+      const rootResources = resources.filter((candidate) => candidate.parentId === null);
+      if (overlapsAnySiblingResource(candidatePosition, blockSize, rootResources, id)) {
+        return state;
+      }
+
       // Update nodes[]
       const nodes = arch.nodes.map((candidate) => {
         if (candidate.id === id && candidate.kind === 'resource') {
           return {
             ...candidate,
             position: {
-              x: candidate.position.x + deltaX,
+              x: candidatePosition.x,
               y: candidate.position.y,
-              z: candidate.position.z + deltaZ,
+              z: candidatePosition.z,
             },
           };
         }

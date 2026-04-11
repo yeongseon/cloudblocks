@@ -2,6 +2,7 @@ import type { Workspace } from '../../../shared/types/index';
 import type { ArchitectureModel, Position, ResourceBlock } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_CONTAINER_BLOCK_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
+import { getBlockDimensions } from '../../../shared/types/visualProfile';
 import {
   canRedo as historyCanRedo,
   canUndo as historyCanUndo,
@@ -137,6 +138,45 @@ export function containerBlocksOverlap(
   const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
 
   return overlapX && overlapZ;
+}
+
+export function resourceBlocksOverlap(
+  posA: { x: number; z: number },
+  sizeA: { width: number; depth: number },
+  posB: { x: number; z: number },
+  sizeB: { width: number; depth: number },
+): boolean {
+  const halfWA = sizeA.width / 2;
+  const halfDA = sizeA.depth / 2;
+  const halfWB = sizeB.width / 2;
+  const halfDB = sizeB.depth / 2;
+
+  const overlapX = posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
+  const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
+
+  return overlapX && overlapZ;
+}
+
+export function overlapsAnySiblingResource(
+  candidatePos: { x: number; z: number },
+  candidateSize: { width: number; depth: number },
+  siblings: ReadonlyArray<{
+    id: string;
+    position: { x: number; z: number };
+    category: ResourceBlock['category'];
+    provider: ResourceBlock['provider'];
+    subtype?: ResourceBlock['subtype'];
+  }>,
+  excludeId: string,
+): boolean {
+  return siblings.some((sibling) => {
+    if (sibling.id === excludeId) {
+      return false;
+    }
+
+    const siblingSize = getBlockDimensions(sibling.category, sibling.provider, sibling.subtype);
+    return resourceBlocksOverlap(candidatePos, candidateSize, sibling.position, siblingSize);
+  });
 }
 
 export function overlapsSibling(

@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   containerBlocksOverlap,
   overlapsSibling,
+  overlapsAnySiblingResource,
   findNonOverlappingPosition,
+  resourceBlocksOverlap,
   resolveMoveDelta,
 } from './helpers';
 
@@ -144,5 +146,58 @@ describe('resolveMoveDelta', () => {
     const siblings = [{ id: 's1', position: { x: 5, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = resolveMoveDelta(container, 5, 0, siblings);
     expect(result.deltaX).toBeLessThan(5);
+  });
+});
+
+describe('resourceBlocksOverlap', () => {
+  it('returns true when resource blocks overlap', () => {
+    expect(
+      resourceBlocksOverlap(
+        { x: 0, z: 0 },
+        { width: 2, depth: 2 },
+        { x: 1, z: 0 },
+        { width: 2, depth: 2 },
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when resource blocks touch edges', () => {
+    expect(
+      resourceBlocksOverlap(
+        { x: 0, z: 0 },
+        { width: 2, depth: 2 },
+        { x: 2, z: 0 },
+        { width: 2, depth: 2 },
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('overlapsAnySiblingResource', () => {
+  const siblings = [
+    {
+      id: 'a',
+      position: { x: 0, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+    {
+      id: 'b',
+      position: { x: 4, z: 0 },
+      category: 'compute' as const,
+      provider: 'azure' as const,
+    },
+  ];
+
+  it('returns true when candidate overlaps any sibling', () => {
+    expect(
+      overlapsAnySiblingResource({ x: 1, z: 0 }, { width: 2, depth: 2 }, siblings, 'candidate'),
+    ).toBe(true);
+  });
+
+  it('returns false when overlap is only with excluded id', () => {
+    expect(overlapsAnySiblingResource({ x: 0, z: 0 }, { width: 2, depth: 2 }, siblings, 'a')).toBe(
+      false,
+    );
   });
 });
