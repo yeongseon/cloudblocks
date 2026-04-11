@@ -275,7 +275,7 @@ describe('MenuBar', () => {
 
   it('shows Sign In when not authenticated and GitHub username when authenticated', () => {
     const { rerender } = render(<MenuBar />);
-    expect(screen.getByRole('button', { name: /Sign In/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sign in with GitHub/ })).toBeInTheDocument();
 
     useAuthStore.setState({
       status: 'authenticated',
@@ -292,18 +292,18 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: /octocat/ })).toBeInTheDocument();
   });
 
-  it('shows requires-backend badge when backend is not available for anonymous users', () => {
+  it('shows requires-backend state when backend is not available for anonymous users', () => {
     useUIStore.setState({ backendStatus: 'not_configured' });
 
     render(<MenuBar />);
 
-    const githubButton = screen.getByRole('button', { name: /GitHub/ });
+    const githubButton = screen.getByRole('button', { name: /GitHub: backend required/ });
     expect(githubButton).toBeDisabled();
     expect(githubButton).toHaveAttribute(
       'title',
       'Backend API required for GitHub features. Run the backend server to enable.',
     );
-    expect(githubButton.textContent).toContain('Requires Backend');
+    expect(githubButton.textContent).toContain('API');
   });
 
   it('keeps loading state when backend status is unknown', () => {
@@ -909,7 +909,7 @@ describe('MenuBar', () => {
     expect(toast.error).toHaveBeenCalledWith('Failed to save workspace. Storage may be full.');
   });
 
-  it('shows "GitHub" fallback when authenticated user has no username', () => {
+  it('shows GitHub icon fallback when authenticated user has no username', () => {
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -925,8 +925,9 @@ describe('MenuBar', () => {
 
     const githubBtn = document.querySelector('.github-btn') as HTMLElement;
     expect(githubBtn).toBeInTheDocument();
-    expect(githubBtn.textContent).toContain('GitHub');
-    expect(screen.queryByRole('button', { name: /Sign In/ })).not.toBeInTheDocument();
+    expect(githubBtn).toHaveAttribute('title', 'GitHub');
+    expect(githubBtn).toHaveAttribute('aria-label', 'GitHub account');
+    expect(screen.queryByRole('button', { name: /Sign in with GitHub/ })).not.toBeInTheDocument();
   });
 
   it('toggles sound from Advanced menu', async () => {
