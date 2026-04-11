@@ -447,32 +447,45 @@
 }
 
 .github-btn {
-  padding: 3px 10px;
-  background: var(--accent-primary);
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: var(--text-inverse);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all var(--duration-fast) var(--easing-default);
-  box-shadow: var(--shadow-btn);
+  min-width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  padding: 0 6px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-default);
+  box-shadow: var(--shadow-btn);
 }
 
-.github-btn:hover {
-  opacity: 0.9;
+.github-btn:hover:not(:disabled) {
+  background: var(--accent-primary);
   color: var(--text-inverse);
   transform: translateY(-1px);
   box-shadow: var(--shadow-btn-hover);
 }
 
-.github-btn:active {
+.github-btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: none;
+}
+
+.github-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.github-btn-hint {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 2px;
 }
 
 /* ── Badges ──────── */
