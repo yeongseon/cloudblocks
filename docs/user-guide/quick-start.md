@@ -22,7 +22,7 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-When CloudBlocks opens, you will see a landing page. Click **Start Learning** to enter the builder.
+When CloudBlocks opens, you will see a landing page. Click **Get Started** to enter the builder.
 
 ---
 

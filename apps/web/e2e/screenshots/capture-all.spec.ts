@@ -47,7 +47,7 @@ function toKebabCase(value: string): string {
 
 async function goToBuilder(page: Page) {
   await page.goto('/');
-  const startBtn = page.getByRole('button', { name: 'Start Learning' });
+  const startBtn = page.getByRole('button', { name: 'Get Started' });
   if (await startBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await startBtn.click();
   }

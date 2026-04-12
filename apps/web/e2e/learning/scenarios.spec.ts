@@ -52,8 +52,8 @@ const SCENARIOS = [
 
 async function goToBuilder(page: Page) {
   await page.goto('/');
-  // Click "Start Learning" on landing page to enter the builder
-  const startBtn = page.getByRole('button', { name: 'Start Learning' });
+  // Click "Get Started" on landing page to enter the builder
+  const startBtn = page.getByRole('button', { name: 'Get Started' });
   if (await startBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await startBtn.click();
   }
