@@ -42,7 +42,7 @@ export function LandingPage() {
             <span className="landing-hero-badge">Terraform starter export</span>
           </div>
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
-            Start Learning
+            Get Started
           </button>
         </section>
 
