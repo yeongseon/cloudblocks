@@ -257,7 +257,7 @@ const threeTierScenario: Scenario = {
       hints: [
         'Switch to Connect mode by clicking the Connect button in the toolbar.',
         'Click the source block first, then click the target block to create a connection.',
-        'The arrows show the direction data travels: users send requests to the Gateway, which forwards them to the VM, which queries the Database.',
+        'The arrows show the direction data travels: users send requests to the Gateway, which forwards them to the Virtual Machine, which queries the Database.',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
@@ -374,7 +374,7 @@ const serverlessApiScenario: Scenario = {
       order: 1,
       title: 'Set Up Network Zones',
       instruction:
-        'Add two Subnets inside your Network — one for the API gateway and one for data services. Subnets group related resources together.',
+        '1. Create a Network container \u2014 your private cloud network that keeps your resources isolated.\n2. Add two Subnets inside the Network \u2014 one for the API gateway and one for data services. Subnets group related resources together.',
       hints: [
         'Even in serverless architectures, you still need network boundaries to organize and secure your resources.',
         'Use separate Subnets to keep gateway traffic separate from data services.',
@@ -666,7 +666,7 @@ const eventPipelineScenario: Scenario = {
       order: 1,
       title: 'Add Event Sources',
       instruction:
-        '1. Place an Event Grid on the Network container — it detects when something happens (like a file upload) and notifies other services.\n2. Place a Service Bus on the Network container — a message queue that buffers work items for processing.',
+        '1. Create a Network container \u2014 your private cloud network.\n2. Place an Event Grid on the Network container \u2014 it detects when something happens (like a file upload) and notifies other services.\n3. Place a Service Bus on the Network container \u2014 a message queue that buffers work items for processing.',
       hints: [
         'Event Grid detects when something happens (like a file upload) and notifies other services. Service Bus is a message queue that buffers work items for processing.',
         'Both are messaging resources and belong on the Network container, not inside a Subnet.',
@@ -694,7 +694,7 @@ const eventPipelineScenario: Scenario = {
       order: 3,
       title: 'Add a Timer and Storage',
       instruction:
-        '1. Place a Timer Trigger on the Network container — a scheduled task that runs automatically at set intervals.\n2. Place a Blob Storage block on a Subnet — cloud file storage for your pipeline output.',
+        '1. Create a Subnet inside your Network \u2014 for storing pipeline output.\n2. Place a Timer Trigger on the Network container \u2014 a scheduled task that runs automatically at set intervals.\n3. Place a Blob Storage block on the Subnet \u2014 cloud file storage for your pipeline output.',
       hints: [
         'The Timer Trigger fires on a schedule (e.g., every hour) to kick off batch processing jobs.',
         'Blob Storage holds the final output of your pipeline. Place it on a Subnet for network isolation.',
@@ -713,7 +713,7 @@ const eventPipelineScenario: Scenario = {
       order: 4,
       title: 'Connect the Pipeline',
       instruction:
-        'Wire the pipeline connections:\n1. Event Grid → Functions (event handler)\n2. Service Bus → Functions (event handler)\n3. Timer Trigger → Functions (Batch)\n4. Functions → Blob Storage',
+        'Wire the pipeline connections:\n1. Event Grid \u2192 Functions (event handler)\n2. Service Bus \u2192 Functions (event handler)\n3. Timer Trigger \u2192 Functions (batch processor)\n4. Functions (batch processor) \u2192 Blob Storage',
       hints: [
         'Events and queues trigger Functions to start processing data.',
         'Functions process data and write results to Storage.',
@@ -1272,7 +1272,7 @@ const dataStorageScenario: Scenario = {
       order: 4,
       title: 'Add Data Services',
       instruction:
-        '1. Place a SQL Database on the second Subnet — structured data storage for your application.\n2. Place a Blob Storage block on the second Subnet — file storage for images, documents, and backups.',
+        '1. Place a SQL (Structured Query Language) Database on the second Subnet \u2014 structured data storage for your application.\n2. Place a Blob Storage block on the second Subnet \u2014 file storage for images, documents, and backups.',
       hints: [
         'Keeping data resources on a dedicated Subnet isolates them from the application tier.',
         'You need at least two data blocks to complete this step.',
@@ -1731,7 +1731,7 @@ const fullStackScenario: Scenario = {
       instruction:
         '1. Place an Application Gateway on Subnet 1 — the entry point that receives internet traffic.\n2. Place a Virtual Machine (a cloud computer that runs your app) on Subnet 1.\n3. Draw a connection from Internet to Application Gateway.\n4. Draw a connection from Application Gateway to Virtual Machine.',
       hints: [
-        'The Application Gateway receives internet traffic. The VM runs your web application. Both belong on Subnet 1.',
+        'The Application Gateway receives internet traffic. The Virtual Machine runs your web application. Both belong on Subnet 1.',
         'Finish the web tier first before adding data or serverless components.',
       ],
       validationRules: [
