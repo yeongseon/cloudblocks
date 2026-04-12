@@ -374,7 +374,7 @@ const serverlessApiScenario: Scenario = {
       order: 1,
       title: 'Set Up Network Zones',
       instruction:
-        '1. Create a Network container \u2014 your private cloud network that keeps your resources isolated.\n2. Add two Subnets inside the Network \u2014 one for the API gateway and one for data services. Subnets group related resources together.',
+        '1. Create a Network container — your private cloud network that keeps your resources isolated.\n2. Add a Subnet inside the Network for the API gateway.\n3. Add a second Subnet inside the Network for data services. Subnets group related resources together.',
       hints: [
         'Even in serverless architectures, you still need network boundaries to organize and secure your resources.',
         'Use separate Subnets to keep gateway traffic separate from data services.',
@@ -1716,7 +1716,7 @@ const fullStackScenario: Scenario = {
       instruction:
         '1. Create a Network container — your private cloud network.\n2. Add Subnet 1 inside the Network — for your web tier (gateway + server).\n3. Add Subnet 2 inside the Network — for data services (database + storage).',
       hints: [
-        'Start by creating the Network container (VNet), then add two Subnets inside it.',
+        'Start by creating the Network container (Virtual Network, or VNet), then add two Subnets inside it.',
         'Separating web and data resources onto different Subnets improves security and organization.',
       ],
       validationRules: [
@@ -1764,7 +1764,7 @@ const fullStackScenario: Scenario = {
       order: 4,
       title: 'Build the Serverless Layer',
       instruction:
-        'Add the serverless event processing layer on the Network container:\n1. Place 3 Azure Functions blocks (application interface, worker, and batch) — small pieces of code that run automatically when triggered.\n2. Place a Service Bus (a message queue that buffers work items).\n3. Place an Event Grid (event notifications).\n4. Place a Timer Trigger (a scheduled task that runs at set intervals).\n5. Draw a connection from Service Bus to Worker Function.\n6. Draw a connection from Event Grid to Batch Function.\n7. Draw a connection from Timer Trigger to Batch Function.',
+        'Add the serverless event processing layer on the Network container:\n1. Place an Azure Functions block for the application interface — a small piece of code that runs automatically when triggered.\n2. Place an Azure Functions block for background work (worker).\n3. Place an Azure Functions block for batch processing.\n4. Place a Service Bus (a message queue that buffers work items).\n5. Place an Event Grid (event notifications).\n6. Place a Timer Trigger (a scheduled task that runs at set intervals).\n7. Draw a connection from Service Bus to Worker Function.\n8. Draw a connection from Event Grid to Batch Function.\n9. Draw a connection from Timer Trigger to Batch Function.',
       hints: [
         'All serverless resources belong on the Network container, not inside a Subnet.',
         'Messaging resources (Service Bus, Event Grid, Timer) trigger Functions to process data automatically.',
