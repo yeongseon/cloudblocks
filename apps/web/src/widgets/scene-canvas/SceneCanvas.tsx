@@ -10,8 +10,8 @@ import type { SoundName } from '../../shared/utils/audioService';
 
 import { ContainerBlockSprite } from '../../entities/container-block/ContainerBlockSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
-import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
 import { computeOverlapOffsets } from '../../entities/connection/overlapOffset';
+import { ConnectionAnimationLayer } from './ConnectionAnimationLayer';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
@@ -532,19 +532,12 @@ export function SceneCanvas() {
           })}
         </div>
 
-        <svg className="connection-layer" style={{ width: 1, height: 1 }}>
-          <title>Connections</title>
-          {connections.map((conn) => (
-            <ConnectionRenderer
-              key={conn.id}
-              connectionId={conn.id}
-              connection={conn}
-              originX={origin.x}
-              originY={origin.y}
-              overlapOffset={overlapOffsets.get(conn.id) ?? 0}
-            />
-          ))}
-        </svg>
+        <ConnectionAnimationLayer
+          connections={connections}
+          originX={origin.x}
+          originY={origin.y}
+          overlapOffsets={overlapOffsets}
+        />
 
         <svg className="interaction-overlay" style={{ width: 1, height: 1 }}>
           <title>Interaction Overlay</title>

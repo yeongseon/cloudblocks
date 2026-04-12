@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { PacketFlowLayer } from './PacketFlowLayer';
 import { getPacketCount, getPositionAtDistance } from './packetFlowHelpers';
-import { PACKET_SPEED_MS, SHORT_PATH_THRESHOLD, MEDIUM_PATH_THRESHOLD } from './packetFlowTokens';
+import {
+  IDLE_CYCLE_MS,
+  MEDIUM_PATH_THRESHOLD,
+  PACKET_SPEED_MS,
+  SHORT_PATH_THRESHOLD,
+} from './packetFlowTokens';
 
 const useAnimationClockMock = vi.fn(() => ({ elapsed: 0, reducedMotion: false }));
 
@@ -15,7 +20,7 @@ const hitPoints = [
   { x: 200, y: 0 },
 ];
 
-function renderLayer(mode: 'static' | 'hover' | 'selected' | 'creation') {
+function renderLayer(mode: 'static' | 'idle' | 'hover' | 'selected' | 'creation') {
   return render(
     <svg aria-label="packet-flow-test">
       <title>packet-flow-test</title>
@@ -27,6 +32,14 @@ function renderLayer(mode: 'static' | 'hover' | 'selected' | 'creation') {
       />
     </svg>,
   );
+}
+
+function extractTranslateX(transform: string): number {
+  const match = /translate\(([-\d.]+)\s+([-\d.]+)\)/.exec(transform);
+  if (!match) {
+    throw new Error(`Unexpected transform: ${transform}`);
+  }
+  return Number(match[1]);
 }
 
 describe('PacketFlowLayer', () => {
@@ -57,6 +70,42 @@ describe('PacketFlowLayer', () => {
       '[data-testid="packet-flow-packet"]',
     );
     expect(selectedPackets).toHaveLength(3);
+  });
+
+  it('renders packets in idle mode', () => {
+    const { container } = renderLayer('idle');
+
+    const packets = container.querySelectorAll('[data-testid="packet-flow-packet"]');
+    expect(packets).toHaveLength(2);
+
+    const firstPacketGlow = packets[0]?.querySelector('path');
+    expect(firstPacketGlow).toHaveAttribute('fill-opacity', '0.25');
+  });
+
+  it('idle mode uses slower speed', () => {
+    useAnimationClockMock.mockReturnValue({ elapsed: PACKET_SPEED_MS / 2, reducedMotion: false });
+
+    const idle = renderLayer('idle');
+    const idlePacket = idle.container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(idlePacket).toBeInTheDocument();
+    const idleTransform = idlePacket?.getAttribute('transform');
+    expect(idleTransform).toBeTruthy();
+    const idleX = extractTranslateX(idleTransform ?? '');
+
+    idle.unmount();
+
+    const hover = renderLayer('hover');
+    const hoverPacket = hover.container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(hoverPacket).toBeInTheDocument();
+    const hoverTransform = hoverPacket?.getAttribute('transform');
+    expect(hoverTransform).toBeTruthy();
+    const hoverX = extractTranslateX(hoverTransform ?? '');
+    const expectedIdleProgress = PACKET_SPEED_MS / 2 / IDLE_CYCLE_MS;
+    const expectedIdleX = expectedIdleProgress * 200;
+
+    expect(idleX).toBeLessThan(hoverX);
+    expect(idleX).toBeCloseTo(expectedIdleX, 1);
+    useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: false });
   });
 
   it('renders the creation packet count for the path length', () => {
@@ -184,6 +233,13 @@ describe('PacketFlowLayer', () => {
     it('returns fewer packets for hover mode', () => {
       expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'hover')).toBe(2);
       expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'hover')).toBe(1);
+    });
+
+    it('returns fewer packets for idle mode', () => {
+      expect(getPacketCount(SHORT_PATH_THRESHOLD, 'idle')).toBe(1);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD, 'idle')).toBe(1);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'idle')).toBe(2);
+      expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'idle')).toBe(1);
     });
 
     it('returns more packets for creation mode', () => {

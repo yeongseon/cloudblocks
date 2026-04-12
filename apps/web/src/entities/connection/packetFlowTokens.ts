@@ -7,10 +7,13 @@ export const SHORT_PATH_THRESHOLD = 80;
 export const MEDIUM_PATH_THRESHOLD = 180;
 
 export const PACKET_OPACITY = {
+  idle: 0.25,
   hover: 0.5,
   selected: 0.8,
   creation: 1.0,
 } as const;
+
+export const IDLE_CYCLE_MS = 6500;
 
 export const PACKET_COLOR = '#22d3ee';
 export const PACKET_GLOW_COLOR = 'rgba(34, 211, 238, 0.3)';

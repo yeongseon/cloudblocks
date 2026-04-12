@@ -45,6 +45,8 @@ interface ConnectionRendererProps {
   originX: number;
   originY: number;
   overlapOffset?: number;
+  elapsed?: number;
+  reducedMotion?: boolean;
 }
 
 /** Resolved colors for the 2-layer trace rendering. */
@@ -229,6 +231,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   originX,
   originY,
   overlapOffset = 0,
+  elapsed,
+  reducedMotion,
 }: ConnectionRendererProps) {
   const resolvedConnectionId = connectionId ?? connection?.id ?? null;
   const storeConnection = useArchitectureStore((state) => {
@@ -238,6 +242,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const resolvedConnection = storeConnection ?? connection ?? null;
   const [isHovered, setIsHovered] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
+  const [creationStartElapsed, setCreationStartElapsed] = useState(0);
+  const [prevBurstExpiry, setPrevBurstExpiry] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const el = drawInRef.current;
@@ -332,14 +338,22 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   const connectionErrors = useMemo(() => {
     if (!validationResult || !resolvedConnectionId) return [];
-    return [
-      ...validationResult.errors.filter((e) => e.targetId === resolvedConnectionId),
-      ...validationResult.warnings.filter((w) => w.targetId === resolvedConnectionId),
-    ];
+    return validationResult.errors.filter((e) => e.targetId === resolvedConnectionId);
   }, [resolvedConnectionId, validationResult]);
 
   const hasValidationError = connectionErrors.length > 0;
   const creationBurstActive = creationBurstExpiry !== undefined;
+
+  // Capture the shared elapsed when a new creation burst starts, so the
+  // PacketFlowLayer receives a local elapsed starting from 0.
+  // Uses the React "adjust state during render" pattern so the value
+  // is available on the first frame (unlike useEffect which runs after).
+  if (creationBurstExpiry !== prevBurstExpiry) {
+    setPrevBurstExpiry(creationBurstExpiry);
+    if (creationBurstExpiry !== undefined) {
+      setCreationStartElapsed(elapsed ?? 0);
+    }
+  }
 
   useEffect(() => {
     if (!resolvedConnectionId || creationBurstExpiry === undefined) {
@@ -366,8 +380,17 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     if (creationBurstActive) return 'creation' as const;
     if (isSelected) return 'selected' as const;
     if (isHovered) return 'hover' as const;
-    return 'static' as const;
+    return 'idle' as const;
   })();
+
+  // Creation bursts use a connection-local elapsed derived from the shared clock
+  // value at burst start, not the current shared elapsed. Without this,
+  // a long-running canvas (elapsed > PACKET_SPEED_MS) would cause new bursts
+  // to render as already completed on first frame.
+  const packetElapsed =
+    packetMode === 'creation' && elapsed !== undefined
+      ? Math.max(0, elapsed - creationStartElapsed)
+      : elapsed;
 
   const surfaceRoute = useMemo(
     () =>
@@ -510,6 +533,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           mode={packetMode}
           connectionType={resolvedConnectionType}
           strokeColor={colors.stroke}
+          elapsed={packetElapsed}
+          reducedMotion={reducedMotion}
         />
       )}
 
