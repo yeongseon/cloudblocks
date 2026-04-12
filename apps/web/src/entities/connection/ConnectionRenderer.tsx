@@ -336,10 +336,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   const connectionErrors = useMemo(() => {
     if (!validationResult || !resolvedConnectionId) return [];
-    return [
-      ...validationResult.errors.filter((e) => e.targetId === resolvedConnectionId),
-      ...validationResult.warnings.filter((w) => w.targetId === resolvedConnectionId),
-    ];
+    return validationResult.errors.filter((e) => e.targetId === resolvedConnectionId);
   }, [resolvedConnectionId, validationResult]);
 
   const hasValidationError = connectionErrors.length > 0;

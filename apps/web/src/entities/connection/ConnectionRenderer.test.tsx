@@ -123,6 +123,62 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
   });
 
+  it('suppresses packet flow layer when reducedMotion prop is true', () => {
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={1000}
+          reducedMotion={true}
+        />
+      </svg>,
+    );
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+  });
+
+  it('uses elapsed prop to determine packet position', () => {
+    const { container: container1 } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={500}
+          reducedMotion={false}
+        />
+      </svg>,
+    );
+    const packet1 = container1.querySelector('[data-testid="packet-flow-packet"]');
+    const transform1 = packet1?.getAttribute('transform');
+
+    const { container: container2 } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={2000}
+          reducedMotion={false}
+        />
+      </svg>,
+    );
+    const packet2 = container2.querySelector('[data-testid="packet-flow-packet"]');
+    const transform2 = packet2?.getAttribute('transform');
+
+    expect(transform1).not.toBe(transform2);
+  });
+
   it('does not render packet flow layer when connection has validation errors', () => {
     useArchitectureStore.setState({
       validationResult: {
@@ -164,6 +220,31 @@ describe('ConnectionRenderer', () => {
     const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
     expect(packetLayer).toBeInTheDocument();
     expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+  });
+
+  it('selected mode takes precedence over hover when both are active', () => {
+    useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+    const { container } = renderConnector();
+
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+  });
+
+  it('creation mode takes precedence over selected and hover', () => {
+    useUIStore.setState({
+      selectedId: connection.id,
+      selectedIds: new Set([connection.id]),
+      connectionCreationBursts: new Map([[connection.id, Date.now() + 10000]]),
+    });
+
+    const { container } = renderConnector();
+
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
   });
 
   it('click in select mode sets selectedId to connection id', () => {
@@ -573,6 +654,30 @@ describe('ConnectionRenderer', () => {
       useArchitectureStore.setState({ validationResult: null });
       const { container } = renderConnector();
       expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+    });
+
+    it('renders idle packet flow even when connection has only validation warnings', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: true,
+          errors: [],
+          warnings: [
+            {
+              ruleId: 'suboptimal-connection',
+              message: 'This connection pattern is suboptimal',
+              targetId: connection.id,
+              severity: 'warning',
+            },
+          ],
+        },
+      });
+
+      const { container } = renderConnector();
+      expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="connection-error-label"]'),
+      ).not.toBeInTheDocument();
     });
 
     it('shows error label on hover when connection is invalid', () => {
