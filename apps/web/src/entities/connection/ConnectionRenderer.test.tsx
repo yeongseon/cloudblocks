@@ -332,6 +332,32 @@ describe('ConnectionRenderer', () => {
     vi.useRealTimers();
   });
 
+  it('creation mode works without elapsed prop (standalone fallback clock)', () => {
+    const burstExpiry = Date.now() + 2000;
+    useUIStore.setState({
+      connectionCreationBursts: new Map([[connection.id, burstExpiry]]),
+    });
+
+    // Render without elapsed prop — PacketFlowLayer should use its internal clock
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+        />
+      </svg>,
+    );
+
+    // Creation burst should still render — PacketFlowLayer falls back to internal clock
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+  });
+
   it('click in select mode sets selectedId to connection id', () => {
     const { container } = renderConnector();
     fireEvent.click(

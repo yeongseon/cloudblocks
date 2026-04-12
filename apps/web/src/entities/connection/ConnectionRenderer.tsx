@@ -388,7 +388,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   // a long-running canvas (elapsed > PACKET_SPEED_MS) would cause new bursts
   // to render as already completed on first frame.
   const packetElapsed =
-    packetMode === 'creation' ? Math.max(0, (elapsed ?? 0) - creationStartElapsed) : elapsed;
+    packetMode === 'creation' && elapsed !== undefined
+      ? Math.max(0, elapsed - creationStartElapsed)
+      : elapsed;
 
   const surfaceRoute = useMemo(
     () =>
