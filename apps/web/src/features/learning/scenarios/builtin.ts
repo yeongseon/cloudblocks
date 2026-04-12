@@ -1233,7 +1233,7 @@ const dataStorageScenario: Scenario = {
       instruction:
         'Create a Network container — the private cloud network where all your backend resources will live.',
       hints: [
-        'The Network container (Virtual Network / VNet) is always the first step in any cloud architecture.',
+        'The Network container (Virtual Network (VNet)) is always the first step in any cloud architecture.',
         'Once the network is created, you can add Subnets and resources inside it.',
       ],
       validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
