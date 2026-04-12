@@ -4,6 +4,7 @@ import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { toast } from 'react-hot-toast';
+import { clearWorkspaceDiffUI } from '../../entities/store/uiSync';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
@@ -133,6 +134,7 @@ describe('EmptyCanvasOverlay', () => {
 
     await vi.waitFor(() => {
       expect(mockImportArchitecture).toHaveBeenCalledWith(jsonContent, 'azure');
+      expect(clearWorkspaceDiffUI).toHaveBeenCalled();
       expect(toast.success).toHaveBeenCalledWith('Architecture imported successfully!');
       expect(toast.error).not.toHaveBeenCalled();
     });
@@ -152,5 +154,28 @@ describe('EmptyCanvasOverlay', () => {
       expect(toast.error).toHaveBeenCalledWith('Import failed: Invalid schema version');
       expect(toast.success).not.toHaveBeenCalled();
     });
+  });
+
+  it('shows error toast when FileReader fails', () => {
+    setupMocks(0);
+
+    // Patch FileReader.readAsText to call onerror synchronously
+    const originalReadAsText = FileReader.prototype.readAsText;
+    FileReader.prototype.readAsText = function () {
+      // onerror is already assigned before readAsText is called
+      if (this.onerror) {
+        (this.onerror as () => void)();
+      }
+    };
+
+    render(<EmptyCanvasOverlay />);
+    const fileInput = screen.getByTestId('import-file-input') as HTMLInputElement;
+    const file = new File(['content'], 'arch.json', { type: 'application/json' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(toast.error).toHaveBeenCalledWith('Failed to read file.');
+
+    FileReader.prototype.readAsText = originalReadAsText;
   });
 });
