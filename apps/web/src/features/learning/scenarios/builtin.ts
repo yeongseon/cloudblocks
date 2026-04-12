@@ -273,8 +273,8 @@ const threeTierScenario: Scenario = {
       instruction:
         'Check that your architecture passes all validation rules. Open the Validation panel to review any issues.',
       hints: [
-        'The Validation panel shows errors if blocks are misplaced or connections are missing.',
-        'All blocks must be placed inside the correct containers, and all connections must follow the allowed flow rules.',
+        'A three-tier architecture separates presentation, logic, and data — validation confirms each tier is correctly isolated and connected.',
+        'Open the Validation panel to check that all blocks are inside the correct containers and all connections follow the allowed flow rules.',
         '🎉 Congratulations! You built a classic three-tier web architecture. Next, try the Serverless HTTP (Hypertext Transfer Protocol) API (Application Programming Interface) scenario to learn a serverless pattern!',
       ],
       validationRules: [{ type: 'architecture-valid' }],
@@ -429,8 +429,8 @@ const serverlessApiScenario: Scenario = {
       title: 'Validate Your Architecture',
       instruction: 'Check that your serverless architecture passes all validation rules.',
       hints: [
+        'Validation ensures every block is correctly placed inside its container and every connection follows the allowed flow rules.',
         'Open the Validation panel to see if any placements or connections need fixing.',
-        'All blocks must be inside the correct containers, and connections must follow allowed patterns.',
         '🎉 Congratulations! You built a serverless API. Next, try the Event-Driven Data Pipeline scenario to learn asynchronous event processing!',
       ],
       validationRules: [{ type: 'architecture-valid' }],
@@ -733,8 +733,8 @@ const eventPipelineScenario: Scenario = {
       instruction:
         'Validate your event-driven pipeline architecture. Open the Validation panel to check for any issues.',
       hints: [
-        'All messaging and compute blocks should be on the Network container.',
-        'Ensure at least 2 Functions are present for the dual-processing pattern (event + batch).',
+        'An event-driven pipeline decouples producers from consumers — validation confirms each event source routes through its own processing function.',
+        'Check that all messaging and compute blocks are on the Network container, with at least 2 Functions for the dual-processing pattern.',
         '🎉 Congratulations! You built an event-driven data pipeline. Next, try the Full-Stack Web App with Event Processing scenario to learn a complete architecture!',
       ],
       validationRules: [
@@ -937,8 +937,8 @@ const simpleComputeScenario: Scenario = {
       instruction:
         '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to App Service.',
       hints: [
-        'Switch to Connect mode, then click the source block followed by the target block.',
-        'The arrows show how traffic flows: users reach the Gateway, which forwards requests to the App Service.',
+        'Traffic flows from users through the Gateway, which forwards requests to the App Service — this is the basic cloud web pattern.',
+        'Switch to Connect mode, then click the source block followed by the target block to draw each connection.',
         '🎉 Congratulations! You built the simplest cloud web setup. Next, try the Three-Tier Web Application scenario to learn how to add a database layer!',
       ],
       validationRules: [
@@ -1290,8 +1290,8 @@ const dataStorageScenario: Scenario = {
       instruction:
         '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to Virtual Machine.\n3. Draw a connection from Virtual Machine to SQL Database.\n4. Draw a connection from Virtual Machine to Blob Storage.',
       hints: [
-        'Start by drawing connections along the external path: Internet to Application Gateway, then Application Gateway to Virtual Machine. After that, connect the Virtual Machine to both data services.',
-        'Switch to Connect mode, then click source followed by target for each connection.',
+        'A data-tier architecture routes traffic from the internet through a gateway to compute, and then from compute to data services — this separation keeps each layer independent.',
+        'Switch to Connect mode, then click the source block followed by the target block for each connection.',
         '🎉 Congratulations! You built a data-tier architecture with proper network isolation. Next, try the Event-Driven Data Pipeline scenario to learn asynchronous processing!',
       ],
       validationRules: [
@@ -1783,8 +1783,8 @@ const fullStackScenario: Scenario = {
       instruction:
         'Validate your complete architecture. Open the Validation panel and fix any remaining issues.',
       hints: [
-        'Check that all blocks are in the correct containers and all connections follow allowed patterns.',
-        'You should have at least 4 compute blocks (1 Virtual Machine + 3 Functions) and 2 Subnets.',
+        'A full-stack architecture combines web serving, data storage, and event processing — validation ensures all three layers are wired correctly.',
+        'Check that you have at least 4 compute blocks (1 Virtual Machine + 3 Functions), 2 Subnets, and that all connections follow allowed patterns.',
         '🎉 Congratulations! You built a full-stack architecture with web, data, and serverless event processing. Next, try designing your own architecture from scratch in the editor!',
       ],
       validationRules: [
