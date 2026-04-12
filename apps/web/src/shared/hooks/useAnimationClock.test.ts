@@ -153,4 +153,21 @@ describe('useAnimationClock', () => {
     });
     expect(result.current.elapsed).toBe(100);
   });
+
+  it('cancels pending frame when transitioning from active to inactive', () => {
+    const { runFrame, cancelAnimationFrameMock } = installRafMocks();
+
+    const { rerender } = renderHook(({ enabled }) => useAnimationClock(enabled), {
+      initialProps: { enabled: true },
+    });
+
+    // Run a frame so frameRef.current is set
+    act(() => {
+      runFrame(100);
+    });
+
+    // Transition to inactive — should cancel the pending frame
+    rerender({ enabled: false });
+    expect(cancelAnimationFrameMock).toHaveBeenCalled();
+  });
 });

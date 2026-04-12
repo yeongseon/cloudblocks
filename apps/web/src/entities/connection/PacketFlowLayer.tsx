@@ -2,7 +2,6 @@ import { memo, useMemo } from 'react';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
-  MEDIUM_PATH_THRESHOLD,
   PACKET_COLOR,
   PACKET_GLOW_COLOR,
   PACKET_LENGTH,
@@ -10,80 +9,15 @@ import {
   PACKET_SPEED_MS,
   PACKET_TAIL_LENGTH,
   PACKET_WIDTH,
-  SHORT_PATH_THRESHOLD,
 } from './packetFlowTokens';
-
-type PacketFlowMode = 'static' | 'hover' | 'selected' | 'creation';
+import { getPacketCount, getPositionAtDistance } from './packetFlowHelpers';
+import type { PacketFlowMode, SegmentMetric } from './packetFlowHelpers';
 
 interface PacketFlowLayerProps {
   hitPoints: ScreenPoint[];
   mode: PacketFlowMode;
   connectionType: string;
   strokeColor: string;
-}
-
-interface SegmentMetric {
-  start: ScreenPoint;
-  dx: number;
-  dy: number;
-  length: number;
-  cumulativeStart: number;
-}
-
-interface PacketPosition {
-  x: number;
-  y: number;
-  angle: number;
-}
-
-function getPacketCount(totalLength: number, mode: PacketFlowMode): number {
-  if (mode === 'static') {
-    return 0;
-  }
-
-  const baseCount =
-    totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 3;
-
-  if (mode === 'hover') {
-    return Math.max(1, baseCount - 1);
-  }
-
-  if (mode === 'creation') {
-    return baseCount + 1;
-  }
-
-  return baseCount;
-}
-
-function getPositionAtDistance(
-  segments: readonly SegmentMetric[],
-  totalLength: number,
-  distance: number,
-): PacketPosition | null {
-  if (segments.length === 0 || totalLength <= 0) {
-    return null;
-  }
-
-  const clampedDistance = Math.min(Math.max(distance, 0), totalLength);
-
-  for (const segment of segments) {
-    const segmentEnd = segment.cumulativeStart + segment.length;
-    if (clampedDistance <= segmentEnd) {
-      const localDistance = clampedDistance - segment.cumulativeStart;
-      const t = segment.length > 0 ? localDistance / segment.length : 0;
-      const x = segment.start.x + segment.dx * t;
-      const y = segment.start.y + segment.dy * t;
-      const angle = (Math.atan2(segment.dy, segment.dx) * 180) / Math.PI;
-      return { x, y, angle };
-    }
-  }
-
-  const last = segments[segments.length - 1];
-  return {
-    x: last.start.x + last.dx,
-    y: last.start.y + last.dy,
-    angle: (Math.atan2(last.dy, last.dx) * 180) / Math.PI,
-  };
 }
 
 export const PacketFlowLayer = memo(function PacketFlowLayer({
