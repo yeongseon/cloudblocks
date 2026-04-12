@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
@@ -66,12 +66,303 @@ function GitHubIcon({ size = 14 }: { size?: number }) {
 }
 
 type DropdownMenu = 'logo' | 'github' | null;
+type MenuKey = Exclude<DropdownMenu, null>;
+const MENU_ORDER: MenuKey[] = ['logo', 'github'];
 
 const PROVIDER_OPTIONS: { id: ProviderType; label: string }[] = [
   { id: 'azure', label: 'Azure' },
   { id: 'aws', label: 'AWS' },
   { id: 'gcp', label: 'GCP' },
 ];
+
+function useMenuKeyboard({
+  openMenu,
+  setOpenMenu,
+  triggerRefs,
+  menuRefs,
+}: {
+  openMenu: DropdownMenu;
+  setOpenMenu: React.Dispatch<React.SetStateAction<DropdownMenu>>;
+  triggerRefs: Record<MenuKey, React.RefObject<HTMLButtonElement | null>>;
+  menuRefs: Record<MenuKey, React.RefObject<HTMLDivElement | null>>;
+}) {
+  const [activeMenuItemIndex, setActiveMenuItemIndex] = useState<Record<MenuKey, number>>({
+    logo: -1,
+    github: -1,
+  });
+
+  const getAllMenuItems = useCallback(
+    (menu: MenuKey) =>
+      Array.from(menuRefs[menu].current?.querySelectorAll<HTMLButtonElement>('.menu-item') ?? []),
+    [menuRefs],
+  );
+
+  const focusMenuItem = useCallback(
+    (menu: MenuKey, index: number) => {
+      const items = getAllMenuItems(menu);
+      const item = items[index];
+      if (!item || item.disabled) {
+        return false;
+      }
+      item.focus();
+      setActiveMenuItemIndex((prev) => ({ ...prev, [menu]: index }));
+      return true;
+    },
+    [getAllMenuItems],
+  );
+
+  const focusFirstMenuItem = useCallback(
+    (menu: MenuKey) => {
+      const items = getAllMenuItems(menu);
+      const firstIndex = items.findIndex((item) => !item.disabled);
+      if (firstIndex >= 0) {
+        focusMenuItem(menu, firstIndex);
+      }
+    },
+    [focusMenuItem, getAllMenuItems],
+  );
+
+  const focusLastMenuItem = useCallback(
+    (menu: MenuKey) => {
+      const items = getAllMenuItems(menu);
+      for (let i = items.length - 1; i >= 0; i -= 1) {
+        if (!items[i].disabled) {
+          focusMenuItem(menu, i);
+          break;
+        }
+      }
+    },
+    [focusMenuItem, getAllMenuItems],
+  );
+
+  const openMenuAndFocus = useCallback(
+    (menu: MenuKey, target: 'first' | 'last' = 'first') => {
+      setOpenMenu(menu);
+      requestAnimationFrame(() => {
+        if (target === 'last') {
+          focusLastMenuItem(menu);
+        } else {
+          focusFirstMenuItem(menu);
+        }
+      });
+    },
+    [focusFirstMenuItem, focusLastMenuItem, setOpenMenu],
+  );
+
+  const closeMenuAndFocusTrigger = useCallback(
+    (menu: MenuKey) => {
+      setOpenMenu(null);
+      triggerRefs[menu].current?.focus();
+    },
+    [setOpenMenu, triggerRefs],
+  );
+
+  const focusAdjacentTrigger = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const currentIndex = MENU_ORDER.indexOf(menu);
+      const nextIndex = (currentIndex + direction + MENU_ORDER.length) % MENU_ORDER.length;
+      const nextMenu = MENU_ORDER[nextIndex];
+      triggerRefs[nextMenu].current?.focus();
+    },
+    [triggerRefs],
+  );
+
+  const openAdjacentMenu = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const currentIndex = MENU_ORDER.indexOf(menu);
+      const nextIndex = (currentIndex + direction + MENU_ORDER.length) % MENU_ORDER.length;
+      const nextMenu = MENU_ORDER[nextIndex];
+      openMenuAndFocus(nextMenu, 'first');
+    },
+    [openMenuAndFocus],
+  );
+
+  const moveInMenu = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const items = getAllMenuItems(menu);
+      if (items.length === 0) {
+        return;
+      }
+
+      let currentIndex = items.findIndex((item) => item === document.activeElement);
+      if (currentIndex < 0) {
+        currentIndex = activeMenuItemIndex[menu];
+      }
+      if (currentIndex < 0) {
+        currentIndex = direction === 1 ? -1 : 0;
+      }
+
+      for (let i = 0; i < items.length; i += 1) {
+        currentIndex = (currentIndex + direction + items.length) % items.length;
+        if (!items[currentIndex].disabled) {
+          focusMenuItem(menu, currentIndex);
+          return;
+        }
+      }
+    },
+    [activeMenuItemIndex, focusMenuItem, getAllMenuItems],
+  );
+
+  useEffect(() => {
+    for (const menu of MENU_ORDER) {
+      const items = getAllMenuItems(menu);
+      const activeIndex = openMenu === menu ? activeMenuItemIndex[menu] : -1;
+      items.forEach((item, index) => {
+        item.tabIndex = index === activeIndex ? 0 : -1;
+      });
+    }
+  }, [activeMenuItemIndex, getAllMenuItems, openMenu]);
+
+  useEffect(() => {
+    if (!openMenu) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      const currentItems = getAllMenuItems(openMenu);
+      if (currentItems.length === 0) {
+        return;
+      }
+      const nextIndex = currentItems.findIndex((item) => !item.disabled);
+      if (nextIndex >= 0) {
+        focusMenuItem(openMenu, nextIndex);
+      }
+    });
+  }, [focusMenuItem, getAllMenuItems, openMenu]);
+
+  const handleTriggerKeyDown = useCallback(
+    (menu: MenuKey, event: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          setOpenMenu(null);
+        } else {
+          openMenuAndFocus(menu, 'first');
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        openMenuAndFocus(menu, 'first');
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        openMenuAndFocus(menu, 'last');
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          openAdjacentMenu(menu, 1);
+        } else {
+          focusAdjacentTrigger(menu, 1);
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          openAdjacentMenu(menu, -1);
+        } else {
+          focusAdjacentTrigger(menu, -1);
+        }
+        return;
+      }
+
+      if (event.key === 'Escape' && openMenu === menu) {
+        event.preventDefault();
+        closeMenuAndFocusTrigger(menu);
+      }
+    },
+    [
+      closeMenuAndFocusTrigger,
+      focusAdjacentTrigger,
+      openAdjacentMenu,
+      openMenu,
+      openMenuAndFocus,
+      setOpenMenu,
+    ],
+  );
+
+  const handleMenuKeyDown = useCallback(
+    (menu: MenuKey, event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (openMenu !== menu) {
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        moveInMenu(menu, 1);
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveInMenu(menu, -1);
+        return;
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault();
+        focusFirstMenuItem(menu);
+        return;
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault();
+        focusLastMenuItem(menu);
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        openAdjacentMenu(menu, 1);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        openAdjacentMenu(menu, -1);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenuAndFocusTrigger(menu);
+      }
+    },
+    [
+      closeMenuAndFocusTrigger,
+      focusFirstMenuItem,
+      focusLastMenuItem,
+      moveInMenu,
+      openAdjacentMenu,
+      openMenu,
+    ],
+  );
+
+  const handleDocumentKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !openMenu) {
+        return;
+      }
+      event.preventDefault();
+      closeMenuAndFocusTrigger(openMenu);
+    },
+    [closeMenuAndFocusTrigger, openMenu],
+  );
+
+  return {
+    handleTriggerKeyDown,
+    handleMenuKeyDown,
+    openMenuAndFocus,
+    handleDocumentKeyDown,
+  };
+}
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
@@ -98,7 +389,6 @@ export function MenuBar() {
   const setBackendStatus = useUIStore((s) => s.setBackendStatus);
   const diffMode = useUIStore((s) => s.diffMode);
   const drawer = useUIStore((s) => s.drawer);
-  const isCodePreviewOpen = drawer.activePanel === 'code';
   const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useArchitectureStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -144,7 +434,24 @@ export function MenuBar() {
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
 
   const importInputRef = useRef<HTMLInputElement>(null);
+  const logoTriggerRef = useRef<HTMLButtonElement>(null);
+  const githubTriggerRef = useRef<HTMLButtonElement>(null);
+  const logoMenuRef = useRef<HTMLDivElement>(null);
+  const githubMenuRef = useRef<HTMLDivElement>(null);
   const hasBackendWorkspaceLink = Boolean(backendWorkspaceId);
+  const { handleTriggerKeyDown, handleMenuKeyDown, openMenuAndFocus, handleDocumentKeyDown } =
+    useMenuKeyboard({
+      openMenu,
+      setOpenMenu,
+      triggerRefs: {
+        logo: logoTriggerRef,
+        github: githubTriggerRef,
+      },
+      menuRefs: {
+        logo: logoMenuRef,
+        github: githubMenuRef,
+      },
+    });
 
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
@@ -152,20 +459,25 @@ export function MenuBar() {
         setOpenMenu(null);
       }
     };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenMenu(null);
-    };
 
     document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleDocumentKeyDown);
     return () => {
       document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleDocumentKeyDown);
     };
-  }, []);
+  }, [handleDocumentKeyDown]);
 
   const toggleMenu = (menu: DropdownMenu) => {
-    setOpenMenu((prev) => (prev === menu ? null : menu));
+    if (!menu) {
+      setOpenMenu(null);
+      return;
+    }
+    if (openMenu === menu) {
+      setOpenMenu(null);
+      return;
+    }
+    openMenuAndFocus(menu, 'first');
   };
 
   const handleAction = (action: () => void | Promise<void>) => {
@@ -329,22 +641,33 @@ export function MenuBar() {
   };
 
   return (
-    <div className="menu-bar">
+    <div className="menu-bar" role="menubar">
       {/* ── Logo menu (replaces hamburger) ──────── */}
       <div className="menu-dropdown-container">
         <button
+          ref={logoTriggerRef}
           type="button"
           className="menu-bar-logo menu-trigger"
           data-active={openMenu === 'logo'}
           onClick={() => toggleMenu('logo')}
+          onKeyDown={(event) => handleTriggerKeyDown('logo', event)}
+          aria-haspopup="true"
+          aria-expanded={openMenu === 'logo'}
           aria-label="Menu"
           title="Menu"
         >
           <LogoIcon size={16} />
         </button>
-        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}>
+        <div
+          ref={logoMenuRef}
+          className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}
+          role="menu"
+          onKeyDown={(event) => handleMenuKeyDown('logo', event)}
+        >
           {/* File section */}
-          <div className="menu-section-label">File</div>
+          <div className="menu-section-label" role="presentation">
+            File
+          </div>
           <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
             <span className="menu-item-left">
               <Save size={14} /> Save Workspace
@@ -372,10 +695,12 @@ export function MenuBar() {
             </span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* Edit section */}
-          <div className="menu-section-label">Edit</div>
+          <div className="menu-section-label" role="presentation">
+            Edit
+          </div>
           <button
             type="button"
             className="menu-item"
@@ -410,10 +735,12 @@ export function MenuBar() {
             <span className="menu-shortcut">Del</span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* Build section */}
-          <div className="menu-section-label">Build</div>
+          <div className="menu-section-label" role="presentation">
+            Build
+          </div>
           <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
             <span className="menu-item-left">
               <CheckCircle size={14} /> Validate Architecture
@@ -429,7 +756,6 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            aria-pressed={isCodePreviewOpen}
             onClick={() => handleAction(() => openInspectorTab('code'))}
           >
             <span className="menu-item-left">
@@ -477,10 +803,12 @@ export function MenuBar() {
             </>
           )}
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* View section */}
-          <div className="menu-section-label">View</div>
+          <div className="menu-section-label" role="presentation">
+            View
+          </div>
           <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
             <span className="menu-item-left">
               {sidebarOpen ? '✓ ' : '  '}
@@ -517,9 +845,11 @@ export function MenuBar() {
             </span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
-          <div className="menu-section-label">Preferences</div>
+          <div className="menu-section-label" role="presentation">
+            Preferences
+          </div>
           <button
             type="button"
             className="menu-item"
@@ -703,16 +1033,25 @@ export function MenuBar() {
         {isAuthenticated ? (
           <>
             <button
+              ref={githubTriggerRef}
               type="button"
               className="github-btn"
               data-active={openMenu === 'github'}
               onClick={() => toggleMenu('github')}
+              onKeyDown={(event) => handleTriggerKeyDown('github', event)}
+              aria-haspopup="true"
+              aria-expanded={openMenu === 'github'}
               title={user?.github_username ?? 'GitHub'}
               aria-label={`GitHub account${user?.github_username ? `: ${user.github_username}` : ''}`}
             >
               <GitHubIcon size={14} />
             </button>
-            <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
+            <div
+              ref={githubMenuRef}
+              className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}
+              role="menu"
+              onKeyDown={(event) => handleMenuKeyDown('github', event)}
+            >
               <button
                 type="button"
                 className="menu-item"
@@ -767,7 +1106,7 @@ export function MenuBar() {
                   <GitCompare size={14} /> Compare with GitHub
                 </span>
               </button>
-              <div className="menu-separator" />
+              <hr className="menu-separator" />
               <button
                 type="button"
                 className="menu-item"

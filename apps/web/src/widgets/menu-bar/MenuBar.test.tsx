@@ -347,6 +347,168 @@ describe('MenuBar', () => {
     expect(dropdown.className).not.toContain('show');
   });
 
+  describe('keyboard navigation', () => {
+    it('ArrowDown moves focus to next menu item in dropdown', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      const items = within(dropdown).getAllByRole('button');
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      expect(items[1]).toHaveFocus();
+    });
+
+    it('ArrowUp moves focus to previous menu item in dropdown', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      const items = within(dropdown).getAllByRole('button');
+
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      expect(items[1]).toHaveFocus();
+
+      fireEvent.keyDown(dropdown, { key: 'ArrowUp' });
+      expect(items[0]).toHaveFocus();
+    });
+
+    it('Escape closes dropdown and returns focus to trigger', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const trigger = screen.getByRole('button', { name: 'Menu' });
+      const dropdown = await openOverflow(user);
+      expect(dropdown.className).toContain('show');
+
+      fireEvent.keyDown(dropdown, { key: 'Escape' });
+
+      expect(dropdown.className).not.toContain('show');
+      expect(trigger).toHaveFocus();
+    });
+
+    it('Enter on trigger opens dropdown and focuses first item', async () => {
+      render(<MenuBar />);
+
+      const trigger = screen.getByRole('button', { name: 'Menu' });
+      trigger.focus();
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+
+      const dropdown = getOverflowDropdown();
+      const items = within(dropdown).getAllByRole('button');
+      expect(dropdown.className).toContain('show');
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+    });
+
+    it('Home/End keys focus first/last menu item', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      const items = within(dropdown).getAllByRole('button');
+
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+
+      fireEvent.keyDown(dropdown, { key: 'End' });
+      expect(items[items.length - 1]).toHaveFocus();
+
+      fireEvent.keyDown(dropdown, { key: 'Home' });
+      expect(items[0]).toHaveFocus();
+    });
+
+    it('ArrowDown skips disabled menu items', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      const items = within(dropdown).getAllByRole('button');
+
+      // Wait for initial focus on first item after rAF
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+
+      // Items: Save(0), Load(1), Import(2), Export(3), Reset(4),
+      // Undo(5,disabled), Redo(6,disabled), Delete(7,disabled),
+      // Validate(8), ...
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+
+      const resetButton = within(dropdown).getByRole('button', { name: /Reset Workspace/ });
+      expect(resetButton).toHaveFocus();
+
+      // ArrowDown from Reset should skip Undo, Redo, Delete (all disabled) and land on Validate
+      fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
+      const validateButton = within(dropdown).getByRole('button', {
+        name: /Validate Architecture/,
+      });
+      expect(validateButton).toHaveFocus();
+    });
+  });
+
+  describe('ARIA menu semantics', () => {
+    it('menu trigger has aria-haspopup and aria-expanded attributes', async () => {
+      const user = userEvent.setup();
+      useAuthStore.setState({
+        status: 'authenticated',
+        user: {
+          id: 'user-1',
+          github_username: 'octocat',
+          email: null,
+          display_name: null,
+          avatar_url: null,
+        },
+      });
+
+      render(<MenuBar />);
+
+      const logoTrigger = screen.getByRole('button', { name: 'Menu' });
+      const githubTrigger = screen.getByRole('button', { name: /octocat/ });
+
+      expect(logoTrigger).toHaveAttribute('aria-haspopup', 'true');
+      expect(logoTrigger).toHaveAttribute('aria-expanded', 'false');
+      expect(githubTrigger).toHaveAttribute('aria-haspopup', 'true');
+      expect(githubTrigger).toHaveAttribute('aria-expanded', 'false');
+
+      await user.click(logoTrigger);
+      expect(logoTrigger).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('dropdown has role="menu" when open', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      expect(dropdown).toHaveAttribute('role', 'menu');
+    });
+
+    it('menu items have role="menuitem"', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+      const classItems = dropdown.querySelectorAll<HTMLButtonElement>('.menu-item');
+
+      expect(classItems.length).toBeGreaterThan(0);
+      classItems.forEach((item) => {
+        expect(item.tagName).toBe('BUTTON');
+      });
+    });
+  });
+
   it('handles overflow menu save, load, import trigger, export, and reset(confirm=true)', async () => {
     const user = userEvent.setup();
     vi.mocked(confirmDialog).mockResolvedValue(true);

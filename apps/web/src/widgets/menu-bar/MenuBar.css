@@ -109,6 +109,11 @@
   color: var(--text-primary);
 }
 
+.menu-trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
 .menu-dropdown {
   position: absolute;
   top: 100%;
@@ -175,6 +180,12 @@
   background: var(--accent-primary);
   color: var(--text-inverse);
   opacity: 0.9;
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+  background: var(--bg-surface-raised);
 }
 
 .menu-shortcut {
