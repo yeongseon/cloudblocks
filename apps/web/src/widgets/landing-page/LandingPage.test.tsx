@@ -79,4 +79,21 @@ describe('LandingPage', () => {
     expect(saveToStorage).toHaveBeenCalledOnce();
     expect(goToBuilder).toHaveBeenCalledOnce();
   });
+
+  it('renders hero illustration with alt text', () => {
+    render(<LandingPage />);
+
+    const illustration = screen.getByAltText(
+      'Isometric cloud architecture diagram showing container blocks, resource blocks, and connections',
+    );
+    expect(illustration).toBeInTheDocument();
+    expect(illustration.tagName.toLowerCase()).toBe('img');
+    expect(illustration).toHaveAttribute('src', '/hero-illustration.svg');
+  });
+
+  it('shows desktop hint text', () => {
+    render(<LandingPage />);
+
+    expect(screen.getByText('Best experienced on desktop')).toBeInTheDocument();
+  });
 });
