@@ -353,7 +353,7 @@ describe('MenuBar', () => {
       render(<MenuBar />);
 
       const dropdown = await openOverflow(user);
-      const items = within(dropdown).getAllByRole('button');
+      const items = within(dropdown).getAllByRole('menuitem');
       await waitFor(() => {
         expect(items[0]).toHaveFocus();
       });
@@ -367,7 +367,7 @@ describe('MenuBar', () => {
       render(<MenuBar />);
 
       const dropdown = await openOverflow(user);
-      const items = within(dropdown).getAllByRole('button');
+      const items = within(dropdown).getAllByRole('menuitem');
 
       await waitFor(() => {
         expect(items[0]).toHaveFocus();
@@ -394,6 +394,22 @@ describe('MenuBar', () => {
       expect(trigger).toHaveFocus();
     });
 
+    it('Tab closes dropdown and allows natural focus movement', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const workspaceButton = screen.getByRole('button', { name: 'Workspaces' });
+      const dropdown = await openOverflow(user);
+      await waitFor(() => {
+        expect(within(dropdown).getAllByRole('menuitem')[0]).toHaveFocus();
+      });
+
+      await user.tab();
+
+      expect(dropdown.className).not.toContain('show');
+      expect(workspaceButton).toHaveFocus();
+    });
+
     it('Enter on trigger opens dropdown and focuses first item', async () => {
       render(<MenuBar />);
 
@@ -402,7 +418,7 @@ describe('MenuBar', () => {
       fireEvent.keyDown(trigger, { key: 'Enter' });
 
       const dropdown = getOverflowDropdown();
-      const items = within(dropdown).getAllByRole('button');
+      const items = within(dropdown).getAllByRole('menuitem');
       expect(dropdown.className).toContain('show');
       await waitFor(() => {
         expect(items[0]).toHaveFocus();
@@ -414,7 +430,7 @@ describe('MenuBar', () => {
       render(<MenuBar />);
 
       const dropdown = await openOverflow(user);
-      const items = within(dropdown).getAllByRole('button');
+      const items = within(dropdown).getAllByRole('menuitem');
 
       await waitFor(() => {
         expect(items[0]).toHaveFocus();
@@ -432,7 +448,7 @@ describe('MenuBar', () => {
       render(<MenuBar />);
 
       const dropdown = await openOverflow(user);
-      const items = within(dropdown).getAllByRole('button');
+      const items = within(dropdown).getAllByRole('menuitem');
 
       // Wait for initial focus on first item after rAF
       await waitFor(() => {
@@ -447,12 +463,12 @@ describe('MenuBar', () => {
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
 
-      const resetButton = within(dropdown).getByRole('button', { name: /Reset Workspace/ });
+      const resetButton = within(dropdown).getByRole('menuitem', { name: /Reset Workspace/ });
       expect(resetButton).toHaveFocus();
 
       // ArrowDown from Reset should skip Undo, Redo, Delete (all disabled) and land on Validate
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
-      const validateButton = within(dropdown).getByRole('button', {
+      const validateButton = within(dropdown).getByRole('menuitem', {
         name: /Validate Architecture/,
       });
       expect(validateButton).toHaveFocus();
@@ -500,12 +516,32 @@ describe('MenuBar', () => {
       render(<MenuBar />);
 
       const dropdown = await openOverflow(user);
-      const classItems = dropdown.querySelectorAll<HTMLButtonElement>('.menu-item');
+      const menuItems = within(dropdown).getAllByRole('menuitem');
 
-      expect(classItems.length).toBeGreaterThan(0);
-      classItems.forEach((item) => {
-        expect(item.tagName).toBe('BUTTON');
-      });
+      expect(menuItems.length).toBeGreaterThan(0);
+    });
+
+    it('toggle items use role="menuitemcheckbox" with aria-checked', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const dropdown = await openOverflow(user);
+
+      expect(within(dropdown).getByRole('menuitemcheckbox', { name: /Sidebar/ })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+      expect(within(dropdown).getByRole('menuitemcheckbox', { name: /Inspector/ })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+      expect(within(dropdown).getByRole('menuitemcheckbox', { name: /Diff View/ })).toHaveAttribute(
+        'aria-checked',
+        'false',
+      );
+      expect(
+        within(dropdown).getByRole('menuitemcheckbox', { name: /Mute Sounds|Unmute Sounds/ }),
+      ).toHaveAttribute('aria-checked', 'true');
     });
   });
 
@@ -528,12 +564,12 @@ describe('MenuBar', () => {
 
     let dropdown = await openOverflow(user);
 
-    await user.click(within(dropdown).getByRole('button', { name: /Save Workspace/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Save Workspace/ }));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
     expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Load Workspace/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Load Workspace/ }));
     await waitFor(() => {
       expect(confirmDialog).toHaveBeenCalledWith(
         'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
@@ -543,17 +579,17 @@ describe('MenuBar', () => {
     expect(loadFromStorageMock).toHaveBeenCalledOnce();
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Import JSON/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Import JSON/ }));
     expect(fileInputClickSpy).toHaveBeenCalledOnce();
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Export JSON/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Export JSON/ }));
     expect(createObjectURLMock).toHaveBeenCalledOnce();
     expect(anchorClickMock).toHaveBeenCalledOnce();
     expect(revokeObjectURLMock).toHaveBeenCalledOnce();
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Reset Workspace/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Reset Workspace/ }));
     expect(confirmDialog).toHaveBeenCalledWith(
       'All unsaved changes will be lost.',
       'Reset Workspace?',
@@ -569,7 +605,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Reset Workspace/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Reset Workspace/ }));
 
     await waitFor(() => {
       expect(resetWorkspaceMock).not.toHaveBeenCalled();
@@ -582,7 +618,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Load Workspace/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Load Workspace/ }));
 
     await waitFor(() => {
       expect(loadFromStorageMock).not.toHaveBeenCalled();
@@ -667,8 +703,8 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     let dropdown = await openOverflow(user);
-    let undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
-    let redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
+    let undoItem = within(dropdown).getByRole('menuitem', { name: /Undo/ });
+    let redoItem = within(dropdown).getByRole('menuitem', { name: /Redo/ });
     expect(undoItem).toBeDisabled();
     expect(redoItem).toBeDisabled();
 
@@ -676,8 +712,8 @@ describe('MenuBar', () => {
     // close and reopen
     await user.click(screen.getByRole('button', { name: 'Menu' }));
     dropdown = await openOverflow(user);
-    undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
-    redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
+    undoItem = within(dropdown).getByRole('menuitem', { name: /Undo/ });
+    redoItem = within(dropdown).getByRole('menuitem', { name: /Redo/ });
     expect(undoItem).not.toBeDisabled();
     expect(redoItem).not.toBeDisabled();
 
@@ -685,7 +721,7 @@ describe('MenuBar', () => {
     expect(undoMock).toHaveBeenCalledOnce();
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Redo/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Redo/ }));
     expect(redoMock).toHaveBeenCalledOnce();
   }, 15000);
 
@@ -697,17 +733,17 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     let dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Delete Selection/ }));
     expect(removePlateMock).toHaveBeenCalledWith('net-1');
 
     useUIStore.setState({ selectedId: 'block-1' });
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Delete Selection/ }));
     expect(removeBlockMock).toHaveBeenCalledWith('block-1');
 
     useUIStore.setState({ selectedId: 'conn-1' });
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Delete Selection/ }));
     expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
   }, 15000);
 
@@ -718,7 +754,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Delete Selection/ }));
     expect(removePlateMock).not.toHaveBeenCalled();
     expect(removeBlockMock).not.toHaveBeenCalled();
     expect(removeConnectionMock).not.toHaveBeenCalled();
@@ -730,20 +766,20 @@ describe('MenuBar', () => {
     const validateCallsBeforeFirstClick = validateMock.mock.calls.length;
 
     let dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Validate Architecture/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Validate Architecture/ }));
     expect(validateMock.mock.calls.length).toBeGreaterThan(validateCallsBeforeFirstClick);
 
     const validateCallsBeforeSecondClick = validateMock.mock.calls.length;
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Validate Architecture/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Validate Architecture/ }));
     expect(validateMock.mock.calls.length).toBeGreaterThan(validateCallsBeforeSecondClick);
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Generate Code/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Generate Code/ }));
     expect(useUIStore.getState().drawer.activePanel).toBe('code');
 
     dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Browse Templates/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Browse Templates/ }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('templates');
   }, 15000);
@@ -827,7 +863,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Sidebar/ }));
+    await user.click(within(dropdown).getByRole('menuitemcheckbox', { name: /Sidebar/ }));
     expect(useUIStore.getState().sidebar.isOpen).toBe(false);
   });
 
@@ -836,7 +872,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Inspector/ }));
+    await user.click(within(dropdown).getByRole('menuitemcheckbox', { name: /Inspector/ }));
     expect(useUIStore.getState().inspector.isOpen).toBe(false);
   });
 
@@ -845,7 +881,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Resource Guide/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Resource Guide/ }));
     expect(useUIStore.getState().showResourceGuide).toBe(false);
   });
 
@@ -854,7 +890,9 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     let dropdown = await openOverflow(user);
-    const diffButtonDisabled = within(dropdown).getByRole('button', { name: /Diff View/ });
+    const diffButtonDisabled = within(dropdown).getByRole('menuitemcheckbox', {
+      name: /Diff View/,
+    });
     expect(diffButtonDisabled).toBeDisabled();
 
     useUIStore.getState().setDiffMode(
@@ -870,7 +908,7 @@ describe('MenuBar', () => {
     );
 
     dropdown = await openOverflow(user);
-    const diffButtonEnabled = within(dropdown).getByRole('button', { name: /Diff View/ });
+    const diffButtonEnabled = within(dropdown).getByRole('menuitemcheckbox', { name: /Diff View/ });
     expect(diffButtonEnabled).not.toBeDisabled();
     await user.click(diffButtonEnabled);
     expect(useUIStore.getState().diffMode).toBe(false);
@@ -907,19 +945,19 @@ describe('MenuBar', () => {
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
     expect(githubDropdown.className).toContain('show');
 
-    await user.click(within(githubDropdown).getByRole('button', { name: /Repos/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Repos/ }));
     expect(useUIStore.getState().showGitHubRepos).toBe(true);
 
     await user.click(githubButton);
-    await user.click(within(githubDropdown).getByRole('button', { name: /Sync/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Sync/ }));
     expect(useUIStore.getState().showGitHubSync).toBe(true);
 
     await user.click(githubButton);
-    await user.click(within(githubDropdown).getByRole('button', { name: /Create PR/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Create PR/ }));
     expect(useUIStore.getState().showGitHubPR).toBe(true);
 
     await user.click(githubButton);
-    await user.click(within(githubDropdown).getByRole('button', { name: /Sign Out/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Sign Out/ }));
     expect(logoutMock).toHaveBeenCalledOnce();
   });
 
@@ -947,7 +985,7 @@ describe('MenuBar', () => {
     if (!container) throw new Error('Expected GitHub dropdown container');
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
 
-    await user.click(within(githubDropdown).getByRole('button', { name: /Sign Out/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Sign Out/ }));
 
     await waitFor(() => {
       expect(logoutMock).toHaveBeenCalledOnce();
@@ -975,10 +1013,10 @@ describe('MenuBar', () => {
     const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
 
-    expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).toBeDisabled();
-    expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('menuitem', { name: /Sync/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('menuitem', { name: /Create PR/ })).toBeDisabled();
     expect(
-      within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }),
+      within(githubDropdown).getByRole('menuitem', { name: /Compare with GitHub/ }),
     ).toBeDisabled();
   });
 
@@ -1008,7 +1046,7 @@ describe('MenuBar', () => {
     await user.click(githubButton);
     const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
-    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Compare with GitHub/ }));
 
     expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
     expect(useUIStore.getState().diffMode).toBe(true);
@@ -1040,7 +1078,7 @@ describe('MenuBar', () => {
     await user.click(githubButton);
     const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
-    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Compare with GitHub/ }));
 
     expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-99/pull');
   });
@@ -1098,7 +1136,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Mute Sounds/ }));
+    await user.click(within(dropdown).getByRole('menuitemcheckbox', { name: /Mute Sounds/ }));
 
     expect(useUIStore.getState().isSoundMuted).toBe(true);
     expect(setMutedSpy).toHaveBeenCalledWith(true);
@@ -1130,7 +1168,7 @@ describe('MenuBar', () => {
     await user.click(githubButton);
     const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
-    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+    await user.click(within(githubDropdown).getByRole('menuitem', { name: /Compare with GitHub/ }));
 
     expect(toast.error).toHaveBeenCalledWith('pull failed');
   });
@@ -1140,7 +1178,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Promote to Production/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Promote to Production/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showPromoteDialog).toBe(true);
@@ -1151,7 +1189,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Rollback Production/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Rollback Production/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showRollbackDialog).toBe(true);
@@ -1162,7 +1200,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Promotion History/ }));
+    await user.click(within(dropdown).getByRole('menuitem', { name: /Promotion History/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
@@ -1184,7 +1222,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Diff/ }));
+    await user.click(within(dropdown).getByRole('menuitemcheckbox', { name: /Diff/ }));
 
     expect(useUIStore.getState().diffMode).toBe(false);
   });
@@ -1195,12 +1233,14 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     let dropdown = await openOverflow(user);
-    const themeBtn = within(dropdown).getByRole('button', { name: /Switch to Blueprint \(Dark\)/ });
+    const themeBtn = within(dropdown).getByRole('menuitem', {
+      name: /Switch to Blueprint \(Dark\)/,
+    });
     await user.click(themeBtn);
     expect(useUIStore.getState().themeVariant).toBe('blueprint');
 
     dropdown = await openOverflow(user);
-    const themeBtnDark = within(dropdown).getByRole('button', {
+    const themeBtnDark = within(dropdown).getByRole('menuitem', {
       name: /Switch to Workshop \(Light\)/,
     });
     await user.click(themeBtnDark);

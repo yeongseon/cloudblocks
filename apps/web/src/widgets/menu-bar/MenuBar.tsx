@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
@@ -90,6 +90,7 @@ function useMenuKeyboard({
     logo: -1,
     github: -1,
   });
+  const focusHandledRef = useRef(false);
 
   const getAllMenuItems = useCallback(
     (menu: MenuKey) =>
@@ -137,6 +138,7 @@ function useMenuKeyboard({
 
   const openMenuAndFocus = useCallback(
     (menu: MenuKey, target: 'first' | 'last' = 'first') => {
+      focusHandledRef.current = true;
       setOpenMenu(menu);
       requestAnimationFrame(() => {
         if (target === 'last') {
@@ -144,6 +146,7 @@ function useMenuKeyboard({
         } else {
           focusFirstMenuItem(menu);
         }
+        focusHandledRef.current = false;
       });
     },
     [focusFirstMenuItem, focusLastMenuItem, setOpenMenu],
@@ -157,24 +160,43 @@ function useMenuKeyboard({
     [setOpenMenu, triggerRefs],
   );
 
-  const focusAdjacentTrigger = useCallback(
+  const getAdjacentMenu = useCallback(
     (menu: MenuKey, direction: 1 | -1) => {
-      const currentIndex = MENU_ORDER.indexOf(menu);
-      const nextIndex = (currentIndex + direction + MENU_ORDER.length) % MENU_ORDER.length;
-      const nextMenu = MENU_ORDER[nextIndex];
-      triggerRefs[nextMenu].current?.focus();
+      const availableMenus = MENU_ORDER.filter((candidate) =>
+        Boolean(triggerRefs[candidate].current),
+      );
+      if (availableMenus.length < 2) {
+        return null;
+      }
+
+      const currentIndex = availableMenus.indexOf(menu);
+      const fallbackIndex = currentIndex >= 0 ? currentIndex : 0;
+      const nextIndex = (fallbackIndex + direction + availableMenus.length) % availableMenus.length;
+      return availableMenus[nextIndex];
     },
     [triggerRefs],
   );
 
+  const focusAdjacentTrigger = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const nextMenu = getAdjacentMenu(menu, direction);
+      if (!nextMenu) {
+        return;
+      }
+      triggerRefs[nextMenu].current?.focus();
+    },
+    [getAdjacentMenu, triggerRefs],
+  );
+
   const openAdjacentMenu = useCallback(
     (menu: MenuKey, direction: 1 | -1) => {
-      const currentIndex = MENU_ORDER.indexOf(menu);
-      const nextIndex = (currentIndex + direction + MENU_ORDER.length) % MENU_ORDER.length;
-      const nextMenu = MENU_ORDER[nextIndex];
+      const nextMenu = getAdjacentMenu(menu, direction);
+      if (!nextMenu) {
+        return;
+      }
       openMenuAndFocus(nextMenu, 'first');
     },
-    [openMenuAndFocus],
+    [getAdjacentMenu, openMenuAndFocus],
   );
 
   const moveInMenu = useCallback(
@@ -215,6 +237,10 @@ function useMenuKeyboard({
 
   useEffect(() => {
     if (!openMenu) {
+      return;
+    }
+    if (focusHandledRef.current) {
+      focusHandledRef.current = false;
       return;
     }
     requestAnimationFrame(() => {
@@ -333,6 +359,11 @@ function useMenuKeyboard({
       if (event.key === 'Escape') {
         event.preventDefault();
         closeMenuAndFocusTrigger(menu);
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        setOpenMenu(null);
       }
     },
     [
@@ -342,6 +373,7 @@ function useMenuKeyboard({
       moveInMenu,
       openAdjacentMenu,
       openMenu,
+      setOpenMenu,
     ],
   );
 
@@ -361,6 +393,7 @@ function useMenuKeyboard({
     handleMenuKeyDown,
     openMenuAndFocus,
     handleDocumentKeyDown,
+    closeMenuAndFocusTrigger,
   };
 }
 
@@ -438,20 +471,33 @@ export function MenuBar() {
   const githubTriggerRef = useRef<HTMLButtonElement>(null);
   const logoMenuRef = useRef<HTMLDivElement>(null);
   const githubMenuRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useMemo(
+    () => ({
+      logo: logoTriggerRef,
+      github: githubTriggerRef,
+    }),
+    [],
+  );
+  const menuRefs = useMemo(
+    () => ({
+      logo: logoMenuRef,
+      github: githubMenuRef,
+    }),
+    [],
+  );
   const hasBackendWorkspaceLink = Boolean(backendWorkspaceId);
-  const { handleTriggerKeyDown, handleMenuKeyDown, openMenuAndFocus, handleDocumentKeyDown } =
-    useMenuKeyboard({
-      openMenu,
-      setOpenMenu,
-      triggerRefs: {
-        logo: logoTriggerRef,
-        github: githubTriggerRef,
-      },
-      menuRefs: {
-        logo: logoMenuRef,
-        github: githubMenuRef,
-      },
-    });
+  const {
+    handleTriggerKeyDown,
+    handleMenuKeyDown,
+    openMenuAndFocus,
+    handleDocumentKeyDown,
+    closeMenuAndFocusTrigger,
+  } = useMenuKeyboard({
+    openMenu,
+    setOpenMenu,
+    triggerRefs,
+    menuRefs,
+  });
 
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
@@ -481,7 +527,12 @@ export function MenuBar() {
   };
 
   const handleAction = (action: () => void | Promise<void>) => {
+    const menuToClose = openMenu;
     void action();
+    if (menuToClose) {
+      closeMenuAndFocusTrigger(menuToClose);
+      return;
+    }
     setOpenMenu(null);
   };
 
@@ -641,13 +692,14 @@ export function MenuBar() {
   };
 
   return (
-    <div className="menu-bar" role="menubar">
+    <div className="menu-bar">
       {/* ── Logo menu (replaces hamburger) ──────── */}
       <div className="menu-dropdown-container">
         <button
           ref={logoTriggerRef}
           type="button"
           className="menu-bar-logo menu-trigger"
+          id="menu-trigger-logo"
           data-active={openMenu === 'logo'}
           onClick={() => toggleMenu('logo')}
           onKeyDown={(event) => handleTriggerKeyDown('logo', event)}
@@ -662,34 +714,60 @@ export function MenuBar() {
           ref={logoMenuRef}
           className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}
           role="menu"
+          aria-labelledby="menu-trigger-logo"
           onKeyDown={(event) => handleMenuKeyDown('logo', event)}
         >
           {/* File section */}
-          <div className="menu-section-label" role="presentation">
+          <div className="menu-section-label" aria-hidden="true">
             File
           </div>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleSave)}
+          >
             <span className="menu-item-left">
               <Save size={14} /> Save Workspace
             </span>
             <span className="menu-shortcut">Ctrl+S</span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleLoad)}
+          >
             <span className="menu-item-left">
               <FolderOpen size={14} /> Load Workspace
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleImport)}
+          >
             <span className="menu-item-left">
               <FileDown size={14} /> Import JSON
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleExport)}
+          >
             <span className="menu-item-left">
               <FileUp size={14} /> Export JSON
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleReset)}
+          >
             <span className="menu-item-left">
               <RotateCcw size={14} /> Reset Workspace
             </span>
@@ -698,12 +776,13 @@ export function MenuBar() {
           <hr className="menu-separator" />
 
           {/* Edit section */}
-          <div className="menu-section-label" role="presentation">
+          <div className="menu-section-label" aria-hidden="true">
             Edit
           </div>
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(undo)}
             disabled={!canUndo}
           >
@@ -715,6 +794,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(redo)}
             disabled={!canRedo}
           >
@@ -726,6 +806,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(handleDeleteSelection)}
             disabled={selectedIds.size === 0 && !selectedId}
           >
@@ -738,10 +819,15 @@ export function MenuBar() {
           <hr className="menu-separator" />
 
           {/* Build section */}
-          <div className="menu-section-label" role="presentation">
+          <div className="menu-section-label" aria-hidden="true">
             Build
           </div>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleValidate)}
+          >
             <span className="menu-item-left">
               <CheckCircle size={14} /> Validate Architecture
             </span>
@@ -756,6 +842,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(() => openInspectorTab('code'))}
           >
             <span className="menu-item-left">
@@ -765,6 +852,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(() => openDrawer('templates'))}
           >
             <span className="menu-item-left">
@@ -776,6 +864,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(togglePromoteDialog)}
               >
                 <span className="menu-item-left">
@@ -785,6 +874,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleRollbackDialog)}
               >
                 <span className="menu-item-left">
@@ -794,6 +884,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(togglePromoteHistory)}
               >
                 <span className="menu-item-left">
@@ -806,10 +897,16 @@ export function MenuBar() {
           <hr className="menu-separator" />
 
           {/* View section */}
-          <div className="menu-section-label" role="presentation">
+          <div className="menu-section-label" aria-hidden="true">
             View
           </div>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={sidebarOpen}
+            onClick={() => handleAction(toggleSidebar)}
+          >
             <span className="menu-item-left">
               {sidebarOpen ? '✓ ' : '  '}
               <PanelLeft size={14} /> Sidebar
@@ -819,6 +916,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(toggleResourceGuide)}
           >
             <span className="menu-item-left">
@@ -826,7 +924,13 @@ export function MenuBar() {
               <BookMarked size={14} /> Resource Guide
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleInspector)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={inspectorOpen}
+            onClick={() => handleAction(toggleInspector)}
+          >
             <span className="menu-item-left">
               {inspectorOpen ? '✓ ' : '  '}
               <Search size={14} /> Inspector
@@ -836,6 +940,8 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={diffMode}
             onClick={() => handleAction(handleToggleDiffMode)}
             disabled={!diffMode}
           >
@@ -847,12 +953,14 @@ export function MenuBar() {
 
           <hr className="menu-separator" />
 
-          <div className="menu-section-label" role="presentation">
+          <div className="menu-section-label" aria-hidden="true">
             Preferences
           </div>
           <button
             type="button"
             className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={!isSoundMuted}
             onClick={() => handleAction(handleToggleSound)}
           >
             <span className="menu-item-left">
@@ -863,6 +971,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() =>
               handleAction(() =>
                 setThemeVariant(themeVariant === 'blueprint' ? 'workshop' : 'blueprint'),
@@ -876,7 +985,12 @@ export function MenuBar() {
                 : 'Switch to Blueprint (Dark)'}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(cycleLabelMode)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(cycleLabelMode)}
+          >
             <span className="menu-item-left">
               <Type size={14} /> Labels:{' '}
               {labelModeOverride === 'auto'
@@ -884,7 +998,12 @@ export function MenuBar() {
                 : labelModeOverride.charAt(0).toUpperCase() + labelModeOverride.slice(1)}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(cycleGridStyle)}
+          >
             <span className="menu-item-left">
               <LayoutGrid size={14} /> Grid:{' '}
               {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}
@@ -1036,6 +1155,7 @@ export function MenuBar() {
               ref={githubTriggerRef}
               type="button"
               className="github-btn"
+              id="menu-trigger-github"
               data-active={openMenu === 'github'}
               onClick={() => toggleMenu('github')}
               onKeyDown={(event) => handleTriggerKeyDown('github', event)}
@@ -1050,11 +1170,13 @@ export function MenuBar() {
               ref={githubMenuRef}
               className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}
               role="menu"
+              aria-labelledby="menu-trigger-github"
               onKeyDown={(event) => handleMenuKeyDown('github', event)}
             >
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleGitHubRepos)}
               >
                 <span className="menu-item-left">
@@ -1064,6 +1186,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleGitHubSync)}
                 disabled={!hasBackendWorkspaceLink}
                 title={
@@ -1079,6 +1202,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleGitHubPR)}
                 disabled={!hasBackendWorkspaceLink}
                 title={
@@ -1094,6 +1218,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(handleCompareWithGitHub)}
                 disabled={!hasBackendWorkspaceLink}
                 title={
@@ -1110,6 +1235,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() =>
                   handleAction(async () => {
                     const nextBackendStatus = await logout();
