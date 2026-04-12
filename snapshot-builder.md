@@ -1,0 +1,65 @@
+- generic [ref=e3]:
+  - link "Skip to content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e105]:
+    - generic [ref=e107]:
+      - button "Menu" [ref=e109] [cursor=pointer]:
+        - img [ref=e110]
+      - button "Workspaces" [ref=e115] [cursor=pointer]
+      - tablist "Cloud provider" [ref=e117]:
+        - tab "Azure" [selected] [ref=e118] [cursor=pointer]
+        - tab "AWS" [ref=e119] [cursor=pointer]
+        - tab "GCP" [ref=e120] [cursor=pointer]
+      - generic [ref=e122]:
+        - button "Browse guided scenarios" [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e127]: Learn
+        - button "Templates" [ref=e128] [cursor=pointer]:
+          - img [ref=e129]
+          - generic [ref=e133]: Templates
+        - button "Validate architecture" [ref=e134] [cursor=pointer]:
+          - img [ref=e135]
+          - generic [ref=e138]: Validate
+      - generic [ref=e140]:
+        - button "Undo (Ctrl+Z)" [disabled] [ref=e141]:
+          - img [ref=e142]
+        - button "Redo (Ctrl+Shift+Z)" [disabled] [ref=e145]:
+          - img [ref=e146]
+        - button "Save Workspace (Ctrl+S)" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+        - button "Keyboard Shortcuts (?)" [ref=e154] [cursor=pointer]:
+          - img [ref=e155]
+      - 'button "GitHub: backend required" [disabled] [ref=e159]':
+        - img [ref=e160]
+        - generic [ref=e162]: API
+    - complementary [ref=e163]:
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - generic [ref=e167]
+          - paragraph [ref=e173]: Showing 15 of 30
+        - generic [ref=e174] [cursor=pointer]:
+          - checkbox "Show Advanced" [ref=e175]
+          - generic [ref=e176]: Show Advanced
+        - generic [ref=e177]:
+          - region "External resources" [ref=e178]
+          - region "Network resources" [ref=e195]
+          - region "Delivery resources" [ref=e212]
+          - region "Compute resources" [ref=e229]
+          - region "Data resources" [ref=e251]
+          - region "Messaging resources" [ref=e268]
+          - region "Security resources" [ref=e280]
+          - region "Identity resources" [ref=e292]
+          - region "Operations resources" [ref=e304]
+    - application "Architecture builder canvas" [ref=e316]:
+      - generic [ref=e318]:
+        - generic:
+          - generic
+          - img "Connections" [ref=e323]
+          - img "Interaction Overlay" [ref=e339]
+          - generic
+          - generic
+  - generic:
+    - status [ref=e437]:
+      - paragraph [ref=e438]: Everything looks good — your architecture is valid!
+      - button "Dismiss" [ref=e440] [cursor=pointer]
+    - button "Toggle helper" [ref=e441] [cursor=pointer]: "?"

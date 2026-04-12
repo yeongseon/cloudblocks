@@ -1290,7 +1290,7 @@ const dataStorageScenario: Scenario = {
       instruction:
         '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to Virtual Machine.\n3. Draw a connection from Virtual Machine to SQL Database.\n4. Draw a connection from Virtual Machine to Blob Storage.',
       hints: [
-        'Start with the external path: Internet → Gateway → Virtual Machine. Then connect the Virtual Machine to both data services.',
+        'Start by drawing connections along the external path: Internet to Application Gateway, then Application Gateway to Virtual Machine. After that, connect the Virtual Machine to both data services.',
         'Switch to Connect mode, then click source followed by target for each connection.',
         '🎉 Congratulations! You built a data-tier architecture with proper network isolation. Next, try the Event-Driven Data Pipeline scenario to learn asynchronous processing!',
       ],
@@ -1764,7 +1764,7 @@ const fullStackScenario: Scenario = {
       order: 4,
       title: 'Build the Serverless Layer',
       instruction:
-        'Add the serverless event processing layer on the Network container:\n1. Place 3 Azure Functions blocks (API, Worker, Batch) — small pieces of code that run automatically when triggered.\n2. Place a Service Bus (a message queue that buffers work items).\n3. Place an Event Grid (event notifications).\n4. Place a Timer Trigger (a scheduled task that runs at set intervals).\n5. Draw a connection from Service Bus to Worker Function.\n6. Draw a connection from Event Grid to Batch Function.\n7. Draw a connection from Timer Trigger to Batch Function.',
+        'Add the serverless event processing layer on the Network container:\n1. Place 3 Azure Functions blocks (application interface, worker, and batch) — small pieces of code that run automatically when triggered.\n2. Place a Service Bus (a message queue that buffers work items).\n3. Place an Event Grid (event notifications).\n4. Place a Timer Trigger (a scheduled task that runs at set intervals).\n5. Draw a connection from Service Bus to Worker Function.\n6. Draw a connection from Event Grid to Batch Function.\n7. Draw a connection from Timer Trigger to Batch Function.',
       hints: [
         'All serverless resources belong on the Network container, not inside a Subnet.',
         'Messaging resources (Service Bus, Event Grid, Timer) trigger Functions to process data automatically.',
@@ -1785,7 +1785,7 @@ const fullStackScenario: Scenario = {
       hints: [
         'Check that all blocks are in the correct containers and all connections follow allowed patterns.',
         'You should have at least 4 compute blocks (1 Virtual Machine + 3 Functions) and 2 Subnets.',
-        '🎉 Congratulations! You built a full-stack architecture with web, data, and serverless event processing. You are ready to design real cloud architectures!',
+        '🎉 Congratulations! You built a full-stack architecture with web, data, and serverless event processing. Next, try designing your own architecture from scratch in the editor!',
       ],
       validationRules: [
         { type: 'architecture-valid' },
