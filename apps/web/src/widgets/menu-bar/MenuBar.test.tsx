@@ -531,6 +531,9 @@ describe('MenuBar', () => {
         'aria-checked',
         'true',
       );
+      expect(
+        within(dropdown).getByRole('menuitemcheckbox', { name: /Resource Guide/ }),
+      ).toHaveAttribute('aria-checked', 'true');
       expect(within(dropdown).getByRole('menuitemcheckbox', { name: /Inspector/ })).toHaveAttribute(
         'aria-checked',
         'true',
@@ -542,6 +545,87 @@ describe('MenuBar', () => {
       expect(
         within(dropdown).getByRole('menuitemcheckbox', { name: /Mute Sounds|Unmute Sounds/ }),
       ).toHaveAttribute('aria-checked', 'true');
+    });
+  });
+
+  describe('keyboard navigation regression tests', () => {
+    it('ArrowUp on trigger opens dropdown and focuses last item', async () => {
+      render(<MenuBar />);
+
+      const trigger = screen.getByRole('button', { name: 'Menu' });
+      trigger.focus();
+      fireEvent.keyDown(trigger, { key: 'ArrowUp' });
+
+      const dropdown = getOverflowDropdown();
+      expect(dropdown.className).toContain('show');
+
+      await waitFor(() => {
+        const allItems = dropdown.querySelectorAll<HTMLButtonElement>('.menu-item');
+        const lastItem = allItems[allItems.length - 1];
+        expect(lastItem).toHaveFocus();
+      });
+    });
+
+    it('activating a menu item restores focus to the trigger', async () => {
+      const user = userEvent.setup();
+      render(<MenuBar />);
+
+      const trigger = screen.getByRole('button', { name: 'Menu' });
+      const dropdown = await openOverflow(user);
+      const items = within(dropdown).getAllByRole('menuitem');
+      await waitFor(() => {
+        expect(items[0]).toHaveFocus();
+      });
+
+      // Activate first item (Save) via Enter
+      fireEvent.keyDown(items[0], { key: 'Enter' });
+      await user.click(items[0]);
+
+      await waitFor(() => {
+        expect(trigger).toHaveFocus();
+      });
+    });
+
+    it('ArrowRight on logo trigger navigates to github trigger when authenticated', async () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        user: {
+          id: 'user-1',
+          github_username: 'octocat',
+          email: null,
+          display_name: null,
+          avatar_url: null,
+        },
+      });
+      render(<MenuBar />);
+
+      const logoTrigger = screen.getByRole('button', { name: 'Menu' });
+      logoTrigger.focus();
+      fireEvent.keyDown(logoTrigger, { key: 'ArrowRight' });
+
+      const githubTrigger = screen.getByRole('button', { name: /octocat/ });
+      expect(githubTrigger).toHaveFocus();
+    });
+
+    it('ArrowLeft on github trigger navigates to logo trigger when authenticated', async () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        user: {
+          id: 'user-1',
+          github_username: 'octocat',
+          email: null,
+          display_name: null,
+          avatar_url: null,
+        },
+      });
+      render(<MenuBar />);
+
+      const githubTrigger = screen.getByRole('button', { name: /octocat/ });
+      githubTrigger.focus();
+      fireEvent.keyDown(githubTrigger, { key: 'ArrowLeft' });
+
+      const logoTrigger = screen.getByRole('button', { name: 'Menu' });
+      expect(logoTrigger).toHaveFocus();
     });
   });
 
@@ -881,7 +965,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('menuitem', { name: /Resource Guide/ }));
+    await user.click(within(dropdown).getByRole('menuitemcheckbox', { name: /Resource Guide/ }));
     expect(useUIStore.getState().showResourceGuide).toBe(false);
   });
 

@@ -908,7 +908,7 @@ export function MenuBar() {
             onClick={() => handleAction(toggleSidebar)}
           >
             <span className="menu-item-left">
-              {sidebarOpen ? '✓ ' : '  '}
+              {sidebarOpen ? <span aria-hidden="true">✓ </span> : '  '}
               <PanelLeft size={14} /> Sidebar
             </span>
             <span className="menu-shortcut">Ctrl+Alt+S</span>
@@ -916,11 +916,12 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            role="menuitem"
+            role="menuitemcheckbox"
+            aria-checked={showResourceGuide}
             onClick={() => handleAction(toggleResourceGuide)}
           >
             <span className="menu-item-left">
-              {showResourceGuide ? '✓ ' : '  '}
+              {showResourceGuide ? <span aria-hidden="true">✓ </span> : '  '}
               <BookMarked size={14} /> Resource Guide
             </span>
           </button>
@@ -932,7 +933,7 @@ export function MenuBar() {
             onClick={() => handleAction(toggleInspector)}
           >
             <span className="menu-item-left">
-              {inspectorOpen ? '✓ ' : '  '}
+              {inspectorOpen ? <span aria-hidden="true">✓ </span> : '  '}
               <Search size={14} /> Inspector
             </span>
             <span className="menu-shortcut">Ctrl+Alt+I</span>
@@ -946,7 +947,7 @@ export function MenuBar() {
             disabled={!diffMode}
           >
             <span className="menu-item-left">
-              {diffMode ? '✓ ' : ''}
+              {diffMode ? <span aria-hidden="true">✓ </span> : ''}
               <GitCompare size={14} /> Diff View
             </span>
           </button>
