@@ -28,16 +28,7 @@ type WorkspaceSlice = Pick<
 function applyWorkspaceDeletion(
   state: Pick<ArchitectureState, 'workspace' | 'workspaces'>,
   idsToDelete: Set<string>,
-):
-  | {
-      mode: 'active_deleted';
-      nextWorkspace: Workspace;
-      filtered: Workspace[];
-    }
-  | {
-      mode: 'active_kept';
-      filtered: Workspace[];
-    } {
+): { filtered: Workspace[]; nextWorkspace: Workspace | null } {
   const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
   const filtered = withCurrent.filter((workspace) => !idsToDelete.has(workspace.id));
 
@@ -47,10 +38,10 @@ function applyWorkspaceDeletion(
       filtered.push(nextWorkspace);
     }
 
-    return { mode: 'active_deleted', nextWorkspace, filtered };
+    return { filtered, nextWorkspace };
   }
 
-  return { mode: 'active_kept', filtered };
+  return { filtered, nextWorkspace: null };
 }
 
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get) => ({
@@ -109,7 +100,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     const state = get();
     const result = applyWorkspaceDeletion(state, new Set([id]));
 
-    if (result.mode === 'active_deleted') {
+    if (result.nextWorkspace) {
       if (saveWorkspaces(result.filtered)) {
         saveActiveWorkspaceId(result.nextWorkspace.id);
       }
@@ -131,7 +122,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     const state = get();
     const result = applyWorkspaceDeletion(state, new Set(ids));
 
-    if (result.mode === 'active_deleted') {
+    if (result.nextWorkspace) {
       if (saveWorkspaces(result.filtered)) {
         saveActiveWorkspaceId(result.nextWorkspace.id);
       }

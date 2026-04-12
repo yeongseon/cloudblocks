@@ -58,14 +58,15 @@ export function WorkspaceManager() {
   };
 
   const handleBulkDelete = async () => {
-    if (effectiveSelectedIds.size === 0) return;
-    const count = effectiveSelectedIds.size;
+    const idsToDelete = selectableIds.filter((id) => selectedIds.has(id));
+    if (idsToDelete.length === 0) return;
+    const count = idsToDelete.length;
     const confirmed = await confirmDialog(
       `Delete ${count} workspace${count > 1 ? 's' : ''}? This cannot be undone.`,
       'Delete selected workspaces?',
     );
     if (confirmed) {
-      deleteWorkspaces([...effectiveSelectedIds]);
+      deleteWorkspaces(idsToDelete);
       setSelectedIds(new Set());
     }
   };
@@ -83,11 +84,8 @@ export function WorkspaceManager() {
   };
 
   const selectableIds = allWorkspaces.filter((ws) => ws.id !== workspace.id).map((ws) => ws.id);
-  const selectableIdSet = new Set(selectableIds);
-  const effectiveSelectedIds = new Set([...selectedIds].filter((id) => selectableIdSet.has(id)));
-
-  const allSelected =
-    selectableIds.length > 0 && selectableIds.every((id) => effectiveSelectedIds.has(id));
+  const selectedCount = selectableIds.filter((id) => selectedIds.has(id)).length;
+  const allSelected = selectableIds.length > 0 && selectedCount === selectableIds.length;
 
   const toggleSelectAll = () => {
     if (allSelected) {
@@ -129,14 +127,14 @@ export function WorkspaceManager() {
             />
             <span>Select all</span>
           </label>
-          {effectiveSelectedIds.size > 0 && (
+          {selectedCount > 0 && (
             <button
               type="button"
               className="workspace-manager-delete-selected"
               onClick={handleBulkDelete}
             >
               <Trash2 size={12} />
-              Delete selected ({effectiveSelectedIds.size})
+              Delete selected ({selectedCount})
             </button>
           )}
         </div>
@@ -176,12 +174,12 @@ export function WorkspaceManager() {
           return (
             <div
               key={ws.id}
-              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}${effectiveSelectedIds.has(ws.id) ? ' workspace-manager-item-selected' : ''}`}
+              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}${!isActive && selectedIds.has(ws.id) ? ' workspace-manager-item-selected' : ''}`}
             >
               <input
                 type="checkbox"
                 className="workspace-manager-checkbox"
-                checked={effectiveSelectedIds.has(ws.id)}
+                checked={!isActive && selectedIds.has(ws.id)}
                 disabled={isActive}
                 onChange={() => toggleSelection(ws.id)}
                 aria-label={`Select ${ws.name}`}
