@@ -23,6 +23,7 @@ import {
 } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import { metricsService } from '../../../shared/utils/metricsService';
+import { useUIStore } from '../uiStore';
 import type {
   AddNodeInput,
   ArchitectureSlice,
@@ -274,37 +275,52 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   },
 
   removePlate: (id) => {
+    // Collect IDs to remove and clear bursts for cascade-deleted connections
+    const currentArch = get().workspace.architecture;
+    const containers = currentArch.nodes.filter(isContainer);
+    const resources = currentArch.nodes.filter(isResource);
+    const container = containers.find((candidate) => candidate.id === id);
+
+    if (!container) {
+      return;
+    }
+
+    const idsToRemove = new Set<string>();
+    const collectChildren = (plateId: string) => {
+      idsToRemove.add(plateId);
+      for (const candidate of containers) {
+        if (candidate.parentId === plateId && !idsToRemove.has(candidate.id)) {
+          collectChildren(candidate.id);
+        }
+      }
+    };
+    collectChildren(id);
+
+    const removedResourceIds = new Set(
+      resources
+        .filter((resource) => {
+          const parentId = resource.parentId;
+          return (parentId !== null && idsToRemove.has(parentId)) || idsToRemove.has(resource.id);
+        })
+        .map((resource) => resource.id),
+    );
+    const removedNodeIds = new Set<string>([...idsToRemove, ...removedResourceIds]);
+
+    const removedEndpointIds = new Set(
+      currentArch.endpoints
+        .filter((endpoint) => removedNodeIds.has(endpoint.blockId))
+        .map((endpoint) => endpoint.id),
+    );
+
+    // Clear bursts for connections that reference removed endpoints
+    for (const connection of currentArch.connections) {
+      if (removedEndpointIds.has(connection.from) || removedEndpointIds.has(connection.to)) {
+        useUIStore.getState().clearConnectionCreationBurst(connection.id);
+      }
+    }
+
     set((state) => {
       const arch = state.workspace.architecture;
-      const containers = arch.nodes.filter(isContainer);
-      const resources = arch.nodes.filter(isResource);
-      const container = containers.find((candidate) => candidate.id === id);
-
-      if (!container) {
-        return state;
-      }
-
-      const idsToRemove = new Set<string>();
-      const collectChildren = (plateId: string) => {
-        idsToRemove.add(plateId);
-        for (const candidate of containers) {
-          if (candidate.parentId === plateId && !idsToRemove.has(candidate.id)) {
-            collectChildren(candidate.id);
-          }
-        }
-      };
-
-      collectChildren(id);
-
-      const removedResourceIds = new Set(
-        resources
-          .filter((resource) => {
-            const parentId = resource.parentId;
-            return (parentId !== null && idsToRemove.has(parentId)) || idsToRemove.has(resource.id);
-          })
-          .map((resource) => resource.id),
-      );
-      const removedNodeIds = new Set<string>([...idsToRemove, ...removedResourceIds]);
 
       const nodes = arch.nodes.filter((node) => {
         if (idsToRemove.has(node.id)) {
@@ -315,12 +331,6 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
         return true;
       });
-
-      const removedEndpointIds = new Set(
-        arch.endpoints
-          .filter((endpoint) => removedNodeIds.has(endpoint.blockId))
-          .map((endpoint) => endpoint.id),
-      );
 
       const endpoints = arch.endpoints.filter((endpoint) => !removedNodeIds.has(endpoint.blockId));
 
@@ -497,6 +507,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   },
 
   removeBlock: (id) => {
+    // Clear bursts for connections that will be cascade-deleted
+    const arch = get().workspace.architecture;
+    const prefix = endpointIdPrefix(id);
+    for (const connection of arch.connections) {
+      if (connection.from.startsWith(prefix) || connection.to.startsWith(prefix)) {
+        useUIStore.getState().clearConnectionCreationBurst(connection.id);
+      }
+    }
+
     set((state) => {
       const arch = state.workspace.architecture;
       const block = arch.nodes.filter(isResource).find((candidate) => candidate.id === id);
@@ -1113,17 +1132,17 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       : null;
 
     if (!sourceType || !targetType) {
-      return false;
+      return null;
     }
 
     // Self-connection check
     if (from === to) {
-      return false;
+      return null;
     }
 
     // Category pair check
     if (!canConnect(sourceType, targetType)) {
-      return false;
+      return null;
     }
 
     // Resolve endpoint IDs using default 'data' semantic
@@ -1137,7 +1156,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     );
 
     if (exists) {
-      return false;
+      return null;
     }
 
     // Verify endpoints exist
@@ -1145,10 +1164,10 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     const targetEndpoint = arch.endpoints.find((endpoint) => endpoint.id === toEndpointId);
 
     if (!sourceEndpoint) {
-      return false;
+      return null;
     }
     if (!targetEndpoint) {
-      return false;
+      return null;
     }
 
     // Port capacity check
@@ -1176,13 +1195,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     }).length;
 
     if (usedOutbound >= sourcePorts.outbound || usedInbound >= targetPorts.inbound) {
-      return false;
+      return null;
     }
+
+    const connectionId = generateId('conn');
 
     set((state) => {
       const nextArch = state.workspace.architecture;
       const connection: Connection = {
-        id: generateId('conn'),
+        id: connectionId,
         from: fromEndpointId,
         to: toEndpointId,
         metadata: {
@@ -1200,10 +1221,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       });
     });
     metricsService.trackEvent('first_connection_created');
-    return true;
+    return connectionId;
   },
 
   removeConnection: (id) => {
+    useUIStore.getState().clearConnectionCreationBurst(id);
     set((state) => {
       const arch = state.workspace.architecture;
 

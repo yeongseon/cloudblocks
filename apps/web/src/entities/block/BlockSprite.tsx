@@ -286,10 +286,11 @@ export const BlockSprite = memo(function BlockSprite({
       if (!connectionSource) {
         startConnecting(resolvedBlockId);
       } else if (connectionSource !== resolvedBlockId) {
-        const success = addConnection(connectionSource, resolvedBlockId);
-        if (success) {
+        const connectionId = addConnection(connectionSource, resolvedBlockId);
+        if (connectionId) {
           triggerSnapAnimation(resolvedBlockId);
           triggerSnapAnimation(connectionSource);
+          useUIStore.getState().triggerConnectionCreationBurst(connectionId);
           const { isSoundMuted } = useUIStore.getState();
           if (!isSoundMuted) audioService.playSound('block-snap');
         }

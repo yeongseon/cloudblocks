@@ -13,6 +13,7 @@ import type {
 } from '../../shared/types/ops';
 import type { DrawerPanelId } from '../../shared/types/drawer';
 import { loadWorkspaces } from '../../shared/utils/storage';
+import { CREATION_BURST_DURATION_MS } from '../connection/packetFlowTokens';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
@@ -305,6 +306,9 @@ interface UIState {
   // ── Connection snap animation ──
   snapTargetBlockIds: Set<string>;
   triggerSnapAnimation: (blockId: string) => void;
+  connectionCreationBursts: Map<string, number>;
+  triggerConnectionCreationBurst: (connectionId: string) => void;
+  clearConnectionCreationBurst: (connectionId: string) => void;
 
   // ── Magnetic snap (connection preview proximity) ──
   magneticSnapTargetId: string | null;
@@ -784,6 +788,26 @@ export const useUIStore = create<UIState>((set, get) => {
           return { snapTargetBlockIds: next };
         });
       }, 500);
+    },
+
+    connectionCreationBursts: new Map<string, number>(),
+    triggerConnectionCreationBurst: (connectionId) => {
+      set((s) => {
+        const next = new Map(s.connectionCreationBursts);
+        next.set(connectionId, Date.now() + CREATION_BURST_DURATION_MS);
+        return { connectionCreationBursts: next };
+      });
+    },
+    clearConnectionCreationBurst: (connectionId) => {
+      set((s) => {
+        if (!s.connectionCreationBursts.has(connectionId)) {
+          return s;
+        }
+
+        const next = new Map(s.connectionCreationBursts);
+        next.delete(connectionId);
+        return { connectionCreationBursts: next };
+      });
     },
 
     magneticSnapTargetId: null,

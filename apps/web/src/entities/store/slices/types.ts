@@ -130,7 +130,7 @@ export interface ArchitectureState {
     position?: { x: number; y: number; z: number },
   ) => void;
 
-  addConnection: (from: string, to: string) => boolean;
+  addConnection: (from: string, to: string) => string | null;
   removeConnection: (id: string) => void;
   updateConnectionType: (connectionId: string, type: ConnectionType) => void;
 

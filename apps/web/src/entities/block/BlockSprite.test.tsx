@@ -155,7 +155,7 @@ describe('BlockSprite', () => {
     vi.clearAllMocks();
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
-    addConnectionMock.mockReturnValue(true);
+    addConnectionMock.mockReturnValue('conn-test-id');
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
     useUIStore.setState({
@@ -373,7 +373,7 @@ describe('BlockSprite', () => {
 
   it('silently cancels when connect mode rejects an invalid connection', async () => {
     const user = userEvent.setup();
-    addConnectionMock.mockReturnValue(false);
+    addConnectionMock.mockReturnValue(null);
     useUIStore.setState({ toolMode: 'connect' });
 
     const sourceBlock = makeBlock('block-source', 'database');

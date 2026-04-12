@@ -440,7 +440,7 @@ describe('domainSlice – targeted branch coverage', () => {
       });
 
       const success = getState().addConnection('ext-internet', 'c1');
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
   });
@@ -582,7 +582,7 @@ describe('domainSlice – targeted branch coverage', () => {
       });
 
       const success = getState().addConnection('ext-internet', 'gw1');
-      expect(success).toBe(true);
+      expect(success).toBeTruthy();
       expect(getArch().connections).toHaveLength(1);
       expect(getArch().connections[0].from).toContain('ext-internet');
       expect(getArch().connections[0].to).toContain('gw1');
@@ -611,7 +611,7 @@ describe('domainSlice – targeted branch coverage', () => {
       });
 
       const success = getState().addConnection('ext-internet', 'c1');
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
   });
@@ -633,8 +633,8 @@ describe('domainSlice – targeted branch coverage', () => {
         ],
       });
 
-      expect(getState().addConnection('c1', 'd1')).toBe(true);
-      expect(getState().addConnection('c1', 'd2')).toBe(true);
+      expect(getState().addConnection('c1', 'd1')).toBeTruthy();
+      expect(getState().addConnection('c1', 'd2')).toBeTruthy();
 
       const connections = getArch().connections;
       expect(connections).toHaveLength(2);
@@ -661,9 +661,9 @@ describe('domainSlice – targeted branch coverage', () => {
         ],
       });
 
-      expect(getState().addConnection('c1', 'd1')).toBe(true);
-      expect(getState().addConnection('c1', 'd2')).toBe(true);
-      expect(getState().addConnection('c1', 'd3')).toBe(false);
+      expect(getState().addConnection('c1', 'd1')).toBeTruthy();
+      expect(getState().addConnection('c1', 'd2')).toBeTruthy();
+      expect(getState().addConnection('c1', 'd3')).toBeNull();
       expect(getArch().connections).toHaveLength(2);
     });
 
@@ -684,9 +684,9 @@ describe('domainSlice – targeted branch coverage', () => {
         ],
       });
 
-      expect(getState().addConnection('c1', 'd1')).toBe(true);
-      expect(getState().addConnection('c2', 'd1')).toBe(true);
-      expect(getState().addConnection('c3', 'd1')).toBe(false);
+      expect(getState().addConnection('c1', 'd1')).toBeTruthy();
+      expect(getState().addConnection('c2', 'd1')).toBeTruthy();
+      expect(getState().addConnection('c3', 'd1')).toBeNull();
       expect(getArch().connections).toHaveLength(2);
     });
 
@@ -707,7 +707,7 @@ describe('domainSlice – targeted branch coverage', () => {
         connections: [makeLegacyConnection('legacy-conn', 'c1', 'd1', 'dataflow')],
       });
 
-      expect(getState().addConnection('c1', 'd2')).toBe(true);
+      expect(getState().addConnection('c1', 'd2')).toBeTruthy();
 
       const newConnection = getArch().connections.find(
         (connection) => connection.id !== 'legacy-conn',
@@ -1010,9 +1010,9 @@ describe('domainSlice – targeted branch coverage', () => {
         connections: [makeLegacyConnection('conn-existing', edge.id, compute.id)],
       });
 
-      expect(getState().addConnection('compute-1', 'ext-internet')).toBe(false);
+      expect(getState().addConnection('compute-1', 'ext-internet')).toBeNull();
 
-      expect(getState().addConnection('ext-internet', 'delivery-1')).toBe(true);
+      expect(getState().addConnection('ext-internet', 'delivery-1')).toBeTruthy();
     });
 
     it('uses parseEndpointId fallback for capacity counting when endpoints are missing', () => {
@@ -1055,7 +1055,7 @@ describe('domainSlice – targeted branch coverage', () => {
         ],
       });
 
-      expect(getState().addConnection('delivery-1', 'compute-1')).toBe(true);
+      expect(getState().addConnection('delivery-1', 'compute-1')).toBeTruthy();
 
       const createdConnection = getArch().connections.at(-1);
       expect(createdConnection?.metadata?.sourcePort).toBe(1);
@@ -1072,7 +1072,7 @@ describe('domainSlice – targeted branch coverage', () => {
         externalActors: [],
       });
 
-      expect(getState().addConnection('delivery-1', 'compute-1')).toBe(false);
+      expect(getState().addConnection('delivery-1', 'compute-1')).toBeNull();
     });
 
     it('returns false when target has no stored endpoint and is not an actor', () => {
@@ -1095,7 +1095,7 @@ describe('domainSlice – targeted branch coverage', () => {
       });
 
       // Source (delivery-1) has endpoints, target (compute-1) does not
-      expect(getState().addConnection('delivery-1', 'compute-1')).toBe(false);
+      expect(getState().addConnection('delivery-1', 'compute-1')).toBeNull();
     });
 
     it('no-ops updateConnectionType when endpoints for existing connection are missing', () => {
@@ -1112,6 +1112,108 @@ describe('domainSlice – targeted branch coverage', () => {
       const before = getArch();
       getState().updateConnectionType('conn-1', 'async');
       expect(getArch()).toBe(before);
+    });
+  });
+
+  describe('removeConnection – burst cleanup', () => {
+    it('clears connectionCreationBursts entry when a connection is removed', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            frame: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+        ],
+      });
+
+      const connectionId = getState().addConnection('c1', 'd1');
+      expect(connectionId).toBeTruthy();
+
+      useUIStore.getState().triggerConnectionCreationBurst(connectionId!);
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(true);
+
+      getState().removeConnection(connectionId!);
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(false);
+    });
+
+    it('does not throw when removing a connection without an active burst', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            frame: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+        ],
+      });
+
+      const connectionId = getState().addConnection('c1', 'd1');
+      expect(connectionId).toBeTruthy();
+
+      expect(() => getState().removeConnection(connectionId!)).not.toThrow();
+    });
+  });
+
+  describe('removeBlock – cascade burst cleanup', () => {
+    it('clears bursts for connections attached to a removed block', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            frame: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+        ],
+      });
+
+      const connectionId = getState().addConnection('c1', 'd1');
+      expect(connectionId).toBeTruthy();
+
+      useUIStore.getState().triggerConnectionCreationBurst(connectionId!);
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(true);
+
+      getState().removeBlock('c1');
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(false);
+    });
+  });
+
+  describe('removePlate – cascade burst cleanup', () => {
+    it('clears bursts for all connections when a container is removed', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            frame: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+        ],
+      });
+
+      const connectionId = getState().addConnection('c1', 'd1');
+      expect(connectionId).toBeTruthy();
+
+      useUIStore.getState().triggerConnectionCreationBurst(connectionId!);
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(true);
+
+      getState().removePlate('s1');
+      expect(useUIStore.getState().connectionCreationBursts.has(connectionId!)).toBe(false);
     });
   });
 });

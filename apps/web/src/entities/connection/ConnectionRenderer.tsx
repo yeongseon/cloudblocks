@@ -35,6 +35,7 @@ import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import { getConnectionColorsForType } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
+import { PacketFlowLayer } from './PacketFlowLayer';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -264,6 +265,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const toolMode = useUIStore((s) => s.toolMode);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
+  const creationBurstExpiry = useUIStore((state) =>
+    resolvedConnectionId ? state.connectionCreationBursts.get(resolvedConnectionId) : undefined,
+  );
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const fromEndpoint = useArchitectureStore((state) => {
@@ -335,6 +339,35 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   }, [resolvedConnectionId, validationResult]);
 
   const hasValidationError = connectionErrors.length > 0;
+  const creationBurstActive = creationBurstExpiry !== undefined;
+
+  useEffect(() => {
+    if (!resolvedConnectionId || creationBurstExpiry === undefined) {
+      return;
+    }
+
+    const remaining = creationBurstExpiry - Date.now();
+    if (remaining <= 0) {
+      useUIStore.getState().clearConnectionCreationBurst(resolvedConnectionId);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      useUIStore.getState().clearConnectionCreationBurst(resolvedConnectionId);
+    }, remaining);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [creationBurstExpiry, resolvedConnectionId]);
+
+  const packetMode = (() => {
+    if (hasValidationError) return 'static' as const;
+    if (creationBurstActive) return 'creation' as const;
+    if (isSelected) return 'selected' as const;
+    if (isHovered) return 'hover' as const;
+    return 'static' as const;
+  })();
 
   const surfaceRoute = useMemo(
     () =>
@@ -355,6 +388,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
     return {
       hitPath,
+      hitPoints,
       labelPos: getLabelPosition(hitPoints),
       sourcePos: hitPoints[0],
       targetPos: hitPoints[hitPoints.length - 1],
@@ -372,6 +406,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const isNeutral = connectionType === 'dataflow' || connectionType === undefined;
   const colors = getColors(renderSemantic, diffState, isHighlighted, isNeutral);
   const hitPath = surfaceRender.hitPath;
+  const hitPoints = surfaceRender.hitPoints;
   const labelPos = surfaceRender.labelPos;
   const sourcePos = surfaceRender.sourcePos;
   const targetPos = surfaceRender.targetPos;
@@ -385,6 +420,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${resolvedConnection.id}`;
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
+  const rawConnectionType = resolvedConnection.metadata?.type;
+  const resolvedConnectionType =
+    typeof rawConnectionType === 'string' ? rawConnectionType : 'dataflow';
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -465,6 +503,15 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         data-layer="trace"
         markerEnd={`url(#${markerId})`}
       />
+
+      {packetMode !== 'static' && (
+        <PacketFlowLayer
+          hitPoints={hitPoints}
+          mode={packetMode}
+          connectionType={resolvedConnectionType}
+          strokeColor={colors.stroke}
+        />
+      )}
 
       {/* Provider-accent glow: hover = subtle, selection = stronger */}
       {isHighlighted && (
