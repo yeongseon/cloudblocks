@@ -96,4 +96,12 @@ describe('LandingPage', () => {
 
     expect(screen.getByText('Best experienced on desktop')).toBeInTheDocument();
   });
+
+  it('shows Azure-first badges in hero and template cards', () => {
+    render(<LandingPage />);
+
+    expect(screen.getByText('Azure-first templates')).toBeInTheDocument();
+    const providerBadges = screen.getAllByText('Azure');
+    expect(providerBadges.length).toBe(4);
+  });
 });
