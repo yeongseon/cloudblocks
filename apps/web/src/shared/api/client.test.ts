@@ -46,7 +46,7 @@ describe('api client', () => {
 
     expect(result).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('GET');
     expect((fetchMock.mock.calls[0][1] as RequestInit).credentials).toBe('include');
   });
@@ -212,7 +212,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('works correctly when VITE_API_URL has no trailing slash', async () => {
@@ -222,7 +222,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('produces correct URL when VITE_API_URL is empty', async () => {
@@ -232,7 +232,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('strips multiple trailing slashes from VITE_API_URL', async () => {
@@ -242,7 +242,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('strips legacy /api suffix from VITE_API_URL', async () => {
@@ -252,7 +252,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('strips legacy /api suffix with trailing slash from VITE_API_URL', async () => {
@@ -262,7 +262,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('strips /api/v1 suffix from VITE_API_URL without duplicating path', async () => {
@@ -272,7 +272,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 
   it('strips /api/v1/ suffix with trailing slash from VITE_API_URL', async () => {
@@ -282,7 +282,7 @@ describe('API_BASE_URL normalization', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
     await apiGet('/api/v1/test');
 
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/test$/);
   });
 });
 

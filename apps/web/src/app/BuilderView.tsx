@@ -186,6 +186,23 @@ export function BuilderView() {
         return;
       }
 
+      // Zoom shortcuts
+      if ((e.key === '=' || e.key === '+') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('cloudblocks:zoom-in'));
+        return;
+      }
+      if (e.key === '-' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('cloudblocks:zoom-out'));
+        return;
+      }
+      if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        useUIStore.getState().requestFitToContent();
+        return;
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const { selectedIds, selectedId: singleId } = useUIStore.getState();
         const idsToDelete = selectedIds.size > 0 ? [...selectedIds] : singleId ? [singleId] : [];

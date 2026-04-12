@@ -152,6 +152,7 @@ export interface ArchitectureState {
   createWorkspace: (name: string, provider: ProviderType) => void;
   switchWorkspace: (id: string) => void;
   deleteWorkspace: (id: string) => void;
+  deleteWorkspaces: (ids: string[]) => void;
   cloneWorkspace: (id: string) => void;
   importArchitecture: (json: string, provider: ProviderType) => string | null;
   exportArchitecture: () => string;

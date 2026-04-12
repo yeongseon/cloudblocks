@@ -18,11 +18,31 @@ type WorkspaceSlice = Pick<
   | 'createWorkspace'
   | 'switchWorkspace'
   | 'deleteWorkspace'
+  | 'deleteWorkspaces'
   | 'cloneWorkspace'
   | 'setBackendWorkspaceId'
   | 'setGithubRepo'
   | 'setLastPrResult'
 >;
+
+function applyWorkspaceDeletion(
+  state: Pick<ArchitectureState, 'workspace' | 'workspaces'>,
+  idsToDelete: Set<string>,
+): { filtered: Workspace[]; nextWorkspace: Workspace | null } {
+  const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
+  const filtered = withCurrent.filter((workspace) => !idsToDelete.has(workspace.id));
+
+  if (idsToDelete.has(state.workspace.id)) {
+    const nextWorkspace = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
+    if (filtered.length === 0) {
+      filtered.push(nextWorkspace);
+    }
+
+    return { filtered, nextWorkspace };
+  }
+
+  return { filtered, nextWorkspace: null };
+}
 
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get) => ({
   workspace: createDefaultWorkspace(),
@@ -78,31 +98,46 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
 
   deleteWorkspace: (id) => {
     const state = get();
-    const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
-    const filtered = withCurrent.filter((workspace) => workspace.id !== id);
+    const result = applyWorkspaceDeletion(state, new Set([id]));
 
-    if (state.workspace.id === id) {
-      const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
-
-      if (filtered.length === 0) {
-        filtered.push(next);
-      }
-
-      if (saveWorkspaces(filtered)) {
-        saveActiveWorkspaceId(next.id);
+    if (result.nextWorkspace) {
+      if (saveWorkspaces(result.filtered)) {
+        saveActiveWorkspaceId(result.nextWorkspace.id);
       }
 
       set({
-        workspace: next,
-        workspaces: filtered,
+        workspace: result.nextWorkspace,
+        workspaces: result.filtered,
         ...resetTransientState(),
       });
 
       return;
     }
 
-    saveWorkspaces(filtered);
-    set({ workspaces: filtered });
+    saveWorkspaces(result.filtered);
+    set({ workspaces: result.filtered });
+  },
+
+  deleteWorkspaces: (ids) => {
+    const state = get();
+    const result = applyWorkspaceDeletion(state, new Set(ids));
+
+    if (result.nextWorkspace) {
+      if (saveWorkspaces(result.filtered)) {
+        saveActiveWorkspaceId(result.nextWorkspace.id);
+      }
+
+      set({
+        workspace: result.nextWorkspace,
+        workspaces: result.filtered,
+        ...resetTransientState(),
+      });
+
+      return;
+    }
+
+    saveWorkspaces(result.filtered);
+    set({ workspaces: result.filtered });
   },
 
   cloneWorkspace: (id) => {
