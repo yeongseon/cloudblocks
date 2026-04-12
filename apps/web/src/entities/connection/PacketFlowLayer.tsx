@@ -3,7 +3,6 @@ import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
   PACKET_COLOR,
-  PACKET_GLOW_COLOR,
   PACKET_LENGTH,
   PACKET_OPACITY,
   PACKET_SPEED_MS,
@@ -107,7 +106,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
             {/* Glow layer */}
             <path
               d={`M ${-glowHalfLen} 0 Q ${-glowHalfLen} ${-glowHalfWid} 0 ${-glowHalfWid} Q ${glowHalfLen} ${-glowHalfWid} ${glowHalfLen} 0 Q ${glowHalfLen} ${glowHalfWid} 0 ${glowHalfWid} Q ${-glowHalfLen} ${glowHalfWid} ${-glowHalfLen} 0 Z`}
-              fill={PACKET_GLOW_COLOR}
+              fill={packetColor}
               fillOpacity={opacity}
             />
             {/* Capsule body */}
