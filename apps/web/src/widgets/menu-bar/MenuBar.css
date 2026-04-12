@@ -171,12 +171,12 @@
   margin-bottom: 2px;
 }
 
-.menu-item:hover:not(:disabled) {
+.menu-item:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--accent-primary);
   color: var(--text-inverse);
 }
 
-.menu-item:active:not(:disabled) {
+.menu-item:active:not(:disabled):not([aria-disabled='true']) {
   background: var(--accent-primary);
   color: var(--text-inverse);
   opacity: 0.9;
@@ -194,14 +194,15 @@
   font-weight: 600;
 }
 
-.menu-item:hover:not(:disabled) .menu-shortcut {
+.menu-item:hover:not(:disabled):not([aria-disabled='true']) .menu-shortcut {
   color: var(--text-inverse);
   opacity: 0.7;
 }
 
-.menu-item:disabled {
+.menu-item:disabled,
+.menu-item[aria-disabled='true'] {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .menu-item-left {

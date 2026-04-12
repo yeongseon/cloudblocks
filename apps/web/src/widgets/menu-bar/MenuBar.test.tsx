@@ -443,7 +443,7 @@ describe('MenuBar', () => {
       expect(items[0]).toHaveFocus();
     });
 
-    it('ArrowDown skips disabled menu items', async () => {
+    it('ArrowDown focuses disabled menu items without activating them', async () => {
       const user = userEvent.setup();
       render(<MenuBar />);
 
@@ -456,7 +456,7 @@ describe('MenuBar', () => {
       });
 
       // Items: Save(0), Load(1), Import(2), Export(3), Reset(4),
-      // Undo(5,disabled), Redo(6,disabled), Delete(7,disabled),
+      // Undo(5,aria-disabled), Redo(6,aria-disabled), Delete(7,aria-disabled),
       // Validate(8), ...
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
@@ -466,12 +466,16 @@ describe('MenuBar', () => {
       const resetButton = within(dropdown).getByRole('menuitem', { name: /Reset Workspace/ });
       expect(resetButton).toHaveFocus();
 
-      // ArrowDown from Reset should skip Undo, Redo, Delete (all disabled) and land on Validate
+      // ArrowDown from Reset should now land on Undo (aria-disabled, but focusable)
       fireEvent.keyDown(dropdown, { key: 'ArrowDown' });
-      const validateButton = within(dropdown).getByRole('menuitem', {
-        name: /Validate Architecture/,
-      });
-      expect(validateButton).toHaveFocus();
+      const undoButton = within(dropdown).getByRole('menuitem', { name: /Undo/ });
+      expect(undoButton).toHaveFocus();
+      expect(undoButton).toHaveAttribute('aria-disabled', 'true');
+
+      // Clicking an aria-disabled item should NOT activate it (no-op)
+      await user.click(undoButton);
+      // Undo button is still focused, menu is still open
+      expect(dropdown.className).toContain('show');
     });
   });
 
@@ -494,9 +498,9 @@ describe('MenuBar', () => {
       const logoTrigger = screen.getByRole('button', { name: 'Menu' });
       const githubTrigger = screen.getByRole('button', { name: /octocat/ });
 
-      expect(logoTrigger).toHaveAttribute('aria-haspopup', 'true');
+      expect(logoTrigger).toHaveAttribute('aria-haspopup', 'menu');
       expect(logoTrigger).toHaveAttribute('aria-expanded', 'false');
-      expect(githubTrigger).toHaveAttribute('aria-haspopup', 'true');
+      expect(githubTrigger).toHaveAttribute('aria-haspopup', 'menu');
       expect(githubTrigger).toHaveAttribute('aria-expanded', 'false');
 
       await user.click(logoTrigger);
@@ -789,8 +793,8 @@ describe('MenuBar', () => {
     let dropdown = await openOverflow(user);
     let undoItem = within(dropdown).getByRole('menuitem', { name: /Undo/ });
     let redoItem = within(dropdown).getByRole('menuitem', { name: /Redo/ });
-    expect(undoItem).toBeDisabled();
-    expect(redoItem).toBeDisabled();
+    expect(undoItem).toHaveAttribute('aria-disabled', 'true');
+    expect(redoItem).toHaveAttribute('aria-disabled', 'true');
 
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
     // close and reopen
@@ -798,8 +802,8 @@ describe('MenuBar', () => {
     dropdown = await openOverflow(user);
     undoItem = within(dropdown).getByRole('menuitem', { name: /Undo/ });
     redoItem = within(dropdown).getByRole('menuitem', { name: /Redo/ });
-    expect(undoItem).not.toBeDisabled();
-    expect(redoItem).not.toBeDisabled();
+    expect(undoItem).not.toHaveAttribute('aria-disabled');
+    expect(redoItem).not.toHaveAttribute('aria-disabled');
 
     await user.click(undoItem);
     expect(undoMock).toHaveBeenCalledOnce();
@@ -977,7 +981,7 @@ describe('MenuBar', () => {
     const diffButtonDisabled = within(dropdown).getByRole('menuitemcheckbox', {
       name: /Diff View/,
     });
-    expect(diffButtonDisabled).toBeDisabled();
+    expect(diffButtonDisabled).toHaveAttribute('aria-disabled', 'true');
 
     useUIStore.getState().setDiffMode(
       true,
@@ -993,7 +997,7 @@ describe('MenuBar', () => {
 
     dropdown = await openOverflow(user);
     const diffButtonEnabled = within(dropdown).getByRole('menuitemcheckbox', { name: /Diff View/ });
-    expect(diffButtonEnabled).not.toBeDisabled();
+    expect(diffButtonEnabled).not.toHaveAttribute('aria-disabled');
     await user.click(diffButtonEnabled);
     expect(useUIStore.getState().diffMode).toBe(false);
   });
@@ -1097,11 +1101,17 @@ describe('MenuBar', () => {
     const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
     const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
 
-    expect(within(githubDropdown).getByRole('menuitem', { name: /Sync/ })).toBeDisabled();
-    expect(within(githubDropdown).getByRole('menuitem', { name: /Create PR/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('menuitem', { name: /Sync/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(within(githubDropdown).getByRole('menuitem', { name: /Create PR/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     expect(
       within(githubDropdown).getByRole('menuitem', { name: /Compare with GitHub/ }),
-    ).toBeDisabled();
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('compare with GitHub calls backend and enables diff mode', async () => {
