@@ -25,6 +25,34 @@ type WorkspaceSlice = Pick<
   | 'setLastPrResult'
 >;
 
+function applyWorkspaceDeletion(
+  state: Pick<ArchitectureState, 'workspace' | 'workspaces'>,
+  idsToDelete: Set<string>,
+):
+  | {
+      mode: 'active_deleted';
+      nextWorkspace: Workspace;
+      filtered: Workspace[];
+    }
+  | {
+      mode: 'active_kept';
+      filtered: Workspace[];
+    } {
+  const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
+  const filtered = withCurrent.filter((workspace) => !idsToDelete.has(workspace.id));
+
+  if (idsToDelete.has(state.workspace.id)) {
+    const nextWorkspace = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
+    if (filtered.length === 0) {
+      filtered.push(nextWorkspace);
+    }
+
+    return { mode: 'active_deleted', nextWorkspace, filtered };
+  }
+
+  return { mode: 'active_kept', filtered };
+}
+
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get) => ({
   workspace: createDefaultWorkspace(),
   workspaces: [],
@@ -79,61 +107,46 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
 
   deleteWorkspace: (id) => {
     const state = get();
-    const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
-    const filtered = withCurrent.filter((workspace) => workspace.id !== id);
+    const result = applyWorkspaceDeletion(state, new Set([id]));
 
-    if (state.workspace.id === id) {
-      const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
-
-      if (filtered.length === 0) {
-        filtered.push(next);
-      }
-
-      if (saveWorkspaces(filtered)) {
-        saveActiveWorkspaceId(next.id);
+    if (result.mode === 'active_deleted') {
+      if (saveWorkspaces(result.filtered)) {
+        saveActiveWorkspaceId(result.nextWorkspace.id);
       }
 
       set({
-        workspace: next,
-        workspaces: filtered,
+        workspace: result.nextWorkspace,
+        workspaces: result.filtered,
         ...resetTransientState(),
       });
 
       return;
     }
 
-    saveWorkspaces(filtered);
-    set({ workspaces: filtered });
+    saveWorkspaces(result.filtered);
+    set({ workspaces: result.filtered });
   },
 
   deleteWorkspaces: (ids) => {
     const state = get();
-    const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
-    const idsSet = new Set(ids);
-    const filtered = withCurrent.filter((ws) => !idsSet.has(ws.id));
+    const result = applyWorkspaceDeletion(state, new Set(ids));
 
-    if (idsSet.has(state.workspace.id)) {
-      const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
-
-      if (filtered.length === 0) {
-        filtered.push(next);
-      }
-
-      if (saveWorkspaces(filtered)) {
-        saveActiveWorkspaceId(next.id);
+    if (result.mode === 'active_deleted') {
+      if (saveWorkspaces(result.filtered)) {
+        saveActiveWorkspaceId(result.nextWorkspace.id);
       }
 
       set({
-        workspace: next,
-        workspaces: filtered,
+        workspace: result.nextWorkspace,
+        workspaces: result.filtered,
         ...resetTransientState(),
       });
 
       return;
     }
 
-    saveWorkspaces(filtered);
-    set({ workspaces: filtered });
+    saveWorkspaces(result.filtered);
+    set({ workspaces: result.filtered });
   },
 
   cloneWorkspace: (id) => {

@@ -25,12 +25,12 @@ export function WorkspaceManager() {
   const [newName, setNewName] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  if (!show) return null;
-
   // Build a combined list: current workspace is always included
   const allWorkspaces = workspaces.find((ws) => ws.id === workspace.id)
     ? workspaces
     : [workspace, ...workspaces];
+
+  if (!show) return null;
 
   const handleCreate = () => {
     const name = newName.trim();
@@ -44,20 +44,28 @@ export function WorkspaceManager() {
     if (allWorkspaces.length <= 1) return;
     const confirmed = await confirmDialog('This cannot be undone.', 'Delete this workspace?');
     if (confirmed) {
+      setSelectedIds((prev) => {
+        if (!prev.has(id)) {
+          return prev;
+        }
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       deleteWorkspace(id);
       syncWorkspaceUI();
     }
   };
 
   const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    const count = selectedIds.size;
+    if (effectiveSelectedIds.size === 0) return;
+    const count = effectiveSelectedIds.size;
     const confirmed = await confirmDialog(
       `Delete ${count} workspace${count > 1 ? 's' : ''}? This cannot be undone.`,
       'Delete selected workspaces?',
     );
     if (confirmed) {
-      deleteWorkspaces([...selectedIds]);
+      deleteWorkspaces([...effectiveSelectedIds]);
       setSelectedIds(new Set());
     }
   };
@@ -75,8 +83,11 @@ export function WorkspaceManager() {
   };
 
   const selectableIds = allWorkspaces.filter((ws) => ws.id !== workspace.id).map((ws) => ws.id);
+  const selectableIdSet = new Set(selectableIds);
+  const effectiveSelectedIds = new Set([...selectedIds].filter((id) => selectableIdSet.has(id)));
 
-  const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
+  const allSelected =
+    selectableIds.length > 0 && selectableIds.every((id) => effectiveSelectedIds.has(id));
 
   const toggleSelectAll = () => {
     if (allSelected) {
@@ -118,14 +129,14 @@ export function WorkspaceManager() {
             />
             <span>Select all</span>
           </label>
-          {selectedIds.size > 0 && (
+          {effectiveSelectedIds.size > 0 && (
             <button
               type="button"
               className="workspace-manager-delete-selected"
               onClick={handleBulkDelete}
             >
               <Trash2 size={12} />
-              Delete selected ({selectedIds.size})
+              Delete selected ({effectiveSelectedIds.size})
             </button>
           )}
         </div>
@@ -165,12 +176,12 @@ export function WorkspaceManager() {
           return (
             <div
               key={ws.id}
-              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}${selectedIds.has(ws.id) ? ' workspace-manager-item-selected' : ''}`}
+              className={`workspace-manager-item ${isActive ? 'workspace-manager-item-active' : ''}${effectiveSelectedIds.has(ws.id) ? ' workspace-manager-item-selected' : ''}`}
             >
               <input
                 type="checkbox"
                 className="workspace-manager-checkbox"
-                checked={selectedIds.has(ws.id)}
+                checked={effectiveSelectedIds.has(ws.id)}
                 disabled={isActive}
                 onChange={() => toggleSelection(ws.id)}
                 aria-label={`Select ${ws.name}`}
@@ -202,6 +213,14 @@ export function WorkspaceManager() {
                     className="workspace-manager-action"
                     onClick={() => {
                       saveToStorage();
+                      setSelectedIds((prev) => {
+                        if (!prev.has(ws.id)) {
+                          return prev;
+                        }
+                        const next = new Set(prev);
+                        next.delete(ws.id);
+                        return next;
+                      });
                       switchWorkspace(ws.id);
                       syncWorkspaceUI();
                     }}

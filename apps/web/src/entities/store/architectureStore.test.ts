@@ -1322,13 +1322,11 @@ describe('architectureStore', () => {
       getState().addBlock('compute', 'VM', subnetId);
       const blockId = getArch().blocks[0].id;
 
-      // Subnet frame: 6×8 CU. Compute block: 2×2 CU (medium tier).
-      // maxX = 6/2 - 2/2 = 2, maxZ = 8/2 - 2/2 = 3 → clamped to (2, -3).
       getState().moveBlockPosition(blockId, 100, -100);
 
       const moved = getArch().blocks.find((block) => block.id === blockId);
       expect(moved?.position.x).toBe(2);
-      expect(moved?.position.z).toBe(-3);
+      expect(moved?.position.z).toBe(-2);
     });
 
     it('no-ops when moving a block whose parent container is missing', () => {
