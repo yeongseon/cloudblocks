@@ -126,11 +126,26 @@ describe('useUIStore', () => {
   });
 
   describe('appView', () => {
-    it("defaults to 'landing' when no workspaces in localStorage", () => {
-      expect(useUIStore.getState().appView).toBe('landing');
+    it("defaults to 'landing' when no workspaces in localStorage", async () => {
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+      expect(reloadedUIStore.getState().appView).toBe('landing');
     });
     it("defaults to 'builder' when workspaces exist in localStorage", async () => {
-      localStorage.setItem('cloudblocks:workspaces', '[{"id":"test"}]');
+      localStorage.setItem(
+        'cloudblocks:workspaces',
+        JSON.stringify({
+          schemaVersion: '4.1.0',
+          workspaces: [
+            {
+              id: 'test',
+              name: 'Test',
+              provider: 'azure',
+              architecture: { nodes: [], edges: [], endpoints: [] },
+            },
+          ],
+        }),
+      );
       vi.resetModules();
       const { useUIStore: reloadedUIStore } = await import('./uiStore');
       expect(reloadedUIStore.getState().appView).toBe('builder');

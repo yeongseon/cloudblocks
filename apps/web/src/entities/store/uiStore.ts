@@ -12,6 +12,7 @@ import type {
   DeploymentVersion,
 } from '../../shared/types/ops';
 import type { DrawerPanelId } from '../../shared/types/drawer';
+import { loadWorkspaces } from '../../shared/utils/storage';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
@@ -389,7 +390,7 @@ export const useUIStore = create<UIState>((set, get) => {
   };
 
   return {
-    appView: (localStorage.getItem('cloudblocks:workspaces') ? 'builder' : 'landing') as AppView,
+    appView: (loadWorkspaces().length > 0 ? 'builder' : 'landing') as AppView,
     setAppView: (view) => {
       set({ appView: view });
     },
