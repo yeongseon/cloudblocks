@@ -5,6 +5,7 @@ describe('useUIStore', () => {
   beforeEach(() => {
     localStorage.removeItem('cloudblocks:theme-variant');
     localStorage.removeItem('cloudblocks:app-view');
+    localStorage.removeItem('cloudblocks:workspaces');
 
     // Reset store to initial state before each test
     useUIStore.setState({
@@ -125,8 +126,14 @@ describe('useUIStore', () => {
   });
 
   describe('appView', () => {
-    it("defaults to 'landing'", () => {
+    it("defaults to 'landing' when no workspaces in localStorage", () => {
       expect(useUIStore.getState().appView).toBe('landing');
+    });
+    it("defaults to 'builder' when workspaces exist in localStorage", async () => {
+      localStorage.setItem('cloudblocks:workspaces', '[{"id":"test"}]');
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+      expect(reloadedUIStore.getState().appView).toBe('builder');
     });
 
     it('setAppView updates app view', () => {

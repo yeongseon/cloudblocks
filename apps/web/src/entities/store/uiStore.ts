@@ -389,7 +389,7 @@ export const useUIStore = create<UIState>((set, get) => {
   };
 
   return {
-    appView: 'landing' as AppView,
+    appView: (localStorage.getItem('cloudblocks:workspaces') ? 'builder' : 'landing') as AppView,
     setAppView: (view) => {
       set({ appView: view });
     },
