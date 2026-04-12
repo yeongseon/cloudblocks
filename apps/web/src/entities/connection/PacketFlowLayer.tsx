@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
+  IDLE_SPEED_MULTIPLIER,
   PACKET_COLOR,
   PACKET_LENGTH,
   PACKET_OPACITY,
@@ -72,12 +73,14 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   const packetCount = getPacketCount(totalLength, mode);
   const opacity = PACKET_OPACITY[mode];
   const packetColor = strokeColor || PACKET_COLOR;
+  const effectiveSpeed =
+    mode === 'idle' ? PACKET_SPEED_MS / IDLE_SPEED_MULTIPLIER : PACKET_SPEED_MS;
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
       {Array.from({ length: packetCount }, (_, index) => {
-        const phaseOffset = (index / packetCount) * PACKET_SPEED_MS;
-        const rawProgress = (elapsed + phaseOffset) / PACKET_SPEED_MS;
+        const phaseOffset = (index / packetCount) * effectiveSpeed;
+        const rawProgress = (elapsed + phaseOffset) / effectiveSpeed;
 
         if (mode === 'creation' && rawProgress > 1) {
           return null;

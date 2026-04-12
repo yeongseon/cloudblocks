@@ -118,6 +118,11 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
   });
 
+  it('renders packet flow layer in default idle mode', () => {
+    const { container } = renderConnector();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+  });
+
   it('click in select mode sets selectedId to connection id', () => {
     const { container } = renderConnector();
     fireEvent.click(

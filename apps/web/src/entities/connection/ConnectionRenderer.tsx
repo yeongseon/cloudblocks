@@ -366,7 +366,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     if (creationBurstActive) return 'creation' as const;
     if (isSelected) return 'selected' as const;
     if (isHovered) return 'hover' as const;
-    return 'static' as const;
+    return 'idle' as const;
   })();
 
   const surfaceRoute = useMemo(

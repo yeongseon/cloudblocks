@@ -1,7 +1,7 @@
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { MEDIUM_PATH_THRESHOLD, SHORT_PATH_THRESHOLD } from './packetFlowTokens';
 
-export type PacketFlowMode = 'static' | 'hover' | 'selected' | 'creation';
+export type PacketFlowMode = 'static' | 'idle' | 'hover' | 'selected' | 'creation';
 
 export interface SegmentMetric {
   start: ScreenPoint;
@@ -25,7 +25,7 @@ export function getPacketCount(totalLength: number, mode: PacketFlowMode): numbe
   const baseCount =
     totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 3;
 
-  if (mode === 'hover') {
+  if (mode === 'idle' || mode === 'hover') {
     return Math.max(1, baseCount - 1);
   }
 
