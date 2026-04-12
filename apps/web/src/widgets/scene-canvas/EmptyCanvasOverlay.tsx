@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { clearWorkspaceDiffUI } from '../../entities/store/uiSync';
+import { toast } from 'react-hot-toast';
 import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
@@ -28,9 +29,17 @@ export function EmptyCanvasOverlay() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        importArchitecture(text, activeProvider);
-        clearWorkspaceDiffUI();
+        const error = importArchitecture(text, activeProvider);
+        if (error) {
+          toast.error(`Import failed: ${error}`);
+        } else {
+          clearWorkspaceDiffUI();
+          toast.success('Architecture imported successfully!');
+        }
       }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file.');
     };
     reader.readAsText(file);
     e.target.value = '';

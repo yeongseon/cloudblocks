@@ -3,9 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { toast } from 'react-hot-toast';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+vi.mock('../../entities/store/uiSync', () => ({
+  clearWorkspaceDiffUI: vi.fn(),
+}));
 
 const mockAddNode = vi.fn();
 const mockOpenDrawer = vi.fn();
@@ -111,8 +121,9 @@ describe('EmptyCanvasOverlay', () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('importing a JSON file calls importArchitecture with file content', async () => {
+  it('importing a valid JSON file shows success toast', async () => {
     setupMocks(0);
+    mockImportArchitecture.mockReturnValue(null);
     render(<EmptyCanvasOverlay />);
     const fileInput = screen.getByTestId('import-file-input') as HTMLInputElement;
     const jsonContent = '{"nodes":[],"connections":[]}';
@@ -122,6 +133,24 @@ describe('EmptyCanvasOverlay', () => {
 
     await vi.waitFor(() => {
       expect(mockImportArchitecture).toHaveBeenCalledWith(jsonContent, 'azure');
+      expect(toast.success).toHaveBeenCalledWith('Architecture imported successfully!');
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+  });
+
+  it('importing an invalid JSON file shows error toast', async () => {
+    setupMocks(0);
+    mockImportArchitecture.mockReturnValue('Invalid schema version');
+    render(<EmptyCanvasOverlay />);
+    const fileInput = screen.getByTestId('import-file-input') as HTMLInputElement;
+    const jsonContent = '{"bad":true}';
+    const file = new File([jsonContent], 'bad.json', { type: 'application/json' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await vi.waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Import failed: Invalid schema version');
+      expect(toast.success).not.toHaveBeenCalled();
     });
   });
 });
