@@ -189,7 +189,7 @@ const threeTierScenario: Scenario = {
   id: 'scenario-three-tier',
   name: 'Build a Three-Tier Web Application',
   description:
-    'Learn cloud architecture fundamentals by building a classic three-tier web application with gateway, compute, database, and storage.',
+    'Learn cloud architecture basics by building a classic three-tier web application — a gateway that receives traffic, a server that runs your app, and a database that stores your data.',
   difficulty: 'beginner',
   category: 'web-application',
   tags: ['three-tier', 'beginner', 'gateway', 'compute', 'database'],
@@ -199,10 +199,11 @@ const threeTierScenario: Scenario = {
     {
       id: 'step-three-tier-create-network',
       order: 1,
-      title: 'Create the Network',
-      instruction: 'Create a Network container as the foundation for your cloud architecture.',
+      title: 'Create Your Network',
+      instruction:
+        'Create a Network container — your private cloud network that keeps resources isolated and secure.',
       hints: [
-        'A Network container represents a Virtual Network (VNet) - the isolated network boundary for your cloud resources.',
+        'A Network container represents a Virtual Network (VNet), the foundation of any cloud architecture. Think of it as a private, walled-off section of the cloud just for you.',
         'Click the Network container button in the Command Card to add one to the canvas.',
       ],
       validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
@@ -211,11 +212,12 @@ const threeTierScenario: Scenario = {
       id: 'step-three-tier-add-subnets',
       order: 2,
       title: 'Add Subnets',
-      instruction: 'Add two Subnets inside your Network.',
+      instruction:
+        'Add two Subnets inside your Network. Subnets are smaller sections within your network that group related resources together.',
       hints: [
-        'Subnets divide your network into segments with separate IP ranges.',
-        'In Azure, access control is managed by NSG and route tables, not by subnet type.',
-        'Add two subnets from the Command Card.',
+        'Subnets help you organize resources — for example, one Subnet for your web server and another for your database.',
+        'Placing resources on separate Subnets improves security by keeping them isolated from each other.',
+        'Add two Subnets from the Command Card.',
       ],
       validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
       checkpoint: threeTierCheckpointNetworkOnly,
@@ -225,11 +227,11 @@ const threeTierScenario: Scenario = {
       order: 3,
       title: 'Place Your Resources',
       instruction:
-        'Place an Azure Application Gateway, an Azure Virtual Machine, and an Azure Database for PostgreSQL on your subnets.',
+        '1. Place an Application Gateway on a Subnet — the entry point that receives internet traffic and routes it to your app.\n2. Place a Virtual Machine on a Subnet — a cloud computer that runs your application code.\n3. Place a Database for PostgreSQL on the other Subnet — a managed database that stores your application data.',
       hints: [
-        'Gateways are the entry point for internet traffic.',
-        'Databases should be isolated from direct internet exposure using NSG rules.',
-        'Compute nodes can be on any subnet.',
+        'The Application Gateway goes on one Subnet — it receives requests from the internet and forwards them to your app.',
+        'Place the Database on a separate Subnet to keep it isolated from direct internet access.',
+        'The Virtual Machine can go on either Subnet.',
       ],
       validationRules: [
         {
@@ -251,11 +253,11 @@ const threeTierScenario: Scenario = {
       order: 4,
       title: 'Connect the Data Flow',
       instruction:
-        'Connect Internet -> Azure Application Gateway -> Azure Virtual Machine -> Azure Database for PostgreSQL to establish the request flow.',
+        '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to Virtual Machine.\n3. Draw a connection from Virtual Machine to Database for PostgreSQL.',
       hints: [
-        'Use Connect mode to draw connections between resources.',
-        'The data flow represents request direction: Internet -> Gateway -> Compute -> Database.',
+        'Switch to Connect mode by clicking the Connect button in the toolbar.',
         'Click the source block first, then click the target block to create a connection.',
+        'The arrows show the direction data travels: users send requests to the Gateway, which forwards them to the Virtual Machine, which queries the Database.',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
@@ -268,10 +270,12 @@ const threeTierScenario: Scenario = {
       id: 'step-three-tier-validate',
       order: 5,
       title: 'Validate Your Architecture',
-      instruction: 'Ensure your architecture passes all validation rules.',
+      instruction:
+        'Check that your architecture passes all validation rules. Open the Validation panel to review any issues.',
       hints: [
-        'Open the Validation panel to see any errors.',
-        'All blocks must be on valid plates, and all connections must follow the allowed flow rules.',
+        'A three-tier architecture separates presentation, logic, and data — validation confirms each tier is correctly isolated and connected.',
+        'Open the Validation panel to check that all blocks are inside the correct containers and all connections follow the allowed flow rules.',
+        '🎉 Congratulations! You built a classic three-tier web architecture. Next, try the Serverless HTTP (Hypertext Transfer Protocol) API (Application Programming Interface) scenario to learn a serverless pattern!',
       ],
       validationRules: [{ type: 'architecture-valid' }],
     },
@@ -358,7 +362,7 @@ const serverlessApiScenario: Scenario = {
   id: 'scenario-serverless-api',
   name: 'Serverless HTTP API',
   description:
-    'Build a serverless API architecture using functions, gateway, and managed data services.',
+    'Build a serverless HTTP (Hypertext Transfer Protocol) API (Application Programming Interface) — an architecture where your code runs on-demand without managing servers. You will use functions, an API gateway, and a managed database.',
   difficulty: 'intermediate',
   category: 'serverless',
   tags: ['serverless', 'function', 'api', 'intermediate'],
@@ -369,10 +373,11 @@ const serverlessApiScenario: Scenario = {
       id: 'step-serverless-api-network-zones',
       order: 1,
       title: 'Set Up Network Zones',
-      instruction: 'Add two Subnets — one for the gateway and one for data services.',
+      instruction:
+        '1. Create a Network container — your private cloud network that keeps your resources isolated.\n2. Add a Subnet inside the Network for the API gateway.\n3. Add a second Subnet inside the Network for data services. Subnets group related resources together.',
       hints: [
-        'Even in serverless architectures, you need network boundaries.',
-        'Use separate subnets to segment gateway traffic from data services.',
+        'Even in serverless architectures, you still need network boundaries to organize and secure your resources.',
+        'Use separate Subnets to keep gateway traffic separate from data services.',
       ],
       validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
     },
@@ -381,11 +386,11 @@ const serverlessApiScenario: Scenario = {
       order: 2,
       title: 'Deploy Serverless Components',
       instruction:
-        'Place an Azure API Management block on a subnet, an Azure Functions block on the network container, and an Azure Cosmos DB block on a subnet.',
+        '1. Place an Azure API Management block on a Subnet — this is the front door that receives web requests.\n2. Place an Azure Functions block on the Network container — this is the serverless code that processes requests.\n3. Place an Azure Cosmos DB block on a Subnet — this is the database that stores your API data.',
       hints: [
-        'Functions are serverless compute - they run on the Network container, not a specific subnet.',
-        'API Management is the public API front door - it receives HTTP requests and forwards them to your Function.',
-        'Cosmos DB stores API data as a managed NoSQL service. Place it on a subnet.',
+        'Azure Functions (serverless code that runs on-demand) belong on the Network container, not a specific Subnet.',
+        'API Management acts as the public entry point — it receives web requests and routes them to your Function.',
+        'Cosmos DB is a managed cloud database. Place it on a Subnet for network isolation.',
       ],
       validationRules: [
         {
@@ -407,10 +412,10 @@ const serverlessApiScenario: Scenario = {
       order: 3,
       title: 'Wire the API Flow',
       instruction:
-        'Connect Internet -> Azure API Management -> Azure Functions -> Azure Cosmos DB.',
+        '1. Draw a connection from Internet to API Management.\n2. Draw a connection from API Management to Azure Functions.\n3. Draw a connection from Azure Functions to Cosmos DB.',
       hints: [
-        'The serverless flow: HTTP request hits API Management, triggers a Function, which queries Cosmos DB.',
-        'Functions can connect to databases, storage, and queues.',
+        'The flow shows how a request travels: a user sends an HTTP (Hypertext Transfer Protocol) request, API Management receives it, triggers a Function, which reads or writes data in Cosmos DB.',
+        'Switch to Connect mode, then click the source block followed by the target block.',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
@@ -421,11 +426,12 @@ const serverlessApiScenario: Scenario = {
     {
       id: 'step-serverless-api-validate',
       order: 4,
-      title: 'Validate',
-      instruction: 'Check that your serverless architecture is valid.',
+      title: 'Validate Your Architecture',
+      instruction: 'Check that your serverless architecture passes all validation rules.',
       hints: [
-        'Make sure all placements and connections follow the rules.',
-        'Use the Validation panel to quickly identify any remaining placement or flow errors.',
+        'Validation ensures every block is correctly placed inside its container and every connection follows the allowed flow rules.',
+        'Open the Validation panel to see if any placements or connections need fixing.',
+        '🎉 Congratulations! You built a serverless API. Next, try the Event-Driven Data Pipeline scenario to learn asynchronous event processing!',
       ],
       validationRules: [{ type: 'architecture-valid' }],
     },
@@ -648,7 +654,7 @@ const eventPipelineScenario: Scenario = {
   id: 'scenario-event-pipeline',
   name: 'Event-Driven Data Pipeline',
   description:
-    'Design an event-driven data processing pipeline using events, queues, functions, and storage.',
+    'Design an event-driven pipeline — an architecture where events (like a file upload or a timer) automatically trigger processing functions that transform data and store results.',
   difficulty: 'advanced',
   category: 'data-pipeline',
   tags: ['event-driven', 'pipeline', 'queue', 'advanced'],
@@ -659,10 +665,11 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-sources',
       order: 1,
       title: 'Add Event Sources',
-      instruction: 'Place an Azure Event Grid and an Azure Service Bus on the Region container.',
+      instruction:
+        '1. Create a Network container \u2014 your private cloud network.\n2. Place an Event Grid on the Network container \u2014 it detects when something happens (like a file upload) and notifies other services.\n3. Place a Service Bus on the Network container \u2014 a message queue that buffers work items for processing.',
       hints: [
-        'Events and Queues are serverless resources that live on the Region container.',
-        'Events trigger functions when something happens. Queues buffer messages for processing.',
+        'Event Grid detects when something happens (like a file upload) and notifies other services. Service Bus is a message queue that buffers work items for processing.',
+        'Both are messaging resources and belong on the Network container, not inside a Subnet.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
@@ -674,10 +681,10 @@ const eventPipelineScenario: Scenario = {
       order: 2,
       title: 'Add Processing Functions',
       instruction:
-        'Place two Azure Functions blocks on the Region container - one for event processing and one for batch processing.',
+        '1. Place an Azure Functions block on the Network container for real-time event processing.\n2. Place a second Azure Functions block on the Network container for batch processing (handling large volumes of data at once).',
       hints: [
-        'You need at least two functions: one triggered by events and one for batch processing.',
-        'Functions run on the Region container, not in subnets.',
+        'Azure Functions are small pieces of code that run automatically when triggered, without managing servers.',
+        'You need two functions: one handles incoming events and another processes batches of data. Both belong on the Network container.',
       ],
       validationRules: [{ type: 'min-block-count', category: 'compute', count: 2 }],
       checkpoint: eventPipelineCheckpointAfterStep2,
@@ -685,12 +692,12 @@ const eventPipelineScenario: Scenario = {
     {
       id: 'step-event-pipeline-add-timer-storage',
       order: 3,
-      title: 'Add a Timer Trigger and Blob Storage',
+      title: 'Add a Timer and Storage',
       instruction:
-        'Place an Azure Functions Timer Trigger on the Region container and an Azure Blob Storage block on a Subnet.',
+        '1. Create a Subnet inside your Network \u2014 for storing pipeline output.\n2. Place a Timer Trigger on the Network container \u2014 a scheduled task that runs automatically at set intervals.\n3. Place a Blob Storage block on the Subnet \u2014 cloud file storage for your pipeline output.',
       hints: [
-        'A Timer Trigger fires on a schedule (CRON) to drive periodic batch processing.',
-        'Blob Storage stores the pipeline output. In real deployments, use Private Endpoints or firewall rules for network-level isolation.',
+        'The Timer Trigger fires on a schedule (e.g., every hour) to kick off batch processing jobs.',
+        'Blob Storage holds the final output of your pipeline. Place it on a Subnet for network isolation.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
@@ -706,11 +713,11 @@ const eventPipelineScenario: Scenario = {
       order: 4,
       title: 'Connect the Pipeline',
       instruction:
-        'Wire: Azure Event Grid -> Azure Functions, Azure Service Bus -> Azure Functions, Azure Functions Timer Trigger -> Azure Functions (Batch), and Azure Functions -> Azure Blob Storage.',
+        '1. Draw a connection from Event Grid to the event handler Function.\n2. Draw a connection from Service Bus to the event handler Function.\n3. Draw a connection from Timer Trigger to the batch processor Function.\n4. Draw a connection from the batch processor Function to Blob Storage.',
       hints: [
-        'Events and Queues trigger Functions for processing.',
+        'Events and queues trigger Functions to start processing data.',
         'Functions process data and write results to Storage.',
-        'Each trigger type connects to its designated processing function.',
+        'Each source connects to its designated processing function — switch to Connect mode and click source then target.',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'messaging', targetCategory: 'compute' },
@@ -722,11 +729,13 @@ const eventPipelineScenario: Scenario = {
     {
       id: 'step-event-pipeline-final-validate',
       order: 5,
-      title: 'Final Validation',
-      instruction: 'Validate your event-driven pipeline architecture.',
+      title: 'Validate Your Architecture',
+      instruction:
+        'Validate your event-driven pipeline architecture. Open the Validation panel to check for any issues.',
       hints: [
-        'All serverless blocks must be on the Region container.',
-        'Ensure at least 2 functions are present for the dual-processing pattern.',
+        'An event-driven pipeline decouples producers from consumers — validation confirms each event source routes through its own processing function.',
+        'Check that all messaging and compute blocks are on the Network container, with at least 2 Functions for the dual-processing pattern.',
+        '🎉 Congratulations! You built an event-driven data pipeline. Next, try the Full-Stack Web App with Event Processing scenario to learn a complete architecture!',
       ],
       validationRules: [
         { type: 'architecture-valid' },
@@ -873,7 +882,7 @@ const simpleComputeScenario: Scenario = {
   id: 'scenario-simple-compute',
   name: 'Simple Compute Setup',
   description:
-    'Build a minimal web architecture with one network, one subnet, a gateway, and an app service.',
+    'Build the simplest cloud web setup — one network, one Subnet, a gateway to receive traffic, and a managed app service to run your website.',
   difficulty: 'beginner',
   category: 'web-application',
   tags: ['simple', 'compute', 'app-service', 'beginner'],
@@ -883,11 +892,12 @@ const simpleComputeScenario: Scenario = {
     {
       id: 'step-simple-compute-create-network',
       order: 1,
-      title: 'Create the Network',
-      instruction: 'Create a VNet container as the foundation for your compute setup.',
+      title: 'Create Your Network',
+      instruction:
+        'Create a Network container — your private cloud network that isolates your resources from the public internet.',
       hints: [
-        'A VNet defines the network boundary for your resources.',
-        'Use the Network container button in the Command Card.',
+        'A Network container represents a Virtual Network (VNet). It is the first thing you create in any cloud architecture.',
+        'Click the Network container button in the Command Card to add one to the canvas.',
       ],
       validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
     },
@@ -895,10 +905,11 @@ const simpleComputeScenario: Scenario = {
       id: 'step-simple-compute-add-subnet',
       order: 2,
       title: 'Add a Subnet',
-      instruction: 'Add one subnet inside your VNet.',
+      instruction:
+        'Add one Subnet inside your Network. A Subnet is a smaller section that groups related resources together.',
       hints: [
-        'Subnets segment your VNet into smaller network zones.',
-        'Add a single subnet from the Command Card.',
+        'Subnets help organize your network — in this simple setup, one Subnet is enough to hold all your resources.',
+        'Add a Subnet from the Command Card.',
       ],
       validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 1 }],
       checkpoint: simpleComputeCheckpointNetworkOnly,
@@ -907,10 +918,11 @@ const simpleComputeScenario: Scenario = {
       id: 'step-simple-compute-place-tier',
       order: 3,
       title: 'Place Gateway and Compute',
-      instruction: 'Place an Application Gateway and an App Service on the subnet.',
+      instruction:
+        '1. Place an Application Gateway on the Subnet — the entry point that receives internet traffic.\n2. Place an App Service on the Subnet — a managed platform that runs your web app without requiring you to manage the underlying server.',
       hints: [
-        'The Gateway receives inbound traffic from the internet.',
-        'The App Service runs your web application.',
+        'The Application Gateway receives incoming requests from the internet and forwards them to your app.',
+        'The App Service runs your web application without requiring you to manage the underlying server.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'delivery', onContainerLayer: 'subnet' },
@@ -922,10 +934,12 @@ const simpleComputeScenario: Scenario = {
       id: 'step-simple-compute-connect-flow',
       order: 4,
       title: 'Connect the Traffic Flow',
-      instruction: 'Connect Internet -> Application Gateway -> App Service.',
+      instruction:
+        '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to App Service.',
       hints: [
-        'Use Connect mode and click source first, then target.',
-        'The expected request path is Internet -> Gateway -> App Service.',
+        'Traffic flows from users through the Gateway, which forwards requests to the App Service — this is the basic cloud web pattern.',
+        'Switch to Connect mode, then click the source block followed by the target block to draw each connection.',
+        '🎉 Congratulations! You built the simplest cloud web setup. Next, try the Three-Tier Web Application scenario to learn how to add a database layer!',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
@@ -1205,7 +1219,7 @@ const dataStorageScenario: Scenario = {
   id: 'scenario-data-storage',
   name: 'Data Storage Backend',
   description:
-    'Design an application and data-tier architecture with isolated subnets and managed storage services.',
+    'Design a backend architecture with separate Subnets for your application and data services — learn how network isolation keeps databases secure.',
   difficulty: 'intermediate',
   category: 'data-pipeline',
   tags: ['data', 'storage', 'database', 'isolation', 'intermediate'],
@@ -1216,10 +1230,11 @@ const dataStorageScenario: Scenario = {
       id: 'step-data-storage-create-network',
       order: 1,
       title: 'Create the Network',
-      instruction: 'Create a VNet container for the backend architecture.',
+      instruction:
+        'Create a Network container — the private cloud network where all your backend resources will live.',
       hints: [
-        'Start with one VNet as your network boundary.',
-        'You can place subnets and resources after the VNet is created.',
+        'The Network container (Virtual Network (VNet)) is always the first step in any cloud architecture.',
+        'Once the network is created, you can add Subnets and resources inside it.',
       ],
       validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
     },
@@ -1227,10 +1242,11 @@ const dataStorageScenario: Scenario = {
       id: 'step-data-storage-add-subnets',
       order: 2,
       title: 'Add Application and Data Subnets',
-      instruction: 'Add two subnets: one for application resources and one for data services.',
+      instruction:
+        '1. Add a Subnet for your application resources (gateway + server).\n2. Add a second Subnet for data services (database + storage).',
       hints: [
-        'Separate app and data tiers to improve network isolation.',
-        'Create exactly two subnets inside the VNet.',
+        'Putting app and data resources on separate Subnets improves security — data services are isolated from direct external access.',
+        'Create exactly two Subnets inside the Network container.',
       ],
       validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
       checkpoint: dataStorageCheckpointNetworkOnly,
@@ -1239,10 +1255,11 @@ const dataStorageScenario: Scenario = {
       id: 'step-data-storage-deploy-app-tier',
       order: 3,
       title: 'Deploy the Application Tier',
-      instruction: 'Place an Application Gateway and a VM on the first subnet.',
+      instruction:
+        '1. Place an Application Gateway on the first Subnet — the entry point that receives internet traffic.\n2. Place a Virtual Machine on the first Subnet — your cloud computer that runs the application.',
       hints: [
-        'The gateway receives external traffic before forwarding to compute.',
-        'Keep both app-tier resources on the same subnet for this scenario.',
+        'The Application Gateway receives external traffic and forwards it to your server.',
+        'Keep both app-tier resources on the same Subnet for this scenario.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'delivery', onContainerLayer: 'subnet' },
@@ -1254,10 +1271,11 @@ const dataStorageScenario: Scenario = {
       id: 'step-data-storage-add-data-services',
       order: 4,
       title: 'Add Data Services',
-      instruction: 'Place a SQL Database and Blob Storage on the second subnet.',
+      instruction:
+        '1. Place a SQL (Structured Query Language) Database on the second Subnet \u2014 structured data storage for your application.\n2. Place a Blob Storage block on the second Subnet \u2014 file storage for images, documents, and backups.',
       hints: [
-        'Keep data resources in the dedicated data subnet.',
-        'You need at least two data blocks for this step.',
+        'Keeping data resources on a dedicated Subnet isolates them from the application tier.',
+        'You need at least two data blocks to complete this step.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'data', onContainerLayer: 'subnet' },
@@ -1270,10 +1288,11 @@ const dataStorageScenario: Scenario = {
       order: 5,
       title: 'Wire the Data Flow',
       instruction:
-        'Connect Internet -> Application Gateway -> VM -> SQL Database, and VM -> Blob Storage.',
+        '1. Draw a connection from Internet to Application Gateway.\n2. Draw a connection from Application Gateway to Virtual Machine.\n3. Draw a connection from Virtual Machine to SQL Database.\n4. Draw a connection from Virtual Machine to Blob Storage.',
       hints: [
-        'Create the external ingress path first: Internet -> Gateway -> VM.',
-        'Then connect the VM to both data services.',
+        'A data-tier architecture routes traffic from the internet through a gateway to compute, and then from compute to data services — this separation keeps each layer independent.',
+        'Switch to Connect mode, then click the source block followed by the target block for each connection.',
+        '🎉 Congratulations! You built a data-tier architecture with proper network isolation. Next, try the Event-Driven Data Pipeline scenario to learn asynchronous processing!',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
@@ -1683,7 +1702,7 @@ const fullStackScenario: Scenario = {
   id: 'scenario-full-stack',
   name: 'Full-Stack Web App with Event Processing',
   description:
-    'Build a full-stack architecture with web, data, and serverless event processing layers.',
+    'Build the most complete architecture — a web application with a database, file storage, and an event-driven serverless layer that processes data automatically.',
   difficulty: 'advanced',
   category: 'serverless',
   tags: ['full-stack', 'serverless', 'event-driven', 'advanced'],
@@ -1694,10 +1713,11 @@ const fullStackScenario: Scenario = {
       id: 'step-full-stack-foundation',
       order: 1,
       title: 'Build the Network Foundation',
-      instruction: 'Create one VNet and two subnets for web and data tiers.',
+      instruction:
+        '1. Create a Network container — your private cloud network.\n2. Add Subnet 1 inside the Network — for your web tier (gateway + server).\n3. Add Subnet 2 inside the Network — for data services (database + storage).',
       hints: [
-        'You need a VNet first, then two subnets under it.',
-        'Subnet 1 is for web tier resources, Subnet 2 is for data services.',
+        'Start by creating the Network container (Virtual Network, or VNet), then add two Subnets inside it.',
+        'Separating web and data resources onto different Subnets improves security and organization.',
       ],
       validationRules: [
         { type: 'container-exists', containerLayer: 'region' },
@@ -1709,10 +1729,10 @@ const fullStackScenario: Scenario = {
       order: 2,
       title: 'Deploy the Web Tier',
       instruction:
-        'Place an Application Gateway and a VM on Subnet 1, then connect Internet -> Gateway -> VM.',
+        '1. Place an Application Gateway on Subnet 1 — the entry point that receives internet traffic.\n2. Place a Virtual Machine (a cloud computer that runs your app) on Subnet 1.\n3. Draw a connection from Internet to Application Gateway.\n4. Draw a connection from Application Gateway to Virtual Machine.',
       hints: [
-        'Both gateway and VM should be placed on a subnet.',
-        'Complete ingress routing before adding data or serverless components.',
+        'The Application Gateway receives internet traffic. The Virtual Machine runs your web application. Both belong on Subnet 1.',
+        'Finish the web tier first before adding data or serverless components.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'delivery', onContainerLayer: 'subnet' },
@@ -1727,10 +1747,10 @@ const fullStackScenario: Scenario = {
       order: 3,
       title: 'Add Data Services',
       instruction:
-        'Place PostgreSQL and Blob Storage on Subnet 2, then connect VM -> Database and VM -> Storage.',
+        '1. Place a PostgreSQL Database (a managed database for structured data) on Subnet 2.\n2. Place a Blob Storage block (cloud file storage for images, documents, and backups) on Subnet 2.\n3. Draw a connection from Virtual Machine to PostgreSQL Database.\n4. Draw a connection from Virtual Machine to Blob Storage.',
       hints: [
-        'Data services should be isolated on the data subnet.',
-        'At least one compute-to-data connection is required for validation.',
+        'Keeping data services on a separate Subnet isolates them from direct internet access.',
+        'You need at least one compute-to-data connection for validation to pass.',
       ],
       validationRules: [
         { type: 'block-exists', category: 'data', onContainerLayer: 'subnet' },
@@ -1744,10 +1764,10 @@ const fullStackScenario: Scenario = {
       order: 4,
       title: 'Build the Serverless Layer',
       instruction:
-        'Place 3 Functions, Service Bus, Event Grid, and a Timer Trigger on the VNet. Connect Queue -> Worker Function, Event -> Batch Function, and Timer -> Batch Function.',
+        'Add the serverless event processing layer on the Network container:\n1. Place an Azure Functions block for the application interface — a small piece of code that runs automatically when triggered.\n2. Place an Azure Functions block for background work (worker).\n3. Place an Azure Functions block for batch processing.\n4. Place a Service Bus (a message queue that buffers work items).\n5. Place an Event Grid (event notifications).\n6. Place a Timer Trigger (a scheduled task that runs at set intervals).\n7. Draw a connection from Service Bus to Worker Function.\n8. Draw a connection from Event Grid to Batch Function.\n9. Draw a connection from Timer Trigger to Batch Function.',
       hints: [
-        'Serverless resources in this scenario are placed on the VNet container.',
-        'Use messaging-to-compute connections for queue and event triggers.',
+        'All serverless resources belong on the Network container, not inside a Subnet.',
+        'Messaging resources (Service Bus, Event Grid, Timer) trigger Functions to process data automatically.',
       ],
       validationRules: [
         { type: 'min-block-count', category: 'compute', count: 4 },
@@ -1759,11 +1779,13 @@ const fullStackScenario: Scenario = {
     {
       id: 'step-full-stack-final-validation',
       order: 5,
-      title: 'Final Validation',
-      instruction: 'Validate the complete architecture.',
+      title: 'Validate Your Architecture',
+      instruction:
+        'Validate your complete architecture. Open the Validation panel and fix any remaining issues.',
       hints: [
-        'Check placement and connection rules in the Validation panel.',
-        'Ensure all required layers and compute components are present.',
+        'A full-stack architecture combines web serving, data storage, and event processing — validation ensures all three layers are wired correctly.',
+        'Check that you have at least 4 compute blocks (1 Virtual Machine + 3 Functions), 2 Subnets, and that all connections follow allowed patterns.',
+        '🎉 Congratulations! You built a full-stack architecture with web, data, and serverless event processing. Next, try designing your own architecture from scratch in the editor!',
       ],
       validationRules: [
         { type: 'architecture-valid' },

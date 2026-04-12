@@ -124,7 +124,7 @@ describe('ScenarioGallery', () => {
     }
 
     const cardScope = within(card);
-    expect(cardScope.getByText(/Learn cloud architecture fundamentals/i)).toBeInTheDocument();
+    expect(cardScope.getByText(/Learn cloud architecture basics/i)).toBeInTheDocument();
     const difficultyBadge = card.querySelector('.scenario-gallery-badge');
     if (!(difficultyBadge instanceof HTMLElement)) {
       throw new Error('Expected difficulty badge');
