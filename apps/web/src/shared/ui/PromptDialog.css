@@ -16,3 +16,8 @@
   border-color: color-mix(in srgb, var(--accent-primary) 50%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
+
+.prompt-dialog-input:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}

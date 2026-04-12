@@ -105,6 +105,19 @@
   border-color: var(--accent-primary);
 }
 
+.code-preview-input:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.code-preview-close:focus-visible,
+.code-preview-generate-btn:focus-visible,
+.code-preview-action-btn:focus-visible,
+.code-preview-tab:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .code-preview-generate-btn {
   padding: 5px 14px;
   background: color-mix(in srgb, var(--accent-primary) 30%, transparent);

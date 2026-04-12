@@ -67,6 +67,19 @@
   border-color: var(--accent-primary);
 }
 
+.workspace-manager-input:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.workspace-manager-close:focus-visible,
+.workspace-manager-create-btn:focus-visible,
+.workspace-manager-action:focus-visible,
+.workspace-manager-delete-selected:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .workspace-manager-input::placeholder {
   color: var(--text-muted);
 }
