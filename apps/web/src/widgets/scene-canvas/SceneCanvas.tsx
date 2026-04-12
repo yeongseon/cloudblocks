@@ -361,6 +361,10 @@ export function SceneCanvas() {
   };
 
   const handleWheel = useCallback((e: WheelEvent) => {
+    // Only zoom when Ctrl/Meta is held (standard desktop convention).
+    // Trackpad pinch gestures are reported as ctrlKey by browsers, so
+    // pinch-to-zoom continues to work transparently.
+    if (!(e.ctrlKey || e.metaKey)) return;
     e.preventDefault();
     if (!containerRef.current) return;
 
