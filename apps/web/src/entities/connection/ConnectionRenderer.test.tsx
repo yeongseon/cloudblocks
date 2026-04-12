@@ -247,6 +247,91 @@ describe('ConnectionRenderer', () => {
     expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
   });
 
+  it('creation mode renders packets even when external elapsed exceeds PACKET_SPEED_MS', () => {
+    const burstExpiry = Date.now() + 2000;
+    useUIStore.setState({
+      connectionCreationBursts: new Map([[connection.id, burstExpiry]]),
+    });
+
+    // External elapsed is far beyond PACKET_SPEED_MS (2600ms), simulating a canvas
+    // that has been open for a long time. Without the fix, this would cause the
+    // creation burst to render as already completed.
+    const { container } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={999999}
+          reducedMotion={false}
+        />
+      </svg>,
+    );
+
+    // Packet flow layer should still render because creation elapsed is derived
+    // from creationBurstExpiry, not the shared clock.
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+  });
+
+  it('creation mode uses burst-local elapsed instead of shared clock elapsed', () => {
+    vi.useFakeTimers();
+    const now = Date.now();
+    const burstExpiry = now + 2600; // CREATION_BURST_DURATION_MS = PACKET_SPEED_MS = 2600
+    useUIStore.setState({
+      connectionCreationBursts: new Map([[connection.id, burstExpiry]]),
+    });
+
+    // Render with two different external elapsed values — both very large.
+    // If creation mode correctly uses burst-local elapsed, both should produce
+    // the same packet position (because burst-local elapsed is ~0 in both cases).
+    const { container: container1 } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={50000}
+          reducedMotion={false}
+        />
+      </svg>,
+    );
+    const packet1 = container1.querySelector('[data-testid="packet-flow-packet"]');
+    const transform1 = packet1?.getAttribute('transform');
+
+    const { container: container2 } = render(
+      <svg aria-label="Test SVG">
+        <title>Test SVG</title>
+        <ConnectionRenderer
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          originX={100}
+          originY={200}
+          elapsed={100000}
+          reducedMotion={false}
+        />
+      </svg>,
+    );
+    const packet2 = container2.querySelector('[data-testid="packet-flow-packet"]');
+    const transform2 = packet2?.getAttribute('transform');
+
+    // Both should render packets (not null) and at the same position
+    // because burst-local elapsed is the same (~0) regardless of external elapsed.
+    expect(packet1).toBeInTheDocument();
+    expect(packet2).toBeInTheDocument();
+    expect(transform1).toBe(transform2);
+
+    vi.useRealTimers();
+  });
+
   it('click in select mode sets selectedId to connection id', () => {
     const { container } = renderConnector();
     fireEvent.click(
