@@ -92,6 +92,20 @@
   border-color: var(--accent-primary);
 }
 
+.github-sync-input:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.github-sync-close:focus-visible,
+.github-sync-primary-btn:focus-visible,
+.github-sync-secondary-btn:focus-visible,
+.github-sync-open-repos:focus-visible,
+.github-sync-unlink-btn:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .github-sync-open-repos,
 .github-sync-primary-btn,
 .github-sync-secondary-btn {

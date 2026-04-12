@@ -74,6 +74,19 @@
   border-color: var(--accent-primary);
 }
 
+.github-pr-input:focus-visible,
+.github-pr-textarea:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.github-pr-close:focus-visible,
+.github-pr-submit:focus-visible,
+.github-pr-compare-btn:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .github-pr-submit {
   padding: 6px 10px;
   background: color-mix(in srgb, var(--accent-primary) 28%, transparent);

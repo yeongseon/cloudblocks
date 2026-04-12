@@ -97,6 +97,18 @@
   border-color: var(--accent-primary);
 }
 
+.github-repos-input:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.github-repos-close:focus-visible,
+.github-repos-create-btn:focus-visible,
+.github-repos-link-created-btn:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .github-repos-checkbox-row {
   display: flex;
   align-items: center;

@@ -16,6 +16,11 @@
   appearance: none;
 }
 
+.container-button:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
 .container-img {
   width: 100%;
   height: 100%;

@@ -190,6 +190,21 @@
   border-color: color-mix(in srgb, var(--accent-primary) 50%, transparent);
 }
 
+.rollback-reason-textarea:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.rollback-dialog-close:focus-visible,
+.rollback-btn-primary:focus-visible,
+.rollback-btn-secondary:focus-visible,
+.rollback-btn-confirm:focus-visible,
+.rollback-btn-cancel-confirm:focus-visible,
+.rollback-version-item:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .rollback-reason-textarea::placeholder {
   color: var(--text-muted);
 }

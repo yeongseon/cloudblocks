@@ -97,6 +97,19 @@
   border-color: var(--accent-primary);
 }
 
+.props-field-input:focus-visible,
+.props-field-textarea:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.props-connection-item:focus-visible,
+.props-action-btn:focus-visible,
+.props-danger-btn:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
 .props-field-textarea {
   resize: vertical;
   min-height: 48px;
