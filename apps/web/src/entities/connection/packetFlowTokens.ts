@@ -13,7 +13,7 @@ export const PACKET_OPACITY = {
   creation: 1.0,
 } as const;
 
-export const IDLE_SPEED_MULTIPLIER = 0.4;
+export const IDLE_CYCLE_MS = 6500;
 
 export const PACKET_COLOR = '#22d3ee';
 export const PACKET_GLOW_COLOR = 'rgba(34, 211, 238, 0.3)';

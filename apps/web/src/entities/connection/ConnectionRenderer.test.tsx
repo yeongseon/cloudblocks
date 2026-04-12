@@ -123,6 +123,49 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
   });
 
+  it('does not render packet flow layer when connection has validation errors', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [
+          {
+            ruleId: 'invalid-connection',
+            message: 'Connection has validation errors',
+            targetId: connection.id,
+            severity: 'error',
+          },
+        ],
+        warnings: [],
+      },
+    });
+
+    const { container } = renderConnector();
+
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+  });
+
+  it('renders hover packet visuals when connection is hovered', () => {
+    const { container } = renderConnector();
+
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetLayer).toBeInTheDocument();
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.5');
+  });
+
+  it('renders selected packet visuals when connection is selected', () => {
+    useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+
+    const { container } = renderConnector();
+
+    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
+    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
+    expect(packetLayer).toBeInTheDocument();
+    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+  });
+
   it('click in select mode sets selectedId to connection id', () => {
     const { container } = renderConnector();
     fireEvent.click(

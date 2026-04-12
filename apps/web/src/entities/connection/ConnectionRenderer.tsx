@@ -45,6 +45,8 @@ interface ConnectionRendererProps {
   originX: number;
   originY: number;
   overlapOffset?: number;
+  elapsed?: number;
+  reducedMotion?: boolean;
 }
 
 /** Resolved colors for the 2-layer trace rendering. */
@@ -229,6 +231,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   originX,
   originY,
   overlapOffset = 0,
+  elapsed,
+  reducedMotion,
 }: ConnectionRendererProps) {
   const resolvedConnectionId = connectionId ?? connection?.id ?? null;
   const storeConnection = useArchitectureStore((state) => {
@@ -510,6 +514,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           mode={packetMode}
           connectionType={resolvedConnectionType}
           strokeColor={colors.stroke}
+          elapsed={elapsed}
+          reducedMotion={reducedMotion}
         />
       )}
 

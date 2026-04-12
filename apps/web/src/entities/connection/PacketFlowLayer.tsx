@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
-  IDLE_SPEED_MULTIPLIER,
+  IDLE_CYCLE_MS,
   PACKET_COLOR,
   PACKET_LENGTH,
   PACKET_OPACITY,
@@ -18,6 +18,8 @@ interface PacketFlowLayerProps {
   mode: PacketFlowMode;
   connectionType: string;
   strokeColor: string;
+  elapsed?: number;
+  reducedMotion?: boolean;
 }
 
 export const PacketFlowLayer = memo(function PacketFlowLayer({
@@ -25,8 +27,14 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   mode,
   connectionType,
   strokeColor,
+  elapsed: externalElapsed,
+  reducedMotion: externalReducedMotion,
 }: PacketFlowLayerProps) {
-  const { elapsed, reducedMotion } = useAnimationClock(mode !== 'static' && hitPoints.length > 1);
+  const fallbackClock = useAnimationClock(
+    externalElapsed === undefined && mode !== 'static' && hitPoints.length > 1,
+  );
+  const elapsed = externalElapsed ?? fallbackClock.elapsed;
+  const reducedMotion = externalReducedMotion ?? fallbackClock.reducedMotion;
 
   const { segments, totalLength } = useMemo(() => {
     const nextSegments: SegmentMetric[] = [];
@@ -73,8 +81,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   const packetCount = getPacketCount(totalLength, mode);
   const opacity = PACKET_OPACITY[mode];
   const packetColor = strokeColor || PACKET_COLOR;
-  const effectiveSpeed =
-    mode === 'idle' ? PACKET_SPEED_MS / IDLE_SPEED_MULTIPLIER : PACKET_SPEED_MS;
+  const effectiveSpeed = mode === 'idle' ? IDLE_CYCLE_MS : PACKET_SPEED_MS;
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>

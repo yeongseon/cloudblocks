@@ -26,6 +26,7 @@ import {
   computeWheelViewportTransform,
 } from './utils/viewportUtils';
 import { ZoomControls } from './ZoomControls';
+import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import './SceneCanvas.css';
 
 const EMPTY_OCCUPIED_CELLS = new Set<string>();
@@ -41,6 +42,8 @@ export function SceneCanvas() {
   );
   const nodes = architecture.nodes;
   const connections = architecture.connections;
+  const hasAnyActiveConnection = connections.length > 0;
+  const { elapsed: sharedElapsed, reducedMotion } = useAnimationClock(hasAnyActiveConnection);
   const indexedNodeById = useMemo(
     () => nodeById ?? new Map(nodes.map((node) => [node.id, node])),
     [nodeById, nodes],
@@ -542,6 +545,8 @@ export function SceneCanvas() {
               originX={origin.x}
               originY={origin.y}
               overlapOffset={overlapOffsets.get(conn.id) ?? 0}
+              elapsed={sharedElapsed}
+              reducedMotion={reducedMotion}
             />
           ))}
         </svg>

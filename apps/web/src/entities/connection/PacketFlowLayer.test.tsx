@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { PacketFlowLayer } from './PacketFlowLayer';
 import { getPacketCount, getPositionAtDistance } from './packetFlowHelpers';
-import { PACKET_SPEED_MS, SHORT_PATH_THRESHOLD, MEDIUM_PATH_THRESHOLD } from './packetFlowTokens';
+import {
+  IDLE_CYCLE_MS,
+  MEDIUM_PATH_THRESHOLD,
+  PACKET_SPEED_MS,
+  SHORT_PATH_THRESHOLD,
+} from './packetFlowTokens';
 
 const useAnimationClockMock = vi.fn(() => ({ elapsed: 0, reducedMotion: false }));
 
@@ -95,8 +100,11 @@ describe('PacketFlowLayer', () => {
     const hoverTransform = hoverPacket?.getAttribute('transform');
     expect(hoverTransform).toBeTruthy();
     const hoverX = extractTranslateX(hoverTransform ?? '');
+    const expectedIdleProgress = PACKET_SPEED_MS / 2 / IDLE_CYCLE_MS;
+    const expectedIdleX = expectedIdleProgress * 200;
 
     expect(idleX).toBeLessThan(hoverX);
+    expect(idleX).toBeCloseTo(expectedIdleX, 1);
     useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: false });
   });
 
@@ -228,6 +236,8 @@ describe('PacketFlowLayer', () => {
     });
 
     it('returns fewer packets for idle mode', () => {
+      expect(getPacketCount(SHORT_PATH_THRESHOLD, 'idle')).toBe(1);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD, 'idle')).toBe(1);
       expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'idle')).toBe(2);
       expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'idle')).toBe(1);
     });
