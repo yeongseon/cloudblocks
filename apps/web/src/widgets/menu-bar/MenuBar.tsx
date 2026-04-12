@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
@@ -66,12 +66,331 @@ function GitHubIcon({ size = 14 }: { size?: number }) {
 }
 
 type DropdownMenu = 'logo' | 'github' | null;
+type MenuKey = Exclude<DropdownMenu, null>;
+const MENU_ORDER: MenuKey[] = ['logo', 'github'];
 
 const PROVIDER_OPTIONS: { id: ProviderType; label: string }[] = [
   { id: 'azure', label: 'Azure' },
   { id: 'aws', label: 'AWS' },
   { id: 'gcp', label: 'GCP' },
 ];
+
+function useMenuKeyboard({
+  openMenu,
+  setOpenMenu,
+  triggerRefs,
+  menuRefs,
+}: {
+  openMenu: DropdownMenu;
+  setOpenMenu: React.Dispatch<React.SetStateAction<DropdownMenu>>;
+  triggerRefs: Record<MenuKey, React.RefObject<HTMLButtonElement | null>>;
+  menuRefs: Record<MenuKey, React.RefObject<HTMLDivElement | null>>;
+}) {
+  const [activeMenuItemIndex, setActiveMenuItemIndex] = useState<Record<MenuKey, number>>({
+    logo: -1,
+    github: -1,
+  });
+  const focusHandledRef = useRef(false);
+
+  const getAllMenuItems = useCallback(
+    (menu: MenuKey) =>
+      Array.from(menuRefs[menu].current?.querySelectorAll<HTMLButtonElement>('.menu-item') ?? []),
+    [menuRefs],
+  );
+
+  const focusMenuItem = useCallback(
+    (menu: MenuKey, index: number) => {
+      const items = getAllMenuItems(menu);
+      const item = items[index];
+      if (!item) {
+        return false;
+      }
+      item.focus();
+      setActiveMenuItemIndex((prev) => ({ ...prev, [menu]: index }));
+      return true;
+    },
+    [getAllMenuItems],
+  );
+
+  const focusFirstMenuItem = useCallback(
+    (menu: MenuKey) => {
+      const items = getAllMenuItems(menu);
+      if (items.length > 0) {
+        focusMenuItem(menu, 0);
+      }
+    },
+    [focusMenuItem, getAllMenuItems],
+  );
+
+  const focusLastMenuItem = useCallback(
+    (menu: MenuKey) => {
+      const items = getAllMenuItems(menu);
+      if (items.length > 0) {
+        focusMenuItem(menu, items.length - 1);
+      }
+    },
+    [focusMenuItem, getAllMenuItems],
+  );
+
+  const openMenuAndFocus = useCallback(
+    (menu: MenuKey, target: 'first' | 'last' = 'first') => {
+      focusHandledRef.current = true;
+      setOpenMenu(menu);
+      requestAnimationFrame(() => {
+        if (target === 'last') {
+          focusLastMenuItem(menu);
+        } else {
+          focusFirstMenuItem(menu);
+        }
+        focusHandledRef.current = false;
+      });
+    },
+    [focusFirstMenuItem, focusLastMenuItem, setOpenMenu],
+  );
+
+  const closeMenuAndFocusTrigger = useCallback(
+    (menu: MenuKey) => {
+      setOpenMenu(null);
+      triggerRefs[menu].current?.focus();
+    },
+    [setOpenMenu, triggerRefs],
+  );
+
+  const getAdjacentMenu = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const availableMenus = MENU_ORDER.filter((candidate) =>
+        Boolean(triggerRefs[candidate].current),
+      );
+      if (availableMenus.length < 2) {
+        return null;
+      }
+
+      const currentIndex = availableMenus.indexOf(menu);
+      const fallbackIndex = currentIndex >= 0 ? currentIndex : 0;
+      const nextIndex = (fallbackIndex + direction + availableMenus.length) % availableMenus.length;
+      return availableMenus[nextIndex];
+    },
+    [triggerRefs],
+  );
+
+  const focusAdjacentTrigger = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const nextMenu = getAdjacentMenu(menu, direction);
+      if (!nextMenu) {
+        return;
+      }
+      triggerRefs[nextMenu].current?.focus();
+    },
+    [getAdjacentMenu, triggerRefs],
+  );
+
+  const openAdjacentMenu = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const nextMenu = getAdjacentMenu(menu, direction);
+      if (!nextMenu) {
+        return;
+      }
+      openMenuAndFocus(nextMenu, 'first');
+    },
+    [getAdjacentMenu, openMenuAndFocus],
+  );
+
+  const moveInMenu = useCallback(
+    (menu: MenuKey, direction: 1 | -1) => {
+      const items = getAllMenuItems(menu);
+      if (items.length === 0) {
+        return;
+      }
+
+      let currentIndex = items.findIndex((item) => item === document.activeElement);
+      if (currentIndex < 0) {
+        currentIndex = activeMenuItemIndex[menu];
+      }
+      if (currentIndex < 0) {
+        currentIndex = direction === 1 ? -1 : 0;
+      }
+
+      currentIndex = (currentIndex + direction + items.length) % items.length;
+      focusMenuItem(menu, currentIndex);
+    },
+    [activeMenuItemIndex, focusMenuItem, getAllMenuItems],
+  );
+
+  useEffect(() => {
+    for (const menu of MENU_ORDER) {
+      const items = getAllMenuItems(menu);
+      const activeIndex = openMenu === menu ? activeMenuItemIndex[menu] : -1;
+      items.forEach((item, index) => {
+        item.tabIndex = index === activeIndex ? 0 : -1;
+      });
+    }
+  }, [activeMenuItemIndex, getAllMenuItems, openMenu]);
+
+  useEffect(() => {
+    if (!openMenu) {
+      return;
+    }
+    if (focusHandledRef.current) {
+      focusHandledRef.current = false;
+      return;
+    }
+    requestAnimationFrame(() => {
+      const currentItems = getAllMenuItems(openMenu);
+      if (currentItems.length === 0) {
+        return;
+      }
+      const nextIndex = currentItems.findIndex(
+        (item) => item.getAttribute('aria-disabled') !== 'true',
+      );
+      if (nextIndex >= 0) {
+        focusMenuItem(openMenu, nextIndex);
+      } else if (currentItems.length > 0) {
+        focusMenuItem(openMenu, 0);
+      }
+    });
+  }, [focusMenuItem, getAllMenuItems, openMenu]);
+
+  const handleTriggerKeyDown = useCallback(
+    (menu: MenuKey, event: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          setOpenMenu(null);
+        } else {
+          openMenuAndFocus(menu, 'first');
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        openMenuAndFocus(menu, 'first');
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        openMenuAndFocus(menu, 'last');
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          openAdjacentMenu(menu, 1);
+        } else {
+          focusAdjacentTrigger(menu, 1);
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (openMenu === menu) {
+          openAdjacentMenu(menu, -1);
+        } else {
+          focusAdjacentTrigger(menu, -1);
+        }
+        return;
+      }
+
+      if (event.key === 'Escape' && openMenu === menu) {
+        event.preventDefault();
+        closeMenuAndFocusTrigger(menu);
+      }
+    },
+    [
+      closeMenuAndFocusTrigger,
+      focusAdjacentTrigger,
+      openAdjacentMenu,
+      openMenu,
+      openMenuAndFocus,
+      setOpenMenu,
+    ],
+  );
+
+  const handleMenuKeyDown = useCallback(
+    (menu: MenuKey, event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (openMenu !== menu) {
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        moveInMenu(menu, 1);
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveInMenu(menu, -1);
+        return;
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault();
+        focusFirstMenuItem(menu);
+        return;
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault();
+        focusLastMenuItem(menu);
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        openAdjacentMenu(menu, 1);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        openAdjacentMenu(menu, -1);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenuAndFocusTrigger(menu);
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        setOpenMenu(null);
+      }
+    },
+    [
+      closeMenuAndFocusTrigger,
+      focusFirstMenuItem,
+      focusLastMenuItem,
+      moveInMenu,
+      openAdjacentMenu,
+      openMenu,
+      setOpenMenu,
+    ],
+  );
+
+  const handleDocumentKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !openMenu) {
+        return;
+      }
+      event.preventDefault();
+      closeMenuAndFocusTrigger(openMenu);
+    },
+    [closeMenuAndFocusTrigger, openMenu],
+  );
+
+  return {
+    handleTriggerKeyDown,
+    handleMenuKeyDown,
+    openMenuAndFocus,
+    handleDocumentKeyDown,
+    closeMenuAndFocusTrigger,
+  };
+}
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
@@ -98,7 +417,6 @@ export function MenuBar() {
   const setBackendStatus = useUIStore((s) => s.setBackendStatus);
   const diffMode = useUIStore((s) => s.diffMode);
   const drawer = useUIStore((s) => s.drawer);
-  const isCodePreviewOpen = drawer.activePanel === 'code';
   const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useArchitectureStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -144,7 +462,37 @@ export function MenuBar() {
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
 
   const importInputRef = useRef<HTMLInputElement>(null);
+  const logoTriggerRef = useRef<HTMLButtonElement>(null);
+  const githubTriggerRef = useRef<HTMLButtonElement>(null);
+  const logoMenuRef = useRef<HTMLDivElement>(null);
+  const githubMenuRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useMemo(
+    () => ({
+      logo: logoTriggerRef,
+      github: githubTriggerRef,
+    }),
+    [],
+  );
+  const menuRefs = useMemo(
+    () => ({
+      logo: logoMenuRef,
+      github: githubMenuRef,
+    }),
+    [],
+  );
   const hasBackendWorkspaceLink = Boolean(backendWorkspaceId);
+  const {
+    handleTriggerKeyDown,
+    handleMenuKeyDown,
+    openMenuAndFocus,
+    handleDocumentKeyDown,
+    closeMenuAndFocusTrigger,
+  } = useMenuKeyboard({
+    openMenu,
+    setOpenMenu,
+    triggerRefs,
+    menuRefs,
+  });
 
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
@@ -152,24 +500,38 @@ export function MenuBar() {
         setOpenMenu(null);
       }
     };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenMenu(null);
-    };
 
     document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleDocumentKeyDown);
     return () => {
       document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleDocumentKeyDown);
     };
-  }, []);
+  }, [handleDocumentKeyDown]);
 
   const toggleMenu = (menu: DropdownMenu) => {
-    setOpenMenu((prev) => (prev === menu ? null : menu));
+    if (!menu) {
+      setOpenMenu(null);
+      return;
+    }
+    if (openMenu === menu) {
+      setOpenMenu(null);
+      return;
+    }
+    openMenuAndFocus(menu, 'first');
   };
 
-  const handleAction = (action: () => void | Promise<void>) => {
+  const handleAction = (action: () => void | Promise<void>, event?: React.MouseEvent) => {
+    const target = event?.currentTarget;
+    if (target instanceof HTMLElement && target.getAttribute('aria-disabled') === 'true') {
+      return;
+    }
+    const menuToClose = openMenu;
     void action();
+    if (menuToClose) {
+      closeMenuAndFocusTrigger(menuToClose);
+      return;
+    }
     setOpenMenu(null);
   };
 
@@ -333,54 +695,95 @@ export function MenuBar() {
       {/* ── Logo menu (replaces hamburger) ──────── */}
       <div className="menu-dropdown-container">
         <button
+          ref={logoTriggerRef}
           type="button"
           className="menu-bar-logo menu-trigger"
+          id="menu-trigger-logo"
           data-active={openMenu === 'logo'}
           onClick={() => toggleMenu('logo')}
+          onKeyDown={(event) => handleTriggerKeyDown('logo', event)}
+          aria-haspopup="menu"
+          aria-expanded={openMenu === 'logo'}
           aria-label="Menu"
           title="Menu"
         >
           <LogoIcon size={16} />
         </button>
-        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}>
+        <div
+          ref={logoMenuRef}
+          className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}
+          role="menu"
+          aria-labelledby="menu-trigger-logo"
+          onKeyDown={(event) => handleMenuKeyDown('logo', event)}
+        >
           {/* File section */}
-          <div className="menu-section-label">File</div>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
+          <div className="menu-section-label" aria-hidden="true">
+            File
+          </div>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleSave)}
+          >
             <span className="menu-item-left">
               <Save size={14} /> Save Workspace
             </span>
             <span className="menu-shortcut">Ctrl+S</span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleLoad)}
+          >
             <span className="menu-item-left">
               <FolderOpen size={14} /> Load Workspace
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleImport)}
+          >
             <span className="menu-item-left">
               <FileDown size={14} /> Import JSON
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleExport)}
+          >
             <span className="menu-item-left">
               <FileUp size={14} /> Export JSON
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleReset)}
+          >
             <span className="menu-item-left">
               <RotateCcw size={14} /> Reset Workspace
             </span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* Edit section */}
-          <div className="menu-section-label">Edit</div>
+          <div className="menu-section-label" aria-hidden="true">
+            Edit
+          </div>
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(undo)}
-            disabled={!canUndo}
+            role="menuitem"
+            onClick={(e) => handleAction(undo, e)}
+            aria-disabled={!canUndo || undefined}
           >
             <span className="menu-item-left">
               <Undo2 size={14} /> Undo
@@ -390,8 +793,9 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(redo)}
-            disabled={!canRedo}
+            role="menuitem"
+            onClick={(e) => handleAction(redo, e)}
+            aria-disabled={!canRedo || undefined}
           >
             <span className="menu-item-left">
               <Redo2 size={14} /> Redo
@@ -401,8 +805,9 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(handleDeleteSelection)}
-            disabled={selectedIds.size === 0 && !selectedId}
+            role="menuitem"
+            onClick={(e) => handleAction(handleDeleteSelection, e)}
+            aria-disabled={(selectedIds.size === 0 && !selectedId) || undefined}
           >
             <span className="menu-item-left">
               <Trash2 size={14} /> Delete Selection
@@ -410,11 +815,18 @@ export function MenuBar() {
             <span className="menu-shortcut">Del</span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* Build section */}
-          <div className="menu-section-label">Build</div>
-          <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
+          <div className="menu-section-label" aria-hidden="true">
+            Build
+          </div>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleValidate)}
+          >
             <span className="menu-item-left">
               <CheckCircle size={14} /> Validate Architecture
             </span>
@@ -429,7 +841,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            aria-pressed={isCodePreviewOpen}
+            role="menuitem"
             onClick={() => handleAction(() => openInspectorTab('code'))}
           >
             <span className="menu-item-left">
@@ -439,6 +851,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => handleAction(() => openDrawer('templates'))}
           >
             <span className="menu-item-left">
@@ -450,6 +863,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(togglePromoteDialog)}
               >
                 <span className="menu-item-left">
@@ -459,6 +873,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleRollbackDialog)}
               >
                 <span className="menu-item-left">
@@ -468,6 +883,7 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(togglePromoteHistory)}
               >
                 <span className="menu-item-left">
@@ -477,13 +893,21 @@ export function MenuBar() {
             </>
           )}
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
           {/* View section */}
-          <div className="menu-section-label">View</div>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
+          <div className="menu-section-label" aria-hidden="true">
+            View
+          </div>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={sidebarOpen}
+            onClick={() => handleAction(toggleSidebar)}
+          >
             <span className="menu-item-left">
-              {sidebarOpen ? '✓ ' : '  '}
+              {sidebarOpen ? <span aria-hidden="true">✓ </span> : '  '}
               <PanelLeft size={14} /> Sidebar
             </span>
             <span className="menu-shortcut">Ctrl+Alt+S</span>
@@ -491,16 +915,24 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={showResourceGuide}
             onClick={() => handleAction(toggleResourceGuide)}
           >
             <span className="menu-item-left">
-              {showResourceGuide ? '✓ ' : '  '}
+              {showResourceGuide ? <span aria-hidden="true">✓ </span> : '  '}
               <BookMarked size={14} /> Resource Guide
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleInspector)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={inspectorOpen}
+            onClick={() => handleAction(toggleInspector)}
+          >
             <span className="menu-item-left">
-              {inspectorOpen ? '✓ ' : '  '}
+              {inspectorOpen ? <span aria-hidden="true">✓ </span> : '  '}
               <Search size={14} /> Inspector
             </span>
             <span className="menu-shortcut">Ctrl+Alt+I</span>
@@ -508,21 +940,27 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(handleToggleDiffMode)}
-            disabled={!diffMode}
+            role="menuitemcheckbox"
+            aria-checked={diffMode}
+            onClick={(e) => handleAction(handleToggleDiffMode, e)}
+            aria-disabled={!diffMode || undefined}
           >
             <span className="menu-item-left">
-              {diffMode ? '✓ ' : ''}
+              {diffMode ? <span aria-hidden="true">✓ </span> : ''}
               <GitCompare size={14} /> Diff View
             </span>
           </button>
 
-          <div className="menu-separator" />
+          <hr className="menu-separator" />
 
-          <div className="menu-section-label">Preferences</div>
+          <div className="menu-section-label" aria-hidden="true">
+            Preferences
+          </div>
           <button
             type="button"
             className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={!isSoundMuted}
             onClick={() => handleAction(handleToggleSound)}
           >
             <span className="menu-item-left">
@@ -533,6 +971,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() =>
               handleAction(() =>
                 setThemeVariant(themeVariant === 'blueprint' ? 'workshop' : 'blueprint'),
@@ -546,7 +985,12 @@ export function MenuBar() {
                 : 'Switch to Blueprint (Dark)'}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(cycleLabelMode)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(cycleLabelMode)}
+          >
             <span className="menu-item-left">
               <Type size={14} /> Labels:{' '}
               {labelModeOverride === 'auto'
@@ -554,7 +998,12 @@ export function MenuBar() {
                 : labelModeOverride.charAt(0).toUpperCase() + labelModeOverride.slice(1)}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(cycleGridStyle)}
+          >
             <span className="menu-item-left">
               <LayoutGrid size={14} /> Grid:{' '}
               {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}
@@ -703,19 +1152,31 @@ export function MenuBar() {
         {isAuthenticated ? (
           <>
             <button
+              ref={githubTriggerRef}
               type="button"
               className="github-btn"
+              id="menu-trigger-github"
               data-active={openMenu === 'github'}
               onClick={() => toggleMenu('github')}
+              onKeyDown={(event) => handleTriggerKeyDown('github', event)}
+              aria-haspopup="menu"
+              aria-expanded={openMenu === 'github'}
               title={user?.github_username ?? 'GitHub'}
               aria-label={`GitHub account${user?.github_username ? `: ${user.github_username}` : ''}`}
             >
               <GitHubIcon size={14} />
             </button>
-            <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
+            <div
+              ref={githubMenuRef}
+              className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}
+              role="menu"
+              aria-labelledby="menu-trigger-github"
+              onKeyDown={(event) => handleMenuKeyDown('github', event)}
+            >
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() => handleAction(toggleGitHubRepos)}
               >
                 <span className="menu-item-left">
@@ -725,8 +1186,9 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
-                onClick={() => handleAction(toggleGitHubSync)}
-                disabled={!hasBackendWorkspaceLink}
+                role="menuitem"
+                onClick={(e) => handleAction(toggleGitHubSync, e)}
+                aria-disabled={!hasBackendWorkspaceLink || undefined}
                 title={
                   !hasBackendWorkspaceLink
                     ? 'Link workspace to backend to use GitHub sync.'
@@ -740,8 +1202,9 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
-                onClick={() => handleAction(toggleGitHubPR)}
-                disabled={!hasBackendWorkspaceLink}
+                role="menuitem"
+                onClick={(e) => handleAction(toggleGitHubPR, e)}
+                aria-disabled={!hasBackendWorkspaceLink || undefined}
                 title={
                   !hasBackendWorkspaceLink
                     ? 'Link workspace to backend to create pull requests.'
@@ -755,8 +1218,9 @@ export function MenuBar() {
               <button
                 type="button"
                 className="menu-item"
-                onClick={() => handleAction(handleCompareWithGitHub)}
-                disabled={!hasBackendWorkspaceLink}
+                role="menuitem"
+                onClick={(e) => handleAction(handleCompareWithGitHub, e)}
+                aria-disabled={!hasBackendWorkspaceLink || undefined}
                 title={
                   !hasBackendWorkspaceLink
                     ? 'Link workspace to backend to compare with GitHub.'
@@ -767,10 +1231,11 @@ export function MenuBar() {
                   <GitCompare size={14} /> Compare with GitHub
                 </span>
               </button>
-              <div className="menu-separator" />
+              <hr className="menu-separator" />
               <button
                 type="button"
                 className="menu-item"
+                role="menuitem"
                 onClick={() =>
                   handleAction(async () => {
                     const nextBackendStatus = await logout();

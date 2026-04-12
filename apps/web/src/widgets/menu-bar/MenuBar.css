@@ -109,6 +109,11 @@
   color: var(--text-primary);
 }
 
+.menu-trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
 .menu-dropdown {
   position: absolute;
   top: 100%;
@@ -166,15 +171,21 @@
   margin-bottom: 2px;
 }
 
-.menu-item:hover:not(:disabled) {
+.menu-item:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--accent-primary);
   color: var(--text-inverse);
 }
 
-.menu-item:active:not(:disabled) {
+.menu-item:active:not(:disabled):not([aria-disabled='true']) {
   background: var(--accent-primary);
   color: var(--text-inverse);
   opacity: 0.9;
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+  background: var(--bg-surface-raised);
 }
 
 .menu-shortcut {
@@ -183,14 +194,15 @@
   font-weight: 600;
 }
 
-.menu-item:hover:not(:disabled) .menu-shortcut {
+.menu-item:hover:not(:disabled):not([aria-disabled='true']) .menu-shortcut {
   color: var(--text-inverse);
   opacity: 0.7;
 }
 
-.menu-item:disabled {
+.menu-item:disabled,
+.menu-item[aria-disabled='true'] {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .menu-item-left {
@@ -474,6 +486,11 @@
 .github-btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: none;
+}
+
+.github-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 .github-btn:disabled {
