@@ -275,7 +275,7 @@ const threeTierScenario: Scenario = {
       hints: [
         'The Validation panel shows errors if blocks are misplaced or connections are missing.',
         'All blocks must be placed inside the correct containers, and all connections must follow the allowed flow rules.',
-        '🎉 Congratulations! You built a classic three-tier web architecture. Next, try the Serverless HTTP API scenario to learn a serverless pattern!',
+        '🎉 Congratulations! You built a classic three-tier web architecture. Next, try the Serverless HTTP (Hypertext Transfer Protocol) API (Application Programming Interface) scenario to learn a serverless pattern!',
       ],
       validationRules: [{ type: 'architecture-valid' }],
     },
@@ -362,7 +362,7 @@ const serverlessApiScenario: Scenario = {
   id: 'scenario-serverless-api',
   name: 'Serverless HTTP API',
   description:
-    'Build a serverless API (Application Programming Interface) — an architecture where your code runs on-demand without managing servers. You will use functions, an API gateway, and a managed database.',
+    'Build a serverless HTTP (Hypertext Transfer Protocol) API (Application Programming Interface) — an architecture where your code runs on-demand without managing servers. You will use functions, an API gateway, and a managed database.',
   difficulty: 'intermediate',
   category: 'serverless',
   tags: ['serverless', 'function', 'api', 'intermediate'],
