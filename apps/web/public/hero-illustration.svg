@@ -3,46 +3,13 @@
     CloudBlocks Hero Illustration
     Isometric cloud architecture scene showing container blocks,
     resource blocks, and connections in the product's visual language.
+    Uses native SVG animation elements (SMIL). CSS is limited to the
+    prefers-reduced-motion accessibility override only.
   -->
-  <style>
-    .hero-float-1 { animation: heroFloat1 4s ease-in-out infinite; }
-    .hero-float-2 { animation: heroFloat2 5s ease-in-out infinite; }
-    .hero-float-3 { animation: heroFloat3 4.5s ease-in-out infinite; }
-    .hero-float-4 { animation: heroFloat4 3.8s ease-in-out infinite; }
-    .hero-pulse { animation: heroPulse 3s ease-in-out infinite; }
-    .hero-pulse-delayed { animation: heroPulse 3s ease-in-out 1.5s infinite; }
 
-    @keyframes heroFloat1 {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-    @keyframes heroFloat2 {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-    @keyframes heroFloat3 {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-    @keyframes heroFloat4 {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-7px); }
-    }
-    @keyframes heroPulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.7; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .hero-float-1,
-      .hero-float-2,
-      .hero-float-3,
-      .hero-float-4 { animation: none; }
-      .hero-pulse,
-      .hero-pulse-delayed { animation: none; opacity: 0.5; }
-    }
-  </style>
-
+  <!-- Accessibility: stop SMIL animations when user prefers reduced motion.
+       CSS overrides SMIL presentation values per SVG spec §6.4. -->
+  <style>@media(prefers-reduced-motion:reduce){.hero-anim{transform:translate(0,0)!important}.hero-pulse{opacity:0.5!important}}</style>
   <defs>
     <!-- Subtle grid pattern for depth -->
     <pattern id="heroGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="skewX(-30) scale(1, 0.6)">
@@ -55,7 +22,9 @@
 
   <!-- ═══ Container Block (VNet) ═══ -->
   <!-- Large isometric container representing a Virtual Network -->
-  <g class="hero-float-1">
+  <g class="hero-anim">
+    <animateTransform attributeName="transform" type="translate" values="0,0;0,-6;0,0" dur="4s" repeatCount="indefinite"/>
+
     <!-- Container shadow -->
     <path d="M400,380 L560,290 L400,200 L240,290 Z" fill="#0f172a" opacity="0.06"/>
 
@@ -72,8 +41,12 @@
     <text x="400" y="215" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1e40af" letter-spacing="0.5">Virtual Network</text>
   </g>
 
-  <!-- ═══ Resource Block 1: Application Gateway ═══ -->
-  <g class="hero-float-2">
+  <!-- ═══ Gateway + Gateway→Compute connection group ═══ -->
+  <!-- These float together so the connection line stays aligned -->
+  <g class="hero-anim">
+    <animateTransform attributeName="transform" type="translate" values="0,0;0,-8;0,0" dur="5s" repeatCount="indefinite"/>
+
+    <!-- Resource Block 1: Application Gateway -->
     <!-- Block shadow -->
     <ellipse cx="320" cy="310" rx="32" ry="10" fill="#0f172a" opacity="0.08"/>
 
@@ -91,10 +64,23 @@
 
     <!-- Label -->
     <text x="320" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">Gateway</text>
+
+    <!-- Gateway → Compute connection (inside Gateway group for drift-free animation) -->
+    <line x1="345" y1="285" x2="375" y2="275" stroke="#2563eb" stroke-width="2" stroke-dasharray="6,4" class="hero-pulse">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Data packet dot between Gateway and Compute -->
+    <circle cx="360" cy="279" r="2.5" fill="#2563eb" class="hero-pulse">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+    </circle>
   </g>
 
-  <!-- ═══ Resource Block 2: Virtual Machine ═══ -->
-  <g class="hero-float-3">
+  <!-- ═══ Compute + Compute→Database connection group ═══ -->
+  <g class="hero-anim">
+    <animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="4.5s" repeatCount="indefinite"/>
+
+    <!-- Resource Block 2: Virtual Machine -->
     <!-- Block shadow -->
     <ellipse cx="400" cy="300" rx="32" ry="10" fill="#0f172a" opacity="0.08"/>
 
@@ -113,10 +99,22 @@
 
     <!-- Label -->
     <text x="400" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">Compute</text>
+
+    <!-- Compute → Database connection (inside Compute group for drift-free animation) -->
+    <line x1="425" y1="275" x2="455" y2="285" stroke="#2563eb" stroke-width="2" stroke-dasharray="6,4" class="hero-pulse">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Data packet dot between Compute and Database -->
+    <circle cx="440" cy="279" r="2.5" fill="#2563eb" class="hero-pulse">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
   </g>
 
   <!-- ═══ Resource Block 3: Database ═══ -->
-  <g class="hero-float-4">
+  <g class="hero-anim">
+    <animateTransform attributeName="transform" type="translate" values="0,0;0,-7;0,0" dur="3.8s" repeatCount="indefinite"/>
+
     <!-- Block shadow -->
     <ellipse cx="480" cy="310" rx="32" ry="10" fill="#0f172a" opacity="0.08"/>
 
@@ -138,36 +136,32 @@
     <text x="480" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">Database</text>
   </g>
 
-  <!-- ═══ Connection Lines ═══ -->
-  <!-- Gateway → Compute -->
-  <line x1="345" y1="285" x2="375" y2="275" stroke="#2563eb" stroke-width="2" stroke-dasharray="6,4" class="hero-pulse"/>
+  <!-- ═══ External actor: Internet globe + connection to Gateway ═══ -->
+  <g class="hero-anim">
+    <animateTransform attributeName="transform" type="translate" values="0,0;0,-8;0,0" dur="5s" repeatCount="indefinite"/>
 
-  <!-- Compute → Database -->
-  <line x1="425" y1="275" x2="455" y2="285" stroke="#2563eb" stroke-width="2" stroke-dasharray="6,4" class="hero-pulse-delayed"/>
+    <!-- Internet globe -->
+    <circle cx="200" cy="170" r="14" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+    <ellipse cx="200" cy="170" rx="14" ry="6" fill="none" stroke="#94a3b8" stroke-width="0.8"/>
+    <line x1="200" y1="156" x2="200" y2="184" stroke="#94a3b8" stroke-width="0.8"/>
+    <text x="200" y="196" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#64748b">Internet</text>
 
-  <!-- ═══ Decorative Elements ═══ -->
-  <!-- Small floating dots suggesting data packets -->
-  <circle cx="360" cy="279" r="2.5" fill="#2563eb" class="hero-pulse"/>
-  <circle cx="440" cy="279" r="2.5" fill="#2563eb" class="hero-pulse-delayed"/>
-
-  <!-- External actor: Internet globe (top-left) -->
-  <g class="hero-float-2" transform="translate(200, 170)">
-    <circle cx="0" cy="0" r="14" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-    <ellipse cx="0" cy="0" rx="14" ry="6" fill="none" stroke="#94a3b8" stroke-width="0.8"/>
-    <line x1="0" y1="-14" x2="0" y2="14" stroke="#94a3b8" stroke-width="0.8"/>
-    <text x="0" y="26" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#64748b">Internet</text>
+    <!-- Connection from Internet to Gateway -->
+    <line x1="215" y1="185" x2="295" y2="265" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,4" class="hero-pulse">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+    </line>
   </g>
 
-  <!-- Connection from Internet to Gateway -->
-  <line x1="215" y1="185" x2="295" y2="265" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,4" class="hero-pulse"/>
-
-  <!-- Terraform export hint (bottom-right) -->
+  <!-- ═══ Decorative Elements ═══ -->
+  <!-- Terraform export hint (bottom-right, static) -->
   <g transform="translate(580, 340)">
     <rect x="-40" y="-14" width="80" height="28" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
     <text x="0" y="0" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#64748b" dominant-baseline="middle">{ } Terraform</text>
   </g>
 
   <!-- Export arrow -->
-  <path d="M520,310 C540,315 550,325 560,330" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3" class="hero-pulse-delayed"/>
+  <path d="M520,310 C540,315 550,325 560,330" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3" class="hero-pulse">
+    <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+  </path>
   <polygon points="560,326 564,334 556,332" fill="#94a3b8"/>
 </svg>
