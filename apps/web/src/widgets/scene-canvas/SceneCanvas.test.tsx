@@ -1112,7 +1112,7 @@ describe('SceneCanvas placement flows', () => {
     expect(mockCompleteInteraction).toHaveBeenCalledTimes(1);
   });
 
-  it('zooms the canvas on wheel events', () => {
+  it('zooms the canvas on Ctrl+wheel events', () => {
     const { container } = render(<SceneCanvas />);
     const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
     const world = container.querySelector('.scene-world') as HTMLDivElement;
@@ -1132,13 +1132,13 @@ describe('SceneCanvas placement flows', () => {
       }),
     });
 
-    fireEvent.wheel(viewport, { clientX: 400, clientY: 300, deltaY: -120 });
+    fireEvent.wheel(viewport, { clientX: 400, clientY: 300, deltaY: -120, ctrlKey: true });
 
     expect(world.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(0.85)');
     expect(mockSetCanvasZoom).toHaveBeenCalled();
   });
 
-  it('zooms out on wheel events with positive delta', () => {
+  it('zooms out on Ctrl+wheel events with positive delta', () => {
     const { container } = render(<SceneCanvas />);
     const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
     const world = container.querySelector('.scene-world') as HTMLDivElement;
@@ -1158,8 +1158,38 @@ describe('SceneCanvas placement flows', () => {
       }),
     });
 
-    fireEvent.wheel(viewport, { clientX: 400, clientY: 300, deltaY: 120 });
+    fireEvent.wheel(viewport, { clientX: 400, clientY: 300, deltaY: 120, ctrlKey: true });
 
     expect(world.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(0.85)');
+  });
+
+  it('does not zoom on wheel events without Ctrl/Meta modifier', () => {
+    const { container } = render(<SceneCanvas />);
+    const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
+    const world = container.querySelector('.scene-world') as HTMLDivElement;
+
+    Object.defineProperty(viewport, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        width: 800,
+        height: 600,
+        top: 0,
+        left: 0,
+        right: 800,
+        bottom: 600,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    });
+
+    // Clear any calls from initial render's zoom sync effect
+    mockSetCanvasZoom.mockClear();
+
+    const initialTransform = world.style.transform;
+    fireEvent.wheel(viewport, { clientX: 400, clientY: 300, deltaY: -120 });
+
+    expect(world.style.transform).toBe(initialTransform);
+    expect(mockSetCanvasZoom).not.toHaveBeenCalled();
   });
 });
