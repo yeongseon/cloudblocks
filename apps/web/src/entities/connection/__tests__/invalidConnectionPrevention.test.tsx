@@ -88,7 +88,7 @@ describe('Invalid connection prevention (#1253)', () => {
 
       startConnecting('block-1');
       const success = addConnection('block-1', 'block-1');
-      expect(success).toBe(false);
+      expect(success).toBeNull();
 
       // completeInteraction still works after failed addConnection
       completeInteraction();

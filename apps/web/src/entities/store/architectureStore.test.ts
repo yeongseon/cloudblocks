@@ -1377,7 +1377,7 @@ describe('architectureStore', () => {
       const { gatewayId, computeId } = createConnectionFixture();
       const success = getState().addConnection(gatewayId, computeId);
 
-      expect(success).toBe(true);
+      expect(success).toBeTruthy();
       const conns = getArch().connections;
       expect(conns).toHaveLength(1);
       const { sourceId, targetId, type } = resolveConnectionNodes(conns[0]);
@@ -1391,7 +1391,7 @@ describe('architectureStore', () => {
       getState().addConnection(gatewayId, computeId);
       const success = getState().addConnection(gatewayId, computeId);
 
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(1);
     });
 
@@ -1400,7 +1400,7 @@ describe('architectureStore', () => {
 
       const success = getState().addConnection(computeId, computeId);
 
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
 
@@ -1410,8 +1410,8 @@ describe('architectureStore', () => {
       const dbToCompute = getState().addConnection(databaseId, computeId);
       const storageToGateway = getState().addConnection(storageId, gatewayId);
 
-      expect(dbToCompute).toBe(false);
-      expect(storageToGateway).toBe(false);
+      expect(dbToCompute).toBeNull();
+      expect(storageToGateway).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
 
@@ -1421,8 +1421,8 @@ describe('architectureStore', () => {
       const gatewayToCompute = getState().addConnection(gatewayId, computeId);
       const computeToDatabase = getState().addConnection(computeId, databaseId);
 
-      expect(gatewayToCompute).toBe(true);
-      expect(computeToDatabase).toBe(true);
+      expect(gatewayToCompute).toBeTruthy();
+      expect(computeToDatabase).toBeTruthy();
       expect(getArch().connections).toHaveLength(2);
     });
 
@@ -1431,7 +1431,7 @@ describe('architectureStore', () => {
 
       const success = getState().addConnection('missing-source', computeId);
 
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
 
@@ -1440,7 +1440,7 @@ describe('architectureStore', () => {
 
       const success = getState().addConnection(gatewayId, 'missing-target');
 
-      expect(success).toBe(false);
+      expect(success).toBeNull();
       expect(getArch().connections).toHaveLength(0);
     });
   });

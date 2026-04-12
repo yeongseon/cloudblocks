@@ -178,5 +178,24 @@ describe('overlapOffset', () => {
       expect(shifted[2].x).toBeCloseTo(5);
       expect(shifted[2].y).toBeCloseTo(10);
     });
+
+    it('handles coincident points (zero-length segments) in offsetScreenPoints', () => {
+      const shifted = offsetScreenPoints(
+        [
+          { x: 0, y: 0 },
+          { x: 0, y: 0 },
+          { x: 10, y: 0 },
+        ],
+        5,
+      );
+
+      // First point has zero-length backward segment, normal from forward segment only
+      // Second point: backward segment is zero-length (skipped), forward segment contributes
+      // Third point: only backward segment contributes
+      expect(shifted.length).toBe(3);
+      // The offset should still produce valid numbers
+      expect(Number.isFinite(shifted[0].x)).toBe(true);
+      expect(Number.isFinite(shifted[0].y)).toBe(true);
+    });
   });
 });
