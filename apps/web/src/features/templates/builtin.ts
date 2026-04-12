@@ -12,12 +12,20 @@ const CONTAINER_RESOURCE_TYPE: Record<ContainerLayer, ContainerCapableResourceTy
 };
 
 /**
- * Canonical positions for external resources (Client, Internet).
- * These must sit outside the shared large-template VNet (width=36 -> x range -18..+18).
- * Update these constants if VNet dimensions change.
+ * External actor positions for templates with VNet width=36 CU (T1, T3, T4).
+ * x range -18..+18, so external actors sit at x=-24 (outside the VNet).
+ * Templates with different VNet sizes define their own constants below.
  */
 const EXT_CLIENT_POS = { x: -24, y: 0, z: -4 } as const;
 const EXT_INTERNET_POS = { x: -24, y: 0, z: 4 } as const;
+
+/** External actor positions for Simple Compute (VNet width=30, x range -15..+15). */
+const T2_EXT_CLIENT_POS = { x: -21, y: 0, z: -3 } as const;
+const T2_EXT_INTERNET_POS = { x: -21, y: 0, z: 3 } as const;
+
+/** External actor positions for Full-Stack Serverless (VNet width=48, x range -24..+24). */
+const T6_EXT_CLIENT_POS = { x: -31, y: 0, z: -8 } as const;
+const T6_EXT_INTERNET_POS = { x: -31, y: 0, z: 0 } as const;
 
 /**
  * Built-in Templates (v0.4 + v1.0)
@@ -302,7 +310,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -21, y: 0, z: -3 },
+        position: { ...T2_EXT_CLIENT_POS },
         metadata: {},
       },
       {
@@ -315,7 +323,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -21, y: 0, z: 3 },
+        position: { ...T2_EXT_INTERNET_POS },
         metadata: {},
       },
     ],
@@ -340,8 +348,13 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -21, y: 0, z: -3 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -21, y: 0, z: 3 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { ...T2_EXT_CLIENT_POS } },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet',
+        position: { ...T2_EXT_INTERNET_POS },
+      },
     ],
   },
 };
@@ -1170,7 +1183,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -31, y: 0, z: -8 },
+        position: { ...T6_EXT_CLIENT_POS },
         metadata: {},
       },
       {
@@ -1183,7 +1196,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         provider: 'azure',
         parentId: null,
         roles: ['external'],
-        position: { x: -31, y: 0, z: 0 },
+        position: { ...T6_EXT_INTERNET_POS },
         metadata: {},
       },
     ],
@@ -1271,8 +1284,13 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
-      { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -31, y: 0, z: -8 } },
-      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -31, y: 0, z: 0 } },
+      { id: 'ext-browser', name: 'Client', type: 'browser', position: { ...T6_EXT_CLIENT_POS } },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet',
+        position: { ...T6_EXT_INTERNET_POS },
+      },
     ],
   },
 };
