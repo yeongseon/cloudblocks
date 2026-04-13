@@ -1,5 +1,6 @@
+import { StrictMode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import { endpointId } from '@cloudblocks/schema';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
@@ -213,7 +214,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.5');
+    ).toBe('0.72');
   });
 
   it('renders selected packet visuals when connection is selected', () => {
@@ -224,7 +225,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.8');
+    ).toBe('0.95');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -236,7 +237,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.8');
+    ).toBe('0.95');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -462,7 +463,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.5');
+    ).toBe('0.72');
   });
 
   it('renders glow outline on keyboard focus with reduced opacity', () => {
@@ -504,7 +505,7 @@ describe('ConnectionRenderer', () => {
     // Highlight and hover-mode packets should remain because focus is still active
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
     const packetCore = container.querySelector('[data-layer="packet-core"]');
-    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.72');
   });
 
   it('maintains highlight when blur fires but hover remains', () => {
@@ -523,7 +524,7 @@ describe('ConnectionRenderer', () => {
     // Highlight and hover-mode packets should remain because hover is still active
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
     const packetCore = container.querySelector('[data-layer="packet-core"]');
-    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.72');
   });
 
   it('removes highlight only when both hover and focus clear', () => {
@@ -541,7 +542,7 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
     expect(
       container.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.5');
+    ).toBe('0.72');
 
     // Remove focus — now highlight should be gone
     fireEvent.blur(link);
@@ -622,17 +623,15 @@ describe('ConnectionRenderer', () => {
     expect(trace?.getAttribute('marker-end')).toBe(`url(#arrow-${connection.id})`);
   });
 
-  it('hover increases casing and trace widths by +1 (dataflow default)', () => {
+  it('hover increases casing and trace widths by +1.25 (dataflow default)', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    // Default state: dataflow strokeWidth=2.5, casing=2.5+2.5=5, trace=2.5
-    expect(casing?.getAttribute('stroke-width')).toBe('5');
-    expect(trace?.getAttribute('stroke-width')).toBe('2.5');
-    // Hover: casing=2.5+2.5+1=6, trace=2.5+1=3.5
+    expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+    expect(trace?.getAttribute('stroke-width')).toBe('3');
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('6');
-    expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+    expect(casing?.getAttribute('stroke-width')).toBe('6.75');
+    expect(trace?.getAttribute('stroke-width')).toBe('4.25');
   });
 
   describe('surface render path', () => {
@@ -786,11 +785,11 @@ describe('ConnectionRenderer', () => {
       baseWidth: number;
       dash?: string;
     }> = [
-      { type: 'dataflow', baseWidth: 2.5 },
-      { type: 'http', baseWidth: 4 },
-      { type: 'internal', baseWidth: 3 },
-      { type: 'data', baseWidth: 2, dash: '6 3' },
-      { type: 'async', baseWidth: 2.25, dash: '2 3' },
+      { type: 'dataflow', baseWidth: 3 },
+      { type: 'http', baseWidth: 4.5 },
+      { type: 'internal', baseWidth: 3.5 },
+      { type: 'data', baseWidth: 2.5, dash: '6 3' },
+      { type: 'async', baseWidth: 2.75, dash: '2 3' },
     ];
 
     for (const spec of typedSpecs) {
@@ -834,9 +833,8 @@ describe('ConnectionRenderer', () => {
         const trace = container.querySelector('[data-testid="connection-trace"]');
         const casing = container.querySelector('[data-testid="connection-casing"]');
 
-        // Hover: trace = base + 1, casing = base + 2.5 + 1
-        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 1));
-        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3.5));
+        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 1.25));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3.75));
       });
     }
 
@@ -851,9 +849,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // dataflow defaults: trace=2.5, casing=5
-      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
-      expect(casing?.getAttribute('stroke-width')).toBe('5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3');
+      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
       expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
     });
@@ -867,7 +864,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const trace = container.querySelector('[data-testid="connection-trace"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -882,9 +879,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // Should fall back to dataflow (strokeWidth=2.5, casing=5), not crash
-      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
-      expect(casing?.getAttribute('stroke-width')).toBe('5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3');
+      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -904,9 +900,8 @@ describe('ConnectionRenderer', () => {
       const connectorType = rootGroup?.getAttribute('data-connector-type');
       expect(connectorType).toBe('dataflow');
 
-      // Trace/casing widths match dataflow defaults (strokeWidth=2.5)
-      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
-      expect(casing?.getAttribute('stroke-width')).toBe('5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3');
+      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
 
       // Packet flow uses dataflow semantic color, not generic cyan
@@ -927,8 +922,207 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      // http: selected=highlighted, casing = 4+2.5+1 = 7.5, selection = 7.5+4 = 11.5
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('11.5');
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.25');
+    });
+  });
+
+  describe('overlay modes', () => {
+    it('visual-only mode renders visuals without hit area wrapper', () => {
+      const { container } = render(
+        <svg aria-label="Test SVG">
+          <title>Test SVG</title>
+          <ConnectionRenderer
+            connection={connection}
+            blocks={[]}
+            plates={[]}
+            originX={100}
+            originY={200}
+            overlayMode="visual-only"
+          />
+        </svg>,
+      );
+
+      expect(
+        container.querySelector('[data-testid="connection-hit-area"]'),
+      ).not.toBeInTheDocument();
+      expect(container.querySelector('a')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-testid="connection-trace"]')).toBeInTheDocument();
+    });
+
+    it('hit-only mode renders hit area without visual layers', () => {
+      const { container } = render(
+        <svg aria-label="Test SVG">
+          <title>Test SVG</title>
+          <ConnectionRenderer
+            connection={connection}
+            blocks={[]}
+            plates={[]}
+            originX={100}
+            originY={200}
+            overlayMode="hit-only"
+          />
+        </svg>,
+      );
+
+      expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="connection-casing"]')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-testid="connection-trace"]')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    });
+
+    it('does not replay draw-in or snap-flash after deselection (overlayMode transition)', async () => {
+      // Step 1: Mount in normal mode (real lifecycle).
+      // The draw-in effect fires and schedules a microtask to mark entrance complete.
+      let renderResult: ReturnType<typeof render>;
+      await act(async () => {
+        renderResult = render(
+          <svg aria-label="Test SVG">
+            <title>Test SVG</title>
+            <ConnectionRenderer
+              connection={connection}
+              blocks={[]}
+              plates={[]}
+              originX={100}
+              originY={200}
+              elapsed={0}
+              reducedMotion={false}
+              overlayMode="normal"
+            />
+          </svg>,
+        );
+        // Flush microtasks so entranceComplete state update is processed
+        await Promise.resolve();
+      });
+      const { container, rerender } = renderResult!;
+
+      // After the first render + microtask flush, entranceComplete should be true.
+      // The snap-flash should no longer be in the DOM.
+      expect(
+        container.querySelector('[data-testid="connection-snap-flash"]'),
+      ).not.toBeInTheDocument();
+
+      // Step 2: Transition to hit-only (simulating selection)
+      rerender(
+        <svg aria-label="Test SVG">
+          <title>Test SVG</title>
+          <ConnectionRenderer
+            connection={connection}
+            blocks={[]}
+            plates={[]}
+            originX={100}
+            originY={200}
+            elapsed={0}
+            reducedMotion={false}
+            overlayMode="hit-only"
+          />
+        </svg>,
+      );
+
+      // Step 3: Transition back to normal (simulating deselection)
+      rerender(
+        <svg aria-label="Test SVG">
+          <title>Test SVG</title>
+          <ConnectionRenderer
+            connection={connection}
+            blocks={[]}
+            plates={[]}
+            originX={100}
+            originY={200}
+            elapsed={0}
+            reducedMotion={false}
+            overlayMode="normal"
+          />
+        </svg>,
+      );
+
+      // After deselection, draw-in should NOT replay because hasDrawnInRef gates it
+      const drawInEl = container.querySelector('[data-testid="connection-trace"]');
+      if (drawInEl) {
+        expect(drawInEl.getAttribute('style') ?? '').not.toContain('connector-draw-in');
+      }
+      // Snap flash should NOT re-appear because entranceComplete state is true
+      expect(
+        container.querySelector('[data-testid="connection-snap-flash"]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('handles StrictMode double-mount without leaving entranceComplete stuck false', async () => {
+      // StrictMode mounts -> unmounts -> remounts effects.
+      // The first microtask is cancelled during cleanup; the second must succeed.
+      let renderResult: ReturnType<typeof render>;
+      await act(async () => {
+        renderResult = render(
+          <StrictMode>
+            <svg aria-label="Test SVG">
+              <title>Test SVG</title>
+              <ConnectionRenderer
+                connection={connection}
+                blocks={[]}
+                plates={[]}
+                originX={100}
+                originY={200}
+                elapsed={0}
+                reducedMotion={false}
+                overlayMode="normal"
+              />
+            </svg>
+          </StrictMode>,
+        );
+        await Promise.resolve();
+      });
+      const { container, rerender } = renderResult!;
+
+      // entranceComplete should be true after StrictMode double-mount
+      expect(
+        container.querySelector('[data-testid="connection-snap-flash"]'),
+      ).not.toBeInTheDocument();
+
+      // Transition to hit-only then back to normal (deselection cycle)
+      rerender(
+        <StrictMode>
+          <svg aria-label="Test SVG">
+            <title>Test SVG</title>
+            <ConnectionRenderer
+              connection={connection}
+              blocks={[]}
+              plates={[]}
+              originX={100}
+              originY={200}
+              elapsed={0}
+              reducedMotion={false}
+              overlayMode="hit-only"
+            />
+          </svg>
+        </StrictMode>,
+      );
+
+      rerender(
+        <StrictMode>
+          <svg aria-label="Test SVG">
+            <title>Test SVG</title>
+            <ConnectionRenderer
+              connection={connection}
+              blocks={[]}
+              plates={[]}
+              originX={100}
+              originY={200}
+              elapsed={0}
+              reducedMotion={false}
+              overlayMode="normal"
+            />
+          </svg>
+        </StrictMode>,
+      );
+
+      // No snap-flash replay after StrictMode deselection cycle
+      expect(
+        container.querySelector('[data-testid="connection-snap-flash"]'),
+      ).not.toBeInTheDocument();
+      // No draw-in replay
+      const traceEl = container.querySelector('[data-testid="connection-trace"]');
+      if (traceEl) {
+        expect(traceEl.getAttribute('style') ?? '').not.toContain('connector-draw-in');
+      }
     });
   });
 

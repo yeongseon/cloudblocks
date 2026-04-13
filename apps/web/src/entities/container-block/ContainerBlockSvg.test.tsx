@@ -88,11 +88,11 @@ describe('PlateSvg — CU-based dimensions', () => {
   });
 
   it('handles small subnet profile (4×6 CU)', () => {
-    const { container } = renderPlateSvg({ unitsX: 4, unitsY: 6, worldHeight: 0.5 });
+    const { container } = renderPlateSvg({ unitsX: 4, unitsY: 6, worldHeight: 0.8 });
 
     const expectedWidth = ((4 + 6) * TILE_W) / 2; // 320
     const expectedDiamondH = ((4 + 6) * TILE_H) / 2; // 160
-    const expectedSideWall = Math.round(0.5 * TILE_Z); // 16
+    const expectedSideWall = Math.round(0.8 * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
     const svg = container.querySelector('svg');
@@ -100,11 +100,11 @@ describe('PlateSvg — CU-based dimensions', () => {
   });
 
   it('handles large network profile (20×24 CU)', () => {
-    const { container } = renderPlateSvg({ unitsX: 20, unitsY: 24, worldHeight: 0.7 });
+    const { container } = renderPlateSvg({ unitsX: 20, unitsY: 24, worldHeight: 1.25 });
 
     const expectedWidth = ((20 + 24) * TILE_W) / 2; // 1408
     const expectedDiamondH = ((20 + 24) * TILE_H) / 2; // 704
-    const expectedSideWall = Math.round(0.7 * TILE_Z); // 22
+    const expectedSideWall = Math.round(1.25 * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
     const svg = container.querySelector('svg');
@@ -244,56 +244,56 @@ describe('PlateSvg — profile-based rendering', () => {
       name: 'network-sandbox',
       unitsX: 8,
       unitsY: 12,
-      worldHeight: 0.7,
+      worldHeight: 1.25,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-application',
       unitsX: 12,
       unitsY: 16,
-      worldHeight: 0.7,
+      worldHeight: 1.25,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-platform',
       unitsX: 16,
       unitsY: 20,
-      worldHeight: 0.7,
+      worldHeight: 1.25,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-hub',
       unitsX: 20,
       unitsY: 24,
-      worldHeight: 0.7,
+      worldHeight: 1.25,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'subnet-utility',
       unitsX: 4,
       unitsY: 6,
-      worldHeight: 0.5,
+      worldHeight: 0.8,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-service',
       unitsX: 6,
       unitsY: 8,
-      worldHeight: 0.5,
+      worldHeight: 0.8,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-workload',
       unitsX: 8,
       unitsY: 10,
-      worldHeight: 0.5,
+      worldHeight: 0.8,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-scale',
       unitsX: 10,
       unitsY: 12,
-      worldHeight: 0.5,
+      worldHeight: 0.8,
       containerLayer: 'subnet' as PlateLayerType,
     },
   ];
@@ -360,15 +360,14 @@ describe('PlateSvg — placement anchor tiles (#1581)', () => {
 
 describe('PlateSvg — backward compatibility', () => {
   it('pixel dimensions match v1.x formula at RENDER_SCALE=32', () => {
-    // Subnet-utility: 4×6 CU, worldHeight 0.5
     const unitsX = 4;
     const unitsY = 6;
-    const worldHeight = 0.5;
+    const worldHeight = 0.8;
 
     // v1.x formula: screenWidth = (unitsX + unitsY) * TILE_W / 2
     const expectedWidth = ((unitsX + unitsY) * 64) / 2; // 320
     const expectedDiamondH = ((unitsX + unitsY) * 32) / 2; // 160
-    const expectedSideWall = Math.round(worldHeight * 32); // 16
+    const expectedSideWall = Math.round(worldHeight * 32);
 
     const { container } = renderPlateSvg({ unitsX, unitsY, worldHeight });
     const svg = container.querySelector('svg');

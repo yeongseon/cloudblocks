@@ -18,28 +18,28 @@ describe('connectionVisualTokens', () => {
       }
     });
 
-    it('dataflow is solid with strokeWidth 2.5', () => {
-      expect(CONNECTION_VISUAL_STYLES.dataflow.strokeWidth).toBe(2.5);
+    it('dataflow is solid with strokeWidth 3.0', () => {
+      expect(CONNECTION_VISUAL_STYLES.dataflow.strokeWidth).toBe(3.0);
       expect(CONNECTION_VISUAL_STYLES.dataflow.strokeDasharray).toBeUndefined();
     });
 
-    it('http is solid with strokeWidth 4', () => {
-      expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(4);
+    it('http is solid with strokeWidth 4.5', () => {
+      expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(4.5);
       expect(CONNECTION_VISUAL_STYLES.http.strokeDasharray).toBeUndefined();
     });
 
-    it('internal is solid with strokeWidth 3', () => {
-      expect(CONNECTION_VISUAL_STYLES.internal.strokeWidth).toBe(3);
+    it('internal is solid with strokeWidth 3.5', () => {
+      expect(CONNECTION_VISUAL_STYLES.internal.strokeWidth).toBe(3.5);
       expect(CONNECTION_VISUAL_STYLES.internal.strokeDasharray).toBeUndefined();
     });
 
     it('data has thin dash pattern', () => {
-      expect(CONNECTION_VISUAL_STYLES.data.strokeWidth).toBe(2);
+      expect(CONNECTION_VISUAL_STYLES.data.strokeWidth).toBe(2.5);
       expect(CONNECTION_VISUAL_STYLES.data.strokeDasharray).toBe('6 3');
     });
 
     it('async has dotted pattern', () => {
-      expect(CONNECTION_VISUAL_STYLES.async.strokeWidth).toBe(2.25);
+      expect(CONNECTION_VISUAL_STYLES.async.strokeWidth).toBe(2.75);
       expect(CONNECTION_VISUAL_STYLES.async.strokeDasharray).toBe('2 3');
     });
   });
@@ -49,8 +49,8 @@ describe('connectionVisualTokens', () => {
       expect(CASING_WIDTH_OFFSET).toBe(2.5);
     });
 
-    it('HOVER_WIDTH_OFFSET is 1', () => {
-      expect(HOVER_WIDTH_OFFSET).toBe(1);
+    it('HOVER_WIDTH_OFFSET is 1.25', () => {
+      expect(HOVER_WIDTH_OFFSET).toBe(1.25);
     });
   });
 

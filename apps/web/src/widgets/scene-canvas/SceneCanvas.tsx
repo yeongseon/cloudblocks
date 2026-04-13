@@ -27,6 +27,7 @@ import {
 } from './utils/viewportUtils';
 import { ZoomControls } from './ZoomControls';
 import './SceneCanvas.css';
+import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 
 const EMPTY_OCCUPIED_CELLS = new Set<string>();
 
@@ -98,6 +99,7 @@ export function SceneCanvas() {
     [architecture],
   );
   const {
+    selectedIds,
     clearSelection,
     setSelectedIds,
     interactionState,
@@ -114,6 +116,7 @@ export function SceneCanvas() {
     gridStyle,
   } = useUIStore(
     useShallow((state) => ({
+      selectedIds: state.selectedIds,
       clearSelection: state.clearSelection,
       setSelectedIds: state.setSelectedIds,
       interactionState: state.interactionState,
@@ -130,6 +133,17 @@ export function SceneCanvas() {
       gridStyle: state.gridStyle,
     })),
   );
+  const selectedConnectionIds = useMemo(() => {
+    const connectionIds = new Set(connections.map((connection) => connection.id));
+    return new Set([...selectedIds].filter((id) => connectionIds.has(id)));
+  }, [connections, selectedIds]);
+  const selectedConnections = useMemo(
+    () => connections.filter((connection) => selectedConnectionIds.has(connection.id)),
+    [connections, selectedConnectionIds],
+  );
+  const hasAnyConnection = connections.length > 0;
+  const { elapsed: animElapsed, reducedMotion: animReducedMotion } =
+    useAnimationClock(hasAnyConnection);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
   };
@@ -541,22 +555,10 @@ export function SceneCanvas() {
           originX={origin.x}
           originY={origin.y}
           overlapOffsets={overlapOffsets}
+          elapsed={animElapsed}
+          reducedMotion={animReducedMotion}
+          selectedConnectionIds={selectedConnectionIds}
         />
-
-        <svg className="interaction-overlay" style={{ width: 1, height: 1 }}>
-          <title>Interaction Overlay</title>
-          <ConnectionPreview originX={origin.x} originY={origin.y} />
-          <g className="drag-ghost-layer">
-            <DragGhost
-              containerRef={containerRef}
-              originX={origin.x}
-              originY={origin.y}
-              panX={pan.x}
-              panY={pan.y}
-              zoom={zoom}
-            />
-          </g>
-        </svg>
 
         {lassoRect && (
           <div
@@ -630,6 +632,35 @@ export function SceneCanvas() {
             );
           })}
         </div>
+
+        {selectedConnections.length > 0 && (
+          <ConnectionAnimationLayer
+            connections={selectedConnections}
+            originX={origin.x}
+            originY={origin.y}
+            overlapOffsets={overlapOffsets}
+            elapsed={animElapsed}
+            reducedMotion={animReducedMotion}
+            className="selected-connection-layer"
+            pointerEvents="none"
+            overlayMode="visual-only"
+          />
+        )}
+
+        <svg className="interaction-overlay" style={{ width: 1, height: 1 }}>
+          <title>Interaction Overlay</title>
+          <ConnectionPreview originX={origin.x} originY={origin.y} />
+          <g className="drag-ghost-layer">
+            <DragGhost
+              containerRef={containerRef}
+              originX={origin.x}
+              originY={origin.y}
+              panX={pan.x}
+              panY={pan.y}
+              zoom={zoom}
+            />
+          </g>
+        </svg>
       </div>
 
       <ZoomControls

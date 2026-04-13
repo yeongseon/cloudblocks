@@ -26,18 +26,18 @@ export interface ConnectionVisualStyle {
 
 /** Per-type visual styles. */
 export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualStyle> = {
-  dataflow: { strokeWidth: 2.5 },
-  http: { strokeWidth: 4 },
-  internal: { strokeWidth: 3 },
-  data: { strokeWidth: 2, strokeDasharray: '6 3' },
-  async: { strokeWidth: 2.25, strokeDasharray: '2 3' },
+  dataflow: { strokeWidth: 3.0 },
+  http: { strokeWidth: 4.5 },
+  internal: { strokeWidth: 3.5 },
+  data: { strokeWidth: 2.5, strokeDasharray: '6 3' },
+  async: { strokeWidth: 2.75, strokeDasharray: '2 3' },
 };
 
 /** Casing width offset added to the base stroke width. */
 export const CASING_WIDTH_OFFSET = 2.5;
 
 /** Hover width offset added to the base stroke width. */
-export const HOVER_WIDTH_OFFSET = 1;
+export const HOVER_WIDTH_OFFSET = 1.25;
 
 /** Perpendicular offset (screen px) applied to each connection in an overlap group. */
 export const OVERLAP_OFFSET_PX = 8;

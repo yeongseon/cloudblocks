@@ -164,7 +164,7 @@ describe('PacketFlowLayer', () => {
   it('renders fewer packets in hover mode than selected mode', () => {
     const hover = renderLayer('hover');
     const hoverPackets = hover.container.querySelectorAll('[data-testid="packet-flow-packet"]');
-    expect(hoverPackets).toHaveLength(2);
+    expect(hoverPackets).toHaveLength(3);
 
     hover.unmount();
 
@@ -172,7 +172,7 @@ describe('PacketFlowLayer', () => {
     const selectedPackets = selected.container.querySelectorAll(
       '[data-testid="packet-flow-packet"]',
     );
-    expect(selectedPackets).toHaveLength(3);
+    expect(selectedPackets).toHaveLength(4);
   });
 
   it('renders packets in idle mode', () => {
@@ -182,7 +182,7 @@ describe('PacketFlowLayer', () => {
     expect(packets).toHaveLength(2);
 
     const firstPacketCore = packets[0]?.querySelector('[data-layer="packet-core"]');
-    expect(firstPacketCore).toHaveAttribute('fill-opacity', '0.42');
+    expect(firstPacketCore).toHaveAttribute('fill-opacity', '0.56');
   });
 
   it('idle mode uses slower speed', () => {
@@ -333,25 +333,25 @@ describe('PacketFlowLayer', () => {
     });
 
     it('returns base count for selected mode (short path)', () => {
-      expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'selected')).toBe(1);
+      expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'selected')).toBe(2);
     });
 
     it('returns base count for selected mode (medium path)', () => {
-      expect(getPacketCount(MEDIUM_PATH_THRESHOLD - 1, 'selected')).toBe(2);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD - 1, 'selected')).toBe(3);
     });
 
     it('returns base count for selected mode (long path)', () => {
-      expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'selected')).toBe(3);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'selected')).toBe(4);
     });
 
     it('returns fewer packets for hover mode', () => {
-      expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'hover')).toBe(2);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'hover')).toBe(3);
       expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'hover')).toBe(1);
     });
 
     it('returns fewer packets for idle mode', () => {
       expect(getPacketCount(SHORT_PATH_THRESHOLD, 'idle')).toBe(1);
-      expect(getPacketCount(MEDIUM_PATH_THRESHOLD, 'idle')).toBe(1);
+      expect(getPacketCount(MEDIUM_PATH_THRESHOLD, 'idle')).toBe(2);
       expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'idle')).toBe(2);
       expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'idle')).toBe(1);
     });
@@ -359,6 +359,11 @@ describe('PacketFlowLayer', () => {
     it('returns more packets for creation mode', () => {
       expect(getPacketCount(MEDIUM_PATH_THRESHOLD + 1, 'creation')).toBe(4);
       expect(getPacketCount(SHORT_PATH_THRESHOLD - 1, 'creation')).toBe(2);
+    });
+
+    it('applies spacing guard for very short paths', () => {
+      expect(getPacketCount(20, 'selected')).toBe(1);
+      expect(getPacketCount(20, 'creation')).toBe(1);
     });
   });
 

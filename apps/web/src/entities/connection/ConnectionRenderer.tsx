@@ -48,6 +48,7 @@ interface ConnectionRendererProps {
   overlapOffset?: number;
   elapsed?: number;
   reducedMotion?: boolean;
+  overlayMode?: 'normal' | 'visual-only' | 'hit-only';
 }
 
 /** Resolved colors for the 2-layer trace rendering. */
@@ -234,6 +235,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   overlapOffset = 0,
   elapsed,
   reducedMotion,
+  overlayMode = 'normal',
 }: ConnectionRendererProps) {
   const resolvedConnectionId = connectionId ?? connection?.id ?? null;
   const storeConnection = useArchitectureStore((state) => {
@@ -244,12 +246,31 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
+  const hasDrawnInRef = useRef(false);
+  const [entranceComplete, setEntranceComplete] = useState(false);
   const [creationStartElapsed, setCreationStartElapsed] = useState(0);
   const [prevBurstExpiry, setPrevBurstExpiry] = useState<number | undefined>(undefined);
 
   useEffect(() => {
+    if (overlayMode === 'visual-only') return;
+    // Schedule entranceComplete on every non-visual-only mount so that
+    // StrictMode's unmount/remount cycle still flips the flag even though
+    // the first microtask gets cancelled during cleanup.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setEntranceComplete(true);
+    });
+    // Gate the draw-in animation itself: play only once per component lifetime.
+    if (hasDrawnInRef.current)
+      return () => {
+        cancelled = true;
+      };
+    hasDrawnInRef.current = true;
     const el = drawInRef.current;
-    if (!el || typeof el.getTotalLength !== 'function') return;
+    if (!el || typeof el.getTotalLength !== 'function')
+      return () => {
+        cancelled = true;
+      };
     const len = el.getTotalLength();
     el.style.strokeDasharray = String(len);
     el.style.strokeDashoffset = String(len);
@@ -263,8 +284,11 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       el.style.opacity = '';
     };
     el.addEventListener('animationend', handleEnd, { once: true });
-    return () => el.removeEventListener('animationend', handleEnd);
-  }, []);
+    return () => {
+      cancelled = true;
+      el.removeEventListener('animationend', handleEnd);
+    };
+  }, [overlayMode]);
 
   const isSelected = useUIStore((s) =>
     resolvedConnectionId ? s.selectedIds.has(resolvedConnectionId) : false,
@@ -456,6 +480,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     }
     setSelectedId(resolvedConnection.id);
   };
+  const shouldRenderHitArea = overlayMode !== 'visual-only';
+  const shouldRenderVisuals = overlayMode !== 'hit-only';
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
@@ -464,213 +490,222 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       data-connector-type={connectionType ?? 'dataflow'}
       data-selected={isSelected ? 'true' : undefined}
     >
-      {/* Arrow marker definition — one per connection for semantic color */}
-      <defs>
-        <marker
-          id={markerId}
-          markerWidth={ARROW_MARKER_W}
-          markerHeight={ARROW_MARKER_H}
-          refX={ARROW_MARKER_REF_X}
-          refY={ARROW_MARKER_H / 2}
-          orient="auto"
-          markerUnits="strokeWidth"
-          data-testid="connection-arrow-marker"
+      {shouldRenderVisuals && (
+        <defs>
+          <marker
+            id={markerId}
+            markerWidth={ARROW_MARKER_W}
+            markerHeight={ARROW_MARKER_H}
+            refX={ARROW_MARKER_REF_X}
+            refY={ARROW_MARKER_H / 2}
+            orient="auto"
+            markerUnits="strokeWidth"
+            data-testid="connection-arrow-marker"
+          >
+            <path
+              d={`M0,0 L${ARROW_MARKER_W},${ARROW_MARKER_H / 2} L0,${ARROW_MARKER_H} Z`}
+              fill={colors.stroke}
+              fillOpacity={isHighlighted ? 1.0 : 0.95}
+            />
+          </marker>
+        </defs>
+      )}
+      {shouldRenderHitArea && (
+        <a
+          href={`/connections/${resolvedConnection.id}`}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          aria-label={connectionLabel}
         >
           <path
-            d={`M0,0 L${ARROW_MARKER_W},${ARROW_MARKER_H / 2} L0,${ARROW_MARKER_H} Z`}
-            fill={colors.stroke}
-            fillOpacity={isHighlighted ? 1.0 : 0.95}
+            d={hitPath}
+            stroke="transparent"
+            strokeWidth={HIT_AREA_WIDTH}
+            fill="none"
+            pointerEvents="stroke"
+            style={{ cursor: 'pointer' }}
+            data-testid="connection-hit-area"
           />
-        </marker>
-      </defs>
-      <a
-        href={`/connections/${resolvedConnection.id}`}
-        onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        aria-label={connectionLabel}
-      >
-        <path
-          d={hitPath}
-          stroke="transparent"
-          strokeWidth={HIT_AREA_WIDTH}
-          fill="none"
-          pointerEvents="stroke"
-          style={{ cursor: 'pointer' }}
-          data-testid="connection-hit-area"
-        />
-      </a>
-
-      {/* Layer 1: Outer casing path */}
-      <path
-        d={hitPath}
-        stroke={colors.casing}
-        strokeWidth={casingWidth}
-        strokeOpacity={isHighlighted ? 0.9 : 0.82}
-        strokeDasharray={visualStyle.strokeDasharray}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        pointerEvents="none"
-        data-testid="connection-casing"
-        data-layer="casing"
-      />
-
-      {/* Layer 2: Inner trace path (with draw-in animation) */}
-      <path
-        ref={drawInRef}
-        d={hitPath}
-        stroke={colors.stroke}
-        strokeWidth={innerWidth}
-        strokeOpacity={isHighlighted ? 1.0 : 0.98}
-        strokeDasharray={visualStyle.strokeDasharray}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        pointerEvents="none"
-        data-testid="connection-trace"
-        data-layer="trace"
-        markerEnd={`url(#${markerId})`}
-      />
-
-      {packetMode !== 'static' && (
-        <PacketFlowLayer
-          hitPoints={hitPoints}
-          mode={packetMode}
-          connectionType={connectionType ?? 'dataflow'}
-          elapsed={packetElapsed}
-          reducedMotion={reducedMotion}
-          canvasZoom={canvasZoom}
-        />
+        </a>
       )}
 
-      {/* Provider-accent glow: hover = subtle, selection = stronger */}
-      {isHighlighted && (
-        <path
-          d={hitPath}
-          stroke="var(--provider-accent-glow)"
-          strokeWidth={isSelected ? casingWidth + 4 : casingWidth + 2}
-          strokeOpacity={isSelected ? 1 : 0.7}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          pointerEvents="none"
-          data-layer="selection-outline"
-        />
-      )}
+      {shouldRenderVisuals && (
+        <>
+          {/* Layer 1: Outer casing path */}
+          <path
+            d={hitPath}
+            stroke={colors.casing}
+            strokeWidth={casingWidth}
+            strokeOpacity={isHighlighted ? 0.9 : 0.82}
+            strokeDasharray={visualStyle.strokeDasharray}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            pointerEvents="none"
+            data-testid="connection-casing"
+            data-layer="casing"
+          />
 
-      {/* Snap flash animation overlay */}
-      <path
-        d={hitPath}
-        stroke={colors.stroke}
-        strokeWidth={TRACE_FLASH_PX}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        pointerEvents="none"
-        style={{
-          animation:
-            'connector-snap-flash 300ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards',
-        }}
-        data-testid="connection-snap-flash"
-      />
+          {/* Layer 2: Inner trace path (with draw-in animation) */}
+          <path
+            ref={drawInRef}
+            d={hitPath}
+            stroke={colors.stroke}
+            strokeWidth={innerWidth}
+            strokeOpacity={isHighlighted ? 1.0 : 0.98}
+            strokeDasharray={visualStyle.strokeDasharray}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            pointerEvents="none"
+            data-testid="connection-trace"
+            data-layer="trace"
+            markerEnd={`url(#${markerId})`}
+          />
 
-      {/* Port pinhole indicators at connection endpoints */}
-      {diffState === 'unchanged' && (
-        <g data-testid="connection-pinholes" pointerEvents="none">
-          {renderPinhole(sourcePos.x, sourcePos.y, pinHoleStyle, colors.stroke, 'src')}
-          {renderPinhole(targetPos.x, targetPos.y, pinHoleStyle, colors.stroke, 'tgt')}
-        </g>
-      )}
+          {packetMode !== 'static' && (
+            <PacketFlowLayer
+              hitPoints={hitPoints}
+              mode={packetMode}
+              connectionType={connectionType ?? 'dataflow'}
+              elapsed={packetElapsed}
+              reducedMotion={reducedMotion}
+              canvasZoom={canvasZoom}
+            />
+          )}
 
-      {hasValidationError && (
-        <path
-          className="connection-error-pulse"
-          d={hitPath}
-          stroke="var(--accent-error, #ef4444)"
-          strokeWidth={3}
-          strokeDasharray="6 6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          pointerEvents="none"
-          data-testid="connection-invalid"
-        />
-      )}
+          {/* Provider-accent glow: hover = subtle, selection = stronger */}
+          {isHighlighted && (
+            <path
+              d={hitPath}
+              stroke="var(--provider-accent-glow)"
+              strokeWidth={isSelected ? casingWidth + 4 : casingWidth + 2}
+              strokeOpacity={isSelected ? 1 : 0.7}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              pointerEvents="none"
+              data-layer="selection-outline"
+            />
+          )}
 
-      {hasValidationError &&
-        isHighlighted &&
-        (() => {
-          if (!labelPos) return null;
-          const msg = connectionErrors[0].message;
-          const textWidth = Math.min(msg.length * 6.5, 220);
-          const padding = 6;
-          const rectWidth = textWidth + padding * 2;
-          const rectHeight = 22;
+          {/* Snap flash animation overlay — skip for visual-only and skip replay on deselection */}
+          {overlayMode !== 'visual-only' && !entranceComplete && (
+            <path
+              d={hitPath}
+              stroke={colors.stroke}
+              strokeWidth={TRACE_FLASH_PX}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              pointerEvents="none"
+              style={{
+                animation:
+                  'connector-snap-flash 300ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards',
+              }}
+              data-testid="connection-snap-flash"
+            />
+          )}
 
-          return (
-            <g data-testid="connection-error-label" pointerEvents="none">
-              <rect
-                x={labelPos.x - rectWidth / 2}
-                y={labelPos.y - rectHeight - 4}
-                width={rectWidth}
-                height={rectHeight}
-                rx={4}
-                fill="var(--accent-error, #ef4444)"
-                fillOpacity={0.92}
-              />
-              <text
-                x={labelPos.x}
-                y={labelPos.y - rectHeight / 2 - 4 + 1}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill="var(--connection-error-label-text, #0F172A)"
-                fontSize={11}
-                fontFamily="var(--font-ui, system-ui)"
-                style={{ pointerEvents: 'none' }}
-              >
-                {msg.length > 35 ? msg.slice(0, 32) + '\u2026' : msg}
-              </text>
+          {/* Port pinhole indicators at connection endpoints */}
+          {diffState === 'unchanged' && (
+            <g data-testid="connection-pinholes" pointerEvents="none">
+              {renderPinhole(sourcePos.x, sourcePos.y, pinHoleStyle, colors.stroke, 'src')}
+              {renderPinhole(targetPos.x, targetPos.y, pinHoleStyle, colors.stroke, 'tgt')}
             </g>
-          );
-        })()}
+          )}
 
-      {isHighlighted &&
-        !hasValidationError &&
-        labelPos &&
-        (() => {
-          const typeLabel = connectionType ?? 'dataflow';
-          const rectWidth = typeLabel.length * 6.5 + 12;
-          const rectHeight = 18;
+          {hasValidationError && (
+            <path
+              className="connection-error-pulse"
+              d={hitPath}
+              stroke="var(--accent-error, #ef4444)"
+              strokeWidth={3}
+              strokeDasharray="6 6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              pointerEvents="none"
+              data-testid="connection-invalid"
+            />
+          )}
 
-          return (
-            <g data-testid="connection-type-label" pointerEvents="none">
-              <rect
-                x={labelPos.x - rectWidth / 2}
-                y={labelPos.y - rectHeight - 4}
-                width={rectWidth}
-                height={rectHeight}
-                rx={8}
-                fill={colors.stroke}
-                fillOpacity={0.85}
-              />
-              <text
-                x={labelPos.x}
-                y={labelPos.y - rectHeight / 2 - 4 + 1}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={contrastTextColor(colors.stroke)}
-                fontSize={10}
-                fontFamily="var(--font-ui, system-ui)"
-                style={{ pointerEvents: 'none' }}
-              >
-                {typeLabel}
-              </text>
-            </g>
-          );
-        })()}
+          {hasValidationError &&
+            isHighlighted &&
+            (() => {
+              if (!labelPos) return null;
+              const msg = connectionErrors[0].message;
+              const textWidth = Math.min(msg.length * 6.5, 220);
+              const padding = 6;
+              const rectWidth = textWidth + padding * 2;
+              const rectHeight = 22;
+
+              return (
+                <g data-testid="connection-error-label" pointerEvents="none">
+                  <rect
+                    x={labelPos.x - rectWidth / 2}
+                    y={labelPos.y - rectHeight - 4}
+                    width={rectWidth}
+                    height={rectHeight}
+                    rx={4}
+                    fill="var(--accent-error, #ef4444)"
+                    fillOpacity={0.92}
+                  />
+                  <text
+                    x={labelPos.x}
+                    y={labelPos.y - rectHeight / 2 - 4 + 1}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="var(--connection-error-label-text, #0F172A)"
+                    fontSize={11}
+                    fontFamily="var(--font-ui, system-ui)"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {msg.length > 35 ? msg.slice(0, 32) + '\u2026' : msg}
+                  </text>
+                </g>
+              );
+            })()}
+
+          {isHighlighted &&
+            !hasValidationError &&
+            labelPos &&
+            (() => {
+              const typeLabel = connectionType ?? 'dataflow';
+              const rectWidth = typeLabel.length * 6.5 + 12;
+              const rectHeight = 18;
+
+              return (
+                <g data-testid="connection-type-label" pointerEvents="none">
+                  <rect
+                    x={labelPos.x - rectWidth / 2}
+                    y={labelPos.y - rectHeight - 4}
+                    width={rectWidth}
+                    height={rectHeight}
+                    rx={8}
+                    fill={colors.stroke}
+                    fillOpacity={0.85}
+                  />
+                  <text
+                    x={labelPos.x}
+                    y={labelPos.y - rectHeight / 2 - 4 + 1}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={contrastTextColor(colors.stroke)}
+                    fontSize={10}
+                    fontFamily="var(--font-ui, system-ui)"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {typeLabel}
+                  </text>
+                </g>
+              );
+            })()}
+        </>
+      )}
     </g>
   );
 });
