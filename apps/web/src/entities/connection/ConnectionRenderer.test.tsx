@@ -487,11 +487,111 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
   });
 
+  it('maintains highlight when hover leaves but keyboard focus remains', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Focus via keyboard first
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Mouse enters then leaves while focus remains
+    fireEvent.mouseEnter(hitArea);
+    fireEvent.mouseLeave(hitArea);
+
+    // Highlight should remain because focus is still active
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+  });
+
+  it('maintains highlight when blur fires but hover remains', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Mouse enters first
+    fireEvent.mouseEnter(hitArea);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Focus then blur while hover remains
+    fireEvent.focus(link);
+    fireEvent.blur(link);
+
+    // Highlight should remain because hover is still active
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+  });
+
+  it('removes highlight only when both hover and focus clear', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Both hover and focus active
+    fireEvent.mouseEnter(hitArea);
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Remove hover — focus still keeps highlight
+    fireEvent.mouseLeave(hitArea);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Remove focus — now highlight should be gone
+    fireEvent.blur(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+  });
+
   it('renders accessible label on SVG link', () => {
     const { container } = renderConnector();
     const link = container.querySelector('a');
     expect(link).toBeInTheDocument();
-    expect(link?.getAttribute('aria-label')).toContain('Connection');
+    // Default connection has no blocks in store — fallback label
+    expect(link?.getAttribute('aria-label')).toBe('Connection');
+  });
+
+  it('renders full accessible label with source and target block names', () => {
+    useArchitectureStore.setState({
+      nodeById: new Map([
+        [
+          'source-1',
+          {
+            id: 'source-1',
+            name: 'Web Server',
+            kind: 'resource' as const,
+            layer: 'resource' as const,
+            resourceType: 'web_compute',
+            category: 'compute' as const,
+            provider: 'azure' as const,
+            parentId: null,
+            position: { x: 0, y: 0, z: 0 },
+            metadata: {},
+          },
+        ],
+        [
+          'target-1',
+          {
+            id: 'target-1',
+            name: 'Database',
+            kind: 'resource' as const,
+            layer: 'resource' as const,
+            resourceType: 'relational_database',
+            category: 'data' as const,
+            provider: 'azure' as const,
+            parentId: null,
+            position: { x: 1, y: 0, z: 1 },
+            metadata: {},
+          },
+        ],
+      ]),
+    });
+
+    const connWithType: Connection = {
+      ...connection,
+      metadata: { ...connection.metadata, type: 'http' },
+    };
+    const { container } = renderConnector(connWithType);
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    expect(link?.getAttribute('aria-label')).toBe('Connection from Web Server to Database (http)');
   });
 
   it('renders arrow marker definition with correct attributes', () => {
@@ -770,9 +870,9 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      // data-connector-type falls back consistently (not raw invalid string)
+      // data-connector-type falls back to canonical 'dataflow'
       const connectorType = rootGroup?.getAttribute('data-connector-type');
-      expect(connectorType).not.toBe('toString');
+      expect(connectorType).toBe('dataflow');
 
       // Trace/casing widths match dataflow defaults (strokeWidth=2.5)
       expect(trace?.getAttribute('stroke-width')).toBe('2.5');
