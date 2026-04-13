@@ -95,6 +95,8 @@ exclude_docs: |
   concept/ROADMAP_0X_HISTORY.md
   user-guide/generate-code.md
   user-guide/create-architecture.md
+  design/CLOUDBLOCKS_SPEC_V2.md
+  concept/ARCHITECTURE_0X_HISTORY.md
 
 nav:
   - Home: README.md
@@ -121,7 +123,6 @@ nav:
   - Reference:
       - Architecture Model: model/DOMAIN_MODEL.md
       - Compatibility & Migration: concept/COMPATIBILITY.md
-      - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
       - Learning Mode: design/LEARNING_MODE_SPEC.md
       - V1 Product Contract: concept/V1_PRODUCT_CONTRACT.md
 
@@ -133,7 +134,7 @@ nav:
       - Provider Adapters: engine/provider.md
       - Template Engine: engine/templates.md
       - Validation Rules Engine: engine/rules.md
-      - AI Engine: engine/ai.md
+      - AI Engine (Archived): engine/ai.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
       - Theme System: design/THEME_SYSTEM_SPEC.md
       - REST API: api/API_SPEC.md

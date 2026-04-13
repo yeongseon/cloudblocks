@@ -1,8 +1,11 @@
 # First Architecture from a Template
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Learn your first cloud architecture in 5 minutes using a built-in template with guided learning. No cloud account or backend required — everything runs in your browser.
+
+!!! tip "Desktop recommended"
+    CloudBlocks is optimized for desktop browsers (Chrome, Firefox, Edge). The SVG-based visual editor works best with a mouse and keyboard.
 
 ---
 

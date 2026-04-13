@@ -1,8 +1,10 @@
 # Provider Support
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
-CloudBlocks supports three cloud providers: **Azure**, **AWS**, and **GCP**. All three providers are available in the visual builder and Terraform starter export. Azure has the deepest template and scenario coverage; AWS and GCP have full Terraform code generation support.
+CloudBlocks uses an **Azure-first design**: all built-in templates and learning scenarios use Azure resources. AWS and GCP support is provided through a **provider mapping layer** that translates Azure resource types to their cloud-equivalent counterparts. All three providers are available in the visual builder and Terraform starter export.
+
+For details on provider coverage by resource category, see the table below.
 
 ---
 

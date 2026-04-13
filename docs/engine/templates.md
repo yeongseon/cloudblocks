@@ -1,6 +1,6 @@
 # Architecture Templates
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 Templates allow users to start from predefined architectures.
 
@@ -75,7 +75,7 @@ CloudBlocks ships these built-in templates:
 - **Event-Driven Pipeline** — Event and queue-driven processing functions writing results to storage
 - **Full-Stack Serverless with Event Processing** — End-to-end architecture combining web frontend, API function, queue workers, event processing, database, and storage
 
-> **Note:** Example architectures are available in the [`examples/`](../../examples/) directory.
+> **Note:** Example architectures are available in the `examples/` directory at the repository root.
 
 ---
 
@@ -114,4 +114,4 @@ The `packages/` directory contains scaffolded packages that are **not yet functi
 > **Cross-references:**
 >
 > - Architecture model format: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)
+> - Roadmap timeline: `ROADMAP.md` (internal, excluded from public docs)

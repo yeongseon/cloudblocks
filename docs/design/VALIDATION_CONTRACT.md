@@ -1,6 +1,6 @@
 # Validation Contract — Single Source of Truth
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 > Covers issues #23, #24, and #357.
 

@@ -1,6 +1,6 @@
 # CloudBlocks — Tutorials
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 ## Overview
 

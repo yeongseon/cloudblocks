@@ -1,6 +1,6 @@
 # Editor Basics
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 The CloudBlocks editor is a hands-on workspace for learning cloud architecture. Most beginners should start from a guided template or scenario, then use this page as a reference while they explore the canvas, palette, inspector, and validation tools.
 
@@ -16,6 +16,7 @@ The builder uses a 4-panel layout:
 - **Inspector Panel** (right) — View and edit details for the selected block. Includes Properties, Code preview, and Connections tabs.
 - **Bottom Dock** (bottom) — Monitor system state through Output, Validation, Logs, and Diff tabs.
 
+<!-- TODO: Add annotated screenshot of the full editor layout showing all 4 panels -->
 ---
 
 ## Common Interactions
@@ -50,6 +51,8 @@ The palette organizes cloud resources into 8 categories:
 
 Resources that require a Network block on the canvas will appear disabled until you create one.
 
+<!-- TODO: Add annotated screenshot of the sidebar palette showing resource categories -->
+
 ---
 
 ## Inspector Panel
@@ -59,6 +62,8 @@ Click any block to open its details in the Inspector Panel:
 - **Properties tab** — View block type, category, and cloud resource mapping. Rename the block or perform actions.
 - **Code tab** — See a live preview of generated infrastructure code (Experimental).
 - **Connections tab** — Review all connections linked to the selected block.
+
+<!-- TODO: Add annotated screenshot of the inspector panel showing Properties, Code, and Connections tabs -->
 
 ---
 

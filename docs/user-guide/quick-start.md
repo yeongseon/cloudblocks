@@ -1,8 +1,11 @@
 # Quick Start
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Build your first cloud architecture in under 5 minutes. No cloud account required. Everything runs in your browser.
+
+!!! tip "Desktop recommended"
+    CloudBlocks is optimized for desktop browsers (Chrome, Firefox, Edge). The SVG-based visual editor works best with a mouse and keyboard.
 
 ---
 
@@ -43,7 +46,7 @@ Click **Start Learning** and select **Three-Tier Web Application**. This loads a
 
 The builder uses a 4-panel layout:
 
-- **Menu Bar** (top) — Access File, Edit, Build, and View menus. The provider selector shows Azure (active), AWS, and GCP (Coming Soon). Manage workspaces.
+- **Menu Bar** (top) — Access File, Edit, Build, and View menus. The provider selector shows Azure (active), AWS, and GCP. Manage workspaces.
 - **Sidebar Palette** (left) — Resource palette grouped into 8 categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, and Operations. Click or drag items to create resources.
 - **Canvas** (center) — The main isometric drawing area where you build your architecture.
 - **Inspector Panel** (right) — View and edit details for the selected block:

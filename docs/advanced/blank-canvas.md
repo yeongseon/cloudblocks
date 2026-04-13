@@ -1,6 +1,6 @@
 # Blank Canvas Mode
 
-> **Audience**: Intermediate users | **Status**: V1 Advanced | **Verified against**: v0.26.0
+> **Audience**: Intermediate users | **Status**: V1 Advanced | **Verified against**: v0.43.0
 
 !!! note "Recommended: Start with Learning Mode"
     If this is your first time using CloudBlocks, start with [First Architecture from a Template](../user-guide/first-architecture.md) or a guided learning scenario via the **Learn** button in the menu bar. Blank canvas mode is for users who have completed guided scenarios and want to build a custom architecture from scratch.

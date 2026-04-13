@@ -1,6 +1,6 @@
 # What is CloudBlocks?
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Welcome to CloudBlocks — a visual cloud learning tool for beginners. Start from guided templates, learn common architecture patterns step by step, and export Terraform starter code. Everything runs in your browser — no cloud account or backend required.
 

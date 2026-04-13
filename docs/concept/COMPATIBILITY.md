@@ -1,6 +1,6 @@
 # CloudBlocks Compatibility & Migration Policy
 
-> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.43.0
 
 This document defines how CloudBlocks handles versioning, backward compatibility, and data migration. Compatibility guarantees are scoped to **blessed (built-in) templates and the Terraform starter export flow**. Experimental features (Bicep, Pulumi) and custom blank-canvas architectures may change without a major version bump.
 
@@ -79,4 +79,4 @@ Mobile browsers are not officially supported in V1 but may work for viewing.
 ## See Also
 
 - [V1 Product Contract](V1_PRODUCT_CONTRACT.md) — What V1 guarantees
-- [ROADMAP.md](ROADMAP.md) — Product evolution plan
+- `ROADMAP.md` — Product evolution plan (internal, excluded from public docs)

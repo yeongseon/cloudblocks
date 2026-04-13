@@ -1,6 +1,6 @@
 # CloudBlocks — API Specification
 
-> **Audience**: Contributors / Backend Developers | **Status**: Backend (optional) | **Verified against**: v0.35.0
+> **Audience**: Contributors / Backend Developers | **Status**: Backend (optional) | **Verified against**: v0.43.0
 
 > **Note**: The CloudBlocks backend is optional. The frontend works standalone for visual building,
 > templates, validation, and Terraform export. The backend adds GitHub OAuth, workspace sync,
@@ -113,7 +113,7 @@ PUT    /api/v1/workspaces/:id          → Update workspace settings
 DELETE /api/v1/workspaces/:id          → Delete workspace
 ```
 
-> **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
+> **Note**: The metadata DB uses `workspaces` (not `projects`). See `STORAGE_ARCHITECTURE.md` (internal, excluded from public docs) for the actual schema.
 
 ## Generation Run Tracking (Current Backend Surface)
 

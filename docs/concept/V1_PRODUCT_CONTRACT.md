@@ -1,6 +1,6 @@
 # CloudBlocks V1 Product Contract
 
-> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.43.0
 
 This document defines what CloudBlocks v1.0.0 guarantees to its users.
 

@@ -1,6 +1,6 @@
 # Core Concepts
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 CloudBlocks is a visual cloud learning tool that uses a block-based composition model. You learn cloud architecture by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
@@ -90,11 +90,11 @@ Templates provide pre-configured architecture patterns to help you learn common 
 
 CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically.
 
-- **Azure**: Full resource coverage across all 8 categories (active).
-- **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS). _(Coming Soon)_
-- **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage). _(Coming Soon)_
+- **Azure**: Full resource coverage across all 8 categories (default provider).
+- **AWS**: Mapped resource names (VPC, EC2, Lambda, S3, RDS) with Terraform starter export.
+- **GCP**: Mapped resource names (Compute Engine, Cloud Functions, Cloud Storage) with Terraform starter export.
 
-Azure is the default active provider. AWS and GCP tabs are visible in the menu bar but marked Coming Soon.
+Azure is the default active provider. Switch providers via the provider tabs in the menu bar. See [Provider Support](provider-support.md) for coverage details.
 
 ---
 
@@ -115,8 +115,8 @@ Workspaces allow you to manage multiple projects independently.
 - **Storage**: Saved automatically to your browser's local storage.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
-!!! note "GitHub Sync"
-    GitHub sync requires the backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
+!!! note "Backend Required"
+    GitHub sync requires the optional Python backend. See [Getting Started](../guides/TUTORIALS.md) for setup instructions.
 
 ---
 

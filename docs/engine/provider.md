@@ -1,6 +1,6 @@
 # Provider Definition Specification
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.29.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
