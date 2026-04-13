@@ -134,7 +134,7 @@ nav:
       - Provider Adapters: engine/provider.md
       - Template Engine: engine/templates.md
       - Validation Rules Engine: engine/rules.md
-      - AI Engine (Backend Required): engine/ai.md
+      - AI Engine (Archived): engine/ai.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
       - Theme System: design/THEME_SYSTEM_SPEC.md
       - REST API: api/API_SPEC.md

@@ -116,7 +116,7 @@ Workspaces allow you to manage multiple projects independently.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
 !!! note "Backend Required"
-    GitHub sync requires the CloudBlocks backend (`apps/api`). Run `cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload` after following the [Quick Start](quick-start.md) setup.
+    GitHub sync requires the optional Python backend. See [Getting Started](../guides/TUTORIALS.md) for setup instructions.
 
 ---
 
