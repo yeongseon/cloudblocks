@@ -8,6 +8,203 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.43.0] — 2026-04-13
+
+**Milestone 43 — Landing Page Credibility & Sharing**
+
+Rewrote landing page messaging to Azure-first framing, added animated SVG hero illustration, difficulty badges on template cards, social sharing OG metadata, and improved packet flow visibility with semantic colors and flow-priority layering.
+
+### Features
+
+- Add animated SVG hero illustration to landing page (#1760)
+- Rewrite multi-cloud messaging to Azure-first framing (#1761)
+- Add difficulty badge and estimated time to landing template cards (#1762)
+- Add social sharing metadata and OG image (#1763)
+
+### Fixes
+
+- Improve packet flow visibility with semantic colors and flow-priority layering (#1765)
+
+### Statistics
+
+- 6 PRs merged
+
+## [v0.42.0] — 2026-04-12
+
+**Milestone 42 — Connection Packet Flow Animation**
+
+Added always-on packet flow animation for connections, keyboard navigation and ARIA semantics for MenuBar, visible focus indicators, canvas wheel scroll fix, import failure toast, and aligned first-screen CTA labels.
+
+### Features
+
+- Add connection packet flow animation (#1742)
+- Add idle packet flow mode for always-on connection animation (#1744)
+- Add keyboard navigation and ARIA semantics to MenuBar (#1752)
+- Align first-screen CTA labels and destinations (#1754)
+
+### Fixes
+
+- Prevent canvas wheel zoom from trapping page scroll (#1750)
+- Show import failure toast from empty-canvas drop handler (#1751)
+- Restore visible focus indicators across interactive controls (#1753)
+
+### Statistics
+
+- 7 PRs merged
+
+## [v0.41.0] — 2026-04-12
+
+**Milestone 41 — Template Visual Hierarchy**
+
+Enforced visual hierarchy across all 6 built-in templates — base resources (VNet/VPC) rendered largest, with progressive size reduction up the hierarchy.
+
+### Fixes
+
+- Enforce visual hierarchy in all 6 built-in templates (#1734)
+
+### Statistics
+
+- 1 PR merged
+
+## [v0.40.0] — 2026-04-12
+
+**Milestone 40 — Visual Quality & Interaction Polish**
+
+Differentiated resource block sizes by category hierarchy, prevented resource overlap during drag-and-drop, fixed external actor persistence, restored builder view on page refresh, rewrote scenarios for beginner-appropriate language, and bumped bundle budget.
+
+### Features
+
+- Differentiate resource block sizes by category hierarchy (#1730)
+- Prevent resource block overlap during drag-and-drop (#1729)
+- Rewrite scenario content for beginner-appropriate language (#1736)
+
+### Fixes
+
+- Prevent external actor blocks from disappearing in saved workspaces (#1728)
+- Restore builder view on page refresh when workspace data exists (#1735)
+
+### Maintenance
+
+- Bump bundle size budget 940→960 KB (#1743)
+
+### Statistics
+
+- 6 PRs merged
+
+## [v0.39.0] — 2026-04-11
+
+**Milestone 39 — Provider UX & Validation Polish**
+
+Unified validation message templates with learning-first tone, added validation error count badge on Validate button, and demoted GitHub button to icon-only with tooltip.
+
+### Features
+
+- Unify validation message templates with learning-first tone (#1723)
+- Show validation error count badge on Validate button (#1722)
+- Demote GitHub button to icon-only with tooltip (#1721)
+
+### Statistics
+
+- 3 PRs merged
+
+## [v0.38.0] — 2026-04-10
+
+**Milestone 38 — Code Review Quality Gate**
+
+Major code quality pass: consolidated store boundaries to documented 3-store model, fixed FSD upward imports, optimized canvas rendering performance, added indexed lookup maps, hardened OAuth state parsing, and extracted testable logic from SceneCanvas.
+
+### Performance
+
+- Optimize canvas rendering to avoid full-scene rerender on drag (#1695)
+- Add indexed lookup maps to canvas selectors (#1710)
+
+### Refactoring
+
+- Consolidate store boundaries to documented 3-store model (#1698)
+- Fix FSD upward imports and restore dependency direction (#1699)
+- Move AI API types to shared layer for FSD compliance (#1707)
+- Remove uiStore dependency from architectureStore (#1708)
+- Deduplicate panel visibility state in uiStore (#1709)
+- Move route orchestration into application use cases (API) (#1696)
+
+### Fixes
+
+- Mount CodePreview panel in app layout (#1694)
+- Propagate AI suggestion errors instead of masking them (API) (#1693)
+- Harden OAuth state parsing against malformed payloads (API) (#1711)
+- Sync backend status on logout failure and remove SceneCanvas coverage exclusion (#1712)
+
+### Testing
+
+- Include SceneCanvas in coverage gate and extract testable logic (#1697)
+
+### Dependencies
+
+- Bump actions/checkout 4→6, dorny/paths-filter 3→4 (#1678, #1679)
+- Bump typescript-eslint, @playwright/test, eslint, @types/node (#1680, #1681, #1682, #1684)
+
+### Statistics
+
+- 19 PRs merged
+
+## [v0.37.0] — 2026-04-05
+
+**Milestone 37 — Template Architecture Accuracy**
+
+Corrected template architecture accuracy for AWS, Azure, and GCP, fixed external block positioning to render outside VNet, aligned template subnet layouts with best practices, increased container heights, and added workspace bulk delete.
+
+### Features
+
+- Increase container heights and add workspace bulk delete (#1677)
+- Screenshot capture script and 3 new learning scenarios (#1642)
+
+### Fixes
+
+- Correct template architecture accuracy for AWS, Azure, and GCP (#1625)
+- Restore external block positions to render outside VNet (#1644)
+- Resolve GitHub unlink, error parsing, and PR guard bugs (#1656)
+- External blocks render inside VNet on all templates (#1668)
+- Align template subnet layouts with Azure/AWS/GCP best practices (#1676)
+- Address Copilot review on PR #1642 (#1643)
+
+### Statistics
+
+- 8 PRs merged
+
+## [v0.36.0] — 2026-04-02
+
+**Milestone 36 — Editor UX Completeness**
+
+Added zoom-dependent information density, block state system with overlays, multi-select interactions (shift-click + lasso), connection overlap detection with perpendicular nudge, connection type taxonomy alignment, and comprehensive documentation audit.
+
+### Features
+
+- Zoom-dependent information density (#1597)
+- Block state system with disabled, error, health, and unconnected overlays (#1598)
+- Add multi-select interactions — shift-click and lasso selection (#1607)
+- Connection overlap detection and perpendicular offset nudge (#1606)
+- Connection type taxonomy alignment — display labels and ADR-0016 (#1604)
+
+### Fixes
+
+- Uniform rect silhouettes and fix external actor placement (#1611)
+- Rename external block Browser→Client and add descriptions (#1615)
+- Hide external role badge and resolve GCP short labels on block face (#1618)
+
+### Visual Polish
+
+- Improve container block visual hierarchy (#1617)
+
+### Documentation
+
+- Documentation audit — split, consolidate, delete stale docs (#1613)
+- Unify schema versioning and extend VERSION_POLICY.md (#1612)
+- Document uniform block height decision (ADR-0017) (#1605)
+
+### Statistics
+
+- 14 PRs merged
+
 ## [v0.35.0] — 2026-04-01
 
 **Milestone 35 — Visual Hierarchy and Presentation Consistency**
@@ -1075,6 +1272,14 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.43.0]: https://github.com/yeongseon/cloudblocks/compare/v0.42.0...v0.43.0
+[v0.42.0]: https://github.com/yeongseon/cloudblocks/compare/v0.41.0...v0.42.0
+[v0.41.0]: https://github.com/yeongseon/cloudblocks/compare/v0.40.0...v0.41.0
+[v0.40.0]: https://github.com/yeongseon/cloudblocks/compare/v0.39.0...v0.40.0
+[v0.39.0]: https://github.com/yeongseon/cloudblocks/compare/v0.38.0...v0.39.0
+[v0.38.0]: https://github.com/yeongseon/cloudblocks/compare/v0.37.0...v0.38.0
+[v0.37.0]: https://github.com/yeongseon/cloudblocks/compare/v0.36.0...v0.37.0
+[v0.36.0]: https://github.com/yeongseon/cloudblocks/compare/v0.35.0...v0.36.0
 [v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
 [v0.34.0]: https://github.com/yeongseon/cloudblocks/compare/v0.33.0...v0.34.0
 [v0.33.0]: https://github.com/yeongseon/cloudblocks/compare/v0.32.0...v0.33.0
