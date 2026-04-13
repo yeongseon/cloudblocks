@@ -84,6 +84,7 @@ docs/demo/
 # ─── Stale artifacts ──────────────────────────────────────────
 *.png
 !docs/**/*.png
+!apps/web/public/og-image.png
 apps/api/*.db
 apps/api/*.db-shm
 apps/api/*.db-wal
