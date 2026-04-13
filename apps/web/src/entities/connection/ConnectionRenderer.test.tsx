@@ -123,7 +123,7 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
   });
 
-  it('suppresses packet flow layer when reducedMotion prop is true', () => {
+  it('renders static direction chevrons when reducedMotion prop is true', () => {
     const { container } = render(
       <svg aria-label="Test SVG">
         <title>Test SVG</title>
@@ -209,10 +209,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.5');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
   });
 
   it('renders selected packet visuals when connection is selected', () => {
@@ -220,10 +220,10 @@ describe('ConnectionRenderer', () => {
 
     const { container } = renderConnector();
 
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.8');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -232,10 +232,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.8');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -249,10 +249,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('creation mode renders packets even when external elapsed exceeds PACKET_SPEED_MS', () => {
@@ -282,10 +282,10 @@ describe('ConnectionRenderer', () => {
     // Packet flow layer should still render because creation elapsed is derived
     // from creationBurstExpiry, not the shared clock.
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('creation mode uses burst-local elapsed instead of shared clock elapsed', () => {
@@ -364,10 +364,10 @@ describe('ConnectionRenderer', () => {
 
     // Creation burst should still render — PacketFlowLayer falls back to internal clock
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetPaths = container
-      .querySelector('[data-testid="packet-flow-packet"]')
-      ?.querySelectorAll('path');
-    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('click in select mode sets selectedId to connection id', () => {

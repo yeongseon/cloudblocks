@@ -18,7 +18,6 @@ export const PACKET_OPACITY = {
 export const IDLE_CYCLE_MS = 3600;
 
 export const PACKET_COLOR = '#22d3ee';
-export const PACKET_GLOW_COLOR = 'rgba(34, 211, 238, 0.3)';
 
 // ─── Semantic Packet Colors (two-layer: halo + core) ────────
 // Halo provides contrast on light backgrounds, core on dark.

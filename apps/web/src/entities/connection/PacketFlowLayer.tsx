@@ -20,14 +20,13 @@ interface PacketFlowLayerProps {
   hitPoints: ScreenPoint[];
   mode: PacketFlowMode;
   connectionType: string;
-  strokeColor: string;
   elapsed?: number;
   reducedMotion?: boolean;
 }
 
 /** Resolve semantic two-layer colors for a connection type. */
 function resolvePacketColors(connectionType: string): PacketColorPair {
-  if (connectionType in SEMANTIC_PACKET_COLORS) {
+  if (Object.hasOwn(SEMANTIC_PACKET_COLORS, connectionType)) {
     return SEMANTIC_PACKET_COLORS[connectionType as ConnectionType];
   }
   return { halo: PACKET_COLOR, core: PACKET_COLOR };
@@ -78,7 +77,6 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   hitPoints,
   mode,
   connectionType,
-  strokeColor: _strokeColor,
   elapsed: externalElapsed,
   reducedMotion: externalReducedMotion,
 }: PacketFlowLayerProps) {
@@ -181,12 +179,14 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
               d={`M ${-glowHalfLen} 0 Q ${-glowHalfLen} ${-glowHalfWid} 0 ${-glowHalfWid} Q ${glowHalfLen} ${-glowHalfWid} ${glowHalfLen} 0 Q ${glowHalfLen} ${glowHalfWid} 0 ${glowHalfWid} Q ${-glowHalfLen} ${glowHalfWid} ${-glowHalfLen} 0 Z`}
               fill={packetColors.halo}
               fillOpacity={opacity * 0.45}
+              data-layer="packet-halo"
             />
             {/* Core capsule — bright inner body */}
             <path
               d={`M ${-halfLen} ${-halfWid} Q ${-halfLen - halfWid} 0 ${-halfLen} ${halfWid} L ${halfLen} ${halfWid} Q ${halfLen + halfWid} 0 ${halfLen} ${-halfWid} Z`}
               fill={packetColors.core}
               fillOpacity={opacity}
+              data-layer="packet-core"
             />
             {/* Tail trail — long for directional reading */}
             <path
@@ -196,6 +196,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
               strokeLinecap="round"
               strokeOpacity={opacity * 0.4}
               fill="none"
+              data-layer="packet-tail"
             />
           </g>
         );

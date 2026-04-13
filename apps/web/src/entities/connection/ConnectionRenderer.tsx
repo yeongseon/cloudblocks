@@ -532,7 +532,6 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           hitPoints={hitPoints}
           mode={packetMode}
           connectionType={resolvedConnectionType}
-          strokeColor={colors.stroke}
           elapsed={packetElapsed}
           reducedMotion={reducedMotion}
         />
