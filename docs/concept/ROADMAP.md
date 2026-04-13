@@ -65,18 +65,11 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 | M33       | Learning Content Validation                  | ✅ Done |
 | M34       | ExternalActor-to-Block Unification           | ✅ Done |
 | M35       | Visual Hierarchy & Presentation Consistency  | ✅ Done |
-| M37       | Beginner UX & Validation Tone                | ✅ Done |
-| M38       | Visual Hierarchy & Block Sizing               | ✅ Done |
-| M39       | Template Architecture Accuracy                | ✅ Done |
-| M40       | Connection Packet Flow Animation              | ✅ Done |
-| M50       | Landing Page & External Communication         | ✅ Done |
-| —         | Accessibility & Keyboard Navigation           | ✅ Done |
-| —         | Performance & Store Refactoring               | ✅ Done |
 
 ### Version Transition
 
 ```
-v0.35.0 → v1.0.0-beta.1 (current — first public beta) → v1.0.0 (baseline)
+v0.35.0 (current) → v1.0.0-beta.1 (first public release) → v1.0.0 (baseline)
 ```
 
 After v1.0.0, development continues with backward-compatible minor releases (v1.1.0, v1.2.0, ...).
@@ -125,11 +118,9 @@ After v1.0.0, development continues with backward-compatible minor releases (v1.
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Current version          | v1.0.0-beta.1                                                                                             |
 | 0.x milestones completed | 35 (M0–M35, all closed)                                                                                   |
-| Post-M35 work            | 10+ milestone batches (M37–M50+, accessibility, landing page, packet flow)                                 |
-| Tests passing            | 3,362                                                                                                     |
-| Branch coverage          | ≥ 90% (90.56% branches, 96.36% statements)                                                                |
+| Tests passing            | 2,783                                                                                                     |
+| Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
 

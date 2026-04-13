@@ -2,107 +2,9 @@
 
 All notable changes to CloudBlocks are documented in this file.
 
-This project uses [Semantic Versioning](https://semver.org/). Starting from v1.0.0-beta.1, the version follows standard semver. For the 0.x development history, each milestone mapped to a minor version (`v0.{milestone}.{patch}`).
+This project uses [Semantic Versioning](https://semver.org/). Version numbers follow the convention `v0.{milestone}.{patch}` — each milestone maps directly to a minor version.
 
 ---
-
-## [v1.0.0-beta.1] — 2026-04-13
-
-**First Public Beta — Visual Cloud Learning Tool for Beginners**
-
-This release marks the transition from `v0.x` development milestones to `v1.0.0-beta.1` — the first public beta of CloudBlocks as a visual cloud learning tool for beginners. It consolidates 55 commits and 10+ milestones of work since v0.35.0, covering visual hierarchy, accessibility, learning content, landing page, and connection animation.
-
-### Highlights
-
-- **Visual hierarchy enforcement** — Container blocks and resource blocks now follow a strict size hierarchy (VPC/VNet > Subnet > Resources), preventing overlap and ensuring correct nesting in all 6 built-in templates
-- **Connection packet flow animation** — Animated packets travel along connection lines with semantic colors per connection type, providing visual feedback on data flow direction
-- **Accessible by default** — Full keyboard navigation with ARIA semantics for MenuBar, focus-visible indicators on all interactive controls, wheel zoom guard to prevent scroll trapping
-- **Azure-first landing page** — Redesigned hero with animated SVG illustration, difficulty badges on template cards, social sharing metadata (OG image, Twitter card), and aligned CTA labels
-- **Beginner-appropriate learning content** — All 6 learning scenarios rewritten with plain-language explanations, progressive terminology introduction, and encouraging tone
-
-### Features
-
-- Animated SVG hero illustration on landing page (#1760)
-- Difficulty badge and estimated time on landing template cards (#1762)
-- Azure-first multi-cloud messaging on landing page (#1761)
-- Social sharing metadata — OG image, Twitter card, canonical URL (#1763)
-- Aligned first-screen CTA labels and destinations (#1754)
-- Keyboard navigation and ARIA semantics for MenuBar (#1752)
-- Connection packet flow animation with 5 typed visual styles (#1742)
-- Idle packet flow mode — always-on connection animation (#1744)
-- Validation error count badge on Validate button (#1722)
-- GitHub button demoted to icon-only with tooltip (#1721)
-- Unified validation message templates with learning-first tone (#1723)
-- Differentiated resource block sizes by category hierarchy (#1730)
-- Increased container heights and workspace bulk delete (#1677)
-- Block state system with disabled, error, health, and unconnected overlays (#1598)
-- Zoom-dependent information density (#1592, #1597)
-
-### Bug Fixes
-
-- Improved packet flow visibility with semantic colors and flow-priority layering (#1765)
-- Focus-visible indicators added to all interactive controls (#1753)
-- Import failure toast from empty-canvas drop handler (#1751)
-- Canvas wheel zoom no longer traps page scroll (#1750)
-- External actor blocks no longer disappear in saved workspaces (#1728)
-- Resource block overlap prevented during drag-and-drop (#1729)
-- Visual hierarchy enforced in all 6 built-in templates (#1734)
-- Page refresh now restores builder view when workspace data exists (#1735)
-- Template subnet layouts aligned with Azure/AWS/GCP best practices (#1676)
-- GitHub unlink, error parsing, and PR guard bugs resolved (#1656)
-- External block positions corrected to render outside VNet (#1644, #1668)
-- Template architecture accuracy corrected for AWS, Azure, and GCP (#1625)
-- Empty initial architectures, endpointId format, screenshot coverage (#1643)
-- External role badge hidden; GCP short labels fixed on block face (#1618)
-- Container block visual hierarchy improved (#1617)
-- External block Browser renamed to Client with descriptions (#1615)
-- Uniform rect silhouettes and external actor placement fixed (#1611)
-- Sync backend status on logout failure (#1712)
-- OAuth state parsing hardened against malformed payloads (#1711)
-- CodePreview panel mounted in app layout (#1694)
-- AI suggestion errors propagated instead of masked (#1693)
-
-### Performance
-
-- Canvas rendering optimized to avoid full-scene rerender on drag (#1695)
-- Indexed lookup maps added to canvas selectors (#1710)
-
-### Refactoring
-
-- Store boundaries consolidated to documented 3-store model (#1698)
-- uiStore dependency removed from architectureStore (#1708)
-- Panel visibility state deduplicated in uiStore (#1709)
-- AI API types moved to shared layer for FSD compliance (#1707)
-- FSD upward imports fixed — dependency direction restored (#1699)
-- Route orchestration moved into application use cases (#1696)
-- SceneCanvas included in coverage gate with testable logic extracted (#1697)
-
-### Learning Content
-
-- All 6 scenario scripts rewritten for beginner-appropriate language (#1736)
-
-### Infrastructure
-
-- Bundle size budget bumped 940→960 KB (#1743)
-- Schema versioning unified and VERSION_POLICY.md extended (#1612)
-- Documentation audit — split, consolidate, delete stale docs (#1613)
-- Screenshot capture script and 3 new learning scenarios (#1642)
-
-### Dependencies
-
-- `actions/checkout` bumped from 4 to 6 (#1678)
-- `dorny/paths-filter` bumped from 3 to 4 (#1679)
-- `typescript-eslint` bumped to 8.58.0 (#1680)
-- `@playwright/test` bumped to 1.59.1 (#1681)
-- `@types/node` bumped to 25.5.2 (#1684)
-- `eslint` bumped to 10.2.0 (#1682)
-
-### Statistics
-
-- 55 commits since v0.35.0
-- 3,362 tests passing
-- Coverage: 96.36% statements, 90.56% branches, 98.01% functions, 96.92% lines
-- 10+ milestones consolidated (M37–M50+)
 
 ---
 
@@ -1173,7 +1075,6 @@ Milestone 4 (Workspace Management):
 
 ---
 
-[v1.0.0-beta.1]: https://github.com/yeongseon/cloudblocks/compare/v0.35.0...v1.0.0-beta.1
 [v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
 [v0.34.0]: https://github.com/yeongseon/cloudblocks/compare/v0.33.0...v0.34.0
 [v0.33.0]: https://github.com/yeongseon/cloudblocks/compare/v0.32.0...v0.33.0

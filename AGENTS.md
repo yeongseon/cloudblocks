@@ -134,6 +134,38 @@ zundo        — Zustand undo/redo middleware
   - When creating a new milestone, consult `docs/concept/ROADMAP.md` first — verify the milestone fits within the current dependency chain, does not duplicate existing scope, and has a clear placement in the evolution summary.
   - When all issues in a milestone are closed, update `docs/concept/ROADMAP.md`: mark exit criteria as checked (`[x]`), add a ✅ marker to the heading, update the Summary chain and Dependency Graph, and add or revise the Success Metrics entry.
 
+### Process Guardrails (INVIOLABLE)
+
+These rules exist to prevent recurring process failures (duplicate milestones, orphaned PRs, wrong version tags, batch releases). Every rule includes a verification step — compliance is not optional.
+
+#### Meta-Rule
+
+- **Preflight before mutating (MANDATORY)**: Before any state-changing GitHub operation — creating/renaming milestones, assigning PR milestones, bumping versions, creating tags, or publishing releases — MUST reconcile live GitHub state with current policy files (`AGENTS.md`, `CONTRIBUTING.md`, `docs/design/VERSION_POLICY.md`). If live state and policy conflict, STOP the operation and fix the documentation conflict first. Never proceed with ambiguity.
+
+#### Milestone Management
+
+- **Uniqueness check**: Before creating a milestone, MUST query `gh api 'repos/{owner}/{repo}/milestones?state=all&per_page=100'` and confirm no milestone with the same number exists. If it exists, MUST reuse or update — NEVER create a duplicate.
+- **Sequential numbering**: A new milestone number MUST be exactly `max(existing milestone numbers) + 1`. NEVER choose numbers for semantics, marketing, or round-number preference. Verify: the proposed number is one greater than the highest existing `Milestone N`.
+- **Title format**: Milestone titles MUST use the exact format `Milestone N — Name`. Verify: title matches the pattern `Milestone [0-9]+ — .+`.
+- **Universal milestone assignment**: Every issue and every PR MUST belong to a milestone — including dependency bumps, docs, maintenance, and CI changes. If no fitting open milestone exists, create or reuse the next sequential maintenance milestone before opening the issue/PR.
+
+#### PR/Issue Hygiene
+
+- **Issue milestone first**: Every issue MUST have a milestone assigned before branch creation. Verify: `gh issue view <number> --json milestone` returns non-null.
+- **PR inherits milestone**: Every PR MUST reference exactly one closing issue and MUST use the same milestone as that issue. Verify: compare `gh pr view <number> --json milestone` with `gh issue view <issue> --json milestone`.
+- **No exceptions**: Automation PRs, dependency bumps, docs PRs, and chore PRs are NOT exempt from milestone assignment. They go to the active maintenance milestone.
+
+#### Release Integrity
+
+- **One release = one milestone**: Each release MUST correspond to exactly one completed milestone. NEVER combine multiple milestone numbers or unreleased work into a single version bump, release commit, tag, or GitHub Release. Verify: all issues closed by the release PR belong to one milestone only.
+- **Version scheme is sacred**: Release versions MUST be `v0.N.0` (milestone releases) or `v0.N.P` (hotfixes). NEVER create `v1.x`, `-beta`, `-rc`, or any other version scheme without explicit user approval in the current conversation. Verify: version strings, tags, changelog headings, and release titles all match `v0.N.P`.
+- **Single bump at release time**: Version bump happens exactly once per milestone, at release time only. Verify: the release PR changes version files from the previous release to exactly one new `v0.N.0`.
+- **Run version check**: After updating version sources, MUST run `./scripts/check-versions.sh` and confirm exit code 0 before creating the release commit, tag, or GitHub Release.
+
+#### Anti-Precedent Rule
+
+- Historical commits, tags, releases, and previously accepted exceptions MUST NOT be treated as precedent when they conflict with current policy files. If a past batch release, non-standard tag, or skipped version exists in git history, that does NOT authorize repeating the pattern. Current `AGENTS.md`, `CONTRIBUTING.md`, and `docs/design/VERSION_POLICY.md` always win.
+
 ## Release Workflow
 
 When all issues in a milestone are closed, perform the following release steps:
