@@ -8,6 +8,32 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.44.0] — 2026-04-13
+
+**Milestone 44 — Maintenance & Polish**
+
+Documentation quality pass (version refs, provider claims, nav cleanup, onboarding screenshots) and packet flow UX improvements (screen-space sizing, chevron direction indicators, type pill labels, error pulse animation, WCAG contrast text, and Flow Focus mode).
+
+### Features
+
+- Add screen-space packet sizing with zoom compensation (#1773)
+- Add chevron direction indicators scaled to path length (#1773)
+- Add connection type pill labels on hover (#1773)
+- Add error pulse animation for invalid connections (#1773)
+- Add Flow Focus mode toggle in View menu (#1773)
+- Add WCAG-compliant contrast text color for connection labels (#1773)
+
+### Documentation
+
+- Update stale version references across all docs (#1767, #1768)
+- Harmonize provider support claims with backend-required boundaries (#1767)
+- Clean up MkDocs nav to separate archived and planned docs (#1769)
+- Improve beginner onboarding with screenshots, desktop notice, and role separation (#1770)
+
+### Statistics
+
+- 2 PRs merged
+
 ## [v0.43.0] — 2026-04-13
 
 **Milestone 43 — Landing Page Credibility & Sharing**
