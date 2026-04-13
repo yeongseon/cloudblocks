@@ -31,9 +31,14 @@ vi.mock('../../entities/block/BlockSprite', () => ({
   },
 }));
 vi.mock('../../entities/connection/ConnectionRenderer', () => ({
-  ConnectionRenderer: (props: { connectionId?: string }) => {
+  ConnectionRenderer: (props: { connectionId?: string; overlayMode?: string }) => {
     connectionRendererMock(props);
-    return <g data-testid={`connection-${props.connectionId}`} />;
+    return (
+      <g
+        data-testid={`connection-${props.connectionId}`}
+        data-overlay-mode={props.overlayMode ?? 'normal'}
+      />
+    );
   },
 }));
 vi.mock('../../entities/connection/ExternalActorSprite', () => ({
@@ -82,6 +87,7 @@ function setupStoreMocks() {
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
     const state = {
       setSelectedId: mockSetSelectedId,
+      selectedIds: new Set<string>(),
       clearSelection: mockClearSelection,
       setSelectedIds: mockSetSelectedIds,
       interactionState: mockInteractionState,
@@ -1226,5 +1232,86 @@ describe('SceneCanvas placement flows', () => {
     expect(world.style.transform).toBe(initialTransform);
     expect(mockSetCanvasZoom).not.toHaveBeenCalled();
     expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
+
+  describe('SceneCanvas selected-connection overlay', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockFitToContentRequested = false;
+      mockInteractionState = 'idle';
+      mockDraggedBlockCategory = null;
+      mockDraggedResourceName = null;
+      mockDraggedResourceType = null;
+      mockDraggedSubtype = null;
+      mockIsSoundMuted = true;
+      architecture.nodes = [];
+      architecture.connections = [];
+      setupStoreMocks();
+    });
+
+    it('splits selected connection across base and overlay layers with overlay mode', () => {
+      architecture.connections = [
+        {
+          id: 'sel-conn',
+          from: endpointId('a', 'output', 'data'),
+          to: endpointId('b', 'input', 'data'),
+          metadata: {},
+        },
+      ];
+
+      vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
+        const state = {
+          setSelectedId: mockSetSelectedId,
+          selectedIds: new Set(['sel-conn']),
+          clearSelection: mockClearSelection,
+          setSelectedIds: mockSetSelectedIds,
+          interactionState: mockInteractionState,
+          draggedBlockCategory: mockDraggedBlockCategory,
+          draggedResourceName: mockDraggedResourceName,
+          draggedResourceType: mockDraggedResourceType,
+          draggedSubtype: mockDraggedSubtype,
+          activeProvider: 'aws',
+          completeInteraction: mockCompleteInteraction,
+          setCanvasZoom: mockSetCanvasZoom,
+          fitToContentRequested: mockFitToContentRequested,
+          clearFitToContentRequest: mockClearFitToContentRequest,
+          isSoundMuted: mockIsSoundMuted,
+          gridStyle: 'paper' as const,
+          flowFocusMode: false,
+        };
+        return (selector as (s: typeof state) => unknown)(state);
+      }) as typeof useUIStore);
+
+      vi.mocked(useArchitectureStore).mockImplementation(((selector: unknown) => {
+        const state = {
+          workspace: { architecture },
+          addNode: mockAddNode,
+          moveExternalBlockPosition: mockMoveExternalBlockPosition,
+        };
+        return (selector as (s: typeof state) => unknown)(state);
+      }) as typeof useArchitectureStore);
+
+      render(<SceneCanvas />);
+
+      // Verify that ConnectionRenderer was called with the selected connection
+      // at least once with overlayMode='hit-only' (from base layer)
+      expect(
+        connectionRendererMock.mock.calls.some(
+          ([props]) =>
+            (props as { connectionId?: string; overlayMode?: string }).connectionId ===
+              'sel-conn' && (props as { overlayMode?: string }).overlayMode === 'hit-only',
+        ),
+      ).toBe(true);
+
+      // Verify that ConnectionRenderer was called with the selected connection
+      // at least once with overlayMode='visual-only' (from overlay layer)
+      expect(
+        connectionRendererMock.mock.calls.some(
+          ([props]) =>
+            (props as { connectionId?: string; overlayMode?: string }).connectionId ===
+              'sel-conn' && (props as { overlayMode?: string }).overlayMode === 'visual-only',
+        ),
+      ).toBe(true);
+    });
   });
 });

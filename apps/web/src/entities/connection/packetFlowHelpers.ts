@@ -1,5 +1,5 @@
 import type { ScreenPoint } from '../../shared/utils/isometric';
-import { MEDIUM_PATH_THRESHOLD, SHORT_PATH_THRESHOLD } from './packetFlowTokens';
+import { MEDIUM_PATH_THRESHOLD, PACKET_LENGTH, SHORT_PATH_THRESHOLD } from './packetFlowTokens';
 
 export type PacketFlowMode = 'static' | 'idle' | 'hover' | 'selected' | 'creation';
 
@@ -25,15 +25,23 @@ export function getPacketCount(totalLength: number, mode: PacketFlowMode): numbe
   const baseCount =
     totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 3;
 
-  if (mode === 'idle' || mode === 'hover') {
-    return Math.max(1, baseCount - 1);
+  let count = baseCount;
+
+  if (mode === 'selected') {
+    count = totalLength <= SHORT_PATH_THRESHOLD ? 2 : totalLength <= MEDIUM_PATH_THRESHOLD ? 3 : 4;
+  } else if (mode === 'hover') {
+    count = totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 3;
+  } else if (mode === 'idle') {
+    count = totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 2;
+  } else if (mode === 'creation') {
+    count = baseCount + 1;
   }
 
-  if (mode === 'creation') {
-    return baseCount + 1;
+  if (totalLength / count < PACKET_LENGTH * 2.2) {
+    count = Math.max(1, count - 1);
   }
 
-  return baseCount;
+  return count;
 }
 
 export function getPositionAtDistance(

@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import type { Connection } from '@cloudblocks/schema';
-import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
 import { useUIStore } from '../../entities/store/uiStore';
 
@@ -9,6 +8,12 @@ interface ConnectionAnimationLayerProps {
   originX: number;
   originY: number;
   overlapOffsets: ReadonlyMap<string, number>;
+  elapsed: number;
+  reducedMotion: boolean;
+  selectedConnectionIds?: ReadonlySet<string>;
+  className?: string;
+  pointerEvents?: 'auto' | 'none';
+  overlayMode?: 'normal' | 'visual-only' | 'hit-only';
 }
 
 export const ConnectionAnimationLayer = memo(function ConnectionAnimationLayer({
@@ -16,17 +21,22 @@ export const ConnectionAnimationLayer = memo(function ConnectionAnimationLayer({
   originX,
   originY,
   overlapOffsets,
+  elapsed,
+  reducedMotion,
+  selectedConnectionIds,
+  className = 'connection-layer',
+  pointerEvents = 'auto',
+  overlayMode = 'normal',
 }: ConnectionAnimationLayerProps) {
-  const hasAnyActiveConnection = connections.length > 0;
-  const { elapsed, reducedMotion } = useAnimationClock(hasAnyActiveConnection);
   const flowFocusMode = useUIStore((s) => s.flowFocusMode);
 
   return (
     <svg
-      className={`connection-layer${flowFocusMode ? ' flow-focus-active' : ''}`}
-      style={{ width: 1, height: 1 }}
+      className={`${className}${flowFocusMode && className === 'connection-layer' ? ' flow-focus-active' : ''}`}
+      style={{ width: 1, height: 1, pointerEvents }}
+      {...(overlayMode === 'visual-only' ? { 'aria-hidden': true } : {})}
     >
-      <title>Connections</title>
+      {overlayMode !== 'visual-only' && <title>Connections</title>}
       {connections.map((conn) => (
         <ConnectionRenderer
           key={conn.id}
@@ -37,6 +47,11 @@ export const ConnectionAnimationLayer = memo(function ConnectionAnimationLayer({
           overlapOffset={overlapOffsets.get(conn.id) ?? 0}
           elapsed={elapsed}
           reducedMotion={reducedMotion}
+          overlayMode={
+            overlayMode === 'normal' && selectedConnectionIds?.has(conn.id)
+              ? 'hit-only'
+              : overlayMode
+          }
         />
       ))}
     </svg>

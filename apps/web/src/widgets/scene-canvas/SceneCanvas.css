@@ -158,6 +158,15 @@
   left: 0;
   pointer-events: auto;
   overflow: visible;
+  z-index: 5;
+}
+
+.selected-connection-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
   z-index: 4;
 }
 
@@ -231,6 +240,6 @@
   border: 1.5px dashed var(--provider-accent, #4a9eff);
   background: rgba(74, 158, 255, 0.08);
   pointer-events: none;
-  z-index: 10;
+  z-index: 11;
   border-radius: 2px;
 }

@@ -1,22 +1,22 @@
 import type { ConnectionType } from '@cloudblocks/schema';
 
 export const PACKET_SPEED_MS = 2600;
-export const PACKET_LENGTH = 12;
-export const PACKET_WIDTH = 5;
-export const PACKET_TAIL_LENGTH = 14;
+export const PACKET_LENGTH = 16;
+export const PACKET_WIDTH = 6;
+export const PACKET_TAIL_LENGTH = 18;
 
 export const SHORT_PATH_THRESHOLD = 80;
 export const MEDIUM_PATH_THRESHOLD = 180;
 
 export const PACKET_OPACITY = {
-  idle: 0.42,
-  hover: 0.5,
-  selected: 0.8,
+  idle: 0.56,
+  hover: 0.72,
+  selected: 0.95,
   creation: 1.0,
 } as const;
 
-export const IDLE_CYCLE_MS = 3600;
-export const PACKET_SELECTED_SCALE = 1.35;
+export const IDLE_CYCLE_MS = 3200;
+export const PACKET_SELECTED_SCALE = 1.2;
 
 export const PACKET_COLOR = '#22d3ee';
 
