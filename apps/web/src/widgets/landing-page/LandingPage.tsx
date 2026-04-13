@@ -33,8 +33,9 @@ export function LandingPage() {
             Start from guided templates. Learn by editing. Export Terraform starter code.
           </h1>
           <p className="landing-hero-subtitle">
-            CloudBlocks is a visual cloud learning tool for beginners — pick a template, understand
-            the architecture pattern, and export Terraform starter code. No cloud account required.
+            CloudBlocks is a visual cloud learning tool for beginners — start with Azure-first
+            templates, learn architecture patterns, and export Terraform starter code. No cloud
+            account required.
           </p>
           <img
             src={`${import.meta.env.BASE_URL}hero-illustration.svg`}
@@ -44,9 +45,11 @@ export function LandingPage() {
             height="360"
           />
           <div className="landing-hero-badges">
-            <span className="landing-hero-badge">Guided templates</span>
+            <span className="landing-hero-badge">Azure-first templates</span>
             <span className="landing-hero-badge">Guided learning scenarios</span>
-            <span className="landing-hero-badge">Terraform starter export</span>
+            <span className="landing-hero-badge">
+              Terraform export &middot; Azure-native &middot; AWS &amp; GCP preview
+            </span>
           </div>
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
             Get Started
@@ -93,6 +96,7 @@ export function LandingPage() {
                   <h3 className="landing-template-card-name">{template.name}</h3>
                   <p className="landing-template-card-desc">{template.description}</p>
                   <div className="landing-template-card-tags">
+                    <span className="landing-template-provider-badge">Azure</span>
                     {template.tags.slice(0, 3).map((tag) => (
                       <span key={tag} className="landing-template-tag">
                         {tag}
