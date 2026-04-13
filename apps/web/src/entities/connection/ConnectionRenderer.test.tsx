@@ -452,6 +452,48 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
   });
 
+  it('renders hover-equivalent packet visuals on keyboard focus', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
+  });
+
+  it('renders glow outline on keyboard focus with reduced opacity', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+
+    const focusOutline = container.querySelector('[data-layer="selection-outline"]');
+    expect(focusOutline).toBeInTheDocument();
+    expect(focusOutline?.getAttribute('stroke')).toBe('var(--provider-accent-glow)');
+    expect(focusOutline?.getAttribute('stroke-opacity')).toBe('0.7');
+  });
+
+  it('removes highlight state on blur after keyboard focus', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    fireEvent.blur(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+  });
+
+  it('renders accessible label on SVG link', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    expect(link?.getAttribute('aria-label')).toContain('Connection');
+  });
+
   it('renders arrow marker definition with correct attributes', () => {
     const { container } = renderConnector();
     const marker = container.querySelector('[data-testid="connection-arrow-marker"]');
@@ -714,6 +756,34 @@ describe('ConnectionRenderer', () => {
       expect(trace?.getAttribute('stroke-width')).toBe('2.5');
       expect(casing?.getAttribute('stroke-width')).toBe('5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+    });
+
+    it('uses consistent dataflow fallback across all visual layers for invalid type', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-invalid-type',
+        metadata: { ...connection.metadata, type: 'toString' },
+      };
+
+      const { container } = renderConnector(conn);
+      const rootGroup = container.querySelector('g');
+      const trace = container.querySelector('[data-testid="connection-trace"]');
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+
+      // data-connector-type falls back consistently (not raw invalid string)
+      const connectorType = rootGroup?.getAttribute('data-connector-type');
+      expect(connectorType).not.toBe('toString');
+
+      // Trace/casing widths match dataflow defaults (strokeWidth=2.5)
+      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('5');
+      expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+
+      // Packet flow uses dataflow semantic color, not generic cyan
+      const packetCore = container.querySelector('[data-layer="packet-core"]');
+      expect(packetCore).toBeInTheDocument();
+      // Dataflow core color is #FCD34D
+      expect(packetCore?.getAttribute('fill')).toBe('#FCD34D');
     });
 
     it('selection outline width scales with type-specific casing width', () => {

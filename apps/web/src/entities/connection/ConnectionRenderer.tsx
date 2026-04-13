@@ -443,9 +443,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${resolvedConnection.id}`;
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
-  const rawConnectionType = resolvedConnection.metadata?.type;
-  const resolvedConnectionType =
-    typeof rawConnectionType === 'string' ? rawConnectionType : 'dataflow';
+  const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -483,6 +481,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
+        aria-label={connectionLabel}
       >
         <path
           d={hitPath}
@@ -531,7 +532,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         <PacketFlowLayer
           hitPoints={hitPoints}
           mode={packetMode}
-          connectionType={resolvedConnectionType}
+          connectionType={connectionType ?? 'dataflow'}
           elapsed={packetElapsed}
           reducedMotion={reducedMotion}
         />
