@@ -500,8 +500,10 @@ describe('ConnectionRenderer', () => {
     fireEvent.mouseEnter(hitArea);
     fireEvent.mouseLeave(hitArea);
 
-    // Highlight should remain because focus is still active
+    // Highlight and hover-mode packets should remain because focus is still active
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    const packetCore = container.querySelector('[data-layer="packet-core"]');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
   });
 
   it('maintains highlight when blur fires but hover remains', () => {
@@ -517,8 +519,10 @@ describe('ConnectionRenderer', () => {
     fireEvent.focus(link);
     fireEvent.blur(link);
 
-    // Highlight should remain because hover is still active
+    // Highlight and hover-mode packets should remain because hover is still active
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    const packetCore = container.querySelector('[data-layer="packet-core"]');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
   });
 
   it('removes highlight only when both hover and focus clear', () => {
@@ -531,9 +535,12 @@ describe('ConnectionRenderer', () => {
     fireEvent.focus(link);
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
-    // Remove hover — focus still keeps highlight
+    // Remove hover — focus still keeps highlight and hover-mode packets
     fireEvent.mouseLeave(hitArea);
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
 
     // Remove focus — now highlight should be gone
     fireEvent.blur(link);
@@ -665,6 +672,28 @@ describe('ConnectionRenderer', () => {
       fireEvent.mouseEnter(
         container.querySelector('[data-testid="connection-hit-area"]') as Element,
       );
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('shows validation error label on keyboard focus for invalid connections', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [
+            {
+              ruleId: 'surface-rule',
+              message: 'Surface route is invalid',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
+          warnings: [],
+        },
+      });
+
+      const { container } = renderConnector();
+      const link = container.querySelector('a') as Element;
+      fireEvent.focus(link);
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
     });
 

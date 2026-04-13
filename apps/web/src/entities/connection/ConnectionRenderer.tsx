@@ -593,7 +593,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       )}
 
       {hasValidationError &&
-        (isHovered || isSelected) &&
+        isHighlighted &&
         (() => {
           if (!labelPos) return null;
           const msg = connectionErrors[0].message;
