@@ -37,7 +37,7 @@ export function LandingPage() {
             the architecture pattern, and export Terraform starter code. No cloud account required.
           </p>
           <img
-            src="/hero-illustration.svg"
+            src={`${import.meta.env.BASE_URL}hero-illustration.svg`}
             alt="Isometric cloud architecture diagram showing container blocks, resource blocks, and connections"
             className="landing-hero-illustration"
             width="640"
