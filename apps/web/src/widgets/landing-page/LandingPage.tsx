@@ -36,6 +36,13 @@ export function LandingPage() {
             CloudBlocks is a visual cloud learning tool for beginners — pick a template, understand
             the architecture pattern, and export Terraform starter code. No cloud account required.
           </p>
+          <img
+            src={`${import.meta.env.BASE_URL}hero-illustration.svg`}
+            alt="Isometric cloud architecture diagram showing container blocks, resource blocks, and connections"
+            className="landing-hero-illustration"
+            width="640"
+            height="360"
+          />
           <div className="landing-hero-badges">
             <span className="landing-hero-badge">Guided templates</span>
             <span className="landing-hero-badge">Guided learning scenarios</span>
@@ -44,6 +51,7 @@ export function LandingPage() {
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
             Get Started
           </button>
+          <p className="landing-hero-hint">Best experienced on desktop</p>
         </section>
 
         <section className="landing-how-it-works">

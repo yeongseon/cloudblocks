@@ -199,6 +199,19 @@
   padding: 6px 14px;
   font-weight: 500;
 }
+.landing-hero-illustration {
+  display: block;
+  margin: 32px auto 0;
+  max-width: 640px;
+  width: 100%;
+  height: auto;
+}
+
+.landing-hero-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
 
 .landing-how-it-works {
   padding: 48px 24px;
@@ -272,5 +285,9 @@
 
   .landing-how-steps {
     grid-template-columns: 1fr;
+  }
+
+  .landing-hero-illustration {
+    max-width: 100%;
   }
 }
