@@ -85,7 +85,7 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 | **Validation Engine**        | Real-time rule checking for placement, connections, and constraints         |
 | **8 Resource Categories**    | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
 | **Terraform Starter Export** | Export your design to Terraform starter code for Azure, AWS, or GCP            |
-| **Multi-Cloud Support**      | Azure-first design with mapped preview for AWS and GCP ([details](user-guide/provider-support.md)) |
+| **Multi-Cloud Support**      | Azure-first templates with Terraform starter code for Azure, AWS, and GCP ([details](user-guide/provider-support.md)) |
 | **Dual Theme System**        | Workshop (light) and Blueprint (dark) themes                                |
 | **Bicep & Pulumi**           | Additional IaC export formats _(Experimental, Azure only)_                     |
 

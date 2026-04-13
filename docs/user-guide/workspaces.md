@@ -53,8 +53,8 @@ This lets you share architectures between browsers or back up your work.
 
 ## GitHub Sync _(Backend Required)_
 
-!!! note "Advanced Feature"
-    GitHub sync requires the optional Python backend. See [Setup Guide](../guides/TUTORIALS.md) for backend installation.
+!!! note "Backend Required"
+    GitHub sync requires the CloudBlocks backend (`apps/api`). See the [Quick Start](quick-start.md) for local setup and the [Architecture overview](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer) for backend details.
 
 With the backend running, you can:
 

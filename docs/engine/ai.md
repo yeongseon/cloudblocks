@@ -10,4 +10,4 @@
 > For the current backend architecture overview, see the Backend Layer section in
 > [ARCHITECTURE.md](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer).
 
-**Original status**: Implemented (Milestone 14), verified against v0.26.0.
+**Original status**: Implemented (Milestone 14). This document is archived and no longer version-tracked.

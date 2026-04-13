@@ -5,7 +5,7 @@
 **Status**: Active
 **Date**: 2026-03
 **Supersedes**: Visual styling sections of BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md
-**Related**: [CLOUDBLOCKS_SPEC_V2.md](CLOUDBLOCKS_SPEC_V2.md) §7 (Color System), [ADR-0011](../adr/0011-dual-theme-system.md)
+**Related**: CLOUDBLOCKS_SPEC_V2.md §7 (Color System — historical, excluded from public nav), [ADR-0011](../adr/0011-dual-theme-system.md)
 
 ---
 
@@ -250,7 +250,7 @@ export const motion = {
 
 ### 4.1 Principle: Theme Does Not Own Resource Colors
 
-Resource block colors are **provider-identity colors**, not theme tokens. They are defined in [CLOUDBLOCKS_SPEC_V2.md §7](CLOUDBLOCKS_SPEC_V2.md#7-color-system) and are invariant across themes.
+Resource block colors are **provider-identity colors**, not theme tokens. They are defined in CLOUDBLOCKS_SPEC_V2.md §7 (historical, excluded from public nav) and are invariant across themes.
 
 | Provider | Brand Primary                               | Source                  |
 | -------- | ------------------------------------------- | ----------------------- |
@@ -568,4 +568,4 @@ This requires 4 token sets instead of 2 but uses the same `ThemeTokens` interfac
 
 ---
 
-_This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see [CLOUDBLOCKS_SPEC_V2.md §7](CLOUDBLOCKS_SPEC_V2.md#7-color-system). For the architectural decision record, see [ADR-0011](../adr/0011-dual-theme-system.md)._
+_This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see CLOUDBLOCKS_SPEC_V2.md §7 (historical, excluded from public nav). For the architectural decision record, see [ADR-0011](../adr/0011-dual-theme-system.md)._

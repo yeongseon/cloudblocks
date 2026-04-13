@@ -424,7 +424,7 @@ interface ValidationError {
 
 Blocks use **visual characteristics** to communicate function in the isometric view.
 
-> **Canonical specification**: For detailed SVG specs and pixel dimensions, see [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md).
+> **Canonical specification**: For detailed SVG specs and pixel dimensions, see CLOUDBLOCKS_SPEC_V2.md (historical, excluded from public nav).
 
 ### 2-Layer Visual Hierarchy
 

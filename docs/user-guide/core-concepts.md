@@ -115,8 +115,8 @@ Workspaces allow you to manage multiple projects independently.
 - **Storage**: Saved automatically to your browser's local storage.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
-!!! note "GitHub Sync"
-    GitHub sync requires the optional Python backend. See [Setup Guide](../guides/TUTORIALS.md) for backend installation.
+!!! note "Backend Required"
+    GitHub sync requires the CloudBlocks backend (`apps/api`). See the [Quick Start](quick-start.md) for local setup and the [Architecture overview](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer) for backend details.
 
 ---
 
