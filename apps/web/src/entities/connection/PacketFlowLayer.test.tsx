@@ -5,9 +5,11 @@ import { getPacketCount, getPositionAtDistance } from './packetFlowHelpers';
 import {
   IDLE_CYCLE_MS,
   MEDIUM_PATH_THRESHOLD,
+  PACKET_SELECTED_SCALE,
   PACKET_SPEED_MS,
   SHORT_PATH_THRESHOLD,
 } from './packetFlowTokens';
+import type { ScreenPoint } from '../../shared/utils/isometric';
 
 const useAnimationClockMock = vi.fn(() => ({ elapsed: 0, reducedMotion: false }));
 
@@ -16,6 +18,11 @@ vi.mock('../../shared/hooks/useAnimationClock', () => ({
 }));
 
 const hitPoints = [
+  { x: 0, y: 0 },
+  { x: 200, y: 0 },
+];
+
+const straightLine: ScreenPoint[] = [
   { x: 0, y: 0 },
   { x: 200, y: 0 },
 ];
@@ -38,6 +45,103 @@ function extractTranslateX(transform: string): number {
 }
 
 describe('PacketFlowLayer', () => {
+  describe('packet flow oracle findings coverage', () => {
+    it('renders packet-flow-layer with data-connection-type in active mode', () => {
+      const { container } = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer hitPoints={straightLine} mode="idle" connectionType="http" />
+        </svg>,
+      );
+
+      const layer = container.querySelector('[data-testid="packet-flow-layer"]');
+      expect(layer).toBeInTheDocument();
+      expect(layer?.getAttribute('data-connection-type')).toBe('http');
+    });
+
+    it('scales static chevron count by path length in reduced motion mode', () => {
+      const shortPath: ScreenPoint[] = [
+        { x: 0, y: 0 },
+        { x: 120, y: 0 },
+      ];
+      const longPath: ScreenPoint[] = [
+        { x: 0, y: 0 },
+        { x: 400, y: 0 },
+      ];
+
+      const shortRender = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer
+            hitPoints={shortPath}
+            mode="selected"
+            connectionType="dataflow"
+            reducedMotion={true}
+          />
+        </svg>,
+      );
+      const shortCount = shortRender.container.querySelectorAll(
+        '[data-testid="packet-direction-chevron"]',
+      ).length;
+      shortRender.unmount();
+
+      const longRender = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer
+            hitPoints={longPath}
+            mode="selected"
+            connectionType="dataflow"
+            reducedMotion={true}
+          />
+        </svg>,
+      );
+      const longCount = longRender.container.querySelectorAll(
+        '[data-testid="packet-direction-chevron"]',
+      ).length;
+
+      expect(shortCount).toBe(1);
+      expect(longCount).toBeGreaterThan(shortCount);
+    });
+
+    it('applies inverse zoom compensation scale when canvasZoom is below 1', () => {
+      const { container } = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer
+            hitPoints={straightLine}
+            mode="hover"
+            connectionType="dataflow"
+            elapsed={100}
+            canvasZoom={0.5}
+          />
+        </svg>,
+      );
+
+      const packet = container.querySelector('[data-testid="packet-flow-packet"]');
+      expect(packet).toBeInTheDocument();
+      expect(packet?.getAttribute('transform')).toContain('scale(2)');
+    });
+
+    it('applies PACKET_SELECTED_SCALE when mode is selected', () => {
+      const { container } = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer
+            hitPoints={straightLine}
+            mode="selected"
+            connectionType="dataflow"
+            elapsed={100}
+          />
+        </svg>,
+      );
+
+      const packet = container.querySelector('[data-testid="packet-flow-packet"]');
+      expect(packet).toBeInTheDocument();
+      expect(packet?.getAttribute('transform')).toContain(`scale(${PACKET_SELECTED_SCALE})`);
+    });
+  });
+
   it('returns null in static mode', () => {
     const { container } = renderLayer('static');
 

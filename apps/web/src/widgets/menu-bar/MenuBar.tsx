@@ -33,6 +33,7 @@ import {
   PanelLeft,
   BookMarked,
   Search,
+  Focus,
   Volume2,
   VolumeX,
   Moon,
@@ -416,6 +417,8 @@ export function MenuBar() {
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
   const setBackendStatus = useUIStore((s) => s.setBackendStatus);
   const diffMode = useUIStore((s) => s.diffMode);
+  const flowFocusMode = useUIStore((s) => s.flowFocusMode);
+  const toggleFlowFocusMode = useUIStore((s) => s.toggleFlowFocusMode);
   const drawer = useUIStore((s) => s.drawer);
   const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useArchitectureStore((s) => s.activeScenario);
@@ -948,6 +951,18 @@ export function MenuBar() {
             <span className="menu-item-left">
               {diffMode ? <span aria-hidden="true">✓ </span> : ''}
               <GitCompare size={14} /> Diff View
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitemcheckbox"
+            aria-checked={flowFocusMode}
+            onClick={() => handleAction(toggleFlowFocusMode)}
+          >
+            <span className="menu-item-left">
+              {flowFocusMode ? <span aria-hidden="true">✓ </span> : '  '}
+              <Focus size={14} /> Flow Focus
             </span>
           </button>
 

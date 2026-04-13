@@ -36,6 +36,7 @@ import { getConnectionColorsForType } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
 import { PacketFlowLayer } from './PacketFlowLayer';
+import { contrastTextColor } from './contrastTextColor';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -270,6 +271,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   );
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
+  const canvasZoom = useUIStore((s) => s.canvasZoom);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const creationBurstExpiry = useUIStore((state) =>
@@ -457,7 +459,11 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
-    <g opacity={colors.opacity} data-connector-type={connectionType ?? 'dataflow'}>
+    <g
+      opacity={colors.opacity}
+      data-connector-type={connectionType ?? 'dataflow'}
+      data-selected={isSelected ? 'true' : undefined}
+    >
       {/* Arrow marker definition — one per connection for semantic color */}
       <defs>
         <marker
@@ -536,6 +542,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           connectionType={connectionType ?? 'dataflow'}
           elapsed={packetElapsed}
           reducedMotion={reducedMotion}
+          canvasZoom={canvasZoom}
         />
       )}
 
@@ -580,6 +587,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
       {hasValidationError && (
         <path
+          className="connection-error-pulse"
           d={hitPath}
           stroke="var(--accent-error, #ef4444)"
           strokeWidth={3}
@@ -624,6 +632,41 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                 style={{ pointerEvents: 'none' }}
               >
                 {msg.length > 35 ? msg.slice(0, 32) + '\u2026' : msg}
+              </text>
+            </g>
+          );
+        })()}
+
+      {isHighlighted &&
+        !hasValidationError &&
+        labelPos &&
+        (() => {
+          const typeLabel = connectionType ?? 'dataflow';
+          const rectWidth = typeLabel.length * 6.5 + 12;
+          const rectHeight = 18;
+
+          return (
+            <g data-testid="connection-type-label" pointerEvents="none">
+              <rect
+                x={labelPos.x - rectWidth / 2}
+                y={labelPos.y - rectHeight - 4}
+                width={rectWidth}
+                height={rectHeight}
+                rx={8}
+                fill={colors.stroke}
+                fillOpacity={0.85}
+              />
+              <text
+                x={labelPos.x}
+                y={labelPos.y - rectHeight / 2 - 4 + 1}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={contrastTextColor(colors.stroke)}
+                fontSize={10}
+                fontFamily="var(--font-ui, system-ui)"
+                style={{ pointerEvents: 'none' }}
+              >
+                {typeLabel}
               </text>
             </g>
           );

@@ -7,6 +7,7 @@ import {
   PACKET_COLOR,
   PACKET_LENGTH,
   PACKET_OPACITY,
+  PACKET_SELECTED_SCALE,
   PACKET_SPEED_MS,
   PACKET_TAIL_LENGTH,
   PACKET_WIDTH,
@@ -22,6 +23,7 @@ interface PacketFlowLayerProps {
   connectionType: string;
   elapsed?: number;
   reducedMotion?: boolean;
+  canvasZoom?: number;
 }
 
 /** Resolve semantic two-layer colors for a connection type. */
@@ -40,8 +42,9 @@ function renderStaticDirectionGlyphs(
 ): React.ReactElement | null {
   if (segments.length === 0 || totalLength <= 0) return null;
 
-  // Place 1 chevron at 60% for short paths, 2 at 33%/66% for longer paths
-  const positions = totalLength <= 120 ? [0.6] : [0.33, 0.66];
+  const CHEVRON_SPACING = 80;
+  const count = Math.max(1, Math.floor(totalLength / CHEVRON_SPACING));
+  const positions = Array.from({ length: count }, (_, i) => (i + 1) / (count + 1));
 
   return (
     <>
@@ -79,6 +82,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   connectionType,
   elapsed: externalElapsed,
   reducedMotion: externalReducedMotion,
+  canvasZoom,
 }: PacketFlowLayerProps) {
   const fallbackClock = useAnimationClock(
     externalElapsed === undefined && mode !== 'static' && hitPoints.length > 1,
@@ -148,9 +152,15 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   const halfWid = PACKET_WIDTH / 2;
   const glowHalfLen = halfLen + 2;
   const glowHalfWid = halfWid + 1.5;
+  const selectedScale = mode === 'selected' ? PACKET_SELECTED_SCALE : 1;
+  const zoomCompensationScale =
+    canvasZoom !== undefined && canvasZoom < 1 ? 1 / Math.max(canvasZoom, 0.1) : 1;
+  const packetScale = selectedScale * zoomCompensationScale;
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
+      {(mode === 'selected' || mode === 'hover') &&
+        renderStaticDirectionGlyphs(segments, totalLength, packetColors)}
       {Array.from({ length: packetCount }, (_, index) => {
         const phaseOffset = (index / packetCount) * effectiveSpeed;
         const rawProgress = (elapsed + phaseOffset) / effectiveSpeed;
@@ -170,7 +180,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
         return (
           <g
             key={`packet-${phaseOffset}`}
-            transform={`translate(${position.x} ${position.y}) rotate(${position.angle})`}
+            transform={`translate(${position.x} ${position.y}) rotate(${position.angle})${packetScale !== 1 ? ` scale(${packetScale})` : ''}`}
             pointerEvents="none"
             data-testid="packet-flow-packet"
           >

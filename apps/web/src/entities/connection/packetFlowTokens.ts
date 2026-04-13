@@ -16,6 +16,7 @@ export const PACKET_OPACITY = {
 } as const;
 
 export const IDLE_CYCLE_MS = 3600;
+export const PACKET_SELECTED_SCALE = 1.35;
 
 export const PACKET_COLOR = '#22d3ee';
 
