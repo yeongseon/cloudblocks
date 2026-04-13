@@ -54,7 +54,7 @@ This lets you share architectures between browsers or back up your work.
 ## GitHub Sync _(Backend Required)_
 
 !!! note "Backend Required"
-    GitHub sync requires the CloudBlocks backend (`apps/api`). See the [Quick Start](quick-start.md) for local setup and the [Architecture overview](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer) for backend details.
+    GitHub sync requires the CloudBlocks backend (`apps/api`). Run `cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload` after following the [Quick Start](quick-start.md) setup.
 
 With the backend running, you can:
 

@@ -56,7 +56,7 @@ Yes. You can exit Learning Mode at any time and keep the architecture you have b
 
 ### What cloud providers are supported?
 
-Azure is the active provider with full resource coverage across all 8 categories. AWS and GCP tabs are visible in the menu bar but marked Coming Soon. The code generation engine supports all three providers for Terraform output.
+Azure is the default provider with full resource coverage across all 8 categories. AWS and GCP are available via the provider tabs in the menu bar — resource names map to each cloud's terminology and Terraform starter export works for all three. See [Provider Support](provider-support.md) for coverage details.
 
 ### What are the 8 resource categories?
 

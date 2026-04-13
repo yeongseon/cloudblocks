@@ -90,11 +90,11 @@ Templates provide pre-configured architecture patterns to help you learn common 
 
 CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically.
 
-- **Azure**: Full resource coverage across all 8 categories (active).
-- **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS). _(Coming Soon)_
-- **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage). _(Coming Soon)_
+- **Azure**: Full resource coverage across all 8 categories (default provider).
+- **AWS**: Mapped resource names (VPC, EC2, Lambda, S3, RDS) with Terraform starter export.
+- **GCP**: Mapped resource names (Compute Engine, Cloud Functions, Cloud Storage) with Terraform starter export.
 
-Azure is the default active provider. AWS and GCP tabs are visible in the menu bar but marked Coming Soon.
+Azure is the default active provider. Switch providers via the provider tabs in the menu bar. See [Provider Support](provider-support.md) for coverage details.
 
 ---
 
@@ -116,7 +116,7 @@ Workspaces allow you to manage multiple projects independently.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
 !!! note "Backend Required"
-    GitHub sync requires the CloudBlocks backend (`apps/api`). See the [Quick Start](quick-start.md) for local setup and the [Architecture overview](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer) for backend details.
+    GitHub sync requires the CloudBlocks backend (`apps/api`). Run `cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload` after following the [Quick Start](quick-start.md) setup.
 
 ---
 
