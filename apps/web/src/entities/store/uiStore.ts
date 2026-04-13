@@ -283,6 +283,9 @@ interface UIState {
   /** Zoom level reported by SceneCanvas, used for auto label density */
   canvasZoom: number;
   setCanvasZoom: (zoom: number) => void;
+  flowFocusMode: boolean;
+  toggleFlowFocusMode: () => void;
+  setFlowFocusMode: (on: boolean) => void;
   fitToContentRequested: boolean;
   requestFitToContent: () => void;
   clearFitToContentRequest: () => void;
@@ -843,6 +846,9 @@ export const useUIStore = create<UIState>((set, get) => {
           labelMode: effectiveLabelMode,
         };
       }),
+    flowFocusMode: false,
+    toggleFlowFocusMode: () => set((s) => ({ flowFocusMode: !s.flowFocusMode })),
+    setFlowFocusMode: (on) => set({ flowFocusMode: on }),
     fitToContentRequested: false,
     requestFitToContent: () => set({ fitToContentRequested: true }),
     clearFitToContentRequest: () => set({ fitToContentRequested: false }),

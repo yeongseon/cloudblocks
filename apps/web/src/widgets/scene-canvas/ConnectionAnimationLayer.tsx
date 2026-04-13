@@ -2,6 +2,7 @@ import { memo } from 'react';
 import type { Connection } from '@cloudblocks/schema';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
+import { useUIStore } from '../../entities/store/uiStore';
 
 interface ConnectionAnimationLayerProps {
   connections: readonly Connection[];
@@ -18,9 +19,13 @@ export const ConnectionAnimationLayer = memo(function ConnectionAnimationLayer({
 }: ConnectionAnimationLayerProps) {
   const hasAnyActiveConnection = connections.length > 0;
   const { elapsed, reducedMotion } = useAnimationClock(hasAnyActiveConnection);
+  const flowFocusMode = useUIStore((s) => s.flowFocusMode);
 
   return (
-    <svg className="connection-layer" style={{ width: 1, height: 1 }}>
+    <svg
+      className={`connection-layer${flowFocusMode ? ' flow-focus-active' : ''}`}
+      style={{ width: 1, height: 1 }}
+    >
       <title>Connections</title>
       {connections.map((conn) => (
         <ConnectionRenderer

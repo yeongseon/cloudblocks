@@ -122,6 +122,16 @@
   z-index: 1;
 }
 
+.flow-focus-active > g {
+  opacity: 0.18;
+  transition: opacity 150ms ease-out;
+}
+
+.flow-focus-active > g:is(:hover, :focus-within) {
+  opacity: 1;
+  transition: opacity 80ms ease-out;
+}
+
 /* P4: Flow-priority layering — dim neighbors when a connection is hovered */
 .connection-layer:has(a:is(:hover, :focus-visible)) > g {
   opacity: 0.18;
@@ -134,6 +144,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .flow-focus-active > g,
+  .flow-focus-active > g:is(:hover, :focus-within),
   .connection-layer:has(a:is(:hover, :focus-visible)) > g,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
     transition: none;
@@ -173,6 +185,22 @@
   }
 }
 
+@keyframes connection-error-pulse {
+  0%,
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 3;
+  }
+  50% {
+    stroke-opacity: 0.5;
+    stroke-width: 4;
+  }
+}
+
+.connection-error-pulse {
+  animation: connection-error-pulse 1.2s ease-in-out infinite;
+}
+
 /* ── Accessibility ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   @keyframes connector-draw-in {
@@ -190,6 +218,10 @@
     to {
       stroke-opacity: 0;
     }
+  }
+
+  .connection-error-pulse {
+    animation: none;
   }
 }
 
