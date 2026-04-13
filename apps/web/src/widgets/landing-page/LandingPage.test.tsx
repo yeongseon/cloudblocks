@@ -6,10 +6,14 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { LandingPage } from './LandingPage';
 
 const listTemplatesMock = vi.fn();
+const getScenarioMock = vi.fn();
 
 vi.mock('./LandingPage.css', () => ({}));
 vi.mock('../../features/templates/registry', () => ({
   listTemplates: () => listTemplatesMock(),
+}));
+vi.mock('../../features/learning/scenarios/registry', () => ({
+  getScenario: (id: string) => getScenarioMock(id),
 }));
 
 describe('LandingPage', () => {
@@ -19,13 +23,45 @@ describe('LandingPage', () => {
         id: 't1',
         name: 'Template 1',
         description: 'Desc 1',
+        difficulty: 'beginner',
+        scenarioId: 'scenario-1',
         tags: ['a', 'b', 'c', 'd'],
         model: {},
       },
-      { id: 't2', name: 'Template 2', description: 'Desc 2', tags: ['e'], model: {} },
-      { id: 't3', name: 'Template 3', description: 'Desc 3', tags: ['f', 'g'], model: {} },
-      { id: 't4', name: 'Template 4', description: 'Desc 4', tags: ['h'], model: {} },
+      {
+        id: 't2',
+        name: 'Template 2',
+        description: 'Desc 2',
+        difficulty: 'intermediate',
+        scenarioId: 'scenario-2',
+        tags: ['e'],
+        model: {},
+      },
+      {
+        id: 't3',
+        name: 'Template 3',
+        description: 'Desc 3',
+        difficulty: 'advanced',
+        tags: ['f', 'g'],
+        model: {},
+      },
+      {
+        id: 't4',
+        name: 'Template 4',
+        description: 'Desc 4',
+        difficulty: 'beginner',
+        tags: ['h'],
+        model: {},
+      },
     ]);
+
+    getScenarioMock.mockImplementation((id: string) => {
+      const scenarios: Record<string, { estimatedMinutes: number }> = {
+        'scenario-1': { estimatedMinutes: 10 },
+        'scenario-2': { estimatedMinutes: 8 },
+      };
+      return scenarios[id] ?? undefined;
+    });
 
     useUIStore.setState({
       activeProvider: 'azure',
@@ -104,5 +140,34 @@ describe('LandingPage', () => {
     const templateCards = screen.getAllByText('Use This Template');
     const providerBadges = screen.getAllByText('Azure');
     expect(providerBadges).toHaveLength(templateCards.length);
+  });
+
+  it('shows difficulty badges on all template cards', () => {
+    render(<LandingPage />);
+
+    const templateCards = screen.getAllByRole('button', { name: 'Use This Template' });
+    const beginnerBadges = screen.getAllByText('beginner');
+    const intermediateBadges = screen.getAllByText('intermediate');
+    const advancedBadges = screen.getAllByText('advanced');
+
+    expect(templateCards).toHaveLength(4);
+    expect(beginnerBadges).toHaveLength(2);
+    expect(intermediateBadges).toHaveLength(1);
+    expect(advancedBadges).toHaveLength(1);
+  });
+
+  it('shows estimated time for templates with linked scenarios', () => {
+    render(<LandingPage />);
+
+    expect(screen.getByText('~10 min')).toBeInTheDocument();
+    expect(screen.getByText('~8 min')).toBeInTheDocument();
+  });
+
+  it('does not show time tag when template has no scenario', () => {
+    render(<LandingPage />);
+
+    // Templates t3 and t4 have no scenarioId — only 2 time tags should exist
+    const timeTags = screen.getAllByText(/~\d+ min/);
+    expect(timeTags).toHaveLength(2);
   });
 });

@@ -16,6 +16,8 @@ export interface ArchitectureTemplate {
   tags: string[];
   /** Compatible generator IDs (undefined = all generators) */
   generatorCompat?: GeneratorId[];
+  /** ID of the matching learning scenario (for enrichment display) */
+  scenarioId?: string;
   /** The architecture snapshot to instantiate */
   architecture: Omit<ArchitectureModel, 'id' | 'createdAt' | 'updatedAt'>;
 }

@@ -2,9 +2,17 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { syncWorkspaceUI } from '../../entities/store/uiSync';
 import { listTemplates } from '../../features/templates/registry';
+import { getScenario } from '../../features/learning/scenarios/registry';
 import type { ArchitectureTemplate } from '../../shared/types/template';
+import type { TemplateDifficulty } from '../../shared/types/template';
 import { LandingNavbar } from '../landing-navbar/LandingNavbar';
 import './LandingPage.css';
+
+const difficultyStyles: Record<TemplateDifficulty, { background: string; color: string }> = {
+  beginner: { background: '#dcfce7', color: '#166534' },
+  intermediate: { background: '#fff7ed', color: '#9a3412' },
+  advanced: { background: '#fef2f2', color: '#991b1b' },
+};
 
 export function LandingPage() {
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -93,6 +101,23 @@ export function LandingPage() {
             {templates.map((template) => (
               <div key={template.id} className="landing-template-card">
                 <div className="landing-template-card-body">
+                  <div className="landing-template-card-meta">
+                    <span
+                      className="landing-template-difficulty-badge"
+                      style={difficultyStyles[template.difficulty]}
+                    >
+                      {template.difficulty}
+                    </span>
+                    {template.scenarioId &&
+                      (() => {
+                        const scenario = getScenario(template.scenarioId);
+                        return scenario ? (
+                          <span className="landing-template-time-tag">
+                            ~{scenario.estimatedMinutes} min
+                          </span>
+                        ) : null;
+                      })()}
+                  </div>
                   <h3 className="landing-template-card-name">{template.name}</h3>
                   <p className="landing-template-card-desc">{template.description}</p>
                   <div className="landing-template-card-tags">
