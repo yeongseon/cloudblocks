@@ -8,6 +8,32 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.45.0] — 2026-04-14
+
+**Milestone 45 — Packet & Container Visual Tuning**
+
+Visual tuning pass for packet flow, container heights, and connection stacking. Packets are larger, brighter, and more numerous. Containers enforce proper hierarchy (VNet > Subnets). Connections are thicker and selected connections render above blocks in a dedicated overlay layer.
+
+### Added
+
+- Selected-connection overlay layer (z-index:4) renders above blocks for clear visual focus
+- Shared animation clock lifted to SceneCanvas for phase continuity across layers
+- StrictMode-safe entrance gate prevents draw-in/snap-flash replay on deselection
+- `aria-hidden` on visual-only overlay SVG for accessibility
+- 13 new tests: packet token assertions, overlay split, StrictMode regression, deselection lifecycle
+
+### Changed
+
+- Packet tokens: length 12→16, width 5→6, tail 14→18, scale 1.35→1.2
+- Packet opacity: idle 0.42→0.56, hover 0.5→0.72, selected 0.8→0.95
+- Packet count logic: selected 2/3/4, hover 1/2/3, idle 1/2/2 (with spacing guard)
+- Idle animation cycle: 3600ms→3200ms
+- Container heights: network/region 1.0→1.25, subnet 0.6→0.8
+- Connection stroke widths: dataflow 2.5→3.0, http 4→4.5, internal 3→3.5, data 2→2.5, async 2.25→2.75
+- Hover width offset: 1→1.25
+
+---
+
 ## [v0.44.0] — 2026-04-13
 
 **Milestone 44 — Maintenance & Polish**
