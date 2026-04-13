@@ -49,12 +49,16 @@ describe('PacketFlowLayer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
   });
 
-  it('returns null when reduced motion is enabled', () => {
+  it('renders static chevrons when reduced motion is enabled', () => {
     useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: true });
 
     const { container } = renderLayer('selected');
 
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-testid="packet-direction-chevron"]').length,
+    ).toBeGreaterThan(0);
+    expect(container.querySelector('[data-testid="packet-flow-packet"]')).not.toBeInTheDocument();
     useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: false });
   });
 
@@ -78,8 +82,8 @@ describe('PacketFlowLayer', () => {
     const packets = container.querySelectorAll('[data-testid="packet-flow-packet"]');
     expect(packets).toHaveLength(2);
 
-    const firstPacketGlow = packets[0]?.querySelector('path');
-    expect(firstPacketGlow).toHaveAttribute('fill-opacity', '0.25');
+    const firstPacketCore = packets[0]?.querySelectorAll('path')[1];
+    expect(firstPacketCore).toHaveAttribute('fill-opacity', '0.42');
   });
 
   it('idle mode uses slower speed', () => {

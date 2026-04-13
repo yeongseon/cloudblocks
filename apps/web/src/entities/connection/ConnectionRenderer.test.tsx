@@ -138,7 +138,11 @@ describe('ConnectionRenderer', () => {
         />
       </svg>,
     );
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-testid="packet-direction-chevron"]').length,
+    ).toBeGreaterThan(0);
+    expect(container.querySelector('[data-testid="packet-flow-packet"]')).not.toBeInTheDocument();
   });
 
   it('uses elapsed prop to determine packet position', () => {
@@ -205,10 +209,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetLayer).toBeInTheDocument();
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.5');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.5');
   });
 
   it('renders selected packet visuals when connection is selected', () => {
@@ -216,10 +220,10 @@ describe('ConnectionRenderer', () => {
 
     const { container } = renderConnector();
 
-    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetLayer).toBeInTheDocument();
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.8');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -228,8 +232,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('0.8');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -243,8 +249,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
   });
 
   it('creation mode renders packets even when external elapsed exceeds PACKET_SPEED_MS', () => {
@@ -274,8 +282,10 @@ describe('ConnectionRenderer', () => {
     // Packet flow layer should still render because creation elapsed is derived
     // from creationBurstExpiry, not the shared clock.
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
   });
 
   it('creation mode uses burst-local elapsed instead of shared clock elapsed', () => {
@@ -354,8 +364,10 @@ describe('ConnectionRenderer', () => {
 
     // Creation burst should still render — PacketFlowLayer falls back to internal clock
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetPaths = container
+      .querySelector('[data-testid="packet-flow-packet"]')
+      ?.querySelectorAll('path');
+    expect(packetPaths?.[1]?.getAttribute('fill-opacity')).toBe('1');
   });
 
   it('click in select mode sets selectedId to connection id', () => {

@@ -40,7 +40,7 @@ export const CASING_WIDTH_OFFSET = 2.5;
 export const HOVER_WIDTH_OFFSET = 1;
 
 /** Perpendicular offset (screen px) applied to each connection in an overlap group. */
-export const OVERLAP_OFFSET_PX = 5;
+export const OVERLAP_OFFSET_PX = 8;
 
 /**
  * Resolve the visual style for a connection type.
