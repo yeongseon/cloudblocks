@@ -16,7 +16,7 @@ dependencies = [
     "PyJWT>=2.8.0",
     "httpx>=0.27.0",
     "cryptography>=42.0.0",
-    "redis[hiredis]>=5.0.0",
+    "redis[hiredis]>=7.4.0",
 ]
 
 [project.urls]
