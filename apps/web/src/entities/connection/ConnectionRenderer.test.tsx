@@ -940,6 +940,14 @@ describe('ConnectionRenderer', () => {
     it('uses white text for dark label backgrounds', () => {
       expect(contrastTextColor('#1E293B')).toBe('#ffffff');
     });
+
+    it('extracts fallback hex from CSS var() strings', () => {
+      expect(contrastTextColor('var(--connection-http-stroke, #667894)')).toBe('#ffffff');
+    });
+
+    it('returns white for unparseable values', () => {
+      expect(contrastTextColor('rgb(100, 120, 148)')).toBe('#ffffff');
+    });
   });
 
   describe('validation overlay', () => {
