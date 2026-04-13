@@ -46,6 +46,7 @@ const threeTierTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['three-tier', 'web', 'gateway', 'database', 'beginner'],
+  scenarioId: 'scenario-three-tier',
   architecture: {
     name: 'Three-Tier Web App',
     version: '1',
@@ -230,6 +231,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['simple', 'compute', 'minimal', 'beginner'],
+  scenarioId: 'scenario-simple-compute',
   architecture: {
     name: 'Simple Compute',
     version: '1',
@@ -368,6 +370,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
   category: 'data-pipeline',
   difficulty: 'intermediate',
   tags: ['data', 'storage', 'database', 'private', 'intermediate'],
+  scenarioId: 'scenario-data-storage',
   architecture: {
     name: 'Data Storage Backend',
     version: '1',
@@ -555,6 +558,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
   category: 'serverless',
   difficulty: 'intermediate',
   tags: ['serverless', 'function', 'http', 'api', 'gateway'],
+  scenarioId: 'scenario-serverless-api',
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
     name: 'Serverless HTTP API',
@@ -741,6 +745,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   category: 'data-pipeline',
   difficulty: 'advanced',
   tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
+  scenarioId: 'scenario-event-pipeline',
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
     name: 'Event-Driven Pipeline',
@@ -930,6 +935,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
     'storage',
     'advanced',
   ],
+  scenarioId: 'scenario-full-stack',
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
     name: 'Full-Stack Web App',

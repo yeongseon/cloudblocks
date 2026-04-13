@@ -2,9 +2,17 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { syncWorkspaceUI } from '../../entities/store/uiSync';
 import { listTemplates } from '../../features/templates/registry';
+import { getScenario } from '../../features/learning/scenarios/registry';
 import type { ArchitectureTemplate } from '../../shared/types/template';
+import type { TemplateDifficulty } from '../../shared/types/template';
 import { LandingNavbar } from '../landing-navbar/LandingNavbar';
 import './LandingPage.css';
+
+const difficultyColors: Record<TemplateDifficulty, string> = {
+  beginner: '#34C759',
+  intermediate: '#FF9500',
+  advanced: '#FF3B30',
+};
 
 export function LandingPage() {
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -93,6 +101,23 @@ export function LandingPage() {
             {templates.map((template) => (
               <div key={template.id} className="landing-template-card">
                 <div className="landing-template-card-body">
+                  <div className="landing-template-card-meta">
+                    <span
+                      className="landing-template-difficulty-badge"
+                      style={{ backgroundColor: difficultyColors[template.difficulty] }}
+                    >
+                      {template.difficulty}
+                    </span>
+                    {template.scenarioId &&
+                      (() => {
+                        const scenario = getScenario(template.scenarioId);
+                        return scenario ? (
+                          <span className="landing-template-time-tag">
+                            ~{scenario.estimatedMinutes} min
+                          </span>
+                        ) : null;
+                      })()}
+                  </div>
                   <h3 className="landing-template-card-name">{template.name}</h3>
                   <p className="landing-template-card-desc">{template.description}</p>
                   <div className="landing-template-card-tags">
