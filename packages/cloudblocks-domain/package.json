@@ -1,6 +1,6 @@
 {
   "name": "@cloudblocks/domain",
-  "version": "1.0.0-beta.1",
+  "version": "0.35.0",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
