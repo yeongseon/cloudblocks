@@ -101,7 +101,8 @@ describe('LandingPage', () => {
     render(<LandingPage />);
 
     expect(screen.getByText('Azure-first templates')).toBeInTheDocument();
+    const templateCards = screen.getAllByText('Use This Template');
     const providerBadges = screen.getAllByText('Azure');
-    expect(providerBadges.length).toBe(4);
+    expect(providerBadges).toHaveLength(templateCards.length);
   });
 });

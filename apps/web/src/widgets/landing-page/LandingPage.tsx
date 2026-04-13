@@ -48,7 +48,7 @@ export function LandingPage() {
             <span className="landing-hero-badge">Azure-first templates</span>
             <span className="landing-hero-badge">Guided learning scenarios</span>
             <span className="landing-hero-badge">
-              Terraform export &middot; Azure &middot; AWS &middot; GCP
+              Terraform export &middot; Azure-native &middot; AWS &amp; GCP preview
             </span>
           </div>
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
