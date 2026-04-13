@@ -123,7 +123,7 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
   });
 
-  it('suppresses packet flow layer when reducedMotion prop is true', () => {
+  it('renders static direction chevrons when reducedMotion prop is true', () => {
     const { container } = render(
       <svg aria-label="Test SVG">
         <title>Test SVG</title>
@@ -138,7 +138,11 @@ describe('ConnectionRenderer', () => {
         />
       </svg>,
     );
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-testid="packet-direction-chevron"]').length,
+    ).toBeGreaterThan(0);
+    expect(container.querySelector('[data-testid="packet-flow-packet"]')).not.toBeInTheDocument();
   });
 
   it('uses elapsed prop to determine packet position', () => {
@@ -205,10 +209,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetLayer).toBeInTheDocument();
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.5');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
   });
 
   it('renders selected packet visuals when connection is selected', () => {
@@ -216,10 +220,10 @@ describe('ConnectionRenderer', () => {
 
     const { container } = renderConnector();
 
-    const packetLayer = container.querySelector('[data-testid="packet-flow-layer"]');
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetLayer).toBeInTheDocument();
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.8');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -228,8 +232,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('0.8');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.8');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -243,8 +249,10 @@ describe('ConnectionRenderer', () => {
 
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('creation mode renders packets even when external elapsed exceeds PACKET_SPEED_MS', () => {
@@ -274,8 +282,10 @@ describe('ConnectionRenderer', () => {
     // Packet flow layer should still render because creation elapsed is derived
     // from creationBurstExpiry, not the shared clock.
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('creation mode uses burst-local elapsed instead of shared clock elapsed', () => {
@@ -354,8 +364,10 @@ describe('ConnectionRenderer', () => {
 
     // Creation burst should still render — PacketFlowLayer falls back to internal clock
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
-    const packetGlow = container.querySelector('[data-testid="packet-flow-packet"] path');
-    expect(packetGlow?.getAttribute('fill-opacity')).toBe('1');
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('1');
   });
 
   it('click in select mode sets selectedId to connection id', () => {
@@ -440,6 +452,155 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
   });
 
+  it('renders hover-equivalent packet visuals on keyboard focus', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+
+    const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
+    expect(
+      packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
+  });
+
+  it('renders glow outline on keyboard focus with reduced opacity', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+
+    const focusOutline = container.querySelector('[data-layer="selection-outline"]');
+    expect(focusOutline).toBeInTheDocument();
+    expect(focusOutline?.getAttribute('stroke')).toBe('var(--provider-accent-glow)');
+    expect(focusOutline?.getAttribute('stroke-opacity')).toBe('0.7');
+  });
+
+  it('removes highlight state on blur after keyboard focus', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    fireEvent.blur(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+  });
+
+  it('maintains highlight when hover leaves but keyboard focus remains', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Focus via keyboard first
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Mouse enters then leaves while focus remains
+    fireEvent.mouseEnter(hitArea);
+    fireEvent.mouseLeave(hitArea);
+
+    // Highlight and hover-mode packets should remain because focus is still active
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    const packetCore = container.querySelector('[data-layer="packet-core"]');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
+  });
+
+  it('maintains highlight when blur fires but hover remains', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Mouse enters first
+    fireEvent.mouseEnter(hitArea);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Focus then blur while hover remains
+    fireEvent.focus(link);
+    fireEvent.blur(link);
+
+    // Highlight and hover-mode packets should remain because hover is still active
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    const packetCore = container.querySelector('[data-layer="packet-core"]');
+    expect(packetCore?.getAttribute('fill-opacity')).toBe('0.5');
+  });
+
+  it('removes highlight only when both hover and focus clear', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a') as Element;
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
+
+    // Both hover and focus active
+    fireEvent.mouseEnter(hitArea);
+    fireEvent.focus(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+
+    // Remove hover — focus still keeps highlight and hover-mode packets
+    fireEvent.mouseLeave(hitArea);
+    expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
+    ).toBe('0.5');
+
+    // Remove focus — now highlight should be gone
+    fireEvent.blur(link);
+    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+  });
+
+  it('renders accessible label on SVG link', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    // Default connection has no blocks in store — fallback label
+    expect(link?.getAttribute('aria-label')).toBe('Connection');
+  });
+
+  it('renders full accessible label with source and target block names', () => {
+    useArchitectureStore.setState({
+      nodeById: new Map([
+        [
+          'source-1',
+          {
+            id: 'source-1',
+            name: 'Web Server',
+            kind: 'resource' as const,
+            layer: 'resource' as const,
+            resourceType: 'web_compute',
+            category: 'compute' as const,
+            provider: 'azure' as const,
+            parentId: null,
+            position: { x: 0, y: 0, z: 0 },
+            metadata: {},
+          },
+        ],
+        [
+          'target-1',
+          {
+            id: 'target-1',
+            name: 'Database',
+            kind: 'resource' as const,
+            layer: 'resource' as const,
+            resourceType: 'relational_database',
+            category: 'data' as const,
+            provider: 'azure' as const,
+            parentId: null,
+            position: { x: 1, y: 0, z: 1 },
+            metadata: {},
+          },
+        ],
+      ]),
+    });
+
+    const connWithType: Connection = {
+      ...connection,
+      metadata: { ...connection.metadata, type: 'http' },
+    };
+    const { container } = renderConnector(connWithType);
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    expect(link?.getAttribute('aria-label')).toBe('Connection from Web Server to Database (http)');
+  });
+
   it('renders arrow marker definition with correct attributes', () => {
     const { container } = renderConnector();
     const marker = container.querySelector('[data-testid="connection-arrow-marker"]');
@@ -511,6 +672,28 @@ describe('ConnectionRenderer', () => {
       fireEvent.mouseEnter(
         container.querySelector('[data-testid="connection-hit-area"]') as Element,
       );
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('shows validation error label on keyboard focus for invalid connections', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [
+            {
+              ruleId: 'surface-rule',
+              message: 'Surface route is invalid',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
+          warnings: [],
+        },
+      });
+
+      const { container } = renderConnector();
+      const link = container.querySelector('a') as Element;
+      fireEvent.focus(link);
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
     });
 
@@ -702,6 +885,34 @@ describe('ConnectionRenderer', () => {
       expect(trace?.getAttribute('stroke-width')).toBe('2.5');
       expect(casing?.getAttribute('stroke-width')).toBe('5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+    });
+
+    it('uses consistent dataflow fallback across all visual layers for invalid type', () => {
+      const conn: Connection = {
+        ...connection,
+        id: 'conn-invalid-type',
+        metadata: { ...connection.metadata, type: 'toString' },
+      };
+
+      const { container } = renderConnector(conn);
+      const rootGroup = container.querySelector('g');
+      const trace = container.querySelector('[data-testid="connection-trace"]');
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+
+      // data-connector-type falls back to canonical 'dataflow'
+      const connectorType = rootGroup?.getAttribute('data-connector-type');
+      expect(connectorType).toBe('dataflow');
+
+      // Trace/casing widths match dataflow defaults (strokeWidth=2.5)
+      expect(trace?.getAttribute('stroke-width')).toBe('2.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('5');
+      expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
+
+      // Packet flow uses dataflow semantic color, not generic cyan
+      const packetCore = container.querySelector('[data-layer="packet-core"]');
+      expect(packetCore).toBeInTheDocument();
+      // Dataflow core color is #FCD34D
+      expect(packetCore?.getAttribute('fill')).toBe('#FCD34D');
     });
 
     it('selection outline width scales with type-specific casing width', () => {

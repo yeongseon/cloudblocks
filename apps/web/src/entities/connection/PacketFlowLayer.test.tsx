@@ -24,12 +24,7 @@ function renderLayer(mode: 'static' | 'idle' | 'hover' | 'selected' | 'creation'
   return render(
     <svg aria-label="packet-flow-test">
       <title>packet-flow-test</title>
-      <PacketFlowLayer
-        hitPoints={hitPoints}
-        mode={mode}
-        connectionType="dataflow"
-        strokeColor="#22d3ee"
-      />
+      <PacketFlowLayer hitPoints={hitPoints} mode={mode} connectionType="dataflow" />
     </svg>,
   );
 }
@@ -49,12 +44,16 @@ describe('PacketFlowLayer', () => {
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
   });
 
-  it('returns null when reduced motion is enabled', () => {
+  it('renders static chevrons when reduced motion is enabled', () => {
     useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: true });
 
     const { container } = renderLayer('selected');
 
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-testid="packet-direction-chevron"]').length,
+    ).toBeGreaterThan(0);
+    expect(container.querySelector('[data-testid="packet-flow-packet"]')).not.toBeInTheDocument();
     useAnimationClockMock.mockReturnValue({ elapsed: 0, reducedMotion: false });
   });
 
@@ -78,8 +77,8 @@ describe('PacketFlowLayer', () => {
     const packets = container.querySelectorAll('[data-testid="packet-flow-packet"]');
     expect(packets).toHaveLength(2);
 
-    const firstPacketGlow = packets[0]?.querySelector('path');
-    expect(firstPacketGlow).toHaveAttribute('fill-opacity', '0.25');
+    const firstPacketCore = packets[0]?.querySelector('[data-layer="packet-core"]');
+    expect(firstPacketCore).toHaveAttribute('fill-opacity', '0.42');
   });
 
   it('idle mode uses slower speed', () => {
@@ -128,12 +127,7 @@ describe('PacketFlowLayer', () => {
     const { container } = render(
       <svg aria-label="packet-flow-test">
         <title>packet-flow-test</title>
-        <PacketFlowLayer
-          hitPoints={[{ x: 0, y: 0 }]}
-          mode="selected"
-          connectionType="dataflow"
-          strokeColor="#22d3ee"
-        />
+        <PacketFlowLayer hitPoints={[{ x: 0, y: 0 }]} mode="selected" connectionType="dataflow" />
       </svg>,
     );
 
@@ -168,7 +162,6 @@ describe('PacketFlowLayer', () => {
           ]}
           mode="selected"
           connectionType="dataflow"
-          strokeColor="#22d3ee"
         />
       </svg>,
     );
@@ -204,12 +197,29 @@ describe('PacketFlowLayer', () => {
           ]}
           mode="selected"
           connectionType="dataflow"
-          strokeColor="#22d3ee"
         />
       </svg>,
     );
 
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+  });
+
+  it('falls back to default color for prototype-chain keys like toString', () => {
+    const { container } = render(
+      <svg aria-label="packet-flow-test">
+        <title>packet-flow-test</title>
+        <PacketFlowLayer hitPoints={hitPoints} mode="idle" connectionType="toString" />
+      </svg>,
+    );
+
+    const layer = container.querySelector('[data-testid="packet-flow-layer"]');
+    expect(layer).toBeInTheDocument();
+
+    // Should use the default PACKET_COLOR (#22d3ee) for both halo and core,
+    // not crash or pick up Object.prototype.toString
+    const packetCore = container.querySelector('[data-layer="packet-core"]');
+    expect(packetCore).toBeInTheDocument();
+    expect(packetCore?.getAttribute('fill')).toBe('#22d3ee');
   });
 
   describe('getPacketCount', () => {

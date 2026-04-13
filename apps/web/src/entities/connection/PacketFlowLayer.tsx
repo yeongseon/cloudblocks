@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import type { ConnectionType } from '@cloudblocks/schema';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
@@ -9,7 +10,9 @@ import {
   PACKET_SPEED_MS,
   PACKET_TAIL_LENGTH,
   PACKET_WIDTH,
+  SEMANTIC_PACKET_COLORS,
 } from './packetFlowTokens';
+import type { PacketColorPair } from './packetFlowTokens';
 import { getPacketCount, getPositionAtDistance } from './packetFlowHelpers';
 import type { PacketFlowMode, SegmentMetric } from './packetFlowHelpers';
 
@@ -17,16 +20,63 @@ interface PacketFlowLayerProps {
   hitPoints: ScreenPoint[];
   mode: PacketFlowMode;
   connectionType: string;
-  strokeColor: string;
   elapsed?: number;
   reducedMotion?: boolean;
+}
+
+/** Resolve semantic two-layer colors for a connection type. */
+function resolvePacketColors(connectionType: string): PacketColorPair {
+  if (Object.hasOwn(SEMANTIC_PACKET_COLORS, connectionType)) {
+    return SEMANTIC_PACKET_COLORS[connectionType as ConnectionType];
+  }
+  return { halo: PACKET_COLOR, core: PACKET_COLOR };
+}
+
+/** Render static direction chevrons for prefers-reduced-motion users. */
+function renderStaticDirectionGlyphs(
+  segments: readonly SegmentMetric[],
+  totalLength: number,
+  colors: PacketColorPair,
+): React.ReactElement | null {
+  if (segments.length === 0 || totalLength <= 0) return null;
+
+  // Place 1 chevron at 60% for short paths, 2 at 33%/66% for longer paths
+  const positions = totalLength <= 120 ? [0.6] : [0.33, 0.66];
+
+  return (
+    <>
+      {positions.map((fraction) => {
+        const distance = fraction * totalLength;
+        const pos = getPositionAtDistance(segments, totalLength, distance);
+        if (!pos) return null;
+        const size = 5;
+        return (
+          <g
+            key={`chevron-${fraction}`}
+            transform={`translate(${pos.x} ${pos.y}) rotate(${pos.angle})`}
+            pointerEvents="none"
+            data-testid="packet-direction-chevron"
+          >
+            <path
+              d={`M ${-size} ${-size} L ${size * 0.5} 0 L ${-size} ${size}`}
+              stroke={colors.core}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              opacity={0.6}
+            />
+          </g>
+        );
+      })}
+    </>
+  );
 }
 
 export const PacketFlowLayer = memo(function PacketFlowLayer({
   hitPoints,
   mode,
   connectionType,
-  strokeColor,
   elapsed: externalElapsed,
   reducedMotion: externalReducedMotion,
 }: PacketFlowLayerProps) {
@@ -66,11 +116,23 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
     };
   }, [hitPoints]);
 
+  const packetColors = resolvePacketColors(connectionType);
   const creationCompleted = mode === 'creation' && elapsed >= PACKET_SPEED_MS;
+
+  // Reduced motion: show static direction chevrons instead of animated packets
+  if (reducedMotion) {
+    if (mode === 'static' || hitPoints.length < 2 || totalLength <= 0) {
+      return null;
+    }
+    return (
+      <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
+        {renderStaticDirectionGlyphs(segments, totalLength, packetColors)}
+      </g>
+    );
+  }
 
   if (
     mode === 'static' ||
-    reducedMotion ||
     hitPoints.length < 2 ||
     totalLength <= 0 ||
     (mode === 'creation' && creationCompleted)
@@ -80,8 +142,12 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
 
   const packetCount = getPacketCount(totalLength, mode);
   const opacity = PACKET_OPACITY[mode];
-  const packetColor = strokeColor || PACKET_COLOR;
   const effectiveSpeed = mode === 'idle' ? IDLE_CYCLE_MS : PACKET_SPEED_MS;
+
+  const halfLen = PACKET_LENGTH / 2;
+  const halfWid = PACKET_WIDTH / 2;
+  const glowHalfLen = halfLen + 2;
+  const glowHalfWid = halfWid + 1.5;
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
@@ -101,11 +167,6 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
           return null;
         }
 
-        const halfLen = PACKET_LENGTH / 2;
-        const halfWid = PACKET_WIDTH / 2;
-        const glowHalfLen = halfLen + 1;
-        const glowHalfWid = halfWid + 1;
-
         return (
           <g
             key={`packet-${phaseOffset}`}
@@ -113,26 +174,29 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
             pointerEvents="none"
             data-testid="packet-flow-packet"
           >
-            {/* Glow layer */}
+            {/* Halo layer — semantic outer glow */}
             <path
               d={`M ${-glowHalfLen} 0 Q ${-glowHalfLen} ${-glowHalfWid} 0 ${-glowHalfWid} Q ${glowHalfLen} ${-glowHalfWid} ${glowHalfLen} 0 Q ${glowHalfLen} ${glowHalfWid} 0 ${glowHalfWid} Q ${-glowHalfLen} ${glowHalfWid} ${-glowHalfLen} 0 Z`}
-              fill={packetColor}
-              fillOpacity={opacity}
+              fill={packetColors.halo}
+              fillOpacity={opacity * 0.45}
+              data-layer="packet-halo"
             />
-            {/* Capsule body */}
+            {/* Core capsule — bright inner body */}
             <path
               d={`M ${-halfLen} ${-halfWid} Q ${-halfLen - halfWid} 0 ${-halfLen} ${halfWid} L ${halfLen} ${halfWid} Q ${halfLen + halfWid} 0 ${halfLen} ${-halfWid} Z`}
-              fill={packetColor}
+              fill={packetColors.core}
               fillOpacity={opacity}
+              data-layer="packet-core"
             />
-            {/* Tail trail */}
+            {/* Tail trail — long for directional reading */}
             <path
               d={`M ${-halfLen} 0 L ${-halfLen - PACKET_TAIL_LENGTH} 0`}
-              stroke={packetColor}
-              strokeWidth={PACKET_WIDTH * 0.75}
+              stroke={packetColors.halo}
+              strokeWidth={PACKET_WIDTH * 0.6}
               strokeLinecap="round"
-              strokeOpacity={opacity * 0.55}
+              strokeOpacity={opacity * 0.4}
               fill="none"
+              data-layer="packet-tail"
             />
           </g>
         );

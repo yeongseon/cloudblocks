@@ -241,6 +241,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   });
   const resolvedConnection = storeConnection ?? connection ?? null;
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
   const [creationStartElapsed, setCreationStartElapsed] = useState(0);
   const [prevBurstExpiry, setPrevBurstExpiry] = useState<number | undefined>(undefined);
@@ -334,7 +335,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     diffMode && diffDelta && resolvedConnectionId
       ? getDiffState(resolvedConnectionId, diffDelta)
       : 'unchanged';
-  const isHighlighted = isHovered || isSelected;
+  const isHighlighted = isSelected || isHovered || isFocused;
 
   const connectionErrors = useMemo(() => {
     if (!validationResult || !resolvedConnectionId) return [];
@@ -379,7 +380,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     if (hasValidationError) return 'static' as const;
     if (creationBurstActive) return 'creation' as const;
     if (isSelected) return 'selected' as const;
-    if (isHovered) return 'hover' as const;
+    if (isHovered || isFocused) return 'hover' as const;
     return 'idle' as const;
   })();
 
@@ -443,9 +444,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${resolvedConnection.id}`;
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
-  const rawConnectionType = resolvedConnection.metadata?.type;
-  const resolvedConnectionType =
-    typeof rawConnectionType === 'string' ? rawConnectionType : 'dataflow';
+  const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -458,7 +457,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
-    <g opacity={colors.opacity} data-connector-type={connectionType ?? semantic}>
+    <g opacity={colors.opacity} data-connector-type={connectionType ?? 'dataflow'}>
       {/* Arrow marker definition — one per connection for semantic color */}
       <defs>
         <marker
@@ -483,6 +482,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        aria-label={connectionLabel}
       >
         <path
           d={hitPath}
@@ -531,8 +533,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         <PacketFlowLayer
           hitPoints={hitPoints}
           mode={packetMode}
-          connectionType={resolvedConnectionType}
-          strokeColor={colors.stroke}
+          connectionType={connectionType ?? 'dataflow'}
           elapsed={packetElapsed}
           reducedMotion={reducedMotion}
         />
@@ -592,7 +593,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       )}
 
       {hasValidationError &&
-        (isHovered || isSelected) &&
+        isHighlighted &&
         (() => {
           if (!labelPos) return null;
           const msg = connectionErrors[0].message;

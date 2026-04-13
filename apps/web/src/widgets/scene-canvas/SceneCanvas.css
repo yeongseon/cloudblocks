@@ -122,6 +122,24 @@
   z-index: 1;
 }
 
+/* P4: Flow-priority layering — dim neighbors when a connection is hovered */
+.connection-layer:has(a:is(:hover, :focus-visible)) > g {
+  opacity: 0.18;
+  transition: opacity 150ms ease-out;
+}
+
+.connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
+  opacity: 1;
+  transition: opacity 80ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connection-layer:has(a:is(:hover, :focus-visible)) > g,
+  .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
+    transition: none;
+  }
+}
+
 .interaction-overlay {
   position: absolute;
   top: 0;
