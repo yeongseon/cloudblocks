@@ -36,6 +36,7 @@ import { getConnectionColorsForType } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
 import { PacketFlowLayer } from './PacketFlowLayer';
+import { contrastTextColor } from './contrastTextColor';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -458,7 +459,11 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
-    <g opacity={colors.opacity} data-connector-type={connectionType ?? 'dataflow'}>
+    <g
+      opacity={colors.opacity}
+      data-connector-type={connectionType ?? 'dataflow'}
+      data-selected={isSelected ? 'true' : undefined}
+    >
       {/* Arrow marker definition — one per connection for semantic color */}
       <defs>
         <marker
@@ -656,7 +661,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                 y={labelPos.y - rectHeight / 2 - 4 + 1}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="#ffffff"
+                fill={contrastTextColor(colors.stroke)}
                 fontSize={10}
                 fontFamily="var(--font-ui, system-ui)"
                 style={{ pointerEvents: 'none' }}

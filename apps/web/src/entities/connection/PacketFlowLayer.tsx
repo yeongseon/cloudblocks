@@ -42,8 +42,9 @@ function renderStaticDirectionGlyphs(
 ): React.ReactElement | null {
   if (segments.length === 0 || totalLength <= 0) return null;
 
-  // Place 1 chevron at 60% for short paths, 2 at 33%/66% for longer paths
-  const positions = totalLength <= 120 ? [0.6] : [0.33, 0.66];
+  const CHEVRON_SPACING = 80;
+  const count = Math.max(1, Math.floor(totalLength / CHEVRON_SPACING));
+  const positions = Array.from({ length: count }, (_, i) => (i + 1) / (count + 1));
 
   return (
     <>

@@ -9,6 +9,7 @@ import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute } from './surfaceRouting';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { contrastTextColor } from './contrastTextColor';
 
 vi.mock('./surfaceRouting', () => ({
   getConnectionSurfaceRoute: vi.fn(),
@@ -928,6 +929,16 @@ describe('ConnectionRenderer', () => {
       expect(selectionOutline).toBeInTheDocument();
       // http: selected=highlighted, casing = 4+2.5+1 = 7.5, selection = 7.5+4 = 11.5
       expect(selectionOutline?.getAttribute('stroke-width')).toBe('11.5');
+    });
+  });
+
+  describe('connection type label contrast text color', () => {
+    it('uses dark text for light label backgrounds', () => {
+      expect(contrastTextColor('#FCD34D')).toBe('#1e293b');
+    });
+
+    it('uses white text for dark label backgrounds', () => {
+      expect(contrastTextColor('#1E293B')).toBe('#ffffff');
     });
   });
 

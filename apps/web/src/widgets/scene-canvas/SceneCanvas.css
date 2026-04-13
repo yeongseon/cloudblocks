@@ -127,7 +127,7 @@
   transition: opacity 150ms ease-out;
 }
 
-.flow-focus-active > g:is(:hover, :focus-within) {
+.flow-focus-active > g:is(:hover, :focus-within, [data-selected='true']) {
   opacity: 1;
   transition: opacity 80ms ease-out;
 }
@@ -145,7 +145,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .flow-focus-active > g,
-  .flow-focus-active > g:is(:hover, :focus-within),
+  .flow-focus-active > g:is(:hover, :focus-within, [data-selected='true']),
   .connection-layer:has(a:is(:hover, :focus-visible)) > g,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
     transition: none;
