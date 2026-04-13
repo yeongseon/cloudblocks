@@ -113,7 +113,7 @@ PUT    /api/v1/workspaces/:id          → Update workspace settings
 DELETE /api/v1/workspaces/:id          → Delete workspace
 ```
 
-> **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
+> **Note**: The metadata DB uses `workspaces` (not `projects`). See `STORAGE_ARCHITECTURE.md` (internal, excluded from public docs) for the actual schema.
 
 ## Generation Run Tracking (Current Backend Surface)
 

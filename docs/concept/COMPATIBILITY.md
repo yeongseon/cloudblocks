@@ -79,4 +79,4 @@ Mobile browsers are not officially supported in V1 but may work for viewing.
 ## See Also
 
 - [V1 Product Contract](V1_PRODUCT_CONTRACT.md) — What V1 guarantees
-- [ROADMAP.md](ROADMAP.md) — Product evolution plan
+- `ROADMAP.md` — Product evolution plan (internal, excluded from public docs)

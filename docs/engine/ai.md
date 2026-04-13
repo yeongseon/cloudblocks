@@ -4,10 +4,10 @@
 >
 > This document described AI-assisted architecture generation, suggestion, and cost estimation endpoints
 > provided by the `apps/api` backend. It is retained at this path because
-> [`ROADMAP_0X_HISTORY.md`](../concept/ROADMAP_0X_HISTORY.md) and
-> [ADR-0009](../adr/0009-ai-assisted-architecture.md) reference it.
+> `ROADMAP_0X_HISTORY.md` (internal, excluded from public docs) and
+> `ADR-0009` (internal, excluded from public docs) reference it.
 >
 > For the current backend architecture overview, see the Backend Layer section in
-> [ARCHITECTURE.md](../concept/ARCHITECTURE.md#22-backend-layer--integration-and-session-layer).
+> `ARCHITECTURE.md` (internal, excluded from public docs).
 
 **Original status**: Implemented (Milestone 14). This document is archived and no longer version-tracked.

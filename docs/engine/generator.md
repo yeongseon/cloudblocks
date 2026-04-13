@@ -5,7 +5,7 @@
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
 > **Status**: Implemented. Terraform starter export is a V1 Core learning feature. Bicep and Pulumi generators are Experimental.
 >
-> **V1 Note**: Terraform starter export is available as a **V1 Core** feature for learning and prototyping. Bicep and Pulumi are **Experimental** and will be evaluated in V2 (Export stage). See [ROADMAP.md](../concept/ROADMAP.md) for the product evolution plan.
+> **V1 Note**: Terraform starter export is available as a **V1 Core** feature for learning and prototyping. Bicep and Pulumi are **Experimental** and will be evaluated in V2 (Export stage). See `ROADMAP.md` (internal, excluded from public docs) for the product evolution plan.
 
 CloudBlocks converts architecture models into infrastructure code. In V1, Terraform starter export is a **core learning feature** — it helps beginners understand what their visual architecture looks like as infrastructure-as-code. Bicep and Pulumi exports are Experimental.
 
@@ -266,4 +266,4 @@ Future generator capabilities (planned for V2 Export stage):
 > - Provider adapters: [provider.md](./provider.md)
 > - Validation before generation: [rules.md](./rules.md)
 > - Domain model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)
+> - Roadmap timeline: `ROADMAP.md` (internal, excluded from public docs)
