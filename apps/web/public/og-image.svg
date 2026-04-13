@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#f8fafc"/>
+
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Logo blocks (scaled up from 48×48 to ~120×120) -->
+  <!-- Bottom-left block -->
+  <rect x="100" y="295" width="50" height="50" rx="10" fill="#3b82f6"/>
+  <!-- Bottom-right block -->
+  <rect x="155" y="295" width="50" height="50" rx="10" fill="#2563eb"/>
+  <!-- Top-center block -->
+  <rect x="127" y="240" width="50" height="50" rx="10" fill="#1d4ed8"/>
+
+  <!-- Title text -->
+  <text x="230" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="#0f172a">CloudBlocks</text>
+
+  <!-- Subtitle -->
+  <text x="230" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#475569">Visual Cloud Learning Tool for Beginners</text>
+
+  <!-- Feature badges -->
+  <rect x="100" y="420" width="220" height="40" rx="20" fill="#eff6ff"/>
+  <text x="210" y="446" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#2563eb" text-anchor="middle">Guided Templates</text>
+
+  <rect x="340" y="420" width="260" height="40" rx="20" fill="#eff6ff"/>
+  <text x="470" y="446" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#2563eb" text-anchor="middle">Learning Scenarios</text>
+
+  <rect x="620" y="420" width="280" height="40" rx="20" fill="#eff6ff"/>
+  <text x="760" y="446" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#2563eb" text-anchor="middle">Terraform Starter Export</text>
+
+  <!-- URL -->
+  <text x="600" y="570" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#94a3b8" text-anchor="middle">yeongseon.github.io/cloudblocks</text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="620" width="1200" height="10" fill="#2563eb"/>
+</svg>
