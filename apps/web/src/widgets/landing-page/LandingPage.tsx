@@ -8,10 +8,10 @@ import type { TemplateDifficulty } from '../../shared/types/template';
 import { LandingNavbar } from '../landing-navbar/LandingNavbar';
 import './LandingPage.css';
 
-const difficultyColors: Record<TemplateDifficulty, string> = {
-  beginner: '#34C759',
-  intermediate: '#FF9500',
-  advanced: '#FF3B30',
+const difficultyStyles: Record<TemplateDifficulty, { background: string; color: string }> = {
+  beginner: { background: '#dcfce7', color: '#166534' },
+  intermediate: { background: '#fff7ed', color: '#9a3412' },
+  advanced: { background: '#fef2f2', color: '#991b1b' },
 };
 
 export function LandingPage() {
@@ -104,7 +104,7 @@ export function LandingPage() {
                   <div className="landing-template-card-meta">
                     <span
                       className="landing-template-difficulty-badge"
-                      style={{ backgroundColor: difficultyColors[template.difficulty] }}
+                      style={difficultyStyles[template.difficulty]}
                     >
                       {template.difficulty}
                     </span>
