@@ -1,6 +1,6 @@
 # Infrastructure Code Generator
 
-> **Audience**: Contributors | **Status**: Internal | **Verified against**: v0.28.0
+> **Audience**: Contributors | **Status**: Internal | **Verified against**: v0.43.0
 
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
 > **Status**: Implemented. Terraform starter export is a V1 Core learning feature. Bicep and Pulumi generators are Experimental.

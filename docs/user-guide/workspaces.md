@@ -1,6 +1,6 @@
 # Workspaces & Save/Load
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Workspaces let you keep separate learning exercises, template variations, and practice architectures. All data is stored in your browser's local storage — no account or backend required.
 
@@ -54,7 +54,7 @@ This lets you share architectures between browsers or back up your work.
 ## GitHub Sync _(Backend Required)_
 
 !!! note "Advanced Feature"
-    GitHub sync requires the CloudBlocks backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
+    GitHub sync requires the optional Python backend. See [Setup Guide](../guides/TUTORIALS.md) for backend installation.
 
 With the backend running, you can:
 

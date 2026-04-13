@@ -1,6 +1,6 @@
 # CloudBlocks — Deployment Guide
 
-> **Audience**: Contributors / DevOps | **Status**: Partially stale — backend deployment references (PostgreSQL, Redis, Azure Container Apps) describe planned infrastructure not yet implemented. Frontend deployment via GitHub Pages is current. | **Verified against**: v0.26.0
+> **Audience**: Contributors / DevOps | **Status**: Partially stale — backend deployment references (PostgreSQL, Redis, Azure Container Apps) describe planned infrastructure not yet implemented. Frontend deployment via GitHub Pages is current. | **Verified against**: v0.43.0
 
 ## Overview
 

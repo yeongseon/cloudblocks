@@ -1,6 +1,6 @@
 # Validation
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Validation is part of the learning experience. As you place resources and create connections, CloudBlocks checks the architecture and teaches you when a pattern breaks common cloud rules.
 

@@ -1,6 +1,6 @@
 # Architecture Rule Engine
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 > **Status**: Supporting — see [VALIDATION_CONTRACT.md](../design/VALIDATION_CONTRACT.md) for the canonical rule set.
 

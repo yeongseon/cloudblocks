@@ -1,6 +1,6 @@
 # FAQ
 
-> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.43.0
 
 Find answers to frequently asked questions about CloudBlocks.
 

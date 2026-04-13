@@ -1,6 +1,6 @@
 # Architecture Templates
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.43.0
 
 Templates allow users to start from predefined architectures.
 

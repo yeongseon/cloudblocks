@@ -113,7 +113,7 @@ Schema version bumps less frequently than app version. Many milestones may ship 
 Living documentation files include a `Verified against` marker in their metadata header immediately below the title:
 
 ```markdown
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.35.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 ```
 
 ### Rules

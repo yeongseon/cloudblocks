@@ -1,6 +1,6 @@
 # Code Generation
 
-> **Audience**: Beginners | **Status**: V1 Core (Terraform — Azure, AWS, GCP) / Experimental (Bicep, Pulumi) | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core (Terraform — Azure, AWS, GCP) / Experimental (Bicep, Pulumi) | **Verified against**: v0.43.0
 
 !!! info "Terraform Starter Export"
     Terraform starter export is a V1 Core feature — it generates starter code for Azure, AWS, and GCP. Bicep (Azure-only by design) and Pulumi (Azure-only in V1) are available as Experimental features.

@@ -1,8 +1,11 @@
 # Quick Start
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 Build your first cloud architecture in under 5 minutes. No cloud account required. Everything runs in your browser.
+
+!!! tip "Desktop recommended"
+    CloudBlocks is optimized for desktop browsers (Chrome, Firefox, Edge). The SVG-based visual editor works best with a mouse and keyboard.
 
 ---
 

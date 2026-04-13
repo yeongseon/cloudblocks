@@ -1,6 +1,6 @@
 # Core Concepts
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.43.0
 
 CloudBlocks is a visual cloud learning tool that uses a block-based composition model. You learn cloud architecture by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
@@ -116,7 +116,7 @@ Workspaces allow you to manage multiple projects independently.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
 !!! note "GitHub Sync"
-    GitHub sync requires the backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
+    GitHub sync requires the optional Python backend. See [Setup Guide](../guides/TUTORIALS.md) for backend installation.
 
 ---
 
