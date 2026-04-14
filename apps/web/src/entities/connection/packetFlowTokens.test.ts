@@ -16,7 +16,7 @@ import {
   MEDIUM_PATH_THRESHOLD,
 } from './packetFlowTokens';
 
-describe('packetFlowTokens M45 tuning', () => {
+describe('packetFlowTokens M46 tuning', () => {
   it('PACKET_LENGTH is 18', () => {
     expect(PACKET_LENGTH).toBe(18);
   });
@@ -45,8 +45,8 @@ describe('packetFlowTokens M45 tuning', () => {
     expect(PACKET_OPACITY.creation).toBe(1.0);
   });
 
-  it('IDLE_CYCLE_MS is 3200', () => {
-    expect(IDLE_CYCLE_MS).toBe(3200);
+  it('IDLE_CYCLE_MS aliases PACKET_SPEED_IDLE_MS', () => {
+    expect(IDLE_CYCLE_MS).toBe(PACKET_SPEED_IDLE_MS);
   });
 
   it('PACKET_SELECTED_SCALE is 1.45', () => {

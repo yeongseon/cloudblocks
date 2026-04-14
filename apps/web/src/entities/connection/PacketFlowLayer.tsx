@@ -42,7 +42,7 @@ function resolvePacketColors(connectionType: string, mode: PacketFlowMode): Pack
   return { halo: PACKET_COLOR, core: PACKET_COLOR };
 }
 
-/** Render static direction chevrons for prefers-reduced-motion users. */
+/** Render static direction chevrons to indicate flow direction. Used in reduced-motion mode and as supplementary glyphs in hover/selected/invalid modes. */
 function renderStaticDirectionGlyphs(
   segments: readonly SegmentMetric[],
   totalLength: number,

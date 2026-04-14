@@ -22,7 +22,7 @@ Enhanced packet flow visibility, connection labels, container heights, and Flow 
 - Container heights: network/region 1.25→1.40, subnet 0.8→0.95
 - Connection hover label: now shows human-readable type (e.g., "HTTP" instead of "http") with accent border
 - Connection selected label: two-line pill with type + "Source → Target" direction
-- Flow Focus mode now dims container layer (75%) and block layer (25%) in addition to connections (10%)
+- Flow Focus mode now dims container layer (75%) and block layer (30%) in addition to connections (15%)
 - Flow Focus mode moved from connection SVG layer to parent scene-world div for cross-layer dimming
 
 ### Added

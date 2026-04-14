@@ -19,7 +19,7 @@ export const PACKET_OPACITY = {
   creation: 1.0,
 } as const;
 
-export const IDLE_CYCLE_MS = 3200;
+export const IDLE_CYCLE_MS = PACKET_SPEED_IDLE_MS;
 export const PACKET_SELECTED_SCALE = 1.45;
 
 export const PACKET_COLOR = '#22d3ee';
