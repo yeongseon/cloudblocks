@@ -10,6 +10,7 @@ from app.infrastructure.db.repositories import (
     SQLiteSessionRepository,
     SQLiteUserRepository,
 )
+from app.tests.helpers import with_cookies
 
 
 @pytest.mark.asyncio
@@ -50,10 +51,9 @@ async def test_github_callback_creates_new_user_and_sets_session_cookie(
     }
     mock_github.get_user_emails.return_value = [{"email": "new-user@example.com", "primary": True}]
 
-    response = await client.get(
+    response = await with_cookies(client, {"cb_oauth": oauth_cookie}).get(
         "/api/v1/auth/github/callback",
         params={"code": "oauth-code", "state": state},
-        cookies={"cb_oauth": oauth_cookie},
         follow_redirects=False,
     )
 
@@ -97,10 +97,9 @@ async def test_github_callback_updates_existing_user_on_relogin(
     }
     mock_github.get_user_emails.return_value = [{"email": "updated@example.com", "primary": True}]
 
-    response = await client.get(
+    response = await with_cookies(client, {"cb_oauth": oauth_cookie}).get(
         "/api/v1/auth/github/callback",
         params={"code": "oauth-code", "state": state},
-        cookies={"cb_oauth": oauth_cookie},
         follow_redirects=False,
     )
 
@@ -139,10 +138,9 @@ async def test_github_callback_stores_encrypted_access_token(
         {"email": "token-test@example.com", "primary": True},
     ]
 
-    response = await client.get(
+    response = await with_cookies(client, {"cb_oauth": oauth_cookie}).get(
         "/api/v1/auth/github/callback",
         params={"code": "oauth-code", "state": state},
-        cookies={"cb_oauth": oauth_cookie},
         follow_redirects=False,
     )
     assert response.status_code == 302
@@ -163,10 +161,9 @@ async def test_github_callback_rejects_invalid_state(client: AsyncClient, mock_g
     mock_github.get_user.return_value = {"id": 1, "login": "u", "name": "u", "email": None}
     mock_github.get_user_emails.return_value = [{"email": "u@example.com", "primary": True}]
 
-    response = await client.get(
+    response = await with_cookies(client, {"cb_oauth": oauth_cookie}).get(
         "/api/v1/auth/github/callback",
         params={"code": "oauth-code", "state": "bad-state"},
-        cookies={"cb_oauth": oauth_cookie},
         follow_redirects=False,
     )
 
@@ -192,7 +189,7 @@ async def test_session_endpoint_returns_user_for_valid_session(
     auth_cookies: dict[str, str],
     test_user,
 ) -> None:
-    response = await client.get("/api/v1/auth/session", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/auth/session")
 
     assert response.status_code == 200
     payload = response.json()
@@ -213,9 +210,8 @@ async def test_session_endpoint_returns_401_without_cookie(client: AsyncClient) 
 async def test_session_endpoint_returns_401_for_invalid_session(
     client: AsyncClient,
 ) -> None:
-    response = await client.get(
+    response = await with_cookies(client, {"cb_session": "invalid-session-token"}).get(
         "/api/v1/auth/session",
-        cookies={"cb_session": "invalid-session-token"},
     )
 
     assert response.status_code == 401
@@ -230,7 +226,7 @@ async def test_logout_with_session_revokes_and_clears_cookie(
 ) -> None:
     session_token = auth_cookies["cb_session"]
 
-    response = await client.post("/api/v1/auth/logout", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).post("/api/v1/auth/logout")
 
     assert response.status_code == 200
     assert response.json() == {"message": "Logged out successfully"}
@@ -254,7 +250,7 @@ async def test_get_me_with_session_returns_user(
     auth_cookies: dict[str, str],
     test_user,
 ) -> None:
-    response = await client.get("/api/v1/auth/me", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/auth/me")
 
     assert response.status_code == 200
     payload = response.json()

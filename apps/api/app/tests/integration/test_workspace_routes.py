@@ -8,6 +8,7 @@ from httpx import AsyncClient
 from app.core.security import generate_id, generate_session_token
 from app.domain.models.entities import Session, User
 from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
+from app.tests.helpers import with_cookies
 
 
 async def _create_other_user_cookies(db) -> dict[str, str]:
@@ -38,7 +39,7 @@ async def test_list_workspaces_returns_empty_for_new_user(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/workspaces/")
 
     assert response.status_code == 200
     assert response.json() == {"workspaces": []}
@@ -49,18 +50,16 @@ async def test_list_workspaces_returns_created_workspaces(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    await client.post(
+    await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Workspace A"},
     )
-    await client.post(
+    await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Workspace B", "generator": "pulumi", "provider": "aws"},
     )
 
-    response = await client.get("/api/v1/workspaces/", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/workspaces/")
 
     assert response.status_code == 200
     payload = response.json()["workspaces"]
@@ -75,9 +74,8 @@ async def test_create_workspace_with_minimal_body_returns_201(
     auth_cookies: dict[str, str],
     test_user,
 ) -> None:
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Minimal Workspace"},
     )
 
@@ -94,9 +92,8 @@ async def test_create_workspace_with_all_fields_returns_201(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={
             "name": "Full Workspace",
             "generator": "bicep",
@@ -126,14 +123,13 @@ async def test_get_workspace_returns_workspace_for_owner(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Owned Workspace"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get(f"/api/v1/workspaces/{workspace_id}")
 
     assert response.status_code == 200
     assert response.json()["id"] == workspace_id
@@ -144,7 +140,7 @@ async def test_get_workspace_non_existent_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/does-not-exist", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/workspaces/does-not-exist")
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -156,15 +152,14 @@ async def test_get_workspace_of_other_user_returns_403(
     auth_cookies: dict[str, str],
     db,
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Private Workspace"},
     )
     workspace_id = created.json()["id"]
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=other_cookies)
+    response = await with_cookies(client, other_cookies).get(f"/api/v1/workspaces/{workspace_id}")
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
@@ -183,16 +178,14 @@ async def test_update_workspace_name_returns_200(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Before"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"name": "After"},
     )
 
@@ -205,16 +198,14 @@ async def test_update_workspace_multiple_fields_returns_200(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Original"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={
             "name": "Updated",
             "generator": "pulumi",
@@ -238,9 +229,8 @@ async def test_update_workspace_non_existent_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         "/api/v1/workspaces/missing-id",
-        cookies=auth_cookies,
         json={"name": "Nope"},
     )
 
@@ -254,17 +244,15 @@ async def test_update_workspace_not_owner_returns_403(
     auth_cookies: dict[str, str],
     db,
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Owner Workspace"},
     )
     workspace_id = created.json()["id"]
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.put(
+    response = await with_cookies(client, other_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=other_cookies,
         json={"name": "Should Fail"},
     )
 
@@ -277,18 +265,19 @@ async def test_delete_workspace_owned_returns_204(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Delete Me"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).delete(f"/api/v1/workspaces/{workspace_id}")
 
     assert response.status_code == 204
 
-    get_response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
+    get_response = await with_cookies(client, auth_cookies).get(
+        f"/api/v1/workspaces/{workspace_id}"
+    )
     assert get_response.status_code == 404
 
 
@@ -297,7 +286,7 @@ async def test_delete_workspace_non_existent_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.delete("/api/v1/workspaces/missing-id", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).delete("/api/v1/workspaces/missing-id")
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -309,15 +298,16 @@ async def test_delete_workspace_not_owner_returns_403(
     auth_cookies: dict[str, str],
     db,
 ) -> None:
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "Not Yours"},
     )
     workspace_id = created.json()["id"]
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", cookies=other_cookies)
+    response = await with_cookies(client, other_cookies).delete(
+        f"/api/v1/workspaces/{workspace_id}"
+    )
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
@@ -329,24 +319,21 @@ async def test_update_workspace_omitting_github_repo_preserves_value(
     auth_cookies: dict[str, str],
 ) -> None:
     """When github_repo is omitted from the request body, the existing value is preserved."""
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "GH Test"},
     )
     workspace_id = created.json()["id"]
 
     # Set github_repo first
-    await client.put(
+    await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"github_repo": "owner/repo"},
     )
 
     # Update only the name — github_repo should be preserved
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"name": "Renamed"},
     )
 
@@ -362,24 +349,21 @@ async def test_update_workspace_null_github_repo_clears_value(
     auth_cookies: dict[str, str],
 ) -> None:
     """Explicitly sending github_repo=null clears the linked repository."""
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "GH Test"},
     )
     workspace_id = created.json()["id"]
 
     # Set github_repo first
-    await client.put(
+    await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"github_repo": "owner/repo"},
     )
 
     # Explicitly null it
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"github_repo": None},
     )
 
@@ -393,24 +377,21 @@ async def test_update_workspace_null_github_branch_resets_to_main(
     auth_cookies: dict[str, str],
 ) -> None:
     """Explicitly sending github_branch=null resets the branch to 'main'."""
-    created = await client.post(
+    created = await with_cookies(client, auth_cookies).post(
         "/api/v1/workspaces/",
-        cookies=auth_cookies,
         json={"name": "GH Test"},
     )
     workspace_id = created.json()["id"]
 
     # Set a custom branch
-    await client.put(
+    await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"github_branch": "develop"},
     )
 
     # Null it — should reset to main
-    response = await client.put(
+    response = await with_cookies(client, auth_cookies).put(
         f"/api/v1/workspaces/{workspace_id}",
-        cookies=auth_cookies,
         json={"github_branch": None},
     )
 

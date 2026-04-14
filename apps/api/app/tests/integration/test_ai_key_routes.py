@@ -4,6 +4,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.infrastructure.db.repositories import SQLiteAIApiKeyRepository
+from app.tests.helpers import with_cookies
 
 
 @pytest.mark.asyncio
@@ -24,9 +25,8 @@ async def test_post_ai_keys_with_auth_stores_encrypted_key(
     test_user,
     db,
 ) -> None:
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-secret-value"},
     )
 
@@ -46,14 +46,13 @@ async def test_get_ai_keys_returns_provider_list_without_keys(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    save = await client.post(
+    save = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-first"},
     )
     assert save.status_code == 200
 
-    response = await client.get("/api/v1/ai/keys", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/ai/keys")
 
     assert response.status_code == 200
     payload = response.json()
@@ -70,14 +69,13 @@ async def test_delete_ai_key_removes_provider_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    save = await client.post(
+    save = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-delete-me"},
     )
     assert save.status_code == 200
 
-    delete = await client.delete("/api/v1/ai/keys/openai", cookies=auth_cookies)
+    delete = await with_cookies(client, auth_cookies).delete("/api/v1/ai/keys/openai")
 
     assert delete.status_code == 200
     assert delete.json() == {"provider": "openai", "deleted": True}
@@ -88,17 +86,16 @@ async def test_get_ai_keys_after_delete_returns_empty_list(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    save = await client.post(
+    save = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-delete-check"},
     )
     assert save.status_code == 200
 
-    delete = await client.delete("/api/v1/ai/keys/openai", cookies=auth_cookies)
+    delete = await with_cookies(client, auth_cookies).delete("/api/v1/ai/keys/openai")
     assert delete.status_code == 200
 
-    response = await client.get("/api/v1/ai/keys", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/ai/keys")
 
     assert response.status_code == 200
     assert response.json() == []

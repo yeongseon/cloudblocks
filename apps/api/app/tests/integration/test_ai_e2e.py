@@ -24,6 +24,7 @@ from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import SQLiteAIApiKeyRepository
 from app.infrastructure.llm.client import LLMError, OpenAIClient
 from app.infrastructure.llm.key_manager import KeyManager
+from app.tests.helpers import with_cookies
 
 VALID_THREE_TIER: dict[str, object] = {
     "plates": [
@@ -265,9 +266,8 @@ async def test_e2e_full_ai_workflow(
 ) -> None:
     """Full workflow: store key → generate → suggest → cost."""
 
-    key_response = await client.post(
+    key_response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-test-e2e-key"},
     )
     assert key_response.status_code == 200
@@ -275,7 +275,7 @@ async def test_e2e_full_ai_workflow(
     assert key_payload["provider"] == "openai"
     assert "created_at" in key_payload
 
-    list_response = await client.get("/api/v1/ai/keys", cookies=auth_cookies)
+    list_response = await with_cookies(client, auth_cookies).get("/api/v1/ai/keys")
     assert list_response.status_code == 200
     keys = list_response.json()
     assert any(k["provider"] == "openai" for k in keys)
@@ -293,9 +293,8 @@ async def test_e2e_full_ai_workflow(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    gen_response = await client.post(
+    gen_response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={
             "prompt": "Three-tier web app with ALB, ECS, and RDS",
             "provider": "aws",
@@ -323,9 +322,8 @@ async def test_e2e_full_ai_workflow(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_suggest)
 
-    suggest_response = await client.post(
+    suggest_response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/suggest",
-        cookies=auth_cookies,
         json={"architecture": architecture, "provider": "aws"},
     )
     assert suggest_response.status_code == 200
@@ -347,9 +345,8 @@ async def test_e2e_full_ai_workflow(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    cost_response = await client.post(
+    cost_response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": architecture, "provider": "aws"},
     )
     assert cost_response.status_code == 200
@@ -360,9 +357,8 @@ async def test_e2e_full_ai_workflow(
     assert isinstance(resources, list)
     assert len(resources) == 3
 
-    del_response = await client.delete(
+    del_response = await with_cookies(client, auth_cookies).delete(
         "/api/v1/ai/keys/openai",
-        cookies=auth_cookies,
     )
     assert del_response.status_code == 200
     assert del_response.json()["deleted"] is True
@@ -392,9 +388,8 @@ async def test_e2e_generate_azure_provider(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={
             "prompt": "Web app with Application Gateway and SQL Database",
             "provider": "azure",
@@ -435,9 +430,8 @@ async def test_e2e_generate_gcp_provider(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={
             "prompt": "Cloud Run with Cloud SQL",
             "provider": "gcp",
@@ -494,9 +488,8 @@ async def test_e2e_cost_azure_architecture(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": VALID_AZURE_ARCHITECTURE, "provider": "azure"},
     )
 
@@ -546,9 +539,8 @@ async def test_e2e_cost_gcp_architecture(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": VALID_GCP_ARCHITECTURE, "provider": "gcp"},
     )
 
@@ -611,9 +603,8 @@ async def test_e2e_generate_llm_failure_propagates(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate_fail)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={"prompt": "test", "provider": "aws", "complexity": "simple"},
     )
 
@@ -647,9 +638,8 @@ async def test_e2e_suggest_llm_failure_propagates(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate_fail)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/suggest",
-        cookies=auth_cookies,
         json={"architecture": VALID_THREE_TIER, "provider": "aws"},
     )
 
@@ -683,9 +673,8 @@ async def test_e2e_cost_empty_architecture(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": {"blocks": []}, "provider": "aws"},
     )
 
@@ -752,9 +741,8 @@ async def test_e2e_cost_unknown_subtypes_skipped(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": architecture, "provider": "aws"},
     )
 
@@ -823,10 +811,13 @@ async def test_e2e_generate_with_validation_warnings(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
-        json={"prompt": "build something", "provider": "aws", "complexity": "simple"},
+        json={
+            "prompt": "build something",
+            "provider": "aws",
+            "complexity": "simple",
+        },
     )
 
     assert response.status_code == 200
@@ -848,24 +839,23 @@ async def test_e2e_api_key_lifecycle(
 ) -> None:
     """Full key lifecycle: create → list → delete → confirm deleted."""
 
-    create_resp = await client.post(
+    create_resp = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/keys",
-        cookies=auth_cookies,
         json={"provider": "openai", "key": "sk-lifecycle-test"},
     )
     assert create_resp.status_code == 200
     assert create_resp.json()["provider"] == "openai"
 
-    list_resp = await client.get("/api/v1/ai/keys", cookies=auth_cookies)
+    list_resp = await with_cookies(client, auth_cookies).get("/api/v1/ai/keys")
     assert list_resp.status_code == 200
     providers = [k["provider"] for k in list_resp.json()]
     assert "openai" in providers
 
-    del_resp = await client.delete("/api/v1/ai/keys/openai", cookies=auth_cookies)
+    del_resp = await with_cookies(client, auth_cookies).delete("/api/v1/ai/keys/openai")
     assert del_resp.status_code == 200
     assert del_resp.json()["deleted"] is True
 
-    list_after = await client.get("/api/v1/ai/keys", cookies=auth_cookies)
+    list_after = await with_cookies(client, auth_cookies).get("/api/v1/ai/keys")
     assert list_after.status_code == 200
     providers_after = [k["provider"] for k in list_after.json()]
     assert "openai" not in providers_after
@@ -902,14 +892,13 @@ async def test_e2e_suggest_all_providers(
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
     for provider, architecture in provider_architectures:
-        response = await client.post(
+        response = await with_cookies(client, auth_cookies).post(
             "/api/v1/ai/suggest",
-            cookies=auth_cookies,
             json={"architecture": architecture, "provider": provider},
         )
-        assert (
-            response.status_code == 200
-        ), f"Suggest failed for provider {provider}: {response.text}"
+        assert response.status_code == 200, (
+            f"Suggest failed for provider {provider}: {response.text}"
+        )
         payload = response.json()
         assert len(payload["suggestions"]) == 3
         assert "security" in payload["score"]
@@ -942,9 +931,8 @@ async def test_e2e_complexity_levels(
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
     for complexity in ("simple", "intermediate", "advanced"):
-        response = await client.post(
+        response = await with_cookies(client, auth_cookies).post(
             "/api/v1/ai/generate",
-            cookies=auth_cookies,
             json={
                 "prompt": f"Test {complexity}",
                 "provider": "aws",

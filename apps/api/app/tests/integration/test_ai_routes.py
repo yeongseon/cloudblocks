@@ -17,6 +17,7 @@ from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import SQLiteAIApiKeyRepository
 from app.infrastructure.llm.client import LLMError, OpenAIClient
 from app.infrastructure.llm.key_manager import KeyManager
+from app.tests.helpers import with_cookies
 
 
 async def _store_openai_key(db: Database, user_id: str) -> None:
@@ -63,9 +64,8 @@ async def test_generate_success(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},
     )
 
@@ -91,9 +91,8 @@ async def test_generate_no_api_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},
     )
 
@@ -156,9 +155,8 @@ async def test_generate_returns_validation_warnings(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/generate",
-        cookies=auth_cookies,
         json={"prompt": "build it", "provider": "aws", "complexity": "simple"},
     )
 
@@ -205,9 +203,8 @@ async def test_suggest_success(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/suggest",
-        cookies=auth_cookies,
         json={"architecture": {"plates": [], "blocks": []}, "provider": "aws"},
     )
 
@@ -244,9 +241,8 @@ async def test_suggest_llm_error(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/suggest",
-        cookies=auth_cookies,
         json={"architecture": {"blocks": []}, "provider": "aws"},
     )
 
@@ -262,9 +258,8 @@ async def test_suggest_no_api_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/suggest",
-        cookies=auth_cookies,
         json={"architecture": {}, "provider": "aws"},
     )
 
@@ -341,9 +336,8 @@ async def test_cost_success(
         ],
     }
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": architecture, "provider": "aws"},
     )
 
@@ -398,9 +392,8 @@ async def test_cost_success_with_nodes_format(
         ]
     }
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": architecture, "provider": "aws"},
     )
 
@@ -438,9 +431,8 @@ async def test_cost_infracost_error(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
+    response = await with_cookies(client, auth_cookies).post(
         "/api/v1/ai/cost",
-        cookies=auth_cookies,
         json={"architecture": {"blocks": []}, "provider": "aws"},
     )
 
