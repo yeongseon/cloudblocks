@@ -618,6 +618,60 @@ describe('ConnectionRenderer', () => {
     expect(outlineAfterClear?.getAttribute('stroke-opacity')).toBe('0');
   });
 
+  it('activates connection on Enter keydown', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]') as Element;
+
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+
+    fireEvent.keyDown(link, { key: 'Enter' });
+
+    expect(useUIStore.getState().selectedId).toBe('conn-1');
+  });
+
+  it('does not activate connection on repeated Enter keydown', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]') as Element;
+
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+
+    fireEvent.keyDown(link, { key: 'Enter', repeat: true });
+
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
+  it('activates connection on Space keyup', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]') as Element;
+
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+
+    fireEvent.keyUp(link, { key: ' ' });
+
+    expect(useUIStore.getState().selectedId).toBe('conn-1');
+  });
+
+  it('does not activate on Space keydown (only prevents scroll)', () => {
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]') as Element;
+
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+
+    const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    const wasPrevented = !link.dispatchEvent(event);
+
+    expect(wasPrevented).toBe(true);
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
   it('renders accessible label on SVG link', () => {
     const { container } = renderConnector();
     const link = container.querySelector('g[role="button"]');
