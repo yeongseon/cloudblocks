@@ -1258,6 +1258,20 @@ describe('SceneCanvas placement flows', () => {
 
       expect(world).not.toHaveClass('flow-focus-active');
     });
+
+    it('scene-world contains expected layer structure for flow-focus CSS', () => {
+      mockFlowFocusMode = false;
+      architecture.nodes = [];
+      architecture.connections = [];
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+      expect(world).toBeInTheDocument();
+      // Verify the layer divs exist that flow-focus CSS targets
+      expect(world!.querySelector('.container-layer')).toBeInTheDocument();
+      expect(world!.querySelector('.block-layer')).toBeInTheDocument();
+    });
   });
 
   describe('SceneCanvas selected-connection overlay', () => {

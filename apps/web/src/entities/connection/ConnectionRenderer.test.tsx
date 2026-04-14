@@ -210,6 +210,10 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
 
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    // Assert invalid mode renders red packets
+    const coreEl = container.querySelector('[data-layer="packet-core"]');
+    expect(coreEl).toBeInTheDocument();
+    expect(coreEl?.getAttribute('fill')).toBe('#ef4444');
   });
 
   it('renders invalid packet color when connection has validation errors and is hovered', () => {
@@ -233,6 +237,10 @@ describe('ConnectionRenderer', () => {
 
     const packetEl = container.querySelector('[data-testid="packet-flow-layer"]');
     expect(packetEl).toBeInTheDocument();
+    // Assert invalid mode renders red packets when hovered
+    const coreEl = container.querySelector('[data-layer="packet-core"]');
+    expect(coreEl).toBeInTheDocument();
+    expect(coreEl?.getAttribute('fill')).toBe('#ef4444');
   });
 
   it('renders hover packet visuals when connection is hovered', () => {
@@ -1329,6 +1337,9 @@ describe('ConnectionRenderer', () => {
       );
       const label = container.querySelector('[data-testid="connection-type-label"]');
       expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(1);
+      expect(texts[0].textContent).toBe('Data Flow');
     });
 
     it('shows two-line pill with direction on selection', () => {
@@ -1375,6 +1386,10 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector();
       const label = container.querySelector('[data-testid="connection-type-label"]');
       expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(2);
+      expect(texts[0].textContent).toBe('Data Flow');
+      expect(texts[1].textContent).toBe('Source Service → Target Databa…');
     });
 
     it('does not show type label when not hovered or selected', () => {
@@ -1428,6 +1443,11 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector();
       const label = container.querySelector('[data-testid="connection-type-label"]');
       expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(2);
+      expect(texts[0].textContent).toBe('Data Flow');
+      expect(texts[1].textContent).toContain('…');
+      expect(texts[1].textContent).toBe('AAAAAAAAAAAAA… → BBBBBBBBBBBBB…');
     });
   });
 
