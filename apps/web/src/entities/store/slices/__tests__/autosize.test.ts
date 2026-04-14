@@ -922,9 +922,9 @@ describe('nextGridPosition', () => {
   });
 
   it('uses containerHeight for y', () => {
-    const pos = nextGridPosition([], { width: 4, depth: 6 }, undefined, 0.8);
+    const pos = nextGridPosition([], { width: 4, depth: 6 }, undefined, 0.95);
 
-    expect(pos.y).toBe(0.8);
+    expect(pos.y).toBe(0.95);
   });
 });
 

@@ -37,6 +37,7 @@ import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
 import { PacketFlowLayer } from './PacketFlowLayer';
 import { contrastTextColor } from './contrastTextColor';
+import { CONNECTION_TYPE_LABELS } from '../../shared/tokens/connectionTypeLabels';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -59,6 +60,12 @@ interface TraceColors {
 }
 
 const HIT_AREA_WIDTH = 20;
+
+const LABEL_NAME_MAX_CHARS = 14;
+function truncateName(name: string): string {
+  if (name.length <= LABEL_NAME_MAX_CHARS) return name;
+  return name.slice(0, LABEL_NAME_MAX_CHARS - 1) + '\u2026';
+}
 
 function collectRelevantContainers(
   nodeById: ReadonlyMap<string, ContainerBlock | ResourceBlock>,
@@ -470,6 +477,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${resolvedConnection.id}`;
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
+  const accentColor = CONNECTOR_THEMES[connectionType ?? 'dataflow'].accent;
   const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -674,8 +682,64 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             !hasValidationError &&
             labelPos &&
             (() => {
-              const typeLabel = connectionType ?? 'dataflow';
-              const rectWidth = typeLabel.length * 6.5 + 12;
+              const rawTypeLabel = connectionType ?? 'dataflow';
+              const humanLabel =
+                CONNECTION_TYPE_LABELS[rawTypeLabel as keyof typeof CONNECTION_TYPE_LABELS] ??
+                rawTypeLabel;
+
+              if (isSelected && (sourceBlock || targetBlock)) {
+                const srcName = sourceBlock ? truncateName(sourceBlock.name) : '?';
+                const tgtName = targetBlock ? truncateName(targetBlock.name) : '?';
+                const directionLabel = `${srcName} → ${tgtName}`;
+                const topWidth = humanLabel.length * 7 + 16;
+                const bottomWidth = directionLabel.length * 5.5 + 16;
+                const rectWidth = Math.max(topWidth, bottomWidth);
+                const rectHeight = 32;
+
+                return (
+                  <g data-testid="connection-type-label" pointerEvents="none">
+                    <rect
+                      x={labelPos.x - rectWidth / 2}
+                      y={labelPos.y - rectHeight - 4}
+                      width={rectWidth}
+                      height={rectHeight}
+                      rx={8}
+                      fill={colors.stroke}
+                      fillOpacity={0.92}
+                      stroke={accentColor}
+                      strokeWidth={1}
+                      strokeOpacity={0.8}
+                    />
+                    <text
+                      x={labelPos.x}
+                      y={labelPos.y - rectHeight - 4 + 11}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={contrastTextColor(colors.stroke)}
+                      fontSize={10}
+                      fontWeight={600}
+                      fontFamily="var(--font-ui, system-ui)"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      {humanLabel}
+                    </text>
+                    <text
+                      x={labelPos.x}
+                      y={labelPos.y - rectHeight - 4 + 24}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={contrastTextColor(colors.stroke)}
+                      fontSize={9}
+                      fontFamily="var(--font-ui, system-ui)"
+                      style={{ pointerEvents: 'none', opacity: 0.8 }}
+                    >
+                      {directionLabel}
+                    </text>
+                  </g>
+                );
+              }
+
+              const rectWidth = humanLabel.length * 6.5 + 12;
               const rectHeight = 18;
 
               return (
@@ -688,6 +752,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                     rx={8}
                     fill={colors.stroke}
                     fillOpacity={0.85}
+                    stroke={accentColor}
+                    strokeWidth={1}
+                    strokeOpacity={0.6}
                   />
                   <text
                     x={labelPos.x}
@@ -699,7 +766,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                     fontFamily="var(--font-ui, system-ui)"
                     style={{ pointerEvents: 'none' }}
                   >
-                    {typeLabel}
+                    {humanLabel}
                   </text>
                 </g>
               );

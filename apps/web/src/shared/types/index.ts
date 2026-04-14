@@ -291,7 +291,7 @@ export interface ContainerBlockProfile {
   unitsY: number;
   worldWidth: number; // = unitsX (world units match CU count)
   worldDepth: number; // = unitsY (world units match CU count)
-  worldHeight: number; // network/region = 1.25, subnet = 0.8
+  worldHeight: number; // network/region = 1.40, subnet = 0.95
   recommendedCapacity: number;
   exampleCidrs: {
     azure: string;
@@ -311,7 +311,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 12,
     worldWidth: 8,
     worldDepth: 12,
-    worldHeight: 1.25,
+    worldHeight: 1.4,
     recommendedCapacity: 2,
     exampleCidrs: { azure: '10.0.0.0/24', aws: '10.0.0.0/24', gcp: '10.0.0.0/24' },
     learningLevel: 'beginner',
@@ -326,7 +326,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 16,
     worldWidth: 12,
     worldDepth: 16,
-    worldHeight: 1.25,
+    worldHeight: 1.4,
     recommendedCapacity: 4,
     exampleCidrs: { azure: '10.1.0.0/20', aws: '10.1.0.0/20', gcp: '10.1.0.0/20' },
     learningLevel: 'intermediate',
@@ -340,7 +340,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 20,
     worldWidth: 16,
     worldDepth: 20,
-    worldHeight: 1.25,
+    worldHeight: 1.4,
     recommendedCapacity: 6,
     exampleCidrs: { azure: '10.0.0.0/16', aws: '10.0.0.0/16', gcp: '10.0.0.0/16' },
     learningLevel: 'advanced',
@@ -354,7 +354,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 24,
     worldWidth: 20,
     worldDepth: 24,
-    worldHeight: 1.25,
+    worldHeight: 1.4,
     recommendedCapacity: 8,
     exampleCidrs: { azure: '10.0.0.0/8', aws: '10.0.0.0/8', gcp: '10.0.0.0/8' },
     learningLevel: 'expert',
@@ -368,7 +368,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 6,
     worldWidth: 4,
     worldDepth: 6,
-    worldHeight: 0.8,
+    worldHeight: 0.95,
     recommendedCapacity: 2,
     exampleCidrs: { azure: '10.0.0.0/28', aws: '10.0.0.0/28', gcp: '10.0.0.0/28' },
     learningLevel: 'beginner',
@@ -382,7 +382,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 8,
     worldWidth: 6,
     worldDepth: 8,
-    worldHeight: 0.8,
+    worldHeight: 0.95,
     recommendedCapacity: 4,
     exampleCidrs: { azure: '10.0.1.0/26', aws: '10.0.1.0/26', gcp: '10.0.1.0/26' },
     learningLevel: 'intermediate',
@@ -396,7 +396,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 10,
     worldWidth: 8,
     worldDepth: 10,
-    worldHeight: 0.8,
+    worldHeight: 0.95,
     recommendedCapacity: 6,
     exampleCidrs: { azure: '10.0.2.0/24', aws: '10.0.2.0/24', gcp: '10.0.2.0/24' },
     learningLevel: 'advanced',
@@ -410,7 +410,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
     unitsY: 12,
     worldWidth: 10,
     worldDepth: 12,
-    worldHeight: 0.8,
+    worldHeight: 0.95,
     recommendedCapacity: 8,
     exampleCidrs: { azure: '10.0.4.0/22', aws: '10.0.4.0/22', gcp: '10.0.4.0/22' },
     learningLevel: 'expert',

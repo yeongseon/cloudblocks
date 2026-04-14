@@ -8,6 +8,32 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.46.0] — 2026-04-14
+
+**Milestone 46 — Packet Flow UX & Visual Hierarchy**
+
+Enhanced packet flow visibility, connection labels, container heights, and Flow Focus mode across all layers. All templates verified across zoom levels and themes.
+
+### Changed
+
+- Packet tokens: length 16→18, width 6→7, tail 18→20, selected scale 1.2→1.45, selected opacity 0.95→1.0
+- Packet speed: base 2600→2200ms, per-state speeds (idle 3200, hover 2400, selected 1700, invalid 1400)
+- Connection stroke widths: dataflow 3.0→3.5, http 4.5→5.0, internal 3.5→4.0, data 2.5→3.0, async 2.75→3.25
+- Container heights: network/region 1.25→1.40, subnet 0.8→0.95
+- Connection hover label: now shows human-readable type (e.g., "HTTP" instead of "http") with accent border
+- Connection selected label: two-line pill with type + "Source → Target" direction
+- Flow Focus mode now dims container layer (75%) and block layer (25%) in addition to connections (10%)
+- Flow Focus mode moved from connection SVG layer to parent scene-world div for cross-layer dimming
+
+### Added
+
+- Per-state packet speeds: idle, hover, selected, invalid each have distinct animation speeds
+- Invalid connection state: red (#ef4444) packet color for invalid connections
+- Per-type accent color border on connection label pills
+- Name truncation (14 chars max) for source/target labels
+
+---
+
 ## [v0.45.0] — 2026-04-14
 
 **Milestone 45 — Packet & Container Visual Tuning**

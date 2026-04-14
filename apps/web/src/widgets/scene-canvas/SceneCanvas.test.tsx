@@ -102,6 +102,7 @@ function setupStoreMocks() {
       clearFitToContentRequest: mockClearFitToContentRequest,
       isSoundMuted: mockIsSoundMuted,
       gridStyle: 'paper' as const,
+      flowFocusMode: false,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);

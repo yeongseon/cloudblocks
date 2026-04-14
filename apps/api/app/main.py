@@ -89,7 +89,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 app = FastAPI(
     title="CloudBlocks API",
     description="Thin orchestration backend for CloudBlocks Platform",
-    version="0.45.0",
+    version="0.46.0",
     lifespan=lifespan,
 )
 

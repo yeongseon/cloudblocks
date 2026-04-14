@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import type { Connection } from '@cloudblocks/schema';
 import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
-import { useUIStore } from '../../entities/store/uiStore';
 
 interface ConnectionAnimationLayerProps {
   connections: readonly Connection[];
@@ -28,11 +27,9 @@ export const ConnectionAnimationLayer = memo(function ConnectionAnimationLayer({
   pointerEvents = 'auto',
   overlayMode = 'normal',
 }: ConnectionAnimationLayerProps) {
-  const flowFocusMode = useUIStore((s) => s.flowFocusMode);
-
   return (
     <svg
-      className={`${className}${flowFocusMode && className === 'connection-layer' ? ' flow-focus-active' : ''}`}
+      className={className}
       style={{ width: 1, height: 1, pointerEvents }}
       {...(overlayMode === 'visual-only' ? { 'aria-hidden': true } : {})}
     >

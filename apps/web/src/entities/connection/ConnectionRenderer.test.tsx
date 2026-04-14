@@ -162,6 +162,9 @@ describe('ConnectionRenderer', () => {
         />
       </svg>,
     );
+    fireEvent.mouseEnter(
+      container1.querySelector('[data-testid="connection-hit-area"]') as Element,
+    );
     const packet1 = container1.querySelector('[data-testid="packet-flow-packet"]');
     const transform1 = packet1?.getAttribute('transform');
 
@@ -178,6 +181,9 @@ describe('ConnectionRenderer', () => {
           reducedMotion={false}
         />
       </svg>,
+    );
+    fireEvent.mouseEnter(
+      container2.querySelector('[data-testid="connection-hit-area"]') as Element,
     );
     const packet2 = container2.querySelector('[data-testid="packet-flow-packet"]');
     const transform2 = packet2?.getAttribute('transform');
@@ -225,7 +231,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.95');
+    ).toBe('1');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -237,7 +243,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.95');
+    ).toBe('1');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -627,11 +633,11 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    expect(casing?.getAttribute('stroke-width')).toBe('5.5');
-    expect(trace?.getAttribute('stroke-width')).toBe('3');
+    expect(casing?.getAttribute('stroke-width')).toBe('6');
+    expect(trace?.getAttribute('stroke-width')).toBe('3.5');
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('6.75');
-    expect(trace?.getAttribute('stroke-width')).toBe('4.25');
+    expect(casing?.getAttribute('stroke-width')).toBe('7.25');
+    expect(trace?.getAttribute('stroke-width')).toBe('4.75');
   });
 
   describe('surface render path', () => {
@@ -785,11 +791,11 @@ describe('ConnectionRenderer', () => {
       baseWidth: number;
       dash?: string;
     }> = [
-      { type: 'dataflow', baseWidth: 3 },
-      { type: 'http', baseWidth: 4.5 },
-      { type: 'internal', baseWidth: 3.5 },
-      { type: 'data', baseWidth: 2.5, dash: '6 3' },
-      { type: 'async', baseWidth: 2.75, dash: '2 3' },
+      { type: 'dataflow', baseWidth: 3.5 },
+      { type: 'http', baseWidth: 5.0 },
+      { type: 'internal', baseWidth: 4.0 },
+      { type: 'data', baseWidth: 3.0, dash: '6 3' },
+      { type: 'async', baseWidth: 3.25, dash: '2 3' },
     ];
 
     for (const spec of typedSpecs) {
@@ -849,8 +855,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
       expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
     });
@@ -864,7 +870,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const trace = container.querySelector('[data-testid="connection-trace"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -879,8 +885,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -900,11 +906,14 @@ describe('ConnectionRenderer', () => {
       const connectorType = rootGroup?.getAttribute('data-connector-type');
       expect(connectorType).toBe('dataflow');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
 
       // Packet flow uses dataflow semantic color, not generic cyan
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
       const packetCore = container.querySelector('[data-layer="packet-core"]');
       expect(packetCore).toBeInTheDocument();
       // Dataflow core color is #FCD34D
@@ -922,7 +931,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.25');
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.75');
     });
   });
 

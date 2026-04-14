@@ -88,11 +88,11 @@ describe('PlateSvg — CU-based dimensions', () => {
   });
 
   it('handles small subnet profile (4×6 CU)', () => {
-    const { container } = renderPlateSvg({ unitsX: 4, unitsY: 6, worldHeight: 0.8 });
+    const { container } = renderPlateSvg({ unitsX: 4, unitsY: 6, worldHeight: 0.95 });
 
     const expectedWidth = ((4 + 6) * TILE_W) / 2; // 320
     const expectedDiamondH = ((4 + 6) * TILE_H) / 2; // 160
-    const expectedSideWall = Math.round(0.8 * TILE_Z);
+    const expectedSideWall = Math.round(0.95 * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
     const svg = container.querySelector('svg');
@@ -100,11 +100,11 @@ describe('PlateSvg — CU-based dimensions', () => {
   });
 
   it('handles large network profile (20×24 CU)', () => {
-    const { container } = renderPlateSvg({ unitsX: 20, unitsY: 24, worldHeight: 1.25 });
+    const { container } = renderPlateSvg({ unitsX: 20, unitsY: 24, worldHeight: 1.4 });
 
     const expectedWidth = ((20 + 24) * TILE_W) / 2; // 1408
     const expectedDiamondH = ((20 + 24) * TILE_H) / 2; // 704
-    const expectedSideWall = Math.round(1.25 * TILE_Z);
+    const expectedSideWall = Math.round(1.4 * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
     const svg = container.querySelector('svg');
@@ -244,56 +244,56 @@ describe('PlateSvg — profile-based rendering', () => {
       name: 'network-sandbox',
       unitsX: 8,
       unitsY: 12,
-      worldHeight: 1.25,
+      worldHeight: 1.4,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-application',
       unitsX: 12,
       unitsY: 16,
-      worldHeight: 1.25,
+      worldHeight: 1.4,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-platform',
       unitsX: 16,
       unitsY: 20,
-      worldHeight: 1.25,
+      worldHeight: 1.4,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-hub',
       unitsX: 20,
       unitsY: 24,
-      worldHeight: 1.25,
+      worldHeight: 1.4,
       containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'subnet-utility',
       unitsX: 4,
       unitsY: 6,
-      worldHeight: 0.8,
+      worldHeight: 0.95,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-service',
       unitsX: 6,
       unitsY: 8,
-      worldHeight: 0.8,
+      worldHeight: 0.95,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-workload',
       unitsX: 8,
       unitsY: 10,
-      worldHeight: 0.8,
+      worldHeight: 0.95,
       containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-scale',
       unitsX: 10,
       unitsY: 12,
-      worldHeight: 0.8,
+      worldHeight: 0.95,
       containerLayer: 'subnet' as PlateLayerType,
     },
   ];

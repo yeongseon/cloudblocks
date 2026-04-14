@@ -114,6 +114,7 @@ export function SceneCanvas() {
     clearFitToContentRequest,
     isSoundMuted,
     gridStyle,
+    flowFocusMode,
   } = useUIStore(
     useShallow((state) => ({
       selectedIds: state.selectedIds,
@@ -131,6 +132,7 @@ export function SceneCanvas() {
       clearFitToContentRequest: state.clearFitToContentRequest,
       isSoundMuted: state.isSoundMuted,
       gridStyle: state.gridStyle,
+      flowFocusMode: state.flowFocusMode,
     })),
   );
   const selectedConnectionIds = useMemo(() => {
@@ -517,7 +519,7 @@ export function SceneCanvas() {
       onPointerCancel={handlePointerUp}
     >
       <div
-        className="scene-world"
+        className={`scene-world${flowFocusMode ? ' flow-focus-active' : ''}`}
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
         }}

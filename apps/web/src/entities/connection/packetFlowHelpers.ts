@@ -1,7 +1,7 @@
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { MEDIUM_PATH_THRESHOLD, PACKET_LENGTH, SHORT_PATH_THRESHOLD } from './packetFlowTokens';
 
-export type PacketFlowMode = 'static' | 'idle' | 'hover' | 'selected' | 'creation';
+export type PacketFlowMode = 'static' | 'idle' | 'hover' | 'selected' | 'creation' | 'invalid';
 
 export interface SegmentMetric {
   start: ScreenPoint;
@@ -18,7 +18,7 @@ export interface PacketPosition {
 }
 
 export function getPacketCount(totalLength: number, mode: PacketFlowMode): number {
-  if (mode === 'static') {
+  if (mode === 'static' || mode === 'idle') {
     return 0;
   }
 
@@ -28,11 +28,9 @@ export function getPacketCount(totalLength: number, mode: PacketFlowMode): numbe
   let count = baseCount;
 
   if (mode === 'selected') {
-    count = totalLength <= SHORT_PATH_THRESHOLD ? 2 : totalLength <= MEDIUM_PATH_THRESHOLD ? 3 : 4;
-  } else if (mode === 'hover') {
+    count = totalLength <= SHORT_PATH_THRESHOLD ? 3 : totalLength <= MEDIUM_PATH_THRESHOLD ? 4 : 5;
+  } else if (mode === 'hover' || mode === 'invalid') {
     count = totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 3;
-  } else if (mode === 'idle') {
-    count = totalLength <= SHORT_PATH_THRESHOLD ? 1 : totalLength <= MEDIUM_PATH_THRESHOLD ? 2 : 2;
   } else if (mode === 'creation') {
     count = baseCount + 1;
   }
