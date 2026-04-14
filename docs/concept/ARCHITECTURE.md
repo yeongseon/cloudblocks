@@ -46,8 +46,8 @@ The system consists of several subsystems:
 | ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | **Web Builder**        | Visual diagram editing, architecture visualization, rule feedback        | This document                                                             |
 | **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)                               |
-| **Architecture Graph** | Graph-based execution model for validation and generation                | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
-| **DSL Specification**  | Language definition for infrastructure modeling                          | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
+| **Architecture Graph** | Graph-based execution model for validation and generation                | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)                                |
+| **DSL Specification**  | Language definition for infrastructure modeling                          | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)                                |
 | **Rule Engine**        | Architecture validation, security checks, topology validation            | [rules.md](../engine/rules.md)                                            |
 | **Generator**          | Infrastructure code generation pipeline                                  | [generator.md](../engine/generator.md)                                    |
 | **Provider Adapters**  | Cloud-specific resource mapping                                          | [provider.md](../engine/provider.md)                                      |
@@ -144,9 +144,17 @@ The frontend is a SPA built with React and SVG + CSS transforms. It uses a local
 apps/web/src/
 ├── main.tsx
 ├── app/                 # App shell
-├── shared/              # Type re-exports, utils, storage
+├── shared/              # Shared APIs, UI, types, utilities, assets
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   ├── hooks/
+│   ├── presentation/
+│   ├── tokens/
 │   ├── types/           # Re-exports from @cloudblocks/schema and @cloudblocks/domain
-│   └── utils/           # ID generation, storage operations
+│   ├── ui/
+│   ├── utils/
+│   └── vendor/
 ├── entities/            # Domain entities
 │   ├── store/           # Zustand architecture store
 │   ├── validation/      # Validation engine (placement, connection rules)
@@ -160,24 +168,33 @@ apps/web/src/
 │   ├── learning/        # Learning Mode engine
 │   └── templates/       # Architecture templates
 ├── widgets/             # Composite UI widgets
-│   ├── toolbar/
 │   ├── menu-bar/
-│   ├── resource-bar/         # Resource palette (drag-to-create)
-│   ├── bottom-panel/         # StarCraft-style context panel
-│   ├── validation-panel/
 │   ├── code-preview/         # Code generation preview
-│   ├── template-gallery/     # Template selection gallery
-│   ├── workspace-manager/    # Multi-workspace management
-│   ├── scene-canvas/
 │   ├── diff-panel/           # Architecture diff panel
-│   ├── flow-diagram/         # Architecture flow diagram
+│   ├── empty-canvas-cta/
 │   ├── github-login/         # GitHub OAuth login
 │   ├── github-pr/            # PR creation from UI
 │   ├── github-repos/         # GitHub repo management
 │   ├── github-sync/          # Architecture sync to GitHub
+│   ├── helper/
+│   ├── keyboard-shortcuts/
+│   ├── landing-navbar/
+│   ├── landing-page/
 │   ├── learning-panel/       # Learning Mode step panel
-│   └── scenario-gallery/     # Learning scenario gallery
-└── assets/
+│   ├── mobile-palette-sheet/
+│   ├── onboarding-tour/
+│   ├── promote-dialog/
+│   ├── promote-history/
+│   ├── right-drawer/
+│   ├── rollback-dialog/
+│   ├── scenario-gallery/     # Learning scenario gallery
+│   ├── scene-canvas/
+│   ├── sidebar-palette/
+│   ├── template-gallery/     # Template selection gallery
+│   └── workspace-manager/    # Multi-workspace management
+├── assets/
+├── test/
+└── __tests__/
 ```
 
 > **Package boundary**: `apps/web` imports canonical model/domain definitions from `@cloudblocks/schema` and `@cloudblocks/domain`; it does not maintain an independent local schema package.
@@ -593,8 +610,8 @@ This architecture enables:
 > **Cross-references:**
 >
 > - Domain model (canonical): [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Architecture model overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
-> - DSL & pipeline overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
+> - Architecture model overview: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
+> - DSL & pipeline overview: [generator.md](../engine/generator.md)
 > - Generator pipeline: [generator.md](../engine/generator.md)
 > - Provider adapters: [provider.md](../engine/provider.md)
 > - Storage architecture: [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md)
