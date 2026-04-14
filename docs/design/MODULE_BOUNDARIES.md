@@ -8,7 +8,7 @@ This document defines the module boundaries, allowed dependencies, and architect
 
 ## 1. Store Architecture
 
-The architecture store (`apps/web/src/entities/store/architectureStore.ts`) is composed from 5 focused slices using Zustand's slice pattern:
+The architecture store (`apps/web/src/entities/store/architectureStore.ts`) is composed from 7 focused slices using Zustand's slice pattern:
 
 ```
 architectureStore.ts          # Thin composition (creates store, subscribes to auto-validation)
@@ -20,6 +20,8 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
     ├── persistenceSlice.ts   # Save/Load/Import/Export
     ├── validationSlice.ts    # Run validation
     ├── workspaceSlice.ts     # Multi-workspace management
+    ├── learningSlice.ts      # Learning mode scenarios & progress
+    ├── aiSlice.ts            # AI-assisted generation, suggestions, cost estimation
     └── index.ts              # Barrel export
 ```
 
@@ -29,13 +31,14 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
 
 | Slice                | Responsibility                              | State Owned                | Key Actions                                                                                                                                   |
 | -------------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **domainSlice**      | Container block, block, connection, and external block CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate`, `addExternalBlock`, `addExternalActor`\*, `removeExternalActor`\*, `moveActorPosition`\* |
-| **historySlice**     | Undo/redo state management                  | `history`, `historyIndex`  | `undo`, `redo`, `pushHistory`                                                                                                                 |
-| **persistenceSlice** | Local storage and JSON import/export        | (side effects only)        | `save`, `load`, `exportArchitecture`, `importArchitecture`                                                                                    |
+| **domainSlice**      | Container block, block, connection, and external block CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `renameBlock`, `moveBlockPosition`, `addExternalBlock`, `moveExternalBlockPosition` |
+| **historySlice**     | Undo/redo state management                  | `history`                  | `undo`, `redo`                                                                                                                                |
+| **persistenceSlice** | Local storage and JSON import/export        | (side effects only)        | `saveToStorage`, `loadFromStorage`, `exportArchitecture`, `importArchitecture`                                                                |
 | **validationSlice**  | Architecture validation                     | `validationResult`         | `validate`                                                                                                                                    |
-| **workspaceSlice**   | Multi-workspace lifecycle                   | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo`          |
+| **workspaceSlice**   | Multi-workspace lifecycle                   | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `renameWorkspace`                                                  |
+| **learningSlice**    | Learning mode scenario engine               | `activeScenario`, `progress`, `currentHintIndex` | `startScenario`, `advanceStep`, `completeScenario`, `abandonScenario`, `setStepComplete`, `showNextHint`, `resetHints` |
+| **aiSlice**          | AI generation, suggestions, cost estimation | `generateResult`, `suggestResult`, `costResult` + loading/error flags | `generate`, `suggest`, `estimateCost`                                                         |
 
-\* `@deprecated` legacy shims operating on `externalActors[]` — scheduled for removal in #1540.
 ---
 
 ## 3. Dependency Rules
@@ -132,7 +135,7 @@ The store exposes a single hook: `useArchitectureStore` from `entities/store/arc
 
 ### Completed (Milestone 5)
 
-1. ✅ Split monolithic `architectureStore.ts` (712 lines) into 5 slices
+1. ✅ Split monolithic `architectureStore.ts` (712 lines) into focused slices
 2. ✅ Created `slices/types.ts` with shared `ArchitectureState` interface
 3. ✅ Created `slices/helpers.ts` for shared utilities
 4. ✅ Thin composition in `architectureStore.ts` (~35 lines)
@@ -153,5 +156,5 @@ The store exposes a single hook: `useArchitectureStore` from `entities/store/arc
 - [ ] No slice directly imports another slice (use `get()` for cross-slice reads)
 - [ ] No upward FSD layer imports (`entities/` → `features/` is forbidden)
 - [ ] `useArchitectureStore` remains the sole public API
-- [ ] All 427+ tests pass after any store change
+- [ ] All 3,400+ tests pass after any store change
 - [ ] TypeScript strict mode passes with no errors
