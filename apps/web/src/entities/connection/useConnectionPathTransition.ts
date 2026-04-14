@@ -222,7 +222,7 @@ export function useConnectionPathTransition(
   }
 
   // Update previous flowPoints (always track the latest geometry)
-  if (currentFlowPoints !== prevFlowPoints) {
+  if (!pointsEqual(currentFlowPoints, prevFlowPoints)) {
     setPrevFlowPoints(currentFlowPoints);
   }
 

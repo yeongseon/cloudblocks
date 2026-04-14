@@ -337,4 +337,51 @@ describe('useConnectionPathTransition', () => {
     expect(lastPoint.x).toBeCloseTo(pointsC[pointsC.length - 1].x);
     expect(lastPoint.y).toBeCloseTo(pointsC[pointsC.length - 1].y);
   });
+
+  it('does not loop when rerendered with fresh cloned arrays of identical coordinates', () => {
+    // Regression: fresh array references with same content must not cause infinite re-render.
+    // Before fix, referential inequality (a !== b) triggered setPrevFlowPoints on every render,
+    // causing React error #301. Fix uses pointsEqual() content comparison instead.
+    const { result, rerender } = renderHook(
+      ({ pts, state, elapsed }) => useConnectionPathTransition(pts, state, elapsed, false),
+      {
+        initialProps: {
+          pts: pointsA,
+          state: 'idle' as State,
+          elapsed: 0,
+        },
+      },
+    );
+
+    // Rerender with a cloned array (new reference, same coordinates)
+    const clonedA = pointsA.map((p) => ({ x: p.x, y: p.y }));
+    rerender({ pts: clonedA, state: 'idle' as const, elapsed: 0 });
+
+    // Should not be transitioning — content is identical
+    expect(result.current.isTransitioning).toBe(false);
+    expect(result.current.flowPoints).toHaveLength(pointsA.length);
+    expect(result.current.flowPoints[0]).toEqual(pointsA[0]);
+  });
+
+  it('does not animate on dragging → idle when geometry is unchanged (fresh array reference)', () => {
+    // Regression: dragging → idle with cloned points (new ref, same geometry) must not animate.
+    const { result, rerender } = renderHook(
+      ({ pts, state, elapsed }) => useConnectionPathTransition(pts, state, elapsed, false),
+      {
+        initialProps: {
+          pts: pointsA,
+          state: 'dragging' as State,
+          elapsed: 100,
+        },
+      },
+    );
+
+    // Transition from dragging → idle with fresh array reference but identical geometry
+    const clonedA = pointsA.map((p) => ({ x: p.x, y: p.y }));
+    rerender({ pts: clonedA, state: 'idle' as const, elapsed: 100 });
+
+    // Should NOT animate — geometry content is the same
+    expect(result.current.isTransitioning).toBe(false);
+    expect(result.current.flowPoints).toHaveLength(pointsA.length);
+  });
 });
