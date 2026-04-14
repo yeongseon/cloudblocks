@@ -35,6 +35,9 @@ function App() {
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
+      <a href="#architecture-canvas" className="skip-link">
+        Skip to architecture canvas
+      </a>
       <DemoBanner />
       <MobileGuard />
       {effectiveAppView === 'landing' ? <LandingPage /> : <BuilderView />}

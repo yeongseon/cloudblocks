@@ -500,7 +500,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
   const accentColor = CONNECTOR_THEMES[connectionType ?? 'dataflow'].accent;
   const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (e: React.MouseEvent<SVGGElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (toolMode === 'delete') {
@@ -542,14 +542,23 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         </defs>
       )}
       {shouldRenderHitArea && (
-        <a
-          href={`/connections/${resolvedConnection.id}`}
+        <g
+          role="button"
+          tabIndex={0}
           onClick={handleClick}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClick(e as unknown as React.MouseEvent<SVGGElement>);
+            }
+          }}
           aria-label={connectionLabel}
+          aria-pressed={isSelected}
+          style={{ cursor: 'pointer' }}
         >
           <path
             d={hitPath}
@@ -557,10 +566,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             strokeWidth={HIT_AREA_WIDTH}
             fill="none"
             pointerEvents="stroke"
-            style={{ cursor: 'pointer' }}
             data-testid="connection-hit-area"
           />
-        </a>
+        </g>
       )}
 
       {shouldRenderVisuals && (

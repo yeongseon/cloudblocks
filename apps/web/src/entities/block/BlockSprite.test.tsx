@@ -1223,4 +1223,38 @@ describe('BlockSprite', () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it('sets aria-pressed to true when block is selected', () => {
+    const block = makeBlock('block-1', 'compute');
+    useUIStore.setState({ selectedIds: new Set(['block-1']) });
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={100}
+        screenY={200}
+        zIndex={1}
+      />,
+    );
+
+    const btn = screen.getByRole('button', { name: `Node: ${block.name}` });
+    expect(btn).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('sets aria-pressed to false when block is not selected', () => {
+    const block = makeBlock('block-1', 'compute');
+    useUIStore.setState({ selectedIds: new Set() });
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={100}
+        screenY={200}
+        zIndex={1}
+      />,
+    );
+
+    const btn = screen.getByRole('button', { name: `Node: ${block.name}` });
+    expect(btn).toHaveAttribute('aria-pressed', 'false');
+  });
 });

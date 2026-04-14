@@ -225,12 +225,21 @@
 
 /* ── Accessibility ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  @keyframes port-snap-pulse {
-    from,
-    to {
-      transform: scale(1);
-    }
+  .block-img {
+    transition: none !important;
   }
+
+  .block-img.is-dropping,
+  .block-sprite.is-upgrading .block-img,
+  .block-sprite.is-valid-target .block-img,
+  .block-sprite.is-warning .block-img,
+  .block-sprite.is-error .block-img,
+  .block-sprite.diff-added .block-img,
+  .block-sprite.diff-modified .block-img,
+  .block-sprite.is-snap-target .block-img {
+    animation: none;
+  }
+
   .block-sprite.is-drag-hover-valid .block-img {
     transition: none;
     transform: none;

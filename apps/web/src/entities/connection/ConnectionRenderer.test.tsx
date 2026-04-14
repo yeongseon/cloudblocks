@@ -503,9 +503,11 @@ describe('ConnectionRenderer', () => {
 
   it('renders hover-equivalent packet visuals on keyboard focus', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
 
-    fireEvent.focus(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
 
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
@@ -515,9 +517,11 @@ describe('ConnectionRenderer', () => {
 
   it('renders glow outline on keyboard focus with reduced opacity', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
 
-    fireEvent.focus(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
 
     const focusOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(focusOutline).toBeInTheDocument();
@@ -527,12 +531,16 @@ describe('ConnectionRenderer', () => {
 
   it('removes highlight state on blur after keyboard focus', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
 
-    fireEvent.focus(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
-    fireEvent.blur(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    });
     const outlineAfterBlur = container.querySelector('[data-layer="selection-outline"]');
     expect(outlineAfterBlur).toBeInTheDocument();
     expect(outlineAfterBlur?.getAttribute('stroke-opacity')).toBe('0');
@@ -540,11 +548,13 @@ describe('ConnectionRenderer', () => {
 
   it('maintains highlight when hover leaves but keyboard focus remains', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
     const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
 
     // Focus via keyboard first
-    fireEvent.focus(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
     // Mouse enters then leaves while focus remains
@@ -559,7 +569,7 @@ describe('ConnectionRenderer', () => {
 
   it('maintains highlight when blur fires but hover remains', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
     const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
 
     // Mouse enters first
@@ -567,8 +577,12 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
     // Focus then blur while hover remains
-    fireEvent.focus(link);
-    fireEvent.blur(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    });
 
     // Highlight and hover-mode packets should remain because hover is still active
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
@@ -578,12 +592,14 @@ describe('ConnectionRenderer', () => {
 
   it('removes highlight only when both hover and focus clear', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a') as Element;
+    const link = container.querySelector('g[role="button"]') as Element;
     const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as Element;
 
     // Both hover and focus active
     fireEvent.mouseEnter(hitArea);
-    fireEvent.focus(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
     // Remove hover — focus still keeps highlight and hover-mode packets
@@ -594,7 +610,9 @@ describe('ConnectionRenderer', () => {
     ).toBe('0.72');
 
     // Remove focus — now glow should fade to zero opacity
-    fireEvent.blur(link);
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    });
     const outlineAfterClear = container.querySelector('[data-layer="selection-outline"]');
     expect(outlineAfterClear).toBeInTheDocument();
     expect(outlineAfterClear?.getAttribute('stroke-opacity')).toBe('0');
@@ -602,7 +620,7 @@ describe('ConnectionRenderer', () => {
 
   it('renders accessible label on SVG link', () => {
     const { container } = renderConnector();
-    const link = container.querySelector('a');
+    const link = container.querySelector('g[role="button"]');
     expect(link).toBeInTheDocument();
     // Default connection has no blocks in store — fallback label
     expect(link?.getAttribute('aria-label')).toBe('Connection');
@@ -649,9 +667,25 @@ describe('ConnectionRenderer', () => {
       metadata: { ...connection.metadata, type: 'http' },
     };
     const { container } = renderConnector(connWithType);
-    const link = container.querySelector('a');
+    const link = container.querySelector('g[role="button"]');
     expect(link).toBeInTheDocument();
     expect(link?.getAttribute('aria-label')).toBe('Connection from Web Server to Database (http)');
+  });
+
+  it('sets aria-pressed to true when connection is selected', () => {
+    useUIStore.setState({ selectedIds: new Set([connection.id]) });
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]');
+    expect(link).toBeInTheDocument();
+    expect(link?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('sets aria-pressed to false when connection is not selected', () => {
+    useUIStore.setState({ selectedIds: new Set() });
+    const { container } = renderConnector();
+    const link = container.querySelector('g[role="button"]');
+    expect(link).toBeInTheDocument();
+    expect(link?.getAttribute('aria-pressed')).toBe('false');
   });
 
   it('renders arrow marker definition with correct attributes', () => {
@@ -743,8 +777,10 @@ describe('ConnectionRenderer', () => {
       });
 
       const { container } = renderConnector();
-      const link = container.querySelector('a') as Element;
-      fireEvent.focus(link);
+      const link = container.querySelector('g[role="button"]') as Element;
+      act(() => {
+        link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      });
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
     });
 
@@ -999,7 +1035,7 @@ describe('ConnectionRenderer', () => {
       expect(
         container.querySelector('[data-testid="connection-hit-area"]'),
       ).not.toBeInTheDocument();
-      expect(container.querySelector('a')).not.toBeInTheDocument();
+      expect(container.querySelector('g[role="button"]')).not.toBeInTheDocument();
       expect(container.querySelector('[data-testid="connection-trace"]')).toBeInTheDocument();
     });
 

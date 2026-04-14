@@ -387,6 +387,7 @@ export const BlockSprite = memo(function BlockSprite({
           top: `-${blockSize.height / 2}px`,
         }}
         aria-label={`Node: ${resolvedBlock.name}`}
+        aria-pressed={isSelected}
         title={pres.displayLabel ?? resolvedBlock.name}
       >
         <div className="block-img" draggable={false}>

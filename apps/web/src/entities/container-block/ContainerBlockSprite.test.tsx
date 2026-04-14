@@ -581,4 +581,28 @@ describe('PlateSprite', () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it('sets aria-pressed to true when container is selected', () => {
+    const plate = makeNetworkPlate();
+    useArchitectureStore.setState({
+      nodeById: new Map([[plate.id, plate]]),
+    });
+    useUIStore.setState({ selectedIds: new Set([plate.id]) });
+    render(<ContainerBlockSprite containerId={plate.id} screenX={0} screenY={0} zIndex={1} />);
+
+    const btn = screen.getByRole('button', { name: `Container: ${plate.name}` });
+    expect(btn).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('sets aria-pressed to false when container is not selected', () => {
+    const plate = makeNetworkPlate();
+    useArchitectureStore.setState({
+      nodeById: new Map([[plate.id, plate]]),
+    });
+    useUIStore.setState({ selectedIds: new Set() });
+    render(<ContainerBlockSprite containerId={plate.id} screenX={0} screenY={0} zIndex={1} />);
+
+    const btn = screen.getByRole('button', { name: `Container: ${plate.name}` });
+    expect(btn).toHaveAttribute('aria-pressed', 'false');
+  });
 });
