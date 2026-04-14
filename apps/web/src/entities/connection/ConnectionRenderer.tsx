@@ -39,6 +39,8 @@ import { PacketFlowLayer } from './PacketFlowLayer';
 import { contrastTextColor } from './contrastTextColor';
 import { CONNECTION_TYPE_LABELS } from '../../shared/tokens/connectionTypeLabels';
 import { buildRoundedConnectionGeometry } from './roundedConnectionPath';
+import { measureSvgTextWidth } from '../../shared/utils/svgTextMeasure';
+import type { SvgTextMeasureSpec } from '../../shared/utils/svgTextMeasure';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -61,6 +63,12 @@ interface TraceColors {
 }
 
 const HIT_AREA_WIDTH = 20;
+
+// Font specs for label text measurement (used by measureSvgTextWidth).
+const ERROR_LABEL_FONT: SvgTextMeasureSpec = { fontSize: 11 } as const;
+const TYPE_TOP_FONT: SvgTextMeasureSpec = { fontSize: 10, fontWeight: 600 } as const;
+const TYPE_BOTTOM_FONT: SvgTextMeasureSpec = { fontSize: 9 } as const;
+const HOVER_TYPE_FONT: SvgTextMeasureSpec = { fontSize: 10 } as const;
 
 const LABEL_NAME_MAX_CHARS = 14;
 function truncateName(name: string): string {
@@ -636,7 +644,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             (() => {
               if (!labelPos) return null;
               const msg = connectionErrors[0].message;
-              const textWidth = Math.min(msg.length * 6.5, 220);
+              const errorText = msg.length > 35 ? `${msg.slice(0, 32)}\u2026` : msg;
+              const textWidth = Math.min(measureSvgTextWidth(errorText, ERROR_LABEL_FONT), 220);
               const padding = 6;
               const rectWidth = textWidth + padding * 2;
               const rectHeight = 22;
@@ -662,7 +671,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                     fontFamily="var(--font-ui, system-ui)"
                     style={{ pointerEvents: 'none' }}
                   >
-                    {msg.length > 35 ? msg.slice(0, 32) + '\u2026' : msg}
+                    {errorText}
                   </text>
                 </g>
               );
@@ -681,8 +690,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                 const srcName = sourceBlock ? truncateName(sourceBlock.name) : '?';
                 const tgtName = targetBlock ? truncateName(targetBlock.name) : '?';
                 const directionLabel = `${srcName} → ${tgtName}`;
-                const topWidth = humanLabel.length * 7 + 16;
-                const bottomWidth = directionLabel.length * 5.5 + 16;
+                const topWidth = measureSvgTextWidth(humanLabel, TYPE_TOP_FONT) + 16;
+                const bottomWidth = measureSvgTextWidth(directionLabel, TYPE_BOTTOM_FONT) + 16;
                 const rectWidth = Math.max(topWidth, bottomWidth);
                 const rectHeight = 32;
 
@@ -729,7 +738,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                 );
               }
 
-              const rectWidth = humanLabel.length * 6.5 + 12;
+              const rectWidth = measureSvgTextWidth(humanLabel, HOVER_TYPE_FONT) + 12;
               const rectHeight = 18;
 
               return (
