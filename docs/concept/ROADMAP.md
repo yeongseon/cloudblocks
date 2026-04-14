@@ -129,8 +129,8 @@ Version numbers follow `v0.N.0` where N is the milestone number. This convention
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 44 (M0–M44, all closed)                                                                                   |
-| Tests passing            | 3,368+                                                                                                     |
+| 0.x milestones completed | 46 (M8–M46, all closed)                                                                                   |
+| Tests passing            | 3,747+                                                                                                     |
 | Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
