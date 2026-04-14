@@ -14,7 +14,8 @@ Build your first cloud architecture in under 5 minutes. No cloud account require
 You can use CloudBlocks directly in your browser or run it locally.
 
 - **Option A: Live Demo** — Visit [https://yeongseon.github.io/cloudblocks/](https://yeongseon.github.io/cloudblocks/) to start immediately.
-- **Option B: Run Locally**:
+- **Option B: Documentation Site** — Browse the full docs at [https://yeongseon.github.io/cloudblocks/docs/](https://yeongseon.github.io/cloudblocks/docs/).
+- **Option C: Run Locally**:
 
 ```bash
 git clone https://github.com/yeongseon/cloudblocks.git
