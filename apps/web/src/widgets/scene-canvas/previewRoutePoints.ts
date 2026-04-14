@@ -41,8 +41,11 @@ export function getPreviewRoutePoints(
   }
 
   // Compute the vertical lane X position.
-  // Clamp so the lane stays at least minExit from source (exit clearance)
-  // and minExit from target (approach clearance).
+  // The outer Math.max guarantees at least minExit clearance from the source
+  // (horizontal exit). When the target is behind or very near the source,
+  // the target-side clearance (target.x - minExit) may be negative, so the
+  // source-side floor wins — this is intentional: the route loops right
+  // before coming back, and the rounded-corner builder handles the geometry.
   const laneX = Math.max(
     source.x + minExit,
     Math.min((source.x + target.x) / 2, target.x - minExit),

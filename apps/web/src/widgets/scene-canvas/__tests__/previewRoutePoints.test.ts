@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { getPreviewRoutePoints } from '../previewRoutePoints';
+import { CONNECTION_CORNER_RADIUS } from '../../../shared/tokens/designTokens';
 
-const R = 12; // CONNECTION_CORNER_RADIUS default
+const R = CONNECTION_CORNER_RADIUS;
 
 describe('getPreviewRoutePoints', () => {
   it('returns straight line when source and target are very close', () => {
