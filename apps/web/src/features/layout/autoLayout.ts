@@ -17,14 +17,18 @@ let elkPromise: Promise<ELK> | null = null;
 
 /**
  * Lazy-load the ELK layout engine.
- * Uses dynamic import() to keep elkjs (~600KB) out of the initial bundle.
+ * Uses dynamic import() to keep elkjs out of the initial bundle.
  * Caches the instance for subsequent calls.
  */
 async function getElkInstance(): Promise<ELK> {
   if (!elkPromise) {
-    elkPromise = import('elkjs/lib/elk.bundled').then((mod) => {
-      return new mod.default();
-    });
+    elkPromise = import('elkjs/lib/elk.bundled')
+      .then((mod) => new mod.default())
+      .catch((err: unknown) => {
+        // Reset so next call retries instead of caching the rejection
+        elkPromise = null;
+        throw err;
+      });
   }
   return elkPromise;
 }
@@ -106,10 +110,12 @@ export async function runAutoLayout(): Promise<boolean> {
     return false;
   }
 
-  // 4. Apply as single undo step
-  const newArch = applyLayoutPatch(architecture, patches);
-
-  useArchitectureStore.setState((currentState) => withHistory(currentState, newArch));
+  // 4. Apply as single undo step against latest state to avoid race conditions
+  useArchitectureStore.setState((currentState) => {
+    const freshArch = currentState.workspace.architecture;
+    const newArch = applyLayoutPatch(freshArch, patches);
+    return withHistory(currentState, newArch);
+  });
 
   return true;
 }

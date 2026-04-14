@@ -43,6 +43,9 @@ function makeArch(
   });
 }
 
+// Compute/medium tier: width=2, depth=2, height=2
+const COMPUTE_DIMS = { width: 2, depth: 2 };
+
 /* ── architectureToElkGraph ───────────────────────────────────────── */
 
 describe('architectureToElkGraph', () => {
@@ -83,6 +86,9 @@ describe('architectureToElkGraph', () => {
 
     expect(graph.children).toHaveLength(1);
     expect(graph.children![0].id).toBe('vm-1');
+    // Root resource: center (4,6), dims (2,2) → top-left (4-1, 6-1) = (3, 5)
+    expect(graph.children![0].x).toBe(3);
+    expect(graph.children![0].y).toBe(5);
   });
 
   it('nests resource blocks inside their parent container ELK node', () => {
@@ -95,6 +101,47 @@ describe('architectureToElkGraph', () => {
     expect(containerElk.id).toBe('vnet-1');
     expect(containerElk.children).toHaveLength(1);
     expect(containerElk.children![0].id).toBe('vm-1');
+  });
+
+  it('computes correct parent-relative coordinates for nested resources', () => {
+    // Container: pos=(10,0,20), frame=(16,0.3,20)
+    // Resource: parentId='vnet-1', pos=(5,0,8) [parent-center-relative], dims=(2,2)
+    // elkX = pos.x - dims.w/2 + parentDims.w/2 = 5 - 1 + 8 = 12
+    // elkY = pos.z - dims.d/2 + parentDims.d/2 = 8 - 1 + 10 = 17
+    const container = makeContainer();
+    const resource = makeResource({ parentId: 'vnet-1', position: { x: 5, y: 0, z: 8 } });
+    const model = makeArch([container, resource]);
+    const { graph } = architectureToElkGraph(model);
+
+    const childElk = graph.children![0].children![0];
+    expect(childElk.x).toBe(12);
+    expect(childElk.y).toBe(17);
+    expect(childElk.width).toBe(COMPUTE_DIMS.width);
+    expect(childElk.height).toBe(COMPUTE_DIMS.depth);
+  });
+
+  it('computes correct parent-relative coordinates for nested containers', () => {
+    // Outer: pos=(10,0,20), frame=(16,0.3,20) → top-left (2,10)
+    // Inner: pos=(8,0,16), frame=(8,0.3,8), parentId='vnet'
+    // Inner abs top-left: (8-4, 16-4) = (4, 12)
+    // Parent-relative: (4-2, 12-10) = (2, 2)
+    const outer = makeContainer({ id: 'vnet', position: { x: 10, y: 0, z: 20 } });
+    const inner = makeContainer({
+      id: 'subnet',
+      type: 'subnet',
+      parentId: 'vnet',
+      position: { x: 8, y: 0, z: 16 },
+      frame: { width: 8, height: 0.3, depth: 8 },
+    });
+    const resource = makeResource({ id: 'vm', parentId: 'subnet' });
+    const model = makeArch([outer, inner, resource]);
+    const { graph } = architectureToElkGraph(model);
+
+    const outerElk = graph.children![0];
+    const innerElk = outerElk.children![0];
+    expect(innerElk.id).toBe('subnet');
+    expect(innerElk.x).toBe(2);
+    expect(innerElk.y).toBe(2);
   });
 
   it('sets layout options on compound container nodes', () => {
@@ -218,16 +265,15 @@ describe('readElkPositions', () => {
     expect(patches).toEqual([]);
   });
 
-  it('converts ELK top-left positions to CloudBlocks center positions', () => {
-    const resource = makeResource({
-      id: 'vm-1',
-      position: { x: 5, y: 0, z: 8 },
-    });
+  it('converts root-level resource ELK positions to absolute center coordinates', () => {
+    // Resource at ELK top-left (3,4), dims (2,2), no parent in ELK tree
+    // Absolute center: (0+3 + 2/2, 0+4 + 2/2) = (4, 5)
+    const resource = {
+      ...makeResource({ id: 'vm-1', position: { x: 5, y: 0, z: 8 } }),
+      parentId: null as string | null,
+    };
     const nodeMap = new Map<string, Block>([['vm-1', resource]]);
 
-    // ELK places the node at top-left (3, 4)
-    // Resource dims: getBlockDimensions('compute', 'azure', ...) → width, depth
-    // The test verifies center = topLeft + dims/2
     const elkRoot: ElkNode = {
       id: 'root',
       children: [{ id: 'vm-1', x: 3, y: 4, width: 2, height: 2 }],
@@ -235,19 +281,56 @@ describe('readElkPositions', () => {
 
     const patches = readElkPositions(elkRoot, nodeMap);
     expect(patches).toHaveLength(1);
-    // Center = topLeft + actualDims/2 (from getBlockDimensions)
-    // The actual dims depend on getBlockDimensions but the test validates structure
     expect(patches[0].id).toBe('vm-1');
-    expect(patches[0].position.y).toBe(0); // elevation preserved
-    expect(typeof patches[0].position.x).toBe('number');
-    expect(typeof patches[0].position.z).toBe('number');
+    expect(patches[0].position).toEqual({ x: 4, y: 0, z: 5 });
+  });
+
+  it('converts nested resource ELK positions to parent-center-relative coordinates', () => {
+    // Container: frame (16,0.3,20), resource has parentId='vnet-1'
+    // Resource at ELK (3,5) relative to parent, dims (2,2)
+    // Parent dims: (16, 20)
+    // patchX = round(3 + 2/2 - 16/2) = round(3+1-8) = -4
+    // patchZ = round(5 + 2/2 - 20/2) = round(5+1-10) = -4
+    const container = makeContainer({
+      id: 'vnet-1',
+      position: { x: 10, y: 0, z: 20 },
+      frame: { width: 16, height: 0.3, depth: 20 },
+    });
+    const resource = makeResource({
+      id: 'vm-1',
+      parentId: 'vnet-1',
+      position: { x: 5, y: 2, z: 8 },
+    });
+    const nodeMap = new Map<string, Block>([
+      ['vnet-1', container],
+      ['vm-1', resource],
+    ]);
+
+    const elkRoot: ElkNode = {
+      id: 'root',
+      children: [
+        {
+          id: 'vnet-1',
+          x: 2,
+          y: 10,
+          width: 20,
+          height: 24,
+          children: [{ id: 'vm-1', x: 3, y: 5, width: 2, height: 2 }],
+        },
+      ],
+    };
+
+    const patches = readElkPositions(elkRoot, nodeMap);
+    const vmPatch = patches.find((p) => p.id === 'vm-1')!;
+    expect(vmPatch).toBeDefined();
+    expect(vmPatch.position).toEqual({ x: -4, y: 2, z: -4 });
   });
 
   it('preserves y (elevation) from original block', () => {
-    const resource = makeResource({
-      id: 'vm-1',
-      position: { x: 5, y: 3, z: 8 },
-    });
+    const resource = {
+      ...makeResource({ id: 'vm-1', position: { x: 5, y: 3, z: 8 } }),
+      parentId: null as string | null,
+    };
     const nodeMap = new Map<string, Block>([['vm-1', resource]]);
 
     const elkRoot: ElkNode = {
@@ -260,10 +343,10 @@ describe('readElkPositions', () => {
   });
 
   it('snaps positions to integer CU grid', () => {
-    const resource = makeResource({
-      id: 'vm-1',
-      position: { x: 0, y: 0, z: 0 },
-    });
+    const resource = {
+      ...makeResource({ id: 'vm-1', position: { x: 0, y: 0, z: 0 } }),
+      parentId: null as string | null,
+    };
     const nodeMap = new Map<string, Block>([['vm-1', resource]]);
 
     const elkRoot: ElkNode = {
@@ -272,7 +355,9 @@ describe('readElkPositions', () => {
     };
 
     const patches = readElkPositions(elkRoot, nodeMap);
-    // Positions should be rounded integers
+    // Center = (1.7 + 1, 2.3 + 1) = (2.7, 3.3) → round → (3, 3)
+    expect(patches[0].position.x).toBe(3);
+    expect(patches[0].position.z).toBe(3);
     expect(Number.isInteger(patches[0].position.x)).toBe(true);
     expect(Number.isInteger(patches[0].position.z)).toBe(true);
   });
@@ -296,6 +381,9 @@ describe('readElkPositions', () => {
     expect(patches[0].frame!.width).toBe(24);
     expect(patches[0].frame!.depth).toBe(30);
     expect(patches[0].frame!.height).toBe(0.3); // vertical height preserved
+    // Container absolute center: (0 + 24/2, 0 + 30/2) = (12, 15)
+    expect(patches[0].position.x).toBe(12);
+    expect(patches[0].position.z).toBe(15);
   });
 
   it('does not shrink container frame below original size', () => {
@@ -318,10 +406,10 @@ describe('readElkPositions', () => {
   });
 
   it('does not add frame patch for resource blocks', () => {
-    const resource = makeResource({
-      id: 'vm-1',
-      position: { x: 5, y: 0, z: 8 },
-    });
+    const resource = {
+      ...makeResource({ id: 'vm-1', position: { x: 5, y: 0, z: 8 } }),
+      parentId: null as string | null,
+    };
     const nodeMap = new Map<string, Block>([['vm-1', resource]]);
 
     const elkRoot: ElkNode = {
@@ -333,7 +421,7 @@ describe('readElkPositions', () => {
     expect(patches[0].frame).toBeUndefined();
   });
 
-  it('accumulates parent offsets for nested nodes', () => {
+  it('accumulates parent offsets for nested nodes and computes correct coordinates', () => {
     const vnet = makeContainer({
       id: 'vnet',
       position: { x: 10, y: 0, z: 20 },
@@ -349,7 +437,7 @@ describe('readElkPositions', () => {
       ['vm', resource],
     ]);
 
-    // Parent at (2, 4), child at (3, 5) relative to parent
+    // Parent at ELK (2, 4), child at (3, 5) relative to parent
     const elkRoot: ElkNode = {
       id: 'root',
       children: [
@@ -365,11 +453,19 @@ describe('readElkPositions', () => {
     };
 
     const patches = readElkPositions(elkRoot, nodeMap);
+
+    // Container (vnet): absolute center using post-layout dims
+    // absTopLeft = (0+2, 0+4) = (2,4), layoutWidth=20, layoutDepth=24
+    // center = (2+20/2, 4+24/2) = (12, 16)
+    const vnetPatch = patches.find((p) => p.id === 'vnet')!;
+    expect(vnetPatch.position).toEqual({ x: 12, y: 0, z: 16 });
+
+    // Resource (vm): parent-center-relative
+    // patchX = round(3 + 2/2 - 16/2) = round(4 - 8) = -4
+    // patchZ = round(5 + 2/2 - 20/2) = round(6 - 10) = -4
     const vmPatch = patches.find((p) => p.id === 'vm')!;
-    // Child absolute top-left = parent(2,4) + child(3,5) = (5, 9)
-    // Then convert to center by adding dims/2
     expect(vmPatch).toBeDefined();
-    expect(vmPatch.position.y).toBe(0); // elevation preserved
+    expect(vmPatch.position).toEqual({ x: -4, y: 0, z: -4 });
   });
 
   it('skips nodes not found in nodeMap', () => {
@@ -394,10 +490,10 @@ describe('readElkPositions', () => {
   });
 
   it('handles ELK nodes with undefined x/y coordinates', () => {
-    const resource = makeResource({
-      id: 'vm-1',
-      position: { x: 5, y: 0, z: 8 },
-    });
+    const resource = {
+      ...makeResource({ id: 'vm-1', position: { x: 5, y: 0, z: 8 } }),
+      parentId: null as string | null,
+    };
     const nodeMap = new Map<string, Block>([['vm-1', resource]]);
 
     // ELK node with no x/y — should default to 0
@@ -408,8 +504,29 @@ describe('readElkPositions', () => {
 
     const patches = readElkPositions(elkRoot, nodeMap);
     expect(patches).toHaveLength(1);
-    // x/y default to 0, so center = 0 + dims/2
-    expect(typeof patches[0].position.x).toBe('number');
-    expect(typeof patches[0].position.z).toBe('number');
+    // x/y default to 0, center = (0 + 2/2, 0 + 2/2) = (1, 1)
+    expect(patches[0].position.x).toBe(1);
+    expect(patches[0].position.z).toBe(1);
+  });
+
+  it('uses post-layout dimensions for container center calculation', () => {
+    // Container with small original frame but ELK expands it
+    const container = makeContainer({
+      id: 'vnet-1',
+      position: { x: 10, y: 0, z: 20 },
+      frame: { width: 8, height: 0.3, depth: 8 },
+    });
+    const nodeMap = new Map<string, Block>([['vnet-1', container]]);
+
+    // ELK expands to width=20, height=24
+    const elkRoot: ElkNode = {
+      id: 'root',
+      children: [{ id: 'vnet-1', x: 0, y: 0, width: 20, height: 24 }],
+    };
+
+    const patches = readElkPositions(elkRoot, nodeMap);
+    // Center should use post-layout dims: (0+20/2, 0+24/2) = (10, 12)
+    expect(patches[0].position.x).toBe(10);
+    expect(patches[0].position.z).toBe(12);
   });
 });
