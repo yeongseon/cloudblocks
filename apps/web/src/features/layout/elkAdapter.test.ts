@@ -383,4 +383,33 @@ describe('readElkPositions', () => {
     const patches = readElkPositions(elkRoot, nodeMap);
     expect(patches).toEqual([]);
   });
+
+  it('handles root node without children property', () => {
+    const nodeMap = new Map<string, Block>();
+    // ElkNode with no children field (undefined)
+    const elkRoot: ElkNode = { id: 'root' };
+
+    const patches = readElkPositions(elkRoot, nodeMap);
+    expect(patches).toEqual([]);
+  });
+
+  it('handles ELK nodes with undefined x/y coordinates', () => {
+    const resource = makeResource({
+      id: 'vm-1',
+      position: { x: 5, y: 0, z: 8 },
+    });
+    const nodeMap = new Map<string, Block>([['vm-1', resource]]);
+
+    // ELK node with no x/y — should default to 0
+    const elkRoot: ElkNode = {
+      id: 'root',
+      children: [{ id: 'vm-1', width: 2, height: 2 }],
+    };
+
+    const patches = readElkPositions(elkRoot, nodeMap);
+    expect(patches).toHaveLength(1);
+    // x/y default to 0, so center = 0 + dims/2
+    expect(typeof patches[0].position.x).toBe('number');
+    expect(typeof patches[0].position.z).toBe('number');
+  });
 });
