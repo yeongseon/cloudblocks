@@ -8,6 +8,30 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.47.0] — 2026-04-14
+
+**Milestone 47 — Repository Review Follow-up**
+
+Cross-cutting documentation and test hygiene pass following the repository review. Refreshed metrics, reconciled internal references, removed deprecated API patterns, and added the MkDocs documentation site link across the repo.
+
+### Changed
+
+- Refreshed ROADMAP.md metrics: 3,404 frontend tests, 335 backend tests, 47 milestones shipped
+- Aligned backend validation commands across AGENTS.md, RELEASE_GATES.md, RELEASE_RUNBOOK.md, NFR_TARGETS.md, and apps/api/README.md (`python3 -m pytest` everywhere)
+- Repaired ADR path references in THEME_SYSTEM_SPEC.md and VERSION_POLICY.md to use `docs/adr/` prefix
+- Reconciled ARCHITECTURE.md: fixed broken doc links and updated frontend module tree to match current FSD structure
+- Updated MODULE_BOUNDARIES.md from 5 slices to 7 (added `learning` and `generate`)
+- Reconciled THEME_SYSTEM_SPEC.md port-visibility rules with actual uiStore implementation (`showPorts` replaces `portVisibility`)
+
+### Fixed
+
+- Removed deprecated per-request `cookies` parameter from httpx `AsyncClient` calls across 7 integration test files; introduced `with_cookies()` helper (137 warnings → 0)
+
+### Added
+
+- MkDocs documentation site badge and link in README.md callout and Documentation section
+- Documentation site links in quick-start and first-architecture user guides
+
 ## [v0.46.0] — 2026-04-14
 
 **Milestone 46 — Packet Flow UX & Visual Hierarchy**
