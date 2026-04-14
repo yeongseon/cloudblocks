@@ -12,7 +12,7 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 
 # Run tests
-pytest
+python3 -m pytest
 
 # Run linter
 ruff check .

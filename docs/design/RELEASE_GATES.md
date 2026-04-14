@@ -31,9 +31,9 @@ Every release to `main` (or tagged release) must pass ALL of the following gates
 | Check             | Command                                               | Criteria                                       | Level       |
 | ----------------- | ----------------------------------------------------- | ---------------------------------------------- | ----------- |
 | Frontend tests    | `cd apps/web && npx vitest run`                       | All pass                                       | **Blocker** |
-| Backend tests     | `cd apps/api && pytest app/tests/ -v`                 | All pass                                       | **Blocker** |
+| Backend tests     | `python3 -m pytest apps/api/app/tests/ -v`                | All pass                                       | **Blocker** |
 | Frontend coverage | `cd apps/web && npx vitest run --coverage`            | ≥ 90% (statements, branches, functions, lines) | **Blocker** |
-| Backend coverage  | `cd apps/api && pytest --cov=app --cov-fail-under=90` | ≥ 90%                                          | **Blocker** |
+| Backend coverage  | `python3 -m pytest apps/api --cov=app --cov-fail-under=90`| ≥ 90%                                          | **Blocker** |
 
 ### Gate 4: Security
 
@@ -393,7 +393,7 @@ Record baseline measurements after each milestone release. Compare against thres
 | **Backend coverage**    | ≥ 90%  | pytest-cov  |
 
 - Coverage thresholds configured in `vitest.config.ts` → tests/CI fail if below 90%
-- Backend coverage checked in CI via `pytest --cov --cov-fail-under=90`
+- Backend coverage checked in CI via `python3 -m pytest apps/api --cov=app --cov-fail-under=90`
 
 #### CI Reliability
 
