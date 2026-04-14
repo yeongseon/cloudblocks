@@ -69,7 +69,7 @@ The Workshop theme is the default learning environment. Visual cues are calm, re
 - Muted accent colors — blue primary, teal secondary
 - High text contrast for readability (WCAG AA minimum)
 - Clean, flat panel chrome without decorative elements
-- Ports hidden by default (`showPorts: false`)
+- Ports visible by default (`showPorts: true`)
 
 ### 2.3 Blueprint Theme (Alternative)
 
@@ -85,14 +85,14 @@ The Blueprint theme preserves the original CloudBlocks block-building aesthetic.
 
 ### 2.4 Port Visibility Toggle
 
-Port visibility is **independent** of theme variant. Each theme has a default, but users can override:
+Port visibility is **independent** of theme variant. Both themes default to `showPorts: true`, and the user can toggle it via the MenuBar grid button. Theme switching does **not** reset port visibility.
 
 | Theme       | Default `showPorts` | User can override?            |
 | ----------- | ------------------- | ----------------------------- |
-| `workshop`  | `false`             | Yes — via MenuBar grid button |
+| `workshop`  | `true`              | Yes — via MenuBar grid button |
 | `blueprint` | `true`              | Yes — via MenuBar grid button |
 
-When the user switches themes, `showPorts` resets to the new theme's default unless the user has explicitly toggled it.
+When the user switches themes, `showPorts` is **not** affected — it retains whatever value the user last set, regardless of the active theme.
 
 ---
 
@@ -418,7 +418,6 @@ interface UiState {
 2. Call `applyTheme(variant)` to set CSS custom properties
 3. Persist to `localStorage` key `cloudblocks:theme-variant`
 4. React components re-render via Zustand subscription
-5. Reset `showPorts` to theme default (unless user has explicitly toggled)
 
 ### 7.2 Default
 
@@ -521,7 +520,7 @@ To add a new theme variant:
 2. Create a new `ThemeTokens` object with all 24 tokens
 3. Update `getThemeTokens()` to handle the new variant
 4. Add the variant to the menu bar switcher
-5. Set appropriate `showPorts` default for the new theme
+5. Port visibility (`showPorts`) is theme-independent and does not need per-theme defaults
 
 ### 10.2 Adding New Tokens
 
