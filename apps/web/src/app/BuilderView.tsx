@@ -240,6 +240,12 @@ export function BuilderView() {
         }
         clearSelection();
       }
+
+      if (e.key === 'M' && e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        useUIStore.getState().toggleMiniMap();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);

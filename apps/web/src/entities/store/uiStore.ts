@@ -273,6 +273,8 @@ interface UIState {
   showPorts: boolean;
   togglePorts: () => void;
   setShowPorts: (show: boolean) => void;
+  showMiniMap: boolean;
+  toggleMiniMap: () => void;
 
   gridStyle: 'paper' | 'dot' | 'none';
   setGridStyle: (style: 'paper' | 'dot' | 'none') => void;
@@ -737,6 +739,17 @@ export const useUIStore = create<UIState>((set, get) => {
       localStorage.setItem('cloudblocks:show-ports', String(show));
       set({ showPorts: show });
     },
+    showMiniMap: (() => {
+      const stored = localStorage.getItem('cloudblocks:show-minimap');
+      if (stored !== null) return stored === 'true';
+      return false;
+    })(),
+    toggleMiniMap: () =>
+      set((s) => {
+        const next = !s.showMiniMap;
+        localStorage.setItem('cloudblocks:show-minimap', String(next));
+        return { showMiniMap: next };
+      }),
 
     gridStyle:
       (localStorage.getItem('cloudblocks:grid-style') as 'paper' | 'dot' | 'none') || 'paper',

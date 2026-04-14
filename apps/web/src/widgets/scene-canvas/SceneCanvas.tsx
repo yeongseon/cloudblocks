@@ -26,6 +26,7 @@ import {
   computeWheelViewportTransform,
 } from './utils/viewportUtils';
 import { ZoomControls } from './ZoomControls';
+import { MiniMap } from './MiniMap';
 import './SceneCanvas.css';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 
@@ -115,6 +116,7 @@ export function SceneCanvas() {
     isSoundMuted,
     gridStyle,
     flowFocusMode,
+    showMiniMap,
   } = useUIStore(
     useShallow((state) => ({
       selectedIds: state.selectedIds,
@@ -133,6 +135,7 @@ export function SceneCanvas() {
       isSoundMuted: state.isSoundMuted,
       gridStyle: state.gridStyle,
       flowFocusMode: state.flowFocusMode,
+      showMiniMap: state.showMiniMap,
     })),
   );
   const selectedConnectionIds = useMemo(() => {
@@ -163,6 +166,7 @@ export function SceneCanvas() {
   }, []);
   const requestFitToContent = useUIStore((s) => s.requestFitToContent);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const sortedContainerIds = useMemo(
     () =>
       [...containerIds].sort((a, b) => {
@@ -213,6 +217,7 @@ export function SceneCanvas() {
 
     const updateOriginFromRect = (width: number, height: number) => {
       setOrigin(computeViewportOrigin(width, height));
+      setContainerSize({ width, height });
     };
 
     const rect = el.getBoundingClientRect();
@@ -405,6 +410,10 @@ export function SceneCanvas() {
 
       return nextZoom;
     });
+  }, []);
+
+  const handleMiniMapCenter = useCallback((panX: number, panY: number) => {
+    setPan({ x: panX, y: panY });
   }, []);
 
   useEffect(() => {
@@ -671,6 +680,16 @@ export function SceneCanvas() {
         onZoomOut={zoomOut}
         onFitToContent={requestFitToContent}
       />
+      {showMiniMap && (
+        <MiniMap
+          pan={pan}
+          zoom={zoom}
+          origin={origin}
+          containerWidth={containerSize.width}
+          containerHeight={containerSize.height}
+          onRequestCenter={handleMiniMapCenter}
+        />
+      )}
     </div>
   );
 }
