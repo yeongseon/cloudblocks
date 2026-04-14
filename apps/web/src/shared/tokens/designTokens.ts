@@ -64,3 +64,8 @@ export const PORT_GLOW_RADIUS = 4; // SVG filter blur radius for port glow
 //   fontSize = Math.max(LABEL_FACE_MIN_PX, Math.round(sideWallPx * LABEL_FACE_SCALE))
 export const LABEL_FACE_MIN_PX = 8;
 export const LABEL_FACE_SCALE = 0.28;
+
+// -- Connection Corner Radius --
+// Radius in screen px for rounded orthogonal connection corners.
+// Safe for 32-128px segment lengths. Must be ≤ min(segLen)/2.
+export const CONNECTION_CORNER_RADIUS = 12;

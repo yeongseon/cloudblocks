@@ -38,6 +38,7 @@ import { offsetScreenPoints } from './overlapOffset';
 import { PacketFlowLayer } from './PacketFlowLayer';
 import { contrastTextColor } from './contrastTextColor';
 import { CONNECTION_TYPE_LABELS } from '../../shared/tokens/connectionTypeLabels';
+import { buildRoundedConnectionGeometry } from './roundedConnectionPath';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -111,15 +112,6 @@ function getColors(
     casing: base.casing,
     opacity: 1.0,
   };
-}
-
-function pointsToPath(points: readonly ScreenPoint[]): string {
-  if (points.length === 0) return '';
-  let d = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 1; i < points.length; i += 1) {
-    d += ` L ${points[i].x} ${points[i].y}`;
-  }
-  return d;
 }
 
 function sameWorldPoint(a: WorldPoint3, b: WorldPoint3): boolean {
@@ -438,17 +430,17 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     if (!surfaceRoute) return null;
 
     const rawPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
-    const hitPoints = overlapOffset ? offsetScreenPoints(rawPoints, overlapOffset) : rawPoints;
-    const hitPath = pointsToPath(hitPoints);
+    const offsetPoints = overlapOffset ? offsetScreenPoints(rawPoints, overlapOffset) : rawPoints;
+    const { path: hitPath, flowPoints } = buildRoundedConnectionGeometry(offsetPoints);
 
-    if (hitPoints.length < 2) return null;
+    if (flowPoints.length < 2) return null;
 
     return {
       hitPath,
-      hitPoints,
-      labelPos: getLabelPosition(hitPoints),
-      sourcePos: hitPoints[0],
-      targetPos: hitPoints[hitPoints.length - 1],
+      hitPoints: flowPoints,
+      labelPos: getLabelPosition(flowPoints),
+      sourcePos: flowPoints[0],
+      targetPos: flowPoints[flowPoints.length - 1],
     };
   }, [surfaceRoute, originX, originY, overlapOffset]);
 
