@@ -1,6 +1,6 @@
 [project]
 name = "cloudblocks-api"
-version = "0.45.0"
+version = "0.46.0"
 description = "CloudBlocks API — optional backend for auth, GitHub sync, and learning tool integrations"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}

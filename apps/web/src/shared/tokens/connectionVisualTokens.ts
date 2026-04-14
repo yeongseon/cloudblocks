@@ -26,11 +26,11 @@ export interface ConnectionVisualStyle {
 
 /** Per-type visual styles. */
 export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualStyle> = {
-  dataflow: { strokeWidth: 3.0 },
-  http: { strokeWidth: 4.5 },
-  internal: { strokeWidth: 3.5 },
-  data: { strokeWidth: 2.5, strokeDasharray: '6 3' },
-  async: { strokeWidth: 2.75, strokeDasharray: '2 3' },
+  dataflow: { strokeWidth: 3.5 },
+  http: { strokeWidth: 5.0 },
+  internal: { strokeWidth: 4.0 },
+  data: { strokeWidth: 3.0, strokeDasharray: '6 3' },
+  async: { strokeWidth: 3.25, strokeDasharray: '2 3' },
 };
 
 /** Casing width offset added to the base stroke width. */

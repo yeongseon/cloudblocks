@@ -74,11 +74,13 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 | M42       | Connection Packet Flow Animation             | ✅ Done |
 | M43       | Landing Page Credibility & Sharing           | ✅ Done |
 | M44       | Maintenance & Polish                         | ✅ Done |
+| M45       | Packet & Container Visual Tuning              | ✅ Done |
+| M46       | Packet Flow UX & Visual Hierarchy              | ✅ Done |
 
 ### Version Transition
 
 ```
-v0.{milestone}.0 per milestone (current: v0.44.0)
+v0.{milestone}.0 per milestone (current: v0.46.0)
 ```
 
 Version numbers follow `v0.N.0` where N is the milestone number. This convention continues through V1 development. See `docs/design/VERSION_POLICY.md` for details.

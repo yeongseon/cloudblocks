@@ -162,6 +162,9 @@ describe('ConnectionRenderer', () => {
         />
       </svg>,
     );
+    fireEvent.mouseEnter(
+      container1.querySelector('[data-testid="connection-hit-area"]') as Element,
+    );
     const packet1 = container1.querySelector('[data-testid="packet-flow-packet"]');
     const transform1 = packet1?.getAttribute('transform');
 
@@ -179,13 +182,16 @@ describe('ConnectionRenderer', () => {
         />
       </svg>,
     );
+    fireEvent.mouseEnter(
+      container2.querySelector('[data-testid="connection-hit-area"]') as Element,
+    );
     const packet2 = container2.querySelector('[data-testid="packet-flow-packet"]');
     const transform2 = packet2?.getAttribute('transform');
 
     expect(transform1).not.toBe(transform2);
   });
 
-  it('does not render packet flow layer when connection has validation errors', () => {
+  it('renders packet flow layer with invalid mode when connection has validation errors', () => {
     useArchitectureStore.setState({
       validationResult: {
         valid: false,
@@ -203,7 +209,38 @@ describe('ConnectionRenderer', () => {
 
     const { container } = renderConnector();
 
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    // Assert invalid mode renders red packets
+    const coreEl = container.querySelector('[data-layer="packet-core"]');
+    expect(coreEl).toBeInTheDocument();
+    expect(coreEl?.getAttribute('fill')).toBe('#ef4444');
+  });
+
+  it('renders invalid packet color when connection has validation errors and is hovered', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [
+          {
+            ruleId: 'invalid-connection',
+            message: 'Connection has validation errors',
+            targetId: connection.id,
+            severity: 'error',
+          },
+        ],
+        warnings: [],
+      },
+    });
+
+    const { container } = renderConnector();
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+    const packetEl = container.querySelector('[data-testid="packet-flow-layer"]');
+    expect(packetEl).toBeInTheDocument();
+    // Assert invalid mode renders red packets when hovered
+    const coreEl = container.querySelector('[data-layer="packet-core"]');
+    expect(coreEl).toBeInTheDocument();
+    expect(coreEl?.getAttribute('fill')).toBe('#ef4444');
   });
 
   it('renders hover packet visuals when connection is hovered', () => {
@@ -225,7 +262,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.95');
+    ).toBe('1');
   });
 
   it('selected mode takes precedence over hover when both are active', () => {
@@ -237,7 +274,7 @@ describe('ConnectionRenderer', () => {
     const packetEl = container.querySelector('[data-testid="packet-flow-packet"]');
     expect(
       packetEl?.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
-    ).toBe('0.95');
+    ).toBe('1');
   });
 
   it('creation mode takes precedence over selected and hover', () => {
@@ -627,11 +664,11 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
-    expect(casing?.getAttribute('stroke-width')).toBe('5.5');
-    expect(trace?.getAttribute('stroke-width')).toBe('3');
+    expect(casing?.getAttribute('stroke-width')).toBe('6');
+    expect(trace?.getAttribute('stroke-width')).toBe('3.5');
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('6.75');
-    expect(trace?.getAttribute('stroke-width')).toBe('4.25');
+    expect(casing?.getAttribute('stroke-width')).toBe('7.25');
+    expect(trace?.getAttribute('stroke-width')).toBe('4.75');
   });
 
   describe('surface render path', () => {
@@ -785,11 +822,11 @@ describe('ConnectionRenderer', () => {
       baseWidth: number;
       dash?: string;
     }> = [
-      { type: 'dataflow', baseWidth: 3 },
-      { type: 'http', baseWidth: 4.5 },
-      { type: 'internal', baseWidth: 3.5 },
-      { type: 'data', baseWidth: 2.5, dash: '6 3' },
-      { type: 'async', baseWidth: 2.75, dash: '2 3' },
+      { type: 'dataflow', baseWidth: 3.5 },
+      { type: 'http', baseWidth: 5.0 },
+      { type: 'internal', baseWidth: 4.0 },
+      { type: 'data', baseWidth: 3.0, dash: '6 3' },
+      { type: 'async', baseWidth: 3.25, dash: '2 3' },
     ];
 
     for (const spec of typedSpecs) {
@@ -849,8 +886,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
       expect(casing?.getAttribute('stroke-dasharray')).toBeNull();
     });
@@ -864,7 +901,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const trace = container.querySelector('[data-testid="connection-trace"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -879,8 +916,8 @@ describe('ConnectionRenderer', () => {
       const trace = container.querySelector('[data-testid="connection-trace"]');
       const casing = container.querySelector('[data-testid="connection-casing"]');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
     });
 
@@ -900,11 +937,14 @@ describe('ConnectionRenderer', () => {
       const connectorType = rootGroup?.getAttribute('data-connector-type');
       expect(connectorType).toBe('dataflow');
 
-      expect(trace?.getAttribute('stroke-width')).toBe('3');
-      expect(casing?.getAttribute('stroke-width')).toBe('5.5');
+      expect(trace?.getAttribute('stroke-width')).toBe('3.5');
+      expect(casing?.getAttribute('stroke-width')).toBe('6');
       expect(trace?.getAttribute('stroke-dasharray')).toBeNull();
 
       // Packet flow uses dataflow semantic color, not generic cyan
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
       const packetCore = container.querySelector('[data-layer="packet-core"]');
       expect(packetCore).toBeInTheDocument();
       // Dataflow core color is #FCD34D
@@ -922,7 +962,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.25');
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.75');
     });
   });
 
@@ -1286,6 +1326,128 @@ describe('ConnectionRenderer', () => {
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('connection type label states', () => {
+    it('shows type pill with human-readable label on hover', () => {
+      const { container } = renderConnector();
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(1);
+      expect(texts[0].textContent).toBe('Data Flow');
+    });
+
+    it('shows two-line pill with direction on selection', () => {
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            nodes: [
+              {
+                id: 'source-1',
+                name: 'Source Service',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
+                category: 'compute',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+              {
+                id: 'target-1',
+                name: 'Target Database',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'relational_database',
+                category: 'data',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 2, y: 0, z: 2 },
+                metadata: {},
+              },
+            ],
+            endpoints: [
+              { id: connection.from, blockId: 'source-1', direction: 'output', semantic: 'data' },
+              { id: connection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
+            ],
+          },
+        },
+      });
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+
+      const { container } = renderConnector();
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(2);
+      expect(texts[0].textContent).toBe('Data Flow');
+      expect(texts[1].textContent).toBe('Source Service → Target Databa…');
+    });
+
+    it('does not show type label when not hovered or selected', () => {
+      const { container } = renderConnector();
+      expect(
+        container.querySelector('[data-testid="connection-type-label"]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('truncates long block names in direction label', () => {
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            nodes: [
+              {
+                id: 'source-1',
+                name: 'A'.repeat(40),
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
+                category: 'compute',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+              {
+                id: 'target-1',
+                name: 'B'.repeat(40),
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'relational_database',
+                category: 'data',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 2, y: 0, z: 2 },
+                metadata: {},
+              },
+            ],
+            endpoints: [
+              { id: connection.from, blockId: 'source-1', direction: 'output', semantic: 'data' },
+              { id: connection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
+            ],
+          },
+        },
+      });
+
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+      const { container } = renderConnector();
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
+      const texts = label!.querySelectorAll('text');
+      expect(texts.length).toBe(2);
+      expect(texts[0].textContent).toBe('Data Flow');
+      expect(texts[1].textContent).toContain('…');
+      expect(texts[1].textContent).toBe('AAAAAAAAAAAAA… → BBBBBBBBBBBBB…');
     });
   });
 

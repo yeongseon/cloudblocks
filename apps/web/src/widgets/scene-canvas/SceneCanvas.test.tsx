@@ -63,6 +63,7 @@ let mockDraggedResourceName: string | null = null;
 let mockDraggedResourceType: string | null = null;
 let mockDraggedSubtype: string | null = null;
 let mockIsSoundMuted = true;
+let mockFlowFocusMode = false;
 
 const architecture: {
   nodes: Array<ResourceBlock | ContainerBlock>;
@@ -102,6 +103,7 @@ function setupStoreMocks() {
       clearFitToContentRequest: mockClearFitToContentRequest,
       isSoundMuted: mockIsSoundMuted,
       gridStyle: 'paper' as const,
+      flowFocusMode: mockFlowFocusMode,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -119,6 +121,7 @@ describe('SceneCanvas ResizeObserver origin update', () => {
     mockDraggedResourceType = null;
     mockDraggedSubtype = null;
     mockIsSoundMuted = true;
+    mockFlowFocusMode = false;
     mockSetCanvasZoom.mockClear();
     mockClearFitToContentRequest.mockClear();
     architecture.nodes = [];
@@ -964,6 +967,7 @@ describe('SceneCanvas placement flows', () => {
     mockDraggedResourceType = null;
     mockDraggedSubtype = null;
     mockIsSoundMuted = true;
+    mockFlowFocusMode = false;
     architecture.nodes = [];
     architecture.connections = [];
     setupStoreMocks();
@@ -1234,6 +1238,45 @@ describe('SceneCanvas placement flows', () => {
     expect(preventDefaultSpy).not.toHaveBeenCalled();
   });
 
+  describe('flow focus mode', () => {
+    it('applies flow-focus-active class when flowFocusMode is true', () => {
+      mockFlowFocusMode = true;
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+
+      expect(world).toHaveClass('flow-focus-active');
+    });
+
+    it('does not apply flow-focus-active class when flowFocusMode is false', () => {
+      mockFlowFocusMode = false;
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+
+      expect(world).not.toHaveClass('flow-focus-active');
+    });
+
+    it('scene-world contains expected layer structure for flow-focus CSS', () => {
+      mockFlowFocusMode = false;
+      architecture.nodes = [];
+      architecture.connections = [];
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+      expect(world).toBeInTheDocument();
+      // Verify direct-child layer structure that flow-focus CSS selectors target
+      // CSS uses '> .container-layer', '> .block-layer' (direct child)
+      expect(world!.querySelector(':scope > .container-layer')).toBeInTheDocument();
+      expect(world!.querySelector(':scope > .block-layer')).toBeInTheDocument();
+      // .connection-layer is rendered by ConnectionAnimationLayer (mocked here),
+      // verified separately in ConnectionAnimationLayer tests
+    });
+  });
+
   describe('SceneCanvas selected-connection overlay', () => {
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1244,6 +1287,7 @@ describe('SceneCanvas placement flows', () => {
       mockDraggedResourceType = null;
       mockDraggedSubtype = null;
       mockIsSoundMuted = true;
+      mockFlowFocusMode = false;
       architecture.nodes = [];
       architecture.connections = [];
       setupStoreMocks();

@@ -1,9 +1,13 @@
 import type { ConnectionType } from '@cloudblocks/schema';
 
-export const PACKET_SPEED_MS = 2600;
-export const PACKET_LENGTH = 16;
-export const PACKET_WIDTH = 6;
-export const PACKET_TAIL_LENGTH = 18;
+export const PACKET_SPEED_MS = 2200;
+export const PACKET_SPEED_IDLE_MS = 3200;
+export const PACKET_SPEED_HOVER_MS = 2400;
+export const PACKET_SPEED_SELECTED_MS = 1700;
+export const PACKET_SPEED_INVALID_MS = 1400;
+export const PACKET_LENGTH = 18;
+export const PACKET_WIDTH = 7;
+export const PACKET_TAIL_LENGTH = 20;
 
 export const SHORT_PATH_THRESHOLD = 80;
 export const MEDIUM_PATH_THRESHOLD = 180;
@@ -11,12 +15,12 @@ export const MEDIUM_PATH_THRESHOLD = 180;
 export const PACKET_OPACITY = {
   idle: 0.56,
   hover: 0.72,
-  selected: 0.95,
+  selected: 1.0,
   creation: 1.0,
 } as const;
 
-export const IDLE_CYCLE_MS = 3200;
-export const PACKET_SELECTED_SCALE = 1.2;
+export const IDLE_CYCLE_MS = PACKET_SPEED_IDLE_MS;
+export const PACKET_SELECTED_SCALE = 1.45;
 
 export const PACKET_COLOR = '#22d3ee';
 
@@ -33,6 +37,11 @@ export const SEMANTIC_PACKET_COLORS: Record<ConnectionType, PacketColorPair> = {
   data: { halo: '#0D9488', core: '#5EEAD4' },
   dataflow: { halo: '#B45309', core: '#FCD34D' },
   internal: { halo: '#64748B', core: '#E2E8F0' },
+};
+
+export const INVALID_PACKET_COLOR: PacketColorPair = {
+  halo: '#DC2626',
+  core: '#ef4444',
 };
 
 /** Duration of the creation burst effect in milliseconds. Matches PACKET_SPEED_MS so

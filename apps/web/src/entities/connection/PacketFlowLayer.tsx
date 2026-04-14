@@ -3,12 +3,16 @@ import type { ConnectionType } from '@cloudblocks/schema';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 import {
-  IDLE_CYCLE_MS,
+  INVALID_PACKET_COLOR,
   PACKET_COLOR,
   PACKET_LENGTH,
   PACKET_OPACITY,
   PACKET_SELECTED_SCALE,
+  PACKET_SPEED_HOVER_MS,
+  PACKET_SPEED_IDLE_MS,
+  PACKET_SPEED_INVALID_MS,
   PACKET_SPEED_MS,
+  PACKET_SPEED_SELECTED_MS,
   PACKET_TAIL_LENGTH,
   PACKET_WIDTH,
   SEMANTIC_PACKET_COLORS,
@@ -27,14 +31,18 @@ interface PacketFlowLayerProps {
 }
 
 /** Resolve semantic two-layer colors for a connection type. */
-function resolvePacketColors(connectionType: string): PacketColorPair {
+function resolvePacketColors(connectionType: string, mode: PacketFlowMode): PacketColorPair {
+  if (mode === 'invalid') {
+    return INVALID_PACKET_COLOR;
+  }
+
   if (Object.hasOwn(SEMANTIC_PACKET_COLORS, connectionType)) {
     return SEMANTIC_PACKET_COLORS[connectionType as ConnectionType];
   }
   return { halo: PACKET_COLOR, core: PACKET_COLOR };
 }
 
-/** Render static direction chevrons for prefers-reduced-motion users. */
+/** Render static direction chevrons to indicate flow direction. Used in reduced-motion mode and as supplementary glyphs in hover/selected/invalid modes. */
 function renderStaticDirectionGlyphs(
   segments: readonly SegmentMetric[],
   totalLength: number,
@@ -120,7 +128,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
     };
   }, [hitPoints]);
 
-  const packetColors = resolvePacketColors(connectionType);
+  const packetColors = resolvePacketColors(connectionType, mode);
   const creationCompleted = mode === 'creation' && elapsed >= PACKET_SPEED_MS;
 
   // Reduced motion: show static direction chevrons instead of animated packets
@@ -145,8 +153,17 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   }
 
   const packetCount = getPacketCount(totalLength, mode);
-  const opacity = PACKET_OPACITY[mode];
-  const effectiveSpeed = mode === 'idle' ? IDLE_CYCLE_MS : PACKET_SPEED_MS;
+  const opacity = mode === 'invalid' ? PACKET_OPACITY.hover : PACKET_OPACITY[mode];
+  const effectiveSpeed =
+    mode === 'invalid'
+      ? PACKET_SPEED_INVALID_MS
+      : mode === 'idle'
+        ? PACKET_SPEED_IDLE_MS
+        : mode === 'hover'
+          ? PACKET_SPEED_HOVER_MS
+          : mode === 'selected'
+            ? PACKET_SPEED_SELECTED_MS
+            : PACKET_SPEED_MS;
 
   const halfLen = PACKET_LENGTH / 2;
   const halfWid = PACKET_WIDTH / 2;
@@ -155,11 +172,11 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   const selectedScale = mode === 'selected' ? PACKET_SELECTED_SCALE : 1;
   const zoomCompensationScale =
     canvasZoom !== undefined && canvasZoom < 1 ? 1 / Math.max(canvasZoom, 0.1) : 1;
-  const packetScale = selectedScale * zoomCompensationScale;
+  const packetScale = Math.min(selectedScale * zoomCompensationScale, 3.0);
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
-      {(mode === 'selected' || mode === 'hover') &&
+      {(mode === 'selected' || mode === 'hover' || mode === 'invalid') &&
         renderStaticDirectionGlyphs(segments, totalLength, packetColors)}
       {Array.from({ length: packetCount }, (_, index) => {
         const phaseOffset = (index / packetCount) * effectiveSpeed;

@@ -122,19 +122,34 @@
   z-index: 1;
 }
 
-.flow-focus-active > g {
-  opacity: 0.18;
+/* ── Flow Focus mode: dim non-focused elements across all layers ── */
+
+/* Connection layer: dim non-focused connections */
+.flow-focus-active .connection-layer > g {
+  opacity: 0.15;
   transition: opacity 150ms ease-out;
 }
 
-.flow-focus-active > g:is(:hover, :focus-within, [data-selected='true']) {
+.flow-focus-active .connection-layer > g:is(:hover, :focus-within, [data-selected='true']) {
   opacity: 1;
   transition: opacity 80ms ease-out;
 }
 
+/* Container layer: dim containers when flow focus is active */
+.flow-focus-active > .container-layer {
+  opacity: 0.75;
+  transition: opacity 150ms ease-out;
+}
+
+/* Block layer: dim blocks when flow focus is active */
+.flow-focus-active > .block-layer {
+  opacity: 0.3;
+  transition: opacity 150ms ease-out;
+}
+
 /* P4: Flow-priority layering — dim neighbors when a connection is hovered */
 .connection-layer:has(a:is(:hover, :focus-visible)) > g {
-  opacity: 0.18;
+  opacity: 0.15;
   transition: opacity 150ms ease-out;
 }
 
@@ -144,8 +159,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flow-focus-active > g,
-  .flow-focus-active > g:is(:hover, :focus-within, [data-selected='true']),
+  .flow-focus-active .connection-layer > g,
+  .flow-focus-active .connection-layer > g:is(:hover, :focus-within, [data-selected='true']),
+  .flow-focus-active > .container-layer,
+  .flow-focus-active > .block-layer,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
     transition: none;

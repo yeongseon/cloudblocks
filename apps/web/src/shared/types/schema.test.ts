@@ -162,7 +162,7 @@ describe('schema utilities', () => {
       throw new Error('Expected migrated container node');
     }
     expect(container.profileId).toBe('network-platform');
-    expect(container.frame.height).toBe(1.25);
+    expect(container.frame.height).toBe(1.4);
     expect(container.frame.width).toBe(16);
     expect(container.frame.depth).toBe(20);
   });
@@ -281,7 +281,7 @@ describe('schema utilities', () => {
     expect(container.profileId).toBe('network-platform');
     expect(container.frame).toBeDefined();
     expect(container.frame.width).toBe(16);
-    expect(container.frame.height).toBe(1.25);
+    expect(container.frame.height).toBe(1.4);
     expect(container.frame.depth).toBe(20);
   });
 
@@ -342,7 +342,7 @@ describe('schema utilities', () => {
     expect(container.profileId).toBe('network-platform');
     expect(container.frame).toBeDefined();
     expect(container.frame.width).toBe(16);
-    expect(container.frame.height).toBe(1.25);
+    expect(container.frame.height).toBe(1.4);
     expect(container.frame.depth).toBe(20);
   });
 
