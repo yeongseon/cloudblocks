@@ -671,23 +671,6 @@ describe('ConnectionRenderer', () => {
     expect(link).toBeInTheDocument();
     expect(link?.getAttribute('aria-label')).toBe('Connection from Web Server to Database (http)');
   });
-
-  it('sets aria-pressed to true when connection is selected', () => {
-    useUIStore.setState({ selectedIds: new Set([connection.id]) });
-    const { container } = renderConnector();
-    const link = container.querySelector('g[role="button"]');
-    expect(link).toBeInTheDocument();
-    expect(link?.getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('sets aria-pressed to false when connection is not selected', () => {
-    useUIStore.setState({ selectedIds: new Set() });
-    const { container } = renderConnector();
-    const link = container.querySelector('g[role="button"]');
-    expect(link).toBeInTheDocument();
-    expect(link?.getAttribute('aria-pressed')).toBe('false');
-  });
-
   it('renders arrow marker definition with correct attributes', () => {
     const { container } = renderConnector();
     const marker = container.querySelector('[data-testid="connection-arrow-marker"]');

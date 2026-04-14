@@ -262,7 +262,6 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         disabled={!!containerStatus?.disabled}
         aria-disabled={!!containerStatus?.disabled || undefined}
         aria-label={`Container: ${resolvedContainer.name}`}
-        aria-pressed={isSelected}
         style={{
           left: `${-screenWidth / 2}px`,
           top: `${-screenHeight / 2}px`,

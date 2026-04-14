@@ -557,7 +557,6 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             }
           }}
           aria-label={connectionLabel}
-          aria-pressed={isSelected}
           style={{ cursor: 'pointer' }}
         >
           <path

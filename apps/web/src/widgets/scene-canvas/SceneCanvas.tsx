@@ -521,7 +521,7 @@ export function SceneCanvas() {
   return (
     <div
       id="architecture-canvas"
-      role="application"
+      tabIndex={-1}
       aria-roledescription="visual architecture canvas"
       aria-label="Architecture canvas"
       className={`scene-viewport grid-${gridStyle}`}

@@ -1384,11 +1384,11 @@ describe('SceneCanvas accessibility attributes', () => {
     } as unknown as typeof ResizeObserver;
   });
 
-  it('root element has id, role, aria-roledescription, and aria-label', () => {
+  it('root element has id, tabIndex, aria-roledescription, and aria-label', () => {
     const { container } = render(<SceneCanvas />);
     const root = container.querySelector('#architecture-canvas');
     expect(root).toBeInTheDocument();
-    expect(root?.getAttribute('role')).toBe('application');
+    expect(root?.getAttribute('tabindex')).toBe('-1');
     expect(root?.getAttribute('aria-roledescription')).toBe('visual architecture canvas');
     expect(root?.getAttribute('aria-label')).toBe('Architecture canvas');
   });
