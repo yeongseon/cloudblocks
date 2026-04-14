@@ -204,4 +204,4 @@ Versioning convention: **Milestone N = v0.N.0**. Patch releases (v0.N.1, v0.N.2)
 
 - `pnpm build`
 - `pnpm lint`
-- `cd apps/api && pytest`
+- `python3 -m pytest apps/api`

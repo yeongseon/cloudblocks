@@ -56,7 +56,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 ### Enforcement
 
 - Coverage thresholds configured in `vitest.config.ts` → build fails if below 90%
-- Backend coverage checked in CI via `pytest --cov --cov-fail-under=90`
+- Backend coverage checked in CI via `python3 -m pytest apps/api --cov=app --cov-fail-under=90`
 
 ---
 
