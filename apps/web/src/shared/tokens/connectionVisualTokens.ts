@@ -42,6 +42,12 @@ export const HOVER_WIDTH_OFFSET = 1.25;
 /** Perpendicular offset (screen px) applied to each connection in an overlap group. */
 export const OVERLAP_OFFSET_PX = 8;
 
+/** Minimum spacing (px) between lanes in an overlap group. */
+export const OVERLAP_LANE_MIN_SPACING_PX = 4;
+
+/** Soft bundle width (px) — total width budget shared among all lanes in a group. */
+export const OVERLAP_LANE_SOFT_BUNDLE_WIDTH_PX = 24;
+
 /**
  * Resolve the visual style for a connection type.
  * Falls back to 'dataflow' when type is undefined or unrecognized.
