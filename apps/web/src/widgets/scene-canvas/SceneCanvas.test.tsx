@@ -1268,9 +1268,12 @@ describe('SceneCanvas placement flows', () => {
       const { container } = render(<SceneCanvas />);
       const world = container.querySelector('.scene-world');
       expect(world).toBeInTheDocument();
-      // Verify the layer divs exist that flow-focus CSS targets
-      expect(world!.querySelector('.container-layer')).toBeInTheDocument();
-      expect(world!.querySelector('.block-layer')).toBeInTheDocument();
+      // Verify direct-child layer structure that flow-focus CSS selectors target
+      // CSS uses '> .container-layer', '> .block-layer' (direct child)
+      expect(world!.querySelector(':scope > .container-layer')).toBeInTheDocument();
+      expect(world!.querySelector(':scope > .block-layer')).toBeInTheDocument();
+      // .connection-layer is rendered by ConnectionAnimationLayer (mocked here),
+      // verified separately in ConnectionAnimationLayer tests
     });
   });
 
