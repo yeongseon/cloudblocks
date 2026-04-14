@@ -35,6 +35,13 @@ vi.mock('../../shared/utils/diff', () => ({
   getDiffState: vi.fn(),
 }));
 
+vi.mock('../../shared/utils/svgTextMeasure', () => ({
+  measureSvgTextWidth: vi.fn((text: string, spec: { fontSize: number }) =>
+    Math.ceil(text.length * spec.fontSize * 0.6),
+  ),
+  clearSvgTextMeasureCache: vi.fn(),
+}));
+
 const connection: Connection = {
   id: 'conn-1',
   from: endpointId('source-1', 'output', 'data'),
