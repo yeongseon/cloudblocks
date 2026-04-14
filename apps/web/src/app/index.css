@@ -47,7 +47,99 @@
   --cb-label-chip-font-weight: 600;
 }
 
-:root,
+:root {
+  --bg-app: #f8fafc;
+  --bg-canvas: #ffffff;
+  --bg-surface: #f1f5f9;
+  --bg-surface-raised: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #f1f5f9;
+  --border-default: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --border-strong: #cbd5e1;
+  --accent-primary: #2563eb;
+  --accent-secondary: #0891b2;
+  --accent-success: #15803d;
+  --accent-warning: #9a5b05;
+  --accent-error: #b91c1c;
+  --canvas-grid-major-color: rgba(0, 0, 0, 0.08);
+  --canvas-grid-minor-color: rgba(0, 0, 0, 0.03);
+  --connection-http-stroke: #7a9ec8;
+  --connection-http-casing: #4a6a8c;
+  --connection-event-stroke: #9f9ba7;
+  --connection-event-casing: #6a6f80;
+  --connection-data-stroke: #86a0af;
+  --connection-data-casing: #5d7285;
+  --connection-error-label-text: #0f172a;
+
+  /* ── Provider accent (provider-neutral highlight for ports & connections) ── */
+  --provider-accent: #2563eb;
+  --provider-accent-glow: rgba(37, 99, 235, 0.22);
+
+  /* ── Interaction state colors ── */
+  --state-selection-stroke: #b8860b;
+  --state-selection-glow: rgba(184, 134, 11, 0.2);
+  --state-snap-stroke: #166534;
+  --state-snap-glow: rgba(22, 101, 52, 0.18);
+  --state-success-stroke: #16a34a;
+  --state-success-glow: rgba(22, 163, 74, 0.22);
+  --state-warning-stroke: #ca8a04;
+  --state-warning-glow: rgba(202, 138, 4, 0.2);
+  --state-connected-stroke: #2563eb;
+  --state-connected-glow: rgba(37, 99, 235, 0.22);
+  --state-delete-stroke: #dc2626;
+  --state-delete-glow: rgba(220, 38, 38, 0.22);
+
+  /* ── Block state tokens (#1591) ── */
+  --state-error-stroke: #dc2626;
+  --state-error-glow: rgba(220, 38, 38, 0.25);
+  --state-health-ok: #15803d;
+  --state-health-warn: #ca8a04;
+  --state-health-error: #dc2626;
+  --state-disabled-opacity: 0.4;
+  --state-unconnected-opacity: 0.7;
+
+  /* ── Provider brand colors (#1583) ── */
+  --provider-azure: #0078d4;
+  --provider-aws: #ff9900;
+  --provider-gcp: #4285f4;
+
+  /* ── Connection neutral (base wire color, recedes behind blocks) ── */
+  --connection-neutral-stroke: #9fb0c7;
+  --connection-neutral-casing: #5c6d84;
+
+  /* ── Block shadow tokens (systematized #1580) ── */
+  --shadow-block-base: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08))
+    drop-shadow(0px 6px 10px rgba(0, 0, 0, 0.06));
+  --shadow-block-hover: drop-shadow(1px 5px 0px rgba(0, 0, 0, 0.1))
+    drop-shadow(0px 8px 14px rgba(0, 0, 0, 0.08));
+  --shadow-block-drag: drop-shadow(2px 8px 0px rgba(0, 0, 0, 0.12))
+    drop-shadow(0px 12px 18px rgba(0, 0, 0, 0.1));
+  --shadow-block-glow: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08));
+  --shadow-container-base: drop-shadow(1px 2px 0px rgba(0, 0, 0, 0.06));
+  --shadow-container-hover: drop-shadow(1px 3px 0px rgba(0, 0, 0, 0.08));
+  --shadow-container-drag: drop-shadow(2px 4px 0px rgba(0, 0, 0, 0.1))
+    drop-shadow(0px 6px 10px rgba(0, 0, 0, 0.07));
+
+  /* ── Placement anchor tiles (#1581) ── */
+  --anchor-marker-stroke: rgba(0, 0, 0, 0.04);
+  --anchor-marker-occupied-stroke: rgba(0, 0, 0, 0.015);
+
+  /* ── Mounted block groove (#1581) ── */
+  --groove-color: rgba(0, 0, 0, 0.12);
+  --groove-opacity: 0.5;
+
+  /* ── External node de-emphasis (#1582) ── */
+  --external-block-opacity: 0.9;
+  --external-block-filter: saturate(0.82) brightness(0.98);
+  --shadow-block-external: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.06));
+  --external-lane-bg: rgba(0, 0, 0, 0.02);
+  --external-lane-border: rgba(0, 0, 0, 0.04);
+}
+
 [data-theme='blueprint'] {
   --bg-app: #0f172a;
   --bg-canvas: #0b1220;

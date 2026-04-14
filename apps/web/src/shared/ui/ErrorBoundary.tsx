@@ -92,16 +92,16 @@ export class ErrorBoundary extends Component<Props, State> {
             alignItems: 'center',
             justifyContent: 'center',
             height: '100vh',
-            background: '#0a0a1a',
-            color: '#e0e0e0',
+            background: '#ffffff',
+            color: '#1e293b',
             fontFamily: 'system-ui, sans-serif',
             gap: '16px',
             padding: '24px',
             textAlign: 'center',
           }}
         >
-          <h1 style={{ fontSize: '24px', margin: 0, color: '#ff6b6b' }}>Something went wrong</h1>
-          <p style={{ fontSize: '14px', color: '#999', maxWidth: '480px' }}>
+          <h1 style={{ fontSize: '24px', margin: 0, color: '#dc2626' }}>Something went wrong</h1>
+          <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '480px' }}>
             CloudBlocks encountered an unexpected error. The error has been logged. Try reloading
             the page.
           </p>
@@ -109,8 +109,8 @@ export class ErrorBoundary extends Component<Props, State> {
             <pre
               style={{
                 fontSize: '12px',
-                color: '#666',
-                background: '#111',
+                color: '#475569',
+                background: '#f1f5f9',
                 padding: '12px',
                 borderRadius: '8px',
                 maxWidth: '600px',
