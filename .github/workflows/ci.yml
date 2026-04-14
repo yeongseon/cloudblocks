@@ -156,21 +156,38 @@ jobs:
 
       - name: Check bundle size budget
         run: |
-          MAX_TOTAL_KB=1024
+          MAX_EAGER_KB=1024
+          MAX_LAZY_TOTAL_KB=2560
           MAX_ENTRY_KB=350
           DIST_DIR="apps/web/dist/assets"
 
           TOTAL_KB=$(du -sk "$DIST_DIR" | cut -f1)
-          echo "Total assets: ${TOTAL_KB} KB (budget: ${MAX_TOTAL_KB} KB)"
 
-          LARGEST_JS=$(find "$DIST_DIR" -name '*.js' -exec du -k {} + | sort -rn | head -1)
+          # Separate eager vs lazy-loaded chunks
+          # Lazy chunks: dynamically import()-ed libs (e.g. elkjs layout engine)
+          LAZY_KB=0
+          for f in $(find "$DIST_DIR" -name 'elk.bundled-*.js' 2>/dev/null); do
+            chunk_kb=$(du -k "$f" | cut -f1)
+            LAZY_KB=$((LAZY_KB + chunk_kb))
+            echo "Lazy chunk: $(basename "$f") (${chunk_kb} KB)"
+          done
+          EAGER_KB=$((TOTAL_KB - LAZY_KB))
+          echo "Eager assets: ${EAGER_KB} KB (budget: ${MAX_EAGER_KB} KB)"
+          echo "Lazy assets: ${LAZY_KB} KB"
+          echo "Total assets: ${TOTAL_KB} KB (budget: ${MAX_LAZY_TOTAL_KB} KB)"
+
+          LARGEST_JS=$(find "$DIST_DIR" -name '*.js' ! -name 'elk.bundled-*' -exec du -k {} + | sort -rn | head -1)
           LARGEST_KB=$(echo "$LARGEST_JS" | cut -f1)
           LARGEST_FILE=$(echo "$LARGEST_JS" | cut -f2)
-          echo "Largest JS chunk: ${LARGEST_KB} KB — $(basename "$LARGEST_FILE") (budget: ${MAX_ENTRY_KB} KB)"
+          echo "Largest eager JS chunk: ${LARGEST_KB} KB — $(basename "$LARGEST_FILE") (budget: ${MAX_ENTRY_KB} KB)"
 
           FAIL=0
-          if [ "$TOTAL_KB" -gt "$MAX_TOTAL_KB" ]; then
-            echo "::error::Bundle size ${TOTAL_KB} KB exceeds budget of ${MAX_TOTAL_KB} KB"
+          if [ "$EAGER_KB" -gt "$MAX_EAGER_KB" ]; then
+            echo "::error::Eager bundle ${EAGER_KB} KB exceeds budget of ${MAX_EAGER_KB} KB"
+            FAIL=1
+          fi
+          if [ "$TOTAL_KB" -gt "$MAX_LAZY_TOTAL_KB" ]; then
+            echo "::error::Total bundle ${TOTAL_KB} KB exceeds lazy budget of ${MAX_LAZY_TOTAL_KB} KB"
             FAIL=1
           fi
           if [ "$LARGEST_KB" -gt "$MAX_ENTRY_KB" ]; then
@@ -183,7 +200,7 @@ jobs:
           find "$DIST_DIR" -name '*.js' -exec du -k {} + | sort -rn | while read -r size file; do
             echo "  ${size} KB — $(basename "$file")"
           done
-          echo "========================="
+          echo "=========================="
 
           exit $FAIL
 

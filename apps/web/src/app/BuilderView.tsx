@@ -15,6 +15,7 @@ import { useUIStore } from '../entities/store/uiStore';
 import { syncWorkspaceUI } from '../entities/store/uiSync';
 import { audioService } from '../shared/utils/audioService';
 import { isApiConfigured } from '../shared/api/client';
+import { runAutoLayout } from '../features/layout/autoLayout';
 import { useIsMobile } from '../shared/hooks/useIsMobile';
 import { MobilePaletteSheet } from '../widgets/mobile-palette-sheet';
 import { Plus } from 'lucide-react';
@@ -244,6 +245,21 @@ export function BuilderView() {
       if (e.key === 'M' && e.shiftKey && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         useUIStore.getState().toggleMiniMap();
+        return;
+      }
+
+      // Auto Layout: Ctrl/Cmd+Shift+L
+      if (e.key === 'L' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        runAutoLayout()
+          .then((applied) => {
+            if (applied) {
+              toast.success('Auto layout applied');
+            }
+          })
+          .catch(() => {
+            toast.error('Auto layout failed');
+          });
         return;
       }
     };
