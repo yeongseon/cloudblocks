@@ -6,6 +6,28 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.49.0] — 2026-04-15
+
+**Milestone 49 — Canvas UX Polish & Enhancement**
+
+Comprehensive canvas interaction improvements: rounded orthogonal connection corners, connection path animation, deterministic lane allocation, MiniMap widget, ELKjs auto-layout, and accessibility enhancements.
+
+### Added
+
+- MiniMap widget for canvas overview and quick navigation (#1835)
+- ELKjs auto-layout for one-click node arrangement (#1836)
+- Smooth path transition animation for connection snap-to-grid (#1837)
+- Hover and selection animation refinement for connections (#1833)
+- Accessibility improvements to canvas and interactive elements (#1838)
+- ADR-0018: Canvas Improvement Strategy (#1839)
+
+### Changed
+
+- Rounded orthogonal corners for connection paths (#1830)
+- Connection preview and committed path visual consistency (#1831)
+- Connection label text measurement improvement (#1832)
+- Deterministic direction-aware lane allocation for overlapping connections (#1834)
+
 ---
 
 ## [v0.47.0] — 2026-04-14
@@ -1374,6 +1396,20 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.43.0]: https://github.com/yeongseon/cloudblocks/compare/v0.42.0...v0.43.0
+[v0.42.0]: https://github.com/yeongseon/cloudblocks/compare/v0.41.0...v0.42.0
+[v0.41.0]: https://github.com/yeongseon/cloudblocks/compare/v0.40.0...v0.41.0
+[v0.40.0]: https://github.com/yeongseon/cloudblocks/compare/v0.39.0...v0.40.0
+[v0.39.0]: https://github.com/yeongseon/cloudblocks/compare/v0.38.0...v0.39.0
+[v0.38.0]: https://github.com/yeongseon/cloudblocks/compare/v0.37.0...v0.38.0
+[v0.37.0]: https://github.com/yeongseon/cloudblocks/compare/v0.36.0...v0.37.0
+[v0.36.0]: https://github.com/yeongseon/cloudblocks/compare/v0.35.0...v0.36.0
+[v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
+[v0.49.0]: https://github.com/yeongseon/cloudblocks/compare/v0.47.0...v0.49.0
+[v0.47.0]: https://github.com/yeongseon/cloudblocks/compare/v0.46.0...v0.47.0
+[v0.46.0]: https://github.com/yeongseon/cloudblocks/compare/v0.45.0...v0.46.0
+[v0.45.0]: https://github.com/yeongseon/cloudblocks/compare/v0.44.0...v0.45.0
+[v0.44.0]: https://github.com/yeongseon/cloudblocks/compare/v0.43.0...v0.44.0
 [v0.43.0]: https://github.com/yeongseon/cloudblocks/compare/v0.42.0...v0.43.0
 [v0.42.0]: https://github.com/yeongseon/cloudblocks/compare/v0.41.0...v0.42.0
 [v0.41.0]: https://github.com/yeongseon/cloudblocks/compare/v0.40.0...v0.41.0
