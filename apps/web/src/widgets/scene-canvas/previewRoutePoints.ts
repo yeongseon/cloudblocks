@@ -33,19 +33,19 @@ export function getPreviewRoutePoints(
 ): ScreenPoint[] {
   const dx = target.x - source.x;
   const dy = target.y - source.y;
-  const minStub = radius * 2;
+  const minExit = radius * 2;
 
   // Very close targets: collapse to straight line to avoid crushed elbows.
-  if (Math.abs(dx) < minStub && Math.abs(dy) < minStub) {
+  if (Math.abs(dx) < minExit && Math.abs(dy) < minExit) {
     return [source, target];
   }
 
   // Compute the vertical lane X position.
-  // Clamp so the lane stays at least minStub from source (exit stub)
-  // and minStub from target (approach clearance).
+  // Clamp so the lane stays at least minExit from source (exit clearance)
+  // and minExit from target (approach clearance).
   const laneX = Math.max(
-    source.x + minStub,
-    Math.min((source.x + target.x) / 2, target.x - minStub),
+    source.x + minExit,
+    Math.min((source.x + target.x) / 2, target.x - minExit),
   );
 
   const p1: ScreenPoint = { x: laneX, y: source.y };

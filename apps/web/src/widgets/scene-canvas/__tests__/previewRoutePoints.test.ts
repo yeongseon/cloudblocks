@@ -43,20 +43,20 @@ describe('getPreviewRoutePoints', () => {
     const target = { x: 400, y: 200 };
     const result = getPreviewRoutePoints(source, target);
     // midX = (100 + 400) / 2 = 250
-    // source.x + minStub = 100 + 24 = 124
-    // target.x - minStub = 400 - 24 = 376
+    // source.x + minExit = 100 + 24 = 124
+    // target.x - minExit = 400 - 24 = 376
     // laneX = max(124, min(250, 376)) = 250
     expect(result[1].x).toBe(250);
   });
 
-  it('uses minStub when target is close horizontally but far vertically', () => {
+  it('uses minExit when target is close horizontally but far vertically', () => {
     const source = { x: 100, y: 100 };
     const target = { x: 130, y: 300 }; // dx=30 > 24, dy=200 > 24
     const result = getPreviewRoutePoints(source, target);
     expect(result).toHaveLength(4);
     // midX = (100 + 130) / 2 = 115
-    // source.x + minStub = 100 + 24 = 124
-    // target.x - minStub = 130 - 24 = 106
+    // source.x + minExit = 100 + 24 = 124
+    // target.x - minExit = 130 - 24 = 106
     // laneX = max(124, min(115, 106)) = max(124, 106) = 124
     expect(result[1].x).toBe(124);
   });
@@ -67,8 +67,8 @@ describe('getPreviewRoutePoints', () => {
     const result = getPreviewRoutePoints(source, target);
     expect(result).toHaveLength(4);
     // midX = (200 + 50) / 2 = 125
-    // source.x + minStub = 200 + 24 = 224
-    // target.x - minStub = 50 - 24 = 26
+    // source.x + minExit = 200 + 24 = 224
+    // target.x - minExit = 50 - 24 = 26
     // laneX = max(224, min(125, 26)) = max(224, 26) = 224
     expect(result[1].x).toBe(224);
     // Lane is to the right of source, looping out before coming back
@@ -92,8 +92,8 @@ describe('getPreviewRoutePoints', () => {
     const result = getPreviewRoutePoints(source, target);
     expect(result).toHaveLength(4);
     // midX = (100 + 100) / 2 = 100
-    // source.x + minStub = 100 + 24 = 124
-    // target.x - minStub = 100 - 24 = 76
+    // source.x + minExit = 100 + 24 = 124
+    // target.x - minExit = 100 - 24 = 76
     // laneX = max(124, min(100, 76)) = max(124, 76) = 124
     expect(result[1].x).toBe(124);
   });
@@ -101,9 +101,9 @@ describe('getPreviewRoutePoints', () => {
   it('accepts custom radius parameter', () => {
     const source = { x: 100, y: 100 };
     const target = { x: 105, y: 105 }; // within 2*R for R=12, but not for R=2
-    // With default R=12, minStub = 24, dx=5 < 24 and dy=5 < 24 → straight
+    // With default R=12, minExit = 24, dx=5 < 24 and dy=5 < 24 → straight
     expect(getPreviewRoutePoints(source, target, 12)).toHaveLength(2);
-    // With R=2, minStub = 4, dx=5 > 4 or dy=5 > 4 → NOT both < minStub
+    // With R=2, minExit = 4, dx=5 > 4 or dy=5 > 4 → NOT both < minExit
     // Actually dx=5 > 4 AND dy=5 > 4 → step route
     expect(getPreviewRoutePoints(source, target, 2)).toHaveLength(4);
   });
@@ -127,9 +127,9 @@ describe('getPreviewRoutePoints', () => {
     }
   });
 
-  it('laneX is always >= source.x + minStub', () => {
+  it('laneX is always >= source.x + minExit', () => {
     const source = { x: 100, y: 100 };
-    const minStub = 2 * R;
+    const minExit = 2 * R;
     const targets = [
       { x: 50, y: 200 },
       { x: 100, y: 200 },
@@ -139,7 +139,7 @@ describe('getPreviewRoutePoints', () => {
     for (const target of targets) {
       const result = getPreviewRoutePoints(source, target);
       if (result.length === 4) {
-        expect(result[1].x).toBeGreaterThanOrEqual(source.x + minStub);
+        expect(result[1].x).toBeGreaterThanOrEqual(source.x + minExit);
       }
     }
   });
