@@ -494,9 +494,11 @@ describe('ConnectionRenderer', () => {
     expect(hoverOutline?.getAttribute('stroke-opacity')).toBe('0.7');
   });
 
-  it('does not render glow outline when not hovered and not selected', () => {
+  it('renders glow outline with zero opacity when not hovered and not selected', () => {
     const { container } = renderConnector();
-    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+    const outline = container.querySelector('[data-layer="selection-outline"]');
+    expect(outline).toBeInTheDocument();
+    expect(outline?.getAttribute('stroke-opacity')).toBe('0');
   });
 
   it('renders hover-equivalent packet visuals on keyboard focus', () => {
@@ -531,7 +533,9 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-layer="selection-outline"]')).toBeInTheDocument();
 
     fireEvent.blur(link);
-    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+    const outlineAfterBlur = container.querySelector('[data-layer="selection-outline"]');
+    expect(outlineAfterBlur).toBeInTheDocument();
+    expect(outlineAfterBlur?.getAttribute('stroke-opacity')).toBe('0');
   });
 
   it('maintains highlight when hover leaves but keyboard focus remains', () => {
@@ -589,9 +593,11 @@ describe('ConnectionRenderer', () => {
       container.querySelector('[data-layer="packet-core"]')?.getAttribute('fill-opacity'),
     ).toBe('0.72');
 
-    // Remove focus — now highlight should be gone
+    // Remove focus — now glow should fade to zero opacity
     fireEvent.blur(link);
-    expect(container.querySelector('[data-layer="selection-outline"]')).not.toBeInTheDocument();
+    const outlineAfterClear = container.querySelector('[data-layer="selection-outline"]');
+    expect(outlineAfterClear).toBeInTheDocument();
+    expect(outlineAfterClear?.getAttribute('stroke-opacity')).toBe('0');
   });
 
   it('renders accessible label on SVG link', () => {
