@@ -496,7 +496,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     <g
       opacity={colors.opacity}
       data-connector-type={connectionType ?? 'dataflow'}
-      data-selected={isSelected ? 'true' : undefined}
+      data-highlighted={isHighlighted ? 'true' : 'false'}
+      data-selected={isSelected ? 'true' : 'false'}
     >
       {shouldRenderVisuals && (
         <defs>
@@ -514,6 +515,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
               d={`M0,0 L${ARROW_MARKER_W},${ARROW_MARKER_H / 2} L0,${ARROW_MARKER_H} Z`}
               fill={colors.stroke}
               fillOpacity={isHighlighted ? 1.0 : 0.95}
+              data-layer="arrow-head"
             />
           </marker>
         </defs>
@@ -583,20 +585,18 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             canvasZoom={canvasZoom}
           />
 
-          {/* Provider-accent glow: hover = subtle, selection = stronger */}
-          {isHighlighted && (
-            <path
-              d={hitPath}
-              stroke="var(--provider-accent-glow)"
-              strokeWidth={isSelected ? casingWidth + 4 : casingWidth + 2}
-              strokeOpacity={isSelected ? 1 : 0.7}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-              pointerEvents="none"
-              data-layer="selection-outline"
-            />
-          )}
+          {/* Provider-accent glow: always rendered, faded via CSS transition */}
+          <path
+            d={hitPath}
+            stroke="var(--provider-accent-glow)"
+            strokeWidth={isSelected ? casingWidth + 4 : casingWidth + 2}
+            strokeOpacity={isHighlighted ? (isSelected ? 1 : 0.7) : 0}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            pointerEvents="none"
+            data-layer="selection-outline"
+          />
 
           {/* Snap flash animation overlay — skip for visual-only and skip replay on deselection */}
           {overlayMode !== 'visual-only' && !entranceComplete && (

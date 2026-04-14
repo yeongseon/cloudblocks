@@ -158,6 +158,33 @@
   transition: opacity 80ms ease-out;
 }
 
+/* ── Connector hover/selection transition refinement (#1833) ── */
+.connection-layer
+  > g[data-connector-type]
+  :is([data-layer='casing'], [data-layer='trace'], [data-layer='selection-outline']) {
+  transition-property: stroke-width, stroke-opacity;
+  transition-duration: var(--duration-normal, 200ms);
+  transition-timing-function: var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.connection-layer > g[data-connector-type] [data-layer='arrow-head'] {
+  transition-property: fill-opacity;
+  transition-duration: var(--duration-normal, 200ms);
+  transition-timing-function: var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* Fast hover-in / focus-in; normal hover-out and selection transitions */
+.connection-layer
+  > g[data-highlighted='true']:not([data-selected='true'])
+  :is(
+    [data-layer='casing'],
+    [data-layer='trace'],
+    [data-layer='selection-outline'],
+    [data-layer='arrow-head']
+  ) {
+  transition-duration: var(--duration-fast, 100ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flow-focus-active .connection-layer > g,
   .flow-focus-active .connection-layer > g:is(:hover, :focus-within, [data-selected='true']),
@@ -165,6 +192,17 @@
   .flow-focus-active > .block-layer,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g,
   .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
+    transition: none;
+  }
+
+  .connection-layer
+    > g[data-connector-type]
+    :is(
+      [data-layer='casing'],
+      [data-layer='trace'],
+      [data-layer='selection-outline'],
+      [data-layer='arrow-head']
+    ) {
     transition: none;
   }
 }
