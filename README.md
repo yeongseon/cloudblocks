@@ -9,6 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://yeongseon.github.io/cloudblocks/)
+[![Docs](https://img.shields.io/badge/docs-site-blue)](https://yeongseon.github.io/cloudblocks/docs/)
 
 <p align="center">
   <img src="docs/assets/logo.svg" alt="CloudBlocks logo" width="96" height="96" />
@@ -18,7 +19,7 @@
 
 Start from built-in architecture templates, learn cloud infrastructure patterns with guided scenarios, and export Terraform starter code — all in the browser. No cloud account or backend required.
 
-> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, templates, learning scenarios, and Terraform starter export work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
+> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** | **[📖 Documentation](https://yeongseon.github.io/cloudblocks/docs/)** — Frontend-only playground. Visual builder, templates, learning scenarios, and Terraform starter export work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
 ## Demo
 
@@ -78,7 +79,7 @@ Open [http://localhost:5173](http://localhost:5173) to start learning.
 
 ## Documentation
 
-Full documentation is available in the [`docs/`](docs/) directory:
+Full documentation is available on the **[Documentation Site](https://yeongseon.github.io/cloudblocks/docs/)** or in the [`docs/`](docs/) directory:
 
 - [Getting Started](docs/guides/TUTORIALS.md)
 - [Architecture](docs/concept/ARCHITECTURE.md)

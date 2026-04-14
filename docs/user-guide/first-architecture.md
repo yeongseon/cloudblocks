@@ -12,6 +12,7 @@ Learn your first cloud architecture in 5 minutes using a built-in template with 
 ## Step 1 — Open CloudBlocks
 
 - **Live Demo**: Visit [https://yeongseon.github.io/cloudblocks/](https://yeongseon.github.io/cloudblocks/)
+- **Documentation**: Browse the full docs at [https://yeongseon.github.io/cloudblocks/docs/](https://yeongseon.github.io/cloudblocks/docs/)
 - **Local**: Clone and run (see [Quick Start](quick-start.md))
 
 When CloudBlocks opens, click **Get Started** to enter the builder.
