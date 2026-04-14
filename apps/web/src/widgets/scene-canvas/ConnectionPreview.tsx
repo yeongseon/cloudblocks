@@ -11,6 +11,8 @@ import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../shared/types/endpoint';
+import { getPreviewRoutePoints } from './previewRoutePoints';
+import { buildRoundedConnectionGeometry } from '../../entities/connection/roundedConnectionPath';
 
 interface ConnectionPreviewProps {
   originX: number;
@@ -214,9 +216,8 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
   }
 
   const target = snappedTarget ?? cursor ?? sourceScreen;
-  const midX = (sourceScreen.x + target.x) / 2;
-  const midY = Math.min(sourceScreen.y, target.y) - 40;
-  const pathD = `M ${sourceScreen.x} ${sourceScreen.y} Q ${midX} ${midY} ${target.x} ${target.y}`;
+  const routePoints = getPreviewRoutePoints(sourceScreen, target);
+  const { path: pathD } = buildRoundedConnectionGeometry(routePoints);
 
   return (
     <path
