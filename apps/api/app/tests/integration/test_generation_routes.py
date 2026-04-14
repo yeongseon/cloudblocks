@@ -7,16 +7,13 @@ import pytest
 from httpx import AsyncClient
 
 from app.core.security import generate_id, generate_session_token
+from app.tests.helpers import with_cookies
 from app.domain.models.entities import Session, User
 from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
 
 async def _create_workspace(client: AsyncClient, auth_cookies: dict[str, str]) -> dict[str, Any]:
-    response = await client.post(
-        "/api/v1/workspaces/",
-        cookies=auth_cookies,
-        json={"name": "Generation Workspace"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/workspaces/", json={"name": "Generation Workspace"},)
     assert response.status_code == 201
     return response.json()
 
@@ -51,11 +48,7 @@ async def test_trigger_generation_returns_pending_run(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/generate",
-        cookies=auth_cookies,
-        json={"generator": "terraform", "provider": "azure"},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/generate", json={"generator": "terraform", "provider": "azure"},)
 
     assert response.status_code == 202
     payload = response.json()
@@ -70,11 +63,7 @@ async def test_trigger_generation_workspace_not_found_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
-        "/api/v1/workspaces/missing/generate",
-        cookies=auth_cookies,
-        json={"generator": "terraform", "provider": "azure"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/workspaces/missing/generate", json={"generator": "terraform", "provider": "azure"},)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -89,11 +78,7 @@ async def test_trigger_generation_not_owner_returns_403(
     workspace = await _create_workspace(client, auth_cookies)
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/generate",
-        cookies=other_cookies,
-        json={"generator": "terraform", "provider": "azure"},
-    )
+    response = await with_cookies(client, other_cookies).post(f"/api/v1/workspaces/{workspace['id']}/generate", json={"generator": "terraform", "provider": "azure"},)
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
@@ -105,17 +90,10 @@ async def test_get_generation_status_returns_run(
     auth_cookies: dict[str, str],
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
-    create_run = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/generate",
-        cookies=auth_cookies,
-        json={"generator": "terraform", "provider": "azure"},
-    )
+    create_run = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/generate", json={"generator": "terraform", "provider": "azure"},)
     run_id = create_run.json()["id"]
 
-    response = await client.get(
-        f"/api/v1/workspaces/{workspace['id']}/generate/{run_id}",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get(f"/api/v1/workspaces/{workspace['id']}/generate/{run_id}", )
 
     assert response.status_code == 200
     payload = response.json()
@@ -131,10 +109,7 @@ async def test_get_generation_status_run_not_found_returns_404(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.get(
-        f"/api/v1/workspaces/{workspace['id']}/generate/missing-run",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get(f"/api/v1/workspaces/{workspace['id']}/generate/missing-run", )
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -145,10 +120,7 @@ async def test_get_generation_status_workspace_not_found_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get(
-        "/api/v1/workspaces/missing/generate/any-run",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get("/api/v1/workspaces/missing/generate/any-run", )
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -161,10 +133,7 @@ async def test_preview_generation_returns_placeholder(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.get(
-        f"/api/v1/workspaces/{workspace['id']}/preview",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get(f"/api/v1/workspaces/{workspace['id']}/preview", )
 
     assert response.status_code == 200
     payload = response.json()
@@ -178,7 +147,7 @@ async def test_preview_generation_workspace_not_found_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/missing/preview", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/workspaces/missing/preview")
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -193,10 +162,7 @@ async def test_preview_generation_not_owner_returns_403(
     workspace = await _create_workspace(client, auth_cookies)
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.get(
-        f"/api/v1/workspaces/{workspace['id']}/preview",
-        cookies=other_cookies,
-    )
+    response = await with_cookies(client, other_cookies).get(f"/api/v1/workspaces/{workspace['id']}/preview", )
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"

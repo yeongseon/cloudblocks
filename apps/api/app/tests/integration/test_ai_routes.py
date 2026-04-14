@@ -10,6 +10,7 @@ from httpx import AsyncClient
 
 from app.core.dependencies import get_key_manager
 from app.core.security import generate_id
+from app.tests.helpers import with_cookies
 from app.domain.models.ai_entities import AIApiKey, CostEstimate, CostResource
 from app.domain.models.entities import User
 from app.infrastructure.cost.infracost_client import InfracostClient
@@ -63,11 +64,7 @@ async def test_generate_success(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
-        "/api/v1/ai/generate",
-        cookies=auth_cookies,
-        json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/generate", json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},)
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
@@ -91,11 +88,7 @@ async def test_generate_no_api_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
-        "/api/v1/ai/generate",
-        cookies=auth_cookies,
-        json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/generate", json={"prompt": "build architecture", "provider": "aws", "complexity": "simple"},)
 
     assert response.status_code == 400
     payload = cast(dict[str, object], json.loads(response.text))
@@ -156,11 +149,7 @@ async def test_generate_returns_validation_warnings(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
-        "/api/v1/ai/generate",
-        cookies=auth_cookies,
-        json={"prompt": "build it", "provider": "aws", "complexity": "simple"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/generate", json={"prompt": "build it", "provider": "aws", "complexity": "simple"},)
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
@@ -205,11 +194,7 @@ async def test_suggest_success(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
-        "/api/v1/ai/suggest",
-        cookies=auth_cookies,
-        json={"architecture": {"plates": [], "blocks": []}, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/suggest", json={"architecture": {"plates": [], "blocks": []}, "provider": "aws"},)
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
@@ -244,11 +229,7 @@ async def test_suggest_llm_error(
 
     monkeypatch.setattr(OpenAIClient, "generate", mock_generate)
 
-    response = await client.post(
-        "/api/v1/ai/suggest",
-        cookies=auth_cookies,
-        json={"architecture": {"blocks": []}, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/suggest", json={"architecture": {"blocks": []}, "provider": "aws"},)
 
     assert response.status_code == 500
     payload = cast(dict[str, object], response.json())
@@ -262,11 +243,7 @@ async def test_suggest_no_api_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
-        "/api/v1/ai/suggest",
-        cookies=auth_cookies,
-        json={"architecture": {}, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/suggest", json={"architecture": {}, "provider": "aws"},)
 
     assert response.status_code == 400
     payload = cast(dict[str, object], json.loads(response.text))
@@ -341,11 +318,7 @@ async def test_cost_success(
         ],
     }
 
-    response = await client.post(
-        "/api/v1/ai/cost",
-        cookies=auth_cookies,
-        json={"architecture": architecture, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/cost", json={"architecture": architecture, "provider": "aws"},)
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
@@ -398,11 +371,7 @@ async def test_cost_success_with_nodes_format(
         ]
     }
 
-    response = await client.post(
-        "/api/v1/ai/cost",
-        cookies=auth_cookies,
-        json={"architecture": architecture, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/cost", json={"architecture": architecture, "provider": "aws"},)
 
     assert response.status_code == 200
     payload = cast(dict[str, object], json.loads(response.text))
@@ -438,11 +407,7 @@ async def test_cost_infracost_error(
 
     monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
 
-    response = await client.post(
-        "/api/v1/ai/cost",
-        cookies=auth_cookies,
-        json={"architecture": {"blocks": []}, "provider": "aws"},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/ai/cost", json={"architecture": {"blocks": []}, "provider": "aws"},)
 
     assert response.status_code == 500
     payload = cast(dict[str, object], json.loads(response.text))

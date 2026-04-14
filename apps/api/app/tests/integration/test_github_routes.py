@@ -10,6 +10,7 @@ from httpx import AsyncClient
 
 from app.core.errors import GitHubError
 from app.core.security import generate_id, generate_session_token
+from app.tests.helpers import with_cookies
 from app.domain.models.entities import Session, User
 from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
@@ -65,7 +66,7 @@ async def _create_workspace(
         "github_branch": "main",
     }
     payload.update(kwargs)
-    response = await client.post("/api/v1/workspaces/", cookies=auth_cookies, json=payload)
+    response = await with_cookies(client, auth_cookies).post("/api/v1/workspaces/", json=payload)
     assert response.status_code == 201
     return response.json()
 
@@ -110,10 +111,7 @@ async def test_list_github_repos_returns_formatted_list(
         }
     ]
 
-    response = await client.get(
-        "/api/v1/github/repos",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get("/api/v1/github/repos", )
 
     assert response.status_code == 200
     payload = response.json()["repos"]
@@ -128,7 +126,7 @@ async def test_list_github_repos_without_token_returns_502(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/github/repos", cookies=auth_cookies)
+    response = await with_cookies(client, auth_cookies).get("/api/v1/github/repos")
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -148,11 +146,7 @@ async def test_create_github_repo_returns_created_repo(
         "default_branch": "main",
     }
 
-    response = await client.post(
-        "/api/v1/github/repos",
-        cookies=auth_cookies,
-        json={"name": "new-repo", "description": "desc", "private": True},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/github/repos", json={"name": "new-repo", "description": "desc", "private": True},)
 
     assert response.status_code == 201
     assert response.json()["full_name"] == "acme/new-repo"
@@ -178,11 +172,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
     mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-1"}}
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace_id}/sync",
-        cookies=auth_cookies,
-        json={"architecture": architecture, "commit_message": "sync update"},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace_id}/sync", json={"architecture": architecture, "commit_message": "sync update"},)
 
     assert response.status_code == 200
     assert response.json()["commit_sha"] == "commit-sha-1"
@@ -219,11 +209,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     mock_github.get_repo_contents.side_effect = GitHubError("missing", details={"status_code": 404})
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-2"}}
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace_id}/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace_id}/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 200
     args = mock_github.create_or_update_file.await_args.args
@@ -244,11 +230,7 @@ async def test_sync_workspace_non_404_github_error_propagates_as_502(
         "rate limit exceeded", details={"status_code": 403}
     )
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace_id}/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace_id}/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -260,11 +242,7 @@ async def test_sync_workspace_without_linked_repo_returns_502(
     auth_cookies: dict[str, str],
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies, github_repo=None)
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -275,11 +253,7 @@ async def test_sync_workspace_not_found_returns_404(
     client: AsyncClient,
     auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.post(
-        "/api/v1/workspaces/missing/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, auth_cookies).post("/api/v1/workspaces/missing/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -294,11 +268,7 @@ async def test_sync_workspace_not_owner_returns_403(
     workspace = await _create_workspace(client, auth_cookies)
     other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=other_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, other_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
@@ -316,10 +286,7 @@ async def test_pull_workspace_architecture_from_github(
     encoded = base64.b64encode(json.dumps(architecture).encode()).decode()
     mock_github.get_repo_contents.return_value = {"content": encoded}
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pull",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pull", )
 
     assert response.status_code == 200
     assert response.json() == {"architecture": architecture}
@@ -335,10 +302,7 @@ async def test_pull_workspace_architecture_file_not_found_returns_404(
     workspace = await _create_workspace(client, auth_cookies)
     mock_github.get_repo_contents.side_effect = GitHubError("no file", details={"status_code": 404})
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pull",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pull", )
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -356,10 +320,7 @@ async def test_pull_workspace_non_404_github_error_propagates_as_502(
         "internal server error", details={"status_code": 500}
     )
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pull",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pull", )
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -375,10 +336,7 @@ async def test_pull_workspace_architecture_unexpected_format_returns_502(
     workspace = await _create_workspace(client, auth_cookies)
     mock_github.get_repo_contents.return_value = ["unexpected"]
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pull",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pull", )
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -402,17 +360,13 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
         "number": 7,
     }
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pr",
-        cookies=auth_cookies,
-        json={
-            "architecture": VALID_ARCHITECTURE,
-            "title": "Update architecture",
-            "body": "Automated update",
-            "branch": "cloudblocks/pr-branch",
-            "commit_message": "commit from tests",
-        },
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pr", json={
+        "architecture": VALID_ARCHITECTURE,
+        "title": "Update architecture",
+        "body": "Automated update",
+        "branch": "cloudblocks/pr-branch",
+        "commit_message": "commit from tests",
+    },)
 
     assert response.status_code == 201
     payload = response.json()
@@ -430,11 +384,7 @@ async def test_sync_with_missing_architecture_fields_returns_400(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=auth_cookies,
-        json={"architecture": {"plates": []}},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": {"plates": []}},)
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
@@ -449,11 +399,7 @@ async def test_sync_with_invalid_plates_type_returns_400(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=auth_cookies,
-        json={"architecture": {**VALID_ARCHITECTURE, "plates": "not-a-list"}},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": {**VALID_ARCHITECTURE, "plates": "not-a-list"}},)
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
@@ -468,15 +414,11 @@ async def test_pr_with_missing_architecture_fields_returns_400(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pr",
-        cookies=auth_cookies,
-        json={
-            "architecture": {"plates": []},
-            "title": "Update architecture",
-            "body": "Automated update",
-        },
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pr", json={
+        "architecture": {"plates": []},
+        "title": "Update architecture",
+        "body": "Automated update",
+    },)
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
@@ -493,11 +435,7 @@ async def test_sync_with_valid_full_architecture_succeeds(
     mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-valid"}}
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": VALID_ARCHITECTURE},)
 
     assert response.status_code == 200
     assert response.json()["commit_sha"] == "commit-sha-valid"
@@ -514,11 +452,7 @@ async def test_sync_with_valid_nodes_architecture_succeeds(
     mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-nodes"}}
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/sync",
-        cookies=auth_cookies,
-        json={"architecture": VALID_ARCHITECTURE_NODES},
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/sync", json={"architecture": VALID_ARCHITECTURE_NODES},)
 
     assert response.status_code == 200
     assert response.json()["commit_sha"] == "commit-sha-nodes"
@@ -542,17 +476,13 @@ async def test_pr_with_valid_nodes_architecture_succeeds(
         "number": 8,
     }
 
-    response = await client.post(
-        f"/api/v1/workspaces/{workspace['id']}/pr",
-        cookies=auth_cookies,
-        json={
-            "architecture": VALID_ARCHITECTURE_NODES,
-            "title": "Update architecture",
-            "body": "Automated update",
-            "branch": "cloudblocks/nodes-pr",
-            "commit_message": "commit from tests",
-        },
-    )
+    response = await with_cookies(client, auth_cookies).post(f"/api/v1/workspaces/{workspace['id']}/pr", json={
+        "architecture": VALID_ARCHITECTURE_NODES,
+        "title": "Update architecture",
+        "body": "Automated update",
+        "branch": "cloudblocks/nodes-pr",
+        "commit_message": "commit from tests",
+    },)
 
     assert response.status_code == 201
     assert response.json()["number"] == 8
@@ -577,10 +507,7 @@ async def test_list_workspace_commits_returns_formatted_commits(
         }
     ]
 
-    response = await client.get(
-        f"/api/v1/workspaces/{workspace['id']}/commits",
-        cookies=auth_cookies,
-    )
+    response = await with_cookies(client, auth_cookies).get(f"/api/v1/workspaces/{workspace['id']}/commits", )
 
     assert response.status_code == 200
     payload = response.json()["commits"]
