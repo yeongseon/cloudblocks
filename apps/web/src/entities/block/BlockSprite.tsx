@@ -200,6 +200,9 @@ export const BlockSprite = memo(function BlockSprite({
           }
         },
         move(event) {
+          if (!isDragging.current) {
+            useUIStore.getState().startDragging();
+          }
           isDragging.current = true;
 
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
@@ -249,6 +252,9 @@ export const BlockSprite = memo(function BlockSprite({
 
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
+          }
+          if (isDragging.current) {
+            useUIStore.getState().completeInteraction();
           }
           dragResetTimerRef.current = setTimeout(() => {
             isDragging.current = false;
