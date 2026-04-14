@@ -123,7 +123,7 @@ Living documentation files include a `Verified against` marker in their metadata
    - `Verified against: v4.1.0 schema` (schema only), or
    - `Verified against: app v0.40.0, schema v4.1.0` (both)
 3. **Update only after review**: A marker means "a human verified this document accurately describes the codebase at version X (and/or schema S)". Do not bulk-update markers without actually reviewing content.
-4. **Exempt documents**: ADRs (`docs/decisions/ADR-*.md`) and documents marked "Historical (Superseded)" do not carry freshness markers — they are immutable records.
+4. **Exempt documents**: ADRs (`docs/adr/`) and documents marked "Historical (Superseded)" do not carry freshness markers — they are immutable records.
 5. **Staleness threshold**: A marker more than 5 milestones behind the current release is considered stale and should be prioritized for review.
 
 ### Release Checklist Integration

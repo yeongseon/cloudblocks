@@ -5,7 +5,7 @@
 **Status**: Active
 **Date**: 2026-03
 **Supersedes**: Visual styling sections of BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md
-**Related**: [CLOUDBLOCKS_SPEC_V2.md §7](https://github.com/yeongseon/cloudblocks/blob/main/docs/design/CLOUDBLOCKS_SPEC_V2.md) (Color System — historical, excluded from public nav), [ADR-0011](https://github.com/yeongseon/cloudblocks/blob/main/docs/decisions/ADR-0011.md) (internal, excluded from public docs)
+**Related**: [CLOUDBLOCKS_SPEC_V2.md §7](https://github.com/yeongseon/cloudblocks/blob/main/docs/design/CLOUDBLOCKS_SPEC_V2.md) (Color System — historical, excluded from public nav), [ADR-0011](https://github.com/yeongseon/cloudblocks/blob/main/docs/adr/0011-dual-theme-system.md) (internal, excluded from public docs)
 
 ---
 
@@ -568,4 +568,4 @@ This requires 4 token sets instead of 2 but uses the same `ThemeTokens` interfac
 
 ---
 
-_This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see [CLOUDBLOCKS_SPEC_V2.md §7](https://github.com/yeongseon/cloudblocks/blob/main/docs/design/CLOUDBLOCKS_SPEC_V2.md) (historical, excluded from public nav). For the architectural decision record, see [ADR-0011](https://github.com/yeongseon/cloudblocks/blob/main/docs/decisions/ADR-0011.md) (internal, excluded from public docs)._
+_This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see [CLOUDBLOCKS_SPEC_V2.md §7](https://github.com/yeongseon/cloudblocks/blob/main/docs/design/CLOUDBLOCKS_SPEC_V2.md) (historical, excluded from public nav). For the architectural decision record, see [ADR-0011](https://github.com/yeongseon/cloudblocks/blob/main/docs/adr/0011-dual-theme-system.md) (internal, excluded from public docs)._
