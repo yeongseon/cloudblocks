@@ -300,7 +300,7 @@
 }
 
 /* ── Connection focus ring (SVG) ────────────────────────── */
-.connection-layer g[role='button']:focus-visible [data-testid='connection-hit-area'] {
+.connection-layer g[role='button']:focus-visible .connection-hit-area {
   stroke: var(--accent-primary, #3b82f6);
   stroke-width: 4;
   stroke-opacity: 0.6;
