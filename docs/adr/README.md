@@ -23,6 +23,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0015](0015-external-actor-to-block-migration.md)       | ExternalActor-to-Block Migration          | Accepted           | 2026-03 |
 | [0016](0016-connection-type-taxonomy-alignment.md)     | Connection Type Taxonomy Alignment        | Accepted           | 2026-04 |
 | [0017](0017-uniform-block-height.md)                   | Uniform Block Height Across Categories    | Accepted           | 2026-04 |
+| [0018](0018-canvas-improvement-strategy.md)             | Canvas Improvement Strategy               | Accepted           | 2026-04 |
 
 ## ADR Template
 
