@@ -31,6 +31,24 @@ function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
 }
 
+// ─── Geometry comparison ─────────────────────────────────────────
+
+const EPSILON = 0.5; // sub-pixel threshold for geometry equality
+
+/**
+ * Check if two point arrays represent the same geometry (within epsilon).
+ * Used to skip transitions when an unrelated block was dragged.
+ */
+function pointsEqual(a: readonly ScreenPoint[], b: readonly ScreenPoint[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (Math.abs(a[i].x - b[i].x) > EPSILON || Math.abs(a[i].y - b[i].y) > EPSILON) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // ─── Arc-length resampling ──────────────────────────────────────────
 
 /** Compute cumulative arc-length distances for a polyline. */
@@ -93,7 +111,8 @@ export function resampleByArcLength(points: readonly ScreenPoint[], count: numbe
 
 /**
  * Linearly interpolate between two resampled arrays of equal length.
- * Pin first and last points to `to` values (endpoint pinning).
+ * Pin first, last, second, and penultimate points to `to` values
+ * (endpoint + tangent pinning prevents arrowhead wobble).
  */
 function interpolateFlowPoints(
   from: readonly ScreenPoint[],
@@ -104,8 +123,9 @@ function interpolateFlowPoints(
   const result: ScreenPoint[] = new Array(n);
 
   for (let i = 0; i < n; i++) {
-    // Endpoint pinning: always use post-snap positions
-    if (i === 0 || i === n - 1) {
+    // Endpoint + tangent pinning: pin first/last and their neighbors
+    // to post-snap positions for stable arrowhead orientation.
+    if (i === 0 || i === 1 || i === n - 2 || i === n - 1) {
       result[i] = { x: to[i].x, y: to[i].y };
     } else {
       result[i] = {
@@ -169,7 +189,8 @@ export function useConnectionPathTransition(
       const currPts = currentFlowPoints;
 
       // Only animate if we have valid geometry on both sides
-      if (prevPts.length >= 2 && currPts.length >= 2) {
+      // and the geometry actually changed (Oracle review: geometry-change guard).
+      if (prevPts.length >= 2 && currPts.length >= 2 && !pointsEqual(prevPts, currPts)) {
         const sampleCount = Math.min(
           MAX_SAMPLES,
           Math.max(MIN_SAMPLES, Math.max(prevPts.length, currPts.length)),

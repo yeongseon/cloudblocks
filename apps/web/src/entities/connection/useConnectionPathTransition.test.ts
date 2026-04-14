@@ -283,4 +283,58 @@ describe('useConnectionPathTransition', () => {
       expect(midPoint.y).toBeDefined();
     }
   });
+
+  it('does not animate when geometry is unchanged (unrelated block dragged)', () => {
+    const { result, rerender } = renderHook(
+      ({ pts, state, elapsed }) => useConnectionPathTransition(pts, state, elapsed, false),
+      {
+        initialProps: {
+          pts: pointsA,
+          state: 'dragging' as State,
+          elapsed: 100,
+        },
+      },
+    );
+
+    // Transition from dragging → idle but with same geometry
+    rerender({ pts: pointsA, state: 'idle' as const, elapsed: 100 });
+    expect(result.current.isTransitioning).toBe(false);
+    expect(result.current.flowPoints).toHaveLength(pointsA.length);
+  });
+
+  it('handles rapid idle → dragging → idle restart without artifacts', () => {
+    const pointsC: ScreenPoint[] = [
+      { x: 10, y: 10 },
+      { x: 70, y: 10 },
+      { x: 70, y: 70 },
+      { x: 130, y: 70 },
+    ];
+    const { result, rerender } = renderHook(
+      ({ pts, state, elapsed }) => useConnectionPathTransition(pts, state, elapsed, false),
+      {
+        initialProps: {
+          pts: pointsA,
+          state: 'dragging' as State,
+          elapsed: 0,
+        },
+      },
+    );
+
+    // First drag ends → starts transition
+    rerender({ pts: pointsB, state: 'idle' as const, elapsed: 0 });
+    expect(result.current.isTransitioning).toBe(true);
+
+    // Before transition completes, new drag starts at elapsed=50ms
+    rerender({ pts: pointsB, state: 'dragging' as const, elapsed: 50 });
+    expect(result.current.isTransitioning).toBe(false);
+
+    // Second drag ends with different geometry
+    rerender({ pts: pointsC, state: 'idle' as const, elapsed: 80 });
+    expect(result.current.isTransitioning).toBe(true);
+
+    // New transition should use pointsC as target
+    const lastPoint = result.current.flowPoints[result.current.flowPoints.length - 1];
+    expect(lastPoint.x).toBeCloseTo(pointsC[pointsC.length - 1].x);
+    expect(lastPoint.y).toBeCloseTo(pointsC[pointsC.length - 1].y);
+  });
 });
