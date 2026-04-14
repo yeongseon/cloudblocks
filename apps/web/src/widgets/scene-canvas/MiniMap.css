@@ -1,0 +1,49 @@
+.minimap-container {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: var(--bg-panel, #1a1a2e);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+  cursor: crosshair;
+  display: block;
+  padding: 0;
+}
+
+.minimap-container:hover {
+  opacity: 1;
+}
+
+.minimap-viewport-rect {
+  fill: rgba(74, 158, 255, 0.15);
+  stroke: rgba(74, 158, 255, 0.6);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.minimap-container-shape {
+  fill: var(--container-minimap-fill, rgba(100, 140, 180, 0.2));
+  stroke: var(--container-minimap-stroke, rgba(100, 140, 180, 0.4));
+  stroke-width: 0.5;
+}
+
+.minimap-block-shape {
+  fill: var(--block-minimap-fill, rgba(74, 158, 255, 0.6));
+}
+
+.minimap-connection-line {
+  stroke: var(--connection-minimap-stroke, rgba(150, 150, 170, 0.4));
+  stroke-width: 0.5;
+  fill: none;
+}
+
+.minimap-viewport-handle {
+  fill: transparent;
+  stroke: none;
+  cursor: move;
+}
