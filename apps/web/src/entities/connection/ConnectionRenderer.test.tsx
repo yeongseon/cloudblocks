@@ -191,7 +191,7 @@ describe('ConnectionRenderer', () => {
     expect(transform1).not.toBe(transform2);
   });
 
-  it('does not render packet flow layer when connection has validation errors', () => {
+  it('renders packet flow layer with invalid mode when connection has validation errors', () => {
     useArchitectureStore.setState({
       validationResult: {
         valid: false,
@@ -209,7 +209,30 @@ describe('ConnectionRenderer', () => {
 
     const { container } = renderConnector();
 
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+  });
+
+  it('renders invalid packet color when connection has validation errors and is hovered', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [
+          {
+            ruleId: 'invalid-connection',
+            message: 'Connection has validation errors',
+            targetId: connection.id,
+            severity: 'error',
+          },
+        ],
+        warnings: [],
+      },
+    });
+
+    const { container } = renderConnector();
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+    const packetEl = container.querySelector('[data-testid="packet-flow-layer"]');
+    expect(packetEl).toBeInTheDocument();
   });
 
   it('renders hover packet visuals when connection is hovered', () => {
@@ -1295,6 +1318,116 @@ describe('ConnectionRenderer', () => {
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('connection type label states', () => {
+    it('shows type pill with human-readable label on hover', () => {
+      const { container } = renderConnector();
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
+    });
+
+    it('shows two-line pill with direction on selection', () => {
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            nodes: [
+              {
+                id: 'source-1',
+                name: 'Source Service',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
+                category: 'compute',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+              {
+                id: 'target-1',
+                name: 'Target Database',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'relational_database',
+                category: 'data',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 2, y: 0, z: 2 },
+                metadata: {},
+              },
+            ],
+            endpoints: [
+              { id: connection.from, blockId: 'source-1', direction: 'output', semantic: 'data' },
+              { id: connection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
+            ],
+          },
+        },
+      });
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+
+      const { container } = renderConnector();
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
+    });
+
+    it('does not show type label when not hovered or selected', () => {
+      const { container } = renderConnector();
+      expect(
+        container.querySelector('[data-testid="connection-type-label"]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('truncates long block names in direction label', () => {
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            nodes: [
+              {
+                id: 'source-1',
+                name: 'A'.repeat(40),
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
+                category: 'compute',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+              {
+                id: 'target-1',
+                name: 'B'.repeat(40),
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'relational_database',
+                category: 'data',
+                provider: 'azure',
+                parentId: 'container-1',
+                position: { x: 2, y: 0, z: 2 },
+                metadata: {},
+              },
+            ],
+            endpoints: [
+              { id: connection.from, blockId: 'source-1', direction: 'output', semantic: 'data' },
+              { id: connection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
+            ],
+          },
+        },
+      });
+
+      useUIStore.setState({ selectedId: connection.id, selectedIds: new Set([connection.id]) });
+      const { container } = renderConnector();
+      const label = container.querySelector('[data-testid="connection-type-label"]');
+      expect(label).toBeInTheDocument();
     });
   });
 

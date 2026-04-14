@@ -172,7 +172,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
   const selectedScale = mode === 'selected' ? PACKET_SELECTED_SCALE : 1;
   const zoomCompensationScale =
     canvasZoom !== undefined && canvasZoom < 1 ? 1 / Math.max(canvasZoom, 0.1) : 1;
-  const packetScale = selectedScale * zoomCompensationScale;
+  const packetScale = Math.min(selectedScale * zoomCompensationScale, 3.0);
 
   return (
     <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>

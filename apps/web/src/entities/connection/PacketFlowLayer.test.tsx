@@ -142,6 +142,26 @@ describe('PacketFlowLayer', () => {
       expect(packet).toBeInTheDocument();
       expect(packet?.getAttribute('transform')).toContain(`scale(${PACKET_SELECTED_SCALE})`);
     });
+
+    it('caps combined packet scale at 3.0 when zoomed far out', () => {
+      const { container } = render(
+        <svg aria-label="packet-flow-test">
+          <title>packet-flow-test</title>
+          <PacketFlowLayer
+            hitPoints={straightLine}
+            mode="selected"
+            connectionType="dataflow"
+            elapsed={100}
+            canvasZoom={0.1}
+          />
+        </svg>,
+      );
+
+      const packet = container.querySelector('[data-testid="packet-flow-packet"]');
+      expect(packet).toBeInTheDocument();
+      const transform = packet?.getAttribute('transform') ?? '';
+      expect(transform).toContain('scale(3)');
+    });
   });
 
   it('returns null in static mode', () => {

@@ -126,7 +126,7 @@
 
 /* Connection layer: dim non-focused connections */
 .flow-focus-active .connection-layer > g {
-  opacity: 0.1;
+  opacity: 0.15;
   transition: opacity 150ms ease-out;
 }
 
@@ -143,13 +143,13 @@
 
 /* Block layer: dim blocks when flow focus is active */
 .flow-focus-active > .block-layer {
-  opacity: 0.25;
+  opacity: 0.3;
   transition: opacity 150ms ease-out;
 }
 
 /* P4: Flow-priority layering — dim neighbors when a connection is hovered */
 .connection-layer:has(a:is(:hover, :focus-visible)) > g {
-  opacity: 0.1;
+  opacity: 0.15;
   transition: opacity 150ms ease-out;
 }
 

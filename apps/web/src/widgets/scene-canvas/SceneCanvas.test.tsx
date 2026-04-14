@@ -63,6 +63,7 @@ let mockDraggedResourceName: string | null = null;
 let mockDraggedResourceType: string | null = null;
 let mockDraggedSubtype: string | null = null;
 let mockIsSoundMuted = true;
+let mockFlowFocusMode = false;
 
 const architecture: {
   nodes: Array<ResourceBlock | ContainerBlock>;
@@ -102,7 +103,7 @@ function setupStoreMocks() {
       clearFitToContentRequest: mockClearFitToContentRequest,
       isSoundMuted: mockIsSoundMuted,
       gridStyle: 'paper' as const,
-      flowFocusMode: false,
+      flowFocusMode: mockFlowFocusMode,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -120,6 +121,7 @@ describe('SceneCanvas ResizeObserver origin update', () => {
     mockDraggedResourceType = null;
     mockDraggedSubtype = null;
     mockIsSoundMuted = true;
+    mockFlowFocusMode = false;
     mockSetCanvasZoom.mockClear();
     mockClearFitToContentRequest.mockClear();
     architecture.nodes = [];
@@ -965,6 +967,7 @@ describe('SceneCanvas placement flows', () => {
     mockDraggedResourceType = null;
     mockDraggedSubtype = null;
     mockIsSoundMuted = true;
+    mockFlowFocusMode = false;
     architecture.nodes = [];
     architecture.connections = [];
     setupStoreMocks();
@@ -1235,6 +1238,28 @@ describe('SceneCanvas placement flows', () => {
     expect(preventDefaultSpy).not.toHaveBeenCalled();
   });
 
+  describe('flow focus mode', () => {
+    it('applies flow-focus-active class when flowFocusMode is true', () => {
+      mockFlowFocusMode = true;
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+
+      expect(world).toHaveClass('flow-focus-active');
+    });
+
+    it('does not apply flow-focus-active class when flowFocusMode is false', () => {
+      mockFlowFocusMode = false;
+      setupStoreMocks();
+
+      const { container } = render(<SceneCanvas />);
+      const world = container.querySelector('.scene-world');
+
+      expect(world).not.toHaveClass('flow-focus-active');
+    });
+  });
+
   describe('SceneCanvas selected-connection overlay', () => {
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1245,6 +1270,7 @@ describe('SceneCanvas placement flows', () => {
       mockDraggedResourceType = null;
       mockDraggedSubtype = null;
       mockIsSoundMuted = true;
+      mockFlowFocusMode = false;
       architecture.nodes = [];
       architecture.connections = [];
       setupStoreMocks();

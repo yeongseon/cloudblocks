@@ -410,7 +410,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   }, [creationBurstExpiry, resolvedConnectionId]);
 
   const packetMode = (() => {
-    if (hasValidationError) return 'static' as const;
+    if (hasValidationError) return 'invalid' as const;
     if (creationBurstActive) return 'creation' as const;
     if (isSelected) return 'selected' as const;
     if (isHovered || isFocused) return 'hover' as const;
@@ -574,16 +574,14 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             markerEnd={`url(#${markerId})`}
           />
 
-          {packetMode !== 'static' && (
-            <PacketFlowLayer
-              hitPoints={hitPoints}
-              mode={packetMode}
-              connectionType={connectionType ?? 'dataflow'}
-              elapsed={packetElapsed}
-              reducedMotion={reducedMotion}
-              canvasZoom={canvasZoom}
-            />
-          )}
+          <PacketFlowLayer
+            hitPoints={hitPoints}
+            mode={packetMode}
+            connectionType={connectionType ?? 'dataflow'}
+            elapsed={packetElapsed}
+            reducedMotion={reducedMotion}
+            canvasZoom={canvasZoom}
+          />
 
           {/* Provider-accent glow: hover = subtle, selection = stronger */}
           {isHighlighted && (
