@@ -105,6 +105,9 @@ export const ContainerBlockSprite = memo(function PlateSprite({
           }
         },
         move(event) {
+          if (!isDragging.current) {
+            useUIStore.getState().startDragging();
+          }
           isDragging.current = true;
 
           const imgEl = plateRef.current?.querySelector('.container-img') as HTMLElement | null;
@@ -157,6 +160,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
           }
+          useUIStore.getState().completeInteraction();
           dragResetTimerRef.current = setTimeout(() => {
             isDragging.current = false;
           }, 50);

@@ -41,6 +41,7 @@ import { CONNECTION_TYPE_LABELS } from '../../shared/tokens/connectionTypeLabels
 import { buildRoundedConnectionGeometry } from './roundedConnectionPath';
 import { measureSvgTextWidth } from '../../shared/utils/svgTextMeasure';
 import type { SvgTextMeasureSpec } from '../../shared/utils/svgTextMeasure';
+import { useConnectionPathTransition, flowPointsToPath } from './useConnectionPathTransition';
 
 interface ConnectionRendererProps {
   connectionId?: string;
@@ -305,6 +306,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const canvasZoom = useUIStore((s) => s.canvasZoom);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
+  const interactionState = useUIStore((s) => s.interactionState);
   const creationBurstExpiry = useUIStore((state) =>
     resolvedConnectionId ? state.connectionCreationBursts.get(resolvedConnectionId) : undefined,
   );
@@ -452,7 +454,23 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     };
   }, [surfaceRoute, originX, originY, overlapOffset]);
 
+  // Path transition animation: smooth morph when blocks snap to grid.
+  // Uses the transition hook to interpolate flowPoints during dragging → idle.
+  const transitionInput = surfaceRender?.hitPoints ?? [];
+  const { flowPoints: transitionedPoints, isTransitioning } = useConnectionPathTransition(
+    transitionInput,
+    interactionState,
+    elapsed,
+    reducedMotion ?? false,
+  );
+
   if (!resolvedConnection || !resolvedConnectionId || !surfaceRender) return null;
+
+  // During transition, use interpolated geometry; otherwise use original.
+  const activeHitPath = isTransitioning
+    ? flowPointsToPath(transitionedPoints)
+    : surfaceRender.hitPath;
+  const activeHitPoints = isTransitioning ? transitionedPoints : surfaceRender.hitPoints;
 
   // Resolve per-type stroke width and dash pattern.
   const rawType = resolvedConnection.metadata?.type;
@@ -462,8 +480,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       : undefined;
   const isNeutral = connectionType === 'dataflow' || connectionType === undefined;
   const colors = getColors(renderSemantic, diffState, isHighlighted, isNeutral);
-  const hitPath = surfaceRender.hitPath;
-  const hitPoints = surfaceRender.hitPoints;
+  const hitPath = activeHitPath;
+  const hitPoints = activeHitPoints;
   const labelPos = surfaceRender.labelPos;
   const sourcePos = surfaceRender.sourcePos;
   const targetPos = surfaceRender.targetPos;
