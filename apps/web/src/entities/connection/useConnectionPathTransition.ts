@@ -17,6 +17,7 @@
 
 import { useState } from 'react';
 import type { ScreenPoint } from '../../shared/utils/isometric';
+import type { InteractionState } from '../store/uiStore';
 
 // ─── Constants ──────────────────────────────────────────────────────
 
@@ -64,7 +65,8 @@ function cumulativeLengths(points: readonly ScreenPoint[]): number[] {
 
 /**
  * Resample a polyline to `count` evenly-spaced points along its arc length.
- * Returns a new array of exactly `count` points.
+ * Returns `count` points for normal inputs. Edge cases: returns [] for empty
+ * input, and a single-element array when input has one point or count <= 1.
  */
 export function resampleByArcLength(points: readonly ScreenPoint[], count: number): ScreenPoint[] {
   if (points.length === 0) return [];
@@ -140,7 +142,7 @@ function interpolateFlowPoints(
 
 // ─── Types ──────────────────────────────────────────────────────────
 
-type InteractionState = 'idle' | 'placing' | 'connecting' | 'dragging' | 'selecting';
+// InteractionState imported from '../store/uiStore'
 
 interface ActiveTransition {
   fromSamples: ScreenPoint[];
@@ -185,25 +187,28 @@ export function useConnectionPathTransition(
 
     if (prevInteractionState === 'dragging' && interactionState === 'idle' && !reducedMotion) {
       // Snap transition: dragging → idle
-      const prevPts = prevFlowPoints;
-      const currPts = currentFlowPoints;
+      // Skip if no animation clock (elapsed === undefined would cause stuck transition)
+      if (elapsed !== undefined) {
+        const prevPts = prevFlowPoints;
+        const currPts = currentFlowPoints;
 
-      // Only animate if we have valid geometry on both sides
-      // and the geometry actually changed (Oracle review: geometry-change guard).
-      if (prevPts.length >= 2 && currPts.length >= 2 && !pointsEqual(prevPts, currPts)) {
-        const sampleCount = Math.min(
-          MAX_SAMPLES,
-          Math.max(MIN_SAMPLES, Math.max(prevPts.length, currPts.length)),
-        );
+        // Only animate if we have valid geometry on both sides
+        // and the geometry actually changed (Oracle review: geometry-change guard).
+        if (prevPts.length >= 2 && currPts.length >= 2 && !pointsEqual(prevPts, currPts)) {
+          const sampleCount = Math.min(
+            MAX_SAMPLES,
+            Math.max(MIN_SAMPLES, Math.max(prevPts.length, currPts.length)),
+          );
 
-        const fromSamples = resampleByArcLength(prevPts, sampleCount);
-        const toSamples = resampleByArcLength(currPts, sampleCount);
+          const fromSamples = resampleByArcLength(prevPts, sampleCount);
+          const toSamples = resampleByArcLength(currPts, sampleCount);
 
-        setActiveTransition({
-          fromSamples,
-          toSamples,
-          startTime: elapsed ?? 0,
-        });
+          setActiveTransition({
+            fromSamples,
+            toSamples,
+            startTime: elapsed,
+          });
+        }
       }
     } else if (interactionState === 'dragging') {
       // New drag started: cancel any active transition

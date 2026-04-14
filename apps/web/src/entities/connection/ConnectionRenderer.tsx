@@ -43,6 +43,9 @@ import { measureSvgTextWidth } from '../../shared/utils/svgTextMeasure';
 import type { SvgTextMeasureSpec } from '../../shared/utils/svgTextMeasure';
 import { useConnectionPathTransition, flowPointsToPath } from './useConnectionPathTransition';
 
+/** Stable empty array to avoid re-render loops when surfaceRender is null. */
+const EMPTY_POINTS: readonly import('../../shared/utils/isometric').ScreenPoint[] = [];
+
 interface ConnectionRendererProps {
   connectionId?: string;
   connection?: Connection;
@@ -456,7 +459,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   // Path transition animation: smooth morph when blocks snap to grid.
   // Uses the transition hook to interpolate flowPoints during dragging → idle.
-  const transitionInput = surfaceRender?.hitPoints ?? [];
+  const transitionInput = surfaceRender?.hitPoints ?? EMPTY_POINTS;
   const { flowPoints: transitionedPoints, isTransitioning } = useConnectionPathTransition(
     transitionInput,
     interactionState,

@@ -253,7 +253,9 @@ export const BlockSprite = memo(function BlockSprite({
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
           }
-          useUIStore.getState().completeInteraction();
+          if (isDragging.current) {
+            useUIStore.getState().completeInteraction();
+          }
           dragResetTimerRef.current = setTimeout(() => {
             isDragging.current = false;
           }, 50);
