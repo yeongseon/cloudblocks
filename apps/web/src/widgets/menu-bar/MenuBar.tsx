@@ -6,6 +6,7 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { clearWorkspaceDiffUI, syncWorkspaceUI } from '../../entities/store/uiSync';
 import { computeArchitectureDiff } from '../../features/diff/engine';
+import { runAutoLayout } from '../../features/layout/autoLayout';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { LogoIcon } from '../../shared/ui/LogoIcon';
@@ -556,6 +557,20 @@ export function MenuBar() {
     clearSelection();
   };
 
+  const handleAutoLayout = async () => {
+    try {
+      const applied = await runAutoLayout();
+      if (applied) {
+        toast.success('Auto layout applied');
+        playSound('block-snap');
+      } else {
+        toast('No nodes to layout');
+      }
+    } catch {
+      toast.error('Auto layout failed');
+    }
+  };
+
   const handleValidate = () => {
     const result = validate();
     if (!showValidation) toggleValidation();
@@ -816,6 +831,17 @@ export function MenuBar() {
               <Trash2 size={14} /> Delete Selection
             </span>
             <span className="menu-shortcut">Del</span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => handleAction(handleAutoLayout)}
+          >
+            <span className="menu-item-left">
+              <LayoutGrid size={14} /> Auto Layout
+            </span>
+            <span className="menu-shortcut">Ctrl+Shift+L</span>
           </button>
 
           <hr className="menu-separator" />

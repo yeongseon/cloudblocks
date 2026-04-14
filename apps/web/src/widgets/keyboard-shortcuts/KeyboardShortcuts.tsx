@@ -28,6 +28,8 @@ const SHORTCUT_GROUPS = [
       { keys: 'Ctrl+0', description: 'Fit to screen' },
       { keys: 'Scroll', description: 'Zoom in/out' },
       { keys: 'Shift+Drag', description: 'Lasso select' },
+      { keys: 'Shift+M', description: 'Toggle mini-map' },
+      { keys: 'Ctrl+Shift+L', description: 'Auto layout' },
     ],
   },
   {
