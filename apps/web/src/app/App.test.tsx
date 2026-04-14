@@ -573,4 +573,14 @@ describe('App', () => {
     expect(await screen.findByTestId('rollback-dialog')).toBeInTheDocument();
     expect(await screen.findByTestId('promote-history')).toBeInTheDocument();
   });
+
+  it('renders skip-to-canvas link alongside skip-to-content link', () => {
+    render(<App />);
+    const skipLinks = screen.getAllByText(/^Skip to/);
+    expect(skipLinks).toHaveLength(2);
+    expect(skipLinks[0]).toHaveAttribute('href', '#main-content');
+    expect(skipLinks[0]).toHaveTextContent('Skip to content');
+    expect(skipLinks[1]).toHaveAttribute('href', '#architecture-canvas');
+    expect(skipLinks[1]).toHaveTextContent('Skip to architecture canvas');
+  });
 });

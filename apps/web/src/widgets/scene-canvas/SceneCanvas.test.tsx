@@ -1359,3 +1359,55 @@ describe('SceneCanvas placement flows', () => {
     });
   });
 });
+
+describe('SceneCanvas accessibility attributes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    architecture.nodes = [];
+    architecture.connections = [];
+    setupStoreMocks();
+
+    globalThis.ResizeObserver = class MockResizeObserver {
+      constructor(_cb: ResizeObserverCallback) {}
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    globalThis.ResizeObserver = class ResizeObserver {
+      constructor(_cb: ResizeObserverCallback) {}
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  it('root element has id, tabIndex, aria-roledescription, and aria-label', () => {
+    const { container } = render(<SceneCanvas />);
+    const root = container.querySelector('#architecture-canvas');
+    expect(root).toBeInTheDocument();
+    expect(root?.getAttribute('tabindex')).toBe('-1');
+    expect(root?.getAttribute('aria-roledescription')).toBe('visual architecture canvas');
+    expect(root?.getAttribute('aria-label')).toBe('Architecture canvas');
+  });
+
+  it('renders polite live region for status announcements', () => {
+    const { container } = render(<SceneCanvas />);
+    const status = container.querySelector('[data-testid="a11y-status"]');
+    expect(status).toBeInTheDocument();
+    expect(status?.getAttribute('aria-live')).toBe('polite');
+    expect(status?.getAttribute('role')).toBe('status');
+    expect(status?.classList.contains('sr-only')).toBe(true);
+  });
+
+  it('renders assertive live region for alert announcements', () => {
+    const { container } = render(<SceneCanvas />);
+    const alert = container.querySelector('[data-testid="a11y-alert"]');
+    expect(alert).toBeInTheDocument();
+    expect(alert?.getAttribute('aria-live')).toBe('assertive');
+    expect(alert?.getAttribute('role')).toBe('alert');
+    expect(alert?.classList.contains('sr-only')).toBe(true);
+  });
+});

@@ -233,3 +233,18 @@
 .container-resize-handle[data-edge='w'] {
   cursor: nwse-resize;
 }
+
+/* ── Accessibility ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .container-img {
+    transition: none !important;
+  }
+
+  .container-img.is-dropping,
+  .container-sprite.is-drop-target .container-img,
+  .container-sprite.is-error .container-img,
+  .container-sprite.diff-added .container-img,
+  .container-sprite.diff-modified .container-img {
+    animation: none;
+  }
+}

@@ -148,12 +148,12 @@
 }
 
 /* P4: Flow-priority layering — dim neighbors when a connection is hovered */
-.connection-layer:has(a:is(:hover, :focus-visible)) > g {
+.connection-layer:has(g[role='button']:is(:hover, :focus-visible)) > g {
   opacity: 0.15;
   transition: opacity 150ms ease-out;
 }
 
-.connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
+.connection-layer:has(g[role='button']:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
   opacity: 1;
   transition: opacity 80ms ease-out;
 }
@@ -190,8 +190,8 @@
   .flow-focus-active .connection-layer > g:is(:hover, :focus-within, [data-selected='true']),
   .flow-focus-active > .container-layer,
   .flow-focus-active > .block-layer,
-  .connection-layer:has(a:is(:hover, :focus-visible)) > g,
-  .connection-layer:has(a:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
+  .connection-layer:has(g[role='button']:is(:hover, :focus-visible)) > g,
+  .connection-layer:has(g[role='button']:is(:hover, :focus-visible)) > g:is(:hover, :focus-within) {
     transition: none;
   }
 
@@ -297,4 +297,24 @@
   pointer-events: none;
   z-index: 11;
   border-radius: 2px;
+}
+
+/* ── Connection focus ring (SVG) ────────────────────────── */
+.connection-layer g[role='button']:focus-visible .connection-hit-area {
+  stroke: var(--accent-primary, #3b82f6);
+  stroke-width: 4;
+  stroke-opacity: 0.6;
+}
+
+/* ── Screen reader only (visually hidden) ─────────────── */
+.scene-viewport .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

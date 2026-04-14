@@ -520,6 +520,10 @@ export function SceneCanvas() {
 
   return (
     <div
+      id="architecture-canvas"
+      tabIndex={-1}
+      aria-roledescription="visual architecture canvas"
+      aria-label="Architecture canvas"
       className={`scene-viewport grid-${gridStyle}`}
       ref={containerRef}
       onPointerDown={handlePointerDown}
@@ -690,6 +694,9 @@ export function SceneCanvas() {
           onRequestCenter={handleMiniMapCenter}
         />
       )}
+      {/* Live regions for screen reader announcements */}
+      <div aria-live="polite" role="status" className="sr-only" data-testid="a11y-status" />
+      <div aria-live="assertive" role="alert" className="sr-only" data-testid="a11y-alert" />
     </div>
   );
 }

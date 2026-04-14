@@ -500,14 +500,17 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
   const accentColor = CONNECTOR_THEMES[connectionType ?? 'dataflow'].accent;
   const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const activateConnection = () => {
     if (toolMode === 'delete') {
       removeConnection(resolvedConnection.id);
       return;
     }
     setSelectedId(resolvedConnection.id);
+  };
+  const handleClick = (e: React.MouseEvent<SVGGElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    activateConnection();
   };
   const shouldRenderHitArea = overlayMode !== 'visual-only';
   const shouldRenderVisuals = overlayMode !== 'hit-only';
@@ -542,14 +545,31 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         </defs>
       )}
       {shouldRenderHitArea && (
-        <a
-          href={`/connections/${resolvedConnection.id}`}
+        <g
+          role="button"
+          tabIndex={0}
           onClick={handleClick}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.repeat) {
+              e.preventDefault();
+              activateConnection();
+            }
+            if (e.key === ' ') {
+              e.preventDefault();
+            }
+          }}
+          onKeyUp={(e) => {
+            if (e.key === ' ') {
+              e.preventDefault();
+              activateConnection();
+            }
+          }}
           aria-label={connectionLabel}
+          style={{ cursor: 'pointer' }}
         >
           <path
             d={hitPath}
@@ -557,10 +577,10 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
             strokeWidth={HIT_AREA_WIDTH}
             fill="none"
             pointerEvents="stroke"
-            style={{ cursor: 'pointer' }}
             data-testid="connection-hit-area"
+            className="connection-hit-area"
           />
-        </a>
+        </g>
       )}
 
       {shouldRenderVisuals && (
