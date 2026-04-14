@@ -6,6 +6,23 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.50.0] — 2026-04-15
+
+**Milestone 50 — Production Hotfix & Theme Defaults**
+
+Production hotfix for infinite re-render crash and white/light theme defaults.
+
+### Fixed
+
+- Infinite re-render loop (React error #301) in connection path transition caused by referential equality check (#1850, #1851)
+
+### Changed
+
+- Default CSS root theme to workshop (light) for white pre-JS render (#1852, #1853)
+- ErrorBoundary fallback screen from dark to white background (#1852, #1853)
+
+---
+
 ## [v0.49.0] — 2026-04-15
 
 **Milestone 49 — Canvas UX Polish & Enhancement**
@@ -1405,6 +1422,7 @@ Milestone 4 (Workspace Management):
 [v0.37.0]: https://github.com/yeongseon/cloudblocks/compare/v0.36.0...v0.37.0
 [v0.36.0]: https://github.com/yeongseon/cloudblocks/compare/v0.35.0...v0.36.0
 [v0.35.0]: https://github.com/yeongseon/cloudblocks/compare/v0.34.0...v0.35.0
+[v0.50.0]: https://github.com/yeongseon/cloudblocks/compare/v0.49.0...v0.50.0
 [v0.49.0]: https://github.com/yeongseon/cloudblocks/compare/v0.47.0...v0.49.0
 [v0.47.0]: https://github.com/yeongseon/cloudblocks/compare/v0.46.0...v0.47.0
 [v0.46.0]: https://github.com/yeongseon/cloudblocks/compare/v0.45.0...v0.46.0
