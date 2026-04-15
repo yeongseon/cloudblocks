@@ -6,6 +6,33 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.51.0] — 2026-04-16
+
+**Milestone 51 — Connection Docking & Anchor Visibility**
+
+Refined connection endpoints with explicit port anchors, docking stems, calmer default motion, and visual separation of boundary-crossing connections.
+
+### Added
+
+- Explicit 3-layer port anchor glyphs with occupied-state detection and semantic port colors (#1859, #1863)
+- Docking stems via `startStraightReserve` in connection geometry for cleaner port-to-path transitions (#1860, #1864)
+- Boundary-crossing visual separation: teal casing, "Cross-scope" pill on hover, and boundary anchor ring colors (#1862, #1866)
+- `BOUNDARY_CONNECTION_COLORS` CSS-var-backed color tokens for all 3 themes (#1862, #1866)
+- `data-boundary-crossing` attribute on connection groups for CSS/test targeting (#1862, #1866)
+- 63 new tests across connection renderer, connector theme, and color token modules
+
+### Changed
+
+- Default connection packet mode from `idle` to `static` with direction chevrons (#1861, #1865)
+- Hover width offset from 1.25 to 2.0 for stronger selection/hover focus (#1861, #1865)
+- Refactored `buildRoundedConnectionGeometry` to options object pattern (#1860, #1864)
+
+### Fixed
+
+- `reducedMotion` media query now properly suppresses all connection animations (#1861, #1865)
+
+---
+
 ## [v0.50.0] — 2026-04-15
 
 **Milestone 50 — Production Hotfix & Theme Defaults**
