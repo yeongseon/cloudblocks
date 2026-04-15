@@ -49,8 +49,8 @@ describe('connectionVisualTokens', () => {
       expect(CASING_WIDTH_OFFSET).toBe(2.5);
     });
 
-    it('HOVER_WIDTH_OFFSET is 1.25', () => {
-      expect(HOVER_WIDTH_OFFSET).toBe(1.25);
+    it('HOVER_WIDTH_OFFSET is 2.0', () => {
+      expect(HOVER_WIDTH_OFFSET).toBe(2.0);
     });
   });
 

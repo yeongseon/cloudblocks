@@ -448,7 +448,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     if (creationBurstActive) return 'creation' as const;
     if (isSelected) return 'selected' as const;
     if (isHovered || isFocused) return 'hover' as const;
-    return 'idle' as const;
+    return 'static' as const;
   })();
 
   // Creation bursts use a connection-local elapsed derived from the shared clock

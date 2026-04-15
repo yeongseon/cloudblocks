@@ -130,7 +130,7 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
   });
 
-  it('renders packet flow layer in default idle mode', () => {
+  it('renders packet flow layer with static direction chevrons in default mode', () => {
     const { container } = renderConnector();
     expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
   });
@@ -747,15 +747,15 @@ describe('ConnectionRenderer', () => {
     expect(trace?.getAttribute('marker-end')).toBe(`url(#arrow-${connection.id})`);
   });
 
-  it('hover increases casing and trace widths by +1.25 (dataflow default)', () => {
+  it('hover increases casing and trace widths by +2.0 (dataflow default)', () => {
     const { container } = renderConnector();
     const casing = container.querySelector('[data-testid="connection-casing"]');
     const trace = container.querySelector('[data-testid="connection-trace"]');
     expect(casing?.getAttribute('stroke-width')).toBe('6');
     expect(trace?.getAttribute('stroke-width')).toBe('3.5');
     fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
-    expect(casing?.getAttribute('stroke-width')).toBe('7.25');
-    expect(trace?.getAttribute('stroke-width')).toBe('4.75');
+    expect(casing?.getAttribute('stroke-width')).toBe('8');
+    expect(trace?.getAttribute('stroke-width')).toBe('5.5');
   });
 
   describe('surface render path', () => {
@@ -959,8 +959,8 @@ describe('ConnectionRenderer', () => {
         const trace = container.querySelector('[data-testid="connection-trace"]');
         const casing = container.querySelector('[data-testid="connection-casing"]');
 
-        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 1.25));
-        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 3.75));
+        expect(trace?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 2.0));
+        expect(casing?.getAttribute('stroke-width')).toBe(String(spec.baseWidth + 4.5));
       });
     }
 
@@ -1051,7 +1051,7 @@ describe('ConnectionRenderer', () => {
       const { container } = renderConnector(conn);
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
-      expect(selectionOutline?.getAttribute('stroke-width')).toBe('12.75');
+      expect(selectionOutline?.getAttribute('stroke-width')).toBe('13.5');
     });
   });
 
@@ -1320,7 +1320,7 @@ describe('ConnectionRenderer', () => {
       expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
     });
 
-    it('renders idle packet flow even when connection has only validation warnings', () => {
+    it('renders static packet flow even when connection has only validation warnings', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: true,

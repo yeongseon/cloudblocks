@@ -164,10 +164,13 @@ describe('PacketFlowLayer', () => {
     });
   });
 
-  it('returns null in static mode', () => {
+  it('renders direction chevrons in static mode', () => {
     const { container } = renderLayer('static');
 
-    expect(container.querySelector('[data-testid="packet-flow-layer"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="packet-flow-layer"]')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-testid="packet-direction-chevron"]').length,
+    ).toBeGreaterThan(0);
   });
 
   it('renders static chevrons when reduced motion is enabled', () => {

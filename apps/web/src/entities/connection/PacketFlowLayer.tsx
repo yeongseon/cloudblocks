@@ -133,7 +133,7 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
 
   // Reduced motion: show static direction chevrons instead of animated packets
   if (reducedMotion) {
-    if (mode === 'static' || hitPoints.length < 2 || totalLength <= 0) {
+    if (hitPoints.length < 2 || totalLength <= 0) {
       return null;
     }
     return (
@@ -143,12 +143,19 @@ export const PacketFlowLayer = memo(function PacketFlowLayer({
     );
   }
 
-  if (
-    mode === 'static' ||
-    hitPoints.length < 2 ||
-    totalLength <= 0 ||
-    (mode === 'creation' && creationCompleted)
-  ) {
+  // Static mode: render direction chevrons only (no animation).
+  if (mode === 'static') {
+    if (hitPoints.length < 2 || totalLength <= 0) {
+      return null;
+    }
+    return (
+      <g pointerEvents="none" data-testid="packet-flow-layer" data-connection-type={connectionType}>
+        {renderStaticDirectionGlyphs(segments, totalLength, packetColors)}
+      </g>
+    );
+  }
+
+  if (hitPoints.length < 2 || totalLength <= 0 || (mode === 'creation' && creationCompleted)) {
     return null;
   }
 
