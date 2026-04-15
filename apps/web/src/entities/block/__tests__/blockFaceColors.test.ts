@@ -320,6 +320,24 @@ describe('adjustColorHsl', () => {
   });
 });
 
+it('handles light red-dominant colors with blue > green (HSL hue branch coverage)', () => {
+  // #FF8090: r=255, g=128, b=144 → max=rn, l>0.5, gn<bn
+  const result = adjustColorHsl('#FF8090', { saturationScale: 0.5, lightnessBoost: 0 });
+  expect(result).toMatch(hexColorPattern);
+});
+
+it('handles green-dominant hue with high lightness (HSL branch coverage)', () => {
+  // #80FF90: g>r>b → max=gn, l>0.5
+  const result = adjustColorHsl('#80FF90', { saturationScale: 0.5, lightnessBoost: 0 });
+  expect(result).toMatch(hexColorPattern);
+});
+
+it('handles blue-dominant hue with high lightness (HSL branch coverage)', () => {
+  // #9080FF: b>r>g → max=bn, l>0.5
+  const result = adjustColorHsl('#9080FF', { saturationScale: 0.5, lightnessBoost: 0 });
+  expect(result).toMatch(hexColorPattern);
+});
+
 // ─── Container Face Color Derivation ────────────────────────
 
 describe('deriveContainerFaceColors', () => {

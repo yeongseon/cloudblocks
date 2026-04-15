@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
@@ -10,6 +10,7 @@ import {
 } from '../../../shared/types/visualProfile';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
+import { useUIStore } from '../../store/uiStore';
 // ─── Test Helpers ─────────────────────────────────────────────
 
 /** Extract all polygon elements from rendered SVG, excluding those inside defs/clipPath. */
@@ -670,5 +671,59 @@ describe('BlockSvg 3-layer port glyphs (#1859)', () => {
     // Layer 2 (filled top) should have rx=12 ry=6
     expect(ellipses[1].getAttribute('rx')).toBe('12');
     expect(ellipses[1].getAttribute('ry')).toBe('6');
+  });
+});
+
+// ─── showPorts=false Branch Tests (#1859) ────────────────────────────────────────
+
+describe('BlockSvg port visibility when showPorts=false (#1859)', () => {
+  beforeEach(() => {
+    useUIStore.setState({ showPorts: false });
+  });
+
+  afterEach(() => {
+    useUIStore.setState({ showPorts: true });
+  });
+
+  it('hides unoccupied port-dots group when showPorts=false', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).toBeNull();
+  });
+
+  it('still shows occupied ports when showPorts=false', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).toBeNull();
+  });
+
+  it('excludes occupied ports from unoccupied group when showPorts=true', () => {
+    useUIStore.setState({ showPorts: true });
+
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set([1]),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+
+    // Unoccupied group should render but with fewer ports
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).not.toBeNull();
+    const unoccupiedEllipses = portGroup!.querySelectorAll('ellipse');
+    // compute: 2 inbound + 2 outbound = 4 total. 1 inbound + 1 outbound occupied = 2 unoccupied
+    // 2 unoccupied ports × 3 layers = 6 ellipses
+    expect(unoccupiedEllipses.length).toBe(6);
+
+    // Occupied group should have 2 occupied × 3 layers = 6 ellipses
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    const occupiedEllipses = occupiedGroup!.querySelectorAll('ellipse');
+    expect(occupiedEllipses.length).toBe(6);
   });
 });
