@@ -15,17 +15,34 @@ import {
   EDGE_HIGHLIGHT_STROKE_WIDTH,
   LABEL_FACE_MIN_PX,
   LABEL_FACE_SCALE,
+  PORT_DOT_HEIGHT,
+  PORT_DOT_OCCUPIED_OPACITY,
   PORT_DOT_OPACITY,
   PORT_DOT_RX,
   PORT_DOT_RY,
-  PORT_DOT_STROKE_WIDTH,
+  PORT_COLOR_HTTP,
+  PORT_COLOR_EVENT,
+  PORT_COLOR_DATA,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors, deriveFaceColors, EXTERNAL_BLOCK_COLOR } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
-import { getBlockSvgPortPoints } from './blockGeometry';
+import { getBlockSvgPortPoints, portIndexToSemantic } from './blockGeometry';
 import { useUIStore, type BlockHealthStatus } from '../store/uiStore';
+
+/** Semantic color lookup by endpoint semantic type. */
+const SEMANTIC_PORT_COLORS: Record<string, string> = {
+  http: PORT_COLOR_HTTP,
+  event: PORT_COLOR_EVENT,
+  data: PORT_COLOR_DATA,
+};
+
+/** Occupied port indices per side, passed from BlockSprite. */
+export interface OccupiedPorts {
+  inbound: ReadonlySet<number>;
+  outbound: ReadonlySet<number>;
+}
 
 interface BlockSvgProps {
   category: ResourceCategory;
@@ -36,6 +53,7 @@ interface BlockSvgProps {
   aggregationCount?: number;
   roles?: BlockRole[];
   healthStatus?: BlockHealthStatus;
+  occupiedPorts?: OccupiedPorts;
 }
 
 export const BlockSvg = memo(function BlockSvg({
@@ -47,6 +65,7 @@ export const BlockSvg = memo(function BlockSvg({
   aggregationCount,
   roles,
   healthStatus,
+  occupiedPorts,
 }: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
@@ -286,35 +305,147 @@ export const BlockSvg = memo(function BlockSvg({
         </g>
       )}
 
-      {/* ─── Port dots: generic indicators on block side walls ─── */}
+      {/* ─── Port dots: 3-layer isometric glyphs on block side walls ─── */}
+      {/* Occupied ports: always visible at dim opacity */}
+      {occupiedPorts && (
+        <g data-testid="port-dots-occupied" pointerEvents="none">
+          {portPoints.inbound.map((p, idx) => {
+            if (!occupiedPorts.inbound.has(idx)) return null;
+            const semantic = portIndexToSemantic(idx);
+            const color = SEMANTIC_PORT_COLORS[semantic] ?? PORT_COLOR_HTTP;
+            return (
+              <g key={`occ-in-${idx}`}>
+                <ellipse
+                  cx={p.x}
+                  cy={p.y + PORT_DOT_HEIGHT}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill="rgba(0,0,0,0.2)"
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill={color}
+                  opacity={PORT_DOT_OCCUPIED_OPACITY}
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX * 0.6}
+                  ry={PORT_DOT_RY * 0.6}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })}
+          {portPoints.outbound.map((p, idx) => {
+            if (!occupiedPorts.outbound.has(idx)) return null;
+            const semantic = portIndexToSemantic(idx);
+            const color = SEMANTIC_PORT_COLORS[semantic] ?? PORT_COLOR_HTTP;
+            return (
+              <g key={`occ-out-${idx}`}>
+                <ellipse
+                  cx={p.x}
+                  cy={p.y + PORT_DOT_HEIGHT}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill="rgba(0,0,0,0.2)"
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill={color}
+                  opacity={PORT_DOT_OCCUPIED_OPACITY}
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX * 0.6}
+                  ry={PORT_DOT_RY * 0.6}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })}
+        </g>
+      )}
+      {/* Unoccupied ports: visible only in connect mode (showPorts) */}
       {showPorts && (
         <g data-testid="port-dots">
-          {portPoints.inbound.map((p) => (
-            <ellipse
-              key={`in-${p.x}-${p.y}`}
-              cx={p.x}
-              cy={p.y}
-              rx={PORT_DOT_RX}
-              ry={PORT_DOT_RY}
-              fill="none"
-              stroke="rgba(255,255,255,0.5)"
-              strokeWidth={PORT_DOT_STROKE_WIDTH}
-              opacity={PORT_DOT_OPACITY}
-            />
-          ))}
-          {portPoints.outbound.map((p) => (
-            <ellipse
-              key={`out-${p.x}-${p.y}`}
-              cx={p.x}
-              cy={p.y}
-              rx={PORT_DOT_RX}
-              ry={PORT_DOT_RY}
-              fill="none"
-              stroke="rgba(255,255,255,0.5)"
-              strokeWidth={PORT_DOT_STROKE_WIDTH}
-              opacity={PORT_DOT_OPACITY}
-            />
-          ))}
+          {portPoints.inbound.map((p, idx) => {
+            if (occupiedPorts?.inbound.has(idx)) return null;
+            const semantic = portIndexToSemantic(idx);
+            const color = SEMANTIC_PORT_COLORS[semantic] ?? PORT_COLOR_HTTP;
+            return (
+              <g key={`in-${idx}`}>
+                <ellipse
+                  cx={p.x}
+                  cy={p.y + PORT_DOT_HEIGHT}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill="rgba(0,0,0,0.2)"
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill={color}
+                  opacity={PORT_DOT_OPACITY}
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX * 0.6}
+                  ry={PORT_DOT_RY * 0.6}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })}
+          {portPoints.outbound.map((p, idx) => {
+            if (occupiedPorts?.outbound.has(idx)) return null;
+            const semantic = portIndexToSemantic(idx);
+            const color = SEMANTIC_PORT_COLORS[semantic] ?? PORT_COLOR_HTTP;
+            return (
+              <g key={`out-${idx}`}>
+                <ellipse
+                  cx={p.x}
+                  cy={p.y + PORT_DOT_HEIGHT}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill="rgba(0,0,0,0.2)"
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX}
+                  ry={PORT_DOT_RY}
+                  fill={color}
+                  opacity={PORT_DOT_OPACITY}
+                />
+                <ellipse
+                  cx={p.x}
+                  cy={p.y}
+                  rx={PORT_DOT_RX * 0.6}
+                  ry={PORT_DOT_RY * 0.6}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })}
         </g>
       )}
 

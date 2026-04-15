@@ -147,7 +147,7 @@ function resolveEndpoint(
   return { point: anchors.center, floorY };
 }
 
-function semanticToPortIndex(semantic: EndpointSemantic, total: number): number | null {
+export function semanticToPortIndex(semantic: EndpointSemantic, total: number): number | null {
   if (total <= 0) {
     return null;
   }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
@@ -10,6 +10,7 @@ import {
 } from '../../../shared/types/visualProfile';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
+import { useUIStore } from '../../store/uiStore';
 // ─── Test Helpers ─────────────────────────────────────────────
 
 /** Extract all polygon elements from rendered SVG, excluding those inside defs/clipPath. */
@@ -24,7 +25,10 @@ function getFaceColors(container: HTMLElement) {
   const svg = container.querySelector('svg')!;
   const allEllipses = Array.from(svg.querySelectorAll('ellipse'));
   const cylinderEllipse = allEllipses.find(
-    (el) => !el.closest('defs') && !el.closest('[data-testid="port-dots"]'),
+    (el) =>
+      !el.closest('defs') &&
+      !el.closest('[data-testid="port-dots"]') &&
+      !el.closest('[data-testid="port-dots-occupied"]'),
   );
   if (cylinderEllipse) {
     const allRects = Array.from(svg.querySelectorAll('rect'));
@@ -41,7 +45,10 @@ function getFaceColors(container: HTMLElement) {
   // Polygon rendering (standard 3-face isometric) — skip port dot polygons
   const allPolygons = Array.from(svg.querySelectorAll('polygon'));
   const facePolygons = allPolygons.filter(
-    (el) => !el.closest('defs') && !el.closest('[data-testid="port-dots"]'),
+    (el) =>
+      !el.closest('defs') &&
+      !el.closest('[data-testid="port-dots"]') &&
+      !el.closest('[data-testid="port-dots-occupied"]'),
   );
   return {
     topFaceColor: facePolygons[0]?.getAttribute('fill') ?? null,
@@ -539,5 +546,184 @@ describe('BlockSvg health badge (#1591)', () => {
     const vbWithout = without.querySelector('svg')!.getAttribute('viewBox');
     const vbWith = withBadge.querySelector('svg')!.getAttribute('viewBox');
     expect(vbWith).toBe(vbWithout);
+  });
+});
+
+// ─── 3-Layer Port Glyph Tests (#1859) ────────────────────────────────────────
+
+describe('BlockSvg 3-layer port glyphs (#1859)', () => {
+  it('renders unoccupied port dots when showPorts is true (default) and no occupiedPorts', () => {
+    // showPorts defaults to true in the UI store
+    const { container } = render(<BlockSvg category="compute" />);
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    // Unoccupied ports should render (showPorts=true by default)
+    expect(portGroup).not.toBeNull();
+    // No occupied ports group since occupiedPorts prop is undefined
+    expect(occupiedGroup).toBeNull();
+    // Each unoccupied port should have 3 ellipses (shadow + filled + ring)
+    const portEllipses = portGroup!.querySelectorAll('ellipse');
+    // compute category has 2 inbound + 2 outbound = 4 ports × 3 layers = 12 ellipses
+    expect(portEllipses.length).toBe(12);
+  });
+
+  it('renders occupied port glyphs always (even when showPorts is false)', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    // Occupied group should always render
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    // Each occupied port has 3 ellipses (shadow + filled + ring)
+    const ellipses = occupiedGroup!.querySelectorAll('ellipse');
+    expect(ellipses.length).toBe(3);
+  });
+
+  it('renders 3-layer structure per port: shadow, filled, inner ring', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    const ellipses = Array.from(occupiedGroup!.querySelectorAll('ellipse'));
+    // Layer 1: Shadow (offset down) — has fill rgba(0,0,0,0.2)
+    expect(ellipses[0].getAttribute('fill')).toBe('rgba(0,0,0,0.2)');
+    // Layer 2: Filled top — has fill equal to semantic color
+    expect(ellipses[1].getAttribute('fill')).not.toBe('none');
+    expect(ellipses[1].getAttribute('fill')).not.toBe('rgba(0,0,0,0.2)');
+    // Layer 3: Inner ring — fill=none with stroke
+    expect(ellipses[2].getAttribute('fill')).toBe('none');
+    expect(ellipses[2].getAttribute('stroke')).toBe('rgba(255,255,255,0.5)');
+  });
+
+  it('occupied ports use PORT_DOT_OCCUPIED_OPACITY (0.4)', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    const ellipses = Array.from(occupiedGroup!.querySelectorAll('ellipse'));
+    // Layer 2 (filled) should have occupied opacity
+    expect(ellipses[1].getAttribute('opacity')).toBe('0.4');
+  });
+
+  it('occupied outbound ports render correctly', () => {
+    const occupiedPorts = {
+      inbound: new Set<number>(),
+      outbound: new Set([0]),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    // 3 ellipses for the one occupied outbound port
+    const ellipses = occupiedGroup!.querySelectorAll('ellipse');
+    expect(ellipses.length).toBe(3);
+  });
+
+  it('does not render occupied group when occupiedPorts is undefined', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).toBeNull();
+  });
+
+  it('does not double-render occupied ports in the unoccupied group', () => {
+    // This test verifies that when showPorts is true but a port is occupied,
+    // it doesn't appear in the unoccupied port-dots group.
+    // Since showPorts requires useUIStore (connect mode), we can at least verify
+    // the occupied port group renders correctly without duplication.
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set([0]),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    // 2 ports × 3 ellipses = 6 ellipses
+    const ellipses = occupiedGroup!.querySelectorAll('ellipse');
+    expect(ellipses.length).toBe(6);
+  });
+
+  it('shadow ellipse is offset down by PORT_DOT_HEIGHT', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    const ellipses = Array.from(occupiedGroup!.querySelectorAll('ellipse'));
+    // Shadow (ellipses[0]) cy should be > filled (ellipses[1]) cy by PORT_DOT_HEIGHT (5)
+    const shadowCy = Number(ellipses[0].getAttribute('cy'));
+    const filledCy = Number(ellipses[1].getAttribute('cy'));
+    expect(shadowCy - filledCy).toBe(5);
+  });
+
+  it('port rx/ry match Universal Port Standard (rx=12, ry=6)', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    const ellipses = Array.from(occupiedGroup!.querySelectorAll('ellipse'));
+    // Layer 2 (filled top) should have rx=12 ry=6
+    expect(ellipses[1].getAttribute('rx')).toBe('12');
+    expect(ellipses[1].getAttribute('ry')).toBe('6');
+  });
+});
+
+// ─── showPorts=false Branch Tests (#1859) ────────────────────────────────────────
+
+describe('BlockSvg port visibility when showPorts=false (#1859)', () => {
+  beforeEach(() => {
+    useUIStore.setState({ showPorts: false });
+  });
+
+  afterEach(() => {
+    useUIStore.setState({ showPorts: true });
+  });
+
+  it('hides unoccupied port-dots group when showPorts=false', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).toBeNull();
+  });
+
+  it('still shows occupied ports when showPorts=false', () => {
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set<number>(),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).toBeNull();
+  });
+
+  it('excludes occupied ports from unoccupied group when showPorts=true', () => {
+    useUIStore.setState({ showPorts: true });
+
+    const occupiedPorts = {
+      inbound: new Set([0]),
+      outbound: new Set([1]),
+    };
+    const { container } = render(<BlockSvg category="compute" occupiedPorts={occupiedPorts} />);
+
+    // Unoccupied group should render but with fewer ports
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).not.toBeNull();
+    const unoccupiedEllipses = portGroup!.querySelectorAll('ellipse');
+    // compute: 2 inbound + 2 outbound = 4 total. 1 inbound + 1 outbound occupied = 2 unoccupied
+    // 2 unoccupied ports × 3 layers = 6 ellipses
+    expect(unoccupiedEllipses.length).toBe(6);
+
+    // Occupied group should have 2 occupied × 3 layers = 6 ellipses
+    const occupiedGroup = container.querySelector('[data-testid="port-dots-occupied"]');
+    expect(occupiedGroup).not.toBeNull();
+    const occupiedEllipses = occupiedGroup!.querySelectorAll('ellipse');
+    expect(occupiedEllipses.length).toBe(6);
   });
 });

@@ -45,11 +45,13 @@ export const TOP_FACE_STROKE_OPACITY = 0.45;
 // Small screen-space offset so connector endpoints sit just outside block face.
 export const PORT_OUT_PX = 8;
 // Port dot dimensions for visual rendering on block faces (BlockSvg).
-export const PORT_DOT_RX = 4;
-export const PORT_DOT_RY = 2.5;
+export const PORT_DOT_RX = 12;
+export const PORT_DOT_RY = 6;
+export const PORT_DOT_HEIGHT = 5; // Isometric height offset for 3-layer port glyph shadow
 export const PORT_DOT_STROKE_WIDTH = 1.5;
 export const PORT_DOT_OPACITY = 0.7;
 export const PORT_DOT_ACTIVE_OPACITY = 1.0;
+export const PORT_DOT_OCCUPIED_OPACITY = 0.4; // Dim but always-visible occupied port
 // -- Port Semantic Colors (Endpoint Types) --
 // Colors match endpoint semantic types: http, event, data.
 // Used for port dot rendering in connect mode.

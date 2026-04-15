@@ -25,8 +25,9 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   ARROW_MARKER_W: 6,
   ARROW_MARKER_H: 6,
   ARROW_MARKER_REF_X: 5.5,
-  PORT_DOT_RX: 4,
-  PORT_DOT_RY: 2.5,
+  PORT_DOT_RX: 12,
+  PORT_DOT_RY: 6,
+  PORT_DOT_HEIGHT: 5,
   PORT_DOT_STROKE_WIDTH: 1.5,
   CONNECTION_CORNER_RADIUS: 12,
 }));
