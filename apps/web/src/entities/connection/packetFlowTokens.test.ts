@@ -29,8 +29,8 @@ describe('packetFlowTokens M46 tuning', () => {
     expect(PACKET_TAIL_LENGTH).toBe(20);
   });
 
-  it('PACKET_OPACITY idle is 0.56', () => {
-    expect(PACKET_OPACITY.idle).toBe(0.56);
+  it('PACKET_OPACITY idle is 0', () => {
+    expect(PACKET_OPACITY.idle).toBe(0);
   });
 
   it('PACKET_OPACITY hover is 0.72', () => {

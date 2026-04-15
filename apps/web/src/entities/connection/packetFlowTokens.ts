@@ -13,7 +13,7 @@ export const SHORT_PATH_THRESHOLD = 80;
 export const MEDIUM_PATH_THRESHOLD = 180;
 
 export const PACKET_OPACITY = {
-  idle: 0.56,
+  idle: 0,
   hover: 0.72,
   selected: 1.0,
   creation: 1.0,

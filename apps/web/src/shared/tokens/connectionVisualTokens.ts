@@ -37,7 +37,7 @@ export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualSt
 export const CASING_WIDTH_OFFSET = 2.5;
 
 /** Hover width offset added to the base stroke width. */
-export const HOVER_WIDTH_OFFSET = 1.25;
+export const HOVER_WIDTH_OFFSET = 2.0;
 
 /** Perpendicular offset (screen px) applied to each connection in an overlap group. */
 export const OVERLAP_OFFSET_PX = 8;
