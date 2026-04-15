@@ -1798,8 +1798,8 @@ describe('ConnectionRenderer', () => {
     });
   });
 
-  describe('semantic anchor styles', () => {
-    it('uses semantic-based pinhole style from endpoint, not connection type', () => {
+  describe('connection-type pinhole styles', () => {
+    it('uses connection-type-based pinhole style, not endpoint semantic', () => {
       const httpConnection: Connection = {
         id: 'conn-http-semantic',
         from: endpointId('source-1', 'output', 'http'),
@@ -1840,7 +1840,7 @@ describe('ConnectionRenderer', () => {
 
       const pinholes = container.querySelector('[data-testid="connection-pinholes"]');
       expect(pinholes).toBeInTheDocument();
-      // Should render 2 pinhole groups (src + tgt) with different semantic overlays
+      // Should render 2 pinhole groups (src + tgt) with same type-based style
       const pinGroups = pinholes!.children;
       expect(pinGroups.length).toBe(2);
     });

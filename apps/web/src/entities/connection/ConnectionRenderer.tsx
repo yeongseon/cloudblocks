@@ -31,12 +31,7 @@ import {
   CASING_WIDTH_OFFSET,
   HOVER_WIDTH_OFFSET,
 } from '../../shared/tokens/connectionVisualTokens';
-import {
-  CONNECTOR_THEMES,
-  DIFF_THEMES,
-  lightenColor,
-  SEMANTIC_ANCHOR_STYLES,
-} from './connectorTheme';
+import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import { getConnectionColorsForType, BOUNDARY_CONNECTION_COLORS } from './connectionFaceColors';
@@ -541,8 +536,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     ? visualStyle.strokeWidth + CASING_WIDTH_OFFSET + HOVER_WIDTH_OFFSET
     : visualStyle.strokeWidth + CASING_WIDTH_OFFSET;
   const markerId = `arrow-${resolvedConnection.id}`;
-  const srcPinHoleStyle = SEMANTIC_ANCHOR_STYLES[fromEndpoint?.semantic ?? 'data'];
-  const tgtPinHoleStyle = SEMANTIC_ANCHOR_STYLES[toEndpoint?.semantic ?? 'data'];
+  const pinHoleStyle = CONNECTOR_THEMES[connectionType ?? 'dataflow'].pinHoleStyle;
   const accentColor = CONNECTOR_THEMES[connectionType ?? 'dataflow'].accent;
   const connectionLabel = `Connection${sourceBlock ? ` from ${sourceBlock.name}` : ''}${targetBlock ? ` to ${targetBlock.name}` : ''}${connectionType ? ` (${connectionType})` : ''}`;
   const activateConnection = () => {
@@ -709,14 +703,14 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
               {renderPinhole(
                 sourcePos.x,
                 sourcePos.y,
-                srcPinHoleStyle,
+                pinHoleStyle,
                 isBoundaryCrossing ? BOUNDARY_CONNECTION_COLORS.anchorRing : colors.stroke,
                 'src',
               )}
               {renderPinhole(
                 targetPos.x,
                 targetPos.y,
-                tgtPinHoleStyle,
+                pinHoleStyle,
                 isBoundaryCrossing ? BOUNDARY_CONNECTION_COLORS.anchorRing : colors.stroke,
                 'tgt',
               )}
