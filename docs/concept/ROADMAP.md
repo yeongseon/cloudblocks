@@ -79,11 +79,12 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 | M47       | Repository Review Follow-up                  | ✅ Done |
 | M49       | Canvas UX Polish & Enhancement               | ✅ Done |
 | M50       | Production Hotfix & Theme Defaults            | ✅ Done |
+| M51       | Connection Docking & Anchor Visibility       | ✅ Done |
 
 ### Version Transition
 
 ```
-v0.{milestone}.0 per milestone (current: v0.50.0)
+v0.{milestone}.0 per milestone (current: v0.51.0)
 ```
 
 Version numbers follow `v0.N.0` where N is the milestone number. This convention continues through V1 development. See `docs/design/VERSION_POLICY.md` for details.
@@ -132,8 +133,8 @@ Version numbers follow `v0.N.0` where N is the milestone number. This convention
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 50 (M8–M50, all closed; M48 empty/skipped)                                                                |
-| Tests passing            | 3,903+                                                                                                     |
+| 0.x milestones completed | 51 (M8–M51, all closed; M48 empty/skipped)                                                                |
+| Tests passing            | 3,609+                                                                                                     |
 | Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
