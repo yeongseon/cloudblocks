@@ -1678,4 +1678,171 @@ describe('ConnectionRenderer', () => {
 
     expect(container.querySelector('g')).toBeNull();
   });
+
+  describe('boundary-crossing detection and rendering', () => {
+    function createBoundaryRoute(): SurfaceRoute {
+      return createSurfaceRoute({
+        srcPort: {
+          surfaceBase: [1, 3, 1],
+          surfaceExit: [1, 3, 1],
+          containerId: 'container-1',
+          surfaceY: 3,
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceBase: [3, 3, 3],
+          surfaceExit: [3, 3, 3],
+          containerId: 'container-2',
+          surfaceY: 3,
+          normal: 'neg-x',
+        },
+      });
+    }
+
+    it('does not set data-boundary-crossing for same-container route', () => {
+      const { container } = renderConnector();
+      const g = container.querySelector('[data-connector-type]');
+      expect(g?.getAttribute('data-boundary-crossing')).toBeNull();
+    });
+
+    it('sets data-boundary-crossing for cross-container route', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      const { container } = renderConnector();
+      const g = container.querySelector('[data-connector-type]');
+      expect(g?.getAttribute('data-boundary-crossing')).toBe('true');
+    });
+
+    it('uses boundary casing color for cross-container connections', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      const { container } = renderConnector();
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+      expect(casing?.getAttribute('stroke')).toContain('--connection-boundary-casing');
+    });
+
+    it('preserves normal casing for same-container connections', () => {
+      const { container } = renderConnector();
+      const casing = container.querySelector('[data-testid="connection-casing"]');
+      // Same-container should NOT use boundary casing
+      expect(casing?.getAttribute('stroke')).not.toContain('--connection-boundary-casing');
+    });
+
+    it('shows Cross-scope pill on hover for boundary-crossing connection', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      const { container } = renderConnector();
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      const pill = container.querySelector('[data-testid="connection-boundary-pill"]');
+      expect(pill).toBeInTheDocument();
+      const texts = pill!.querySelectorAll('text');
+      expect(texts.length).toBe(1);
+      expect(texts[0].textContent).toBe('Cross-scope');
+    });
+
+    it('does not show Cross-scope pill for same-container connection on hover', () => {
+      const { container } = renderConnector();
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      expect(
+        container.querySelector('[data-testid="connection-boundary-pill"]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('does not show Cross-scope pill when not hovered', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      const { container } = renderConnector();
+      expect(
+        container.querySelector('[data-testid="connection-boundary-pill"]'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('suppresses Cross-scope pill when validation error is present', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Test error',
+              severity: 'error' as const,
+              targetId: connection.id,
+            },
+          ],
+          warnings: [],
+        },
+      });
+      const { container } = renderConnector();
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      // Validation error should suppress the cross-scope pill
+      expect(
+        container.querySelector('[data-testid="connection-boundary-pill"]'),
+      ).not.toBeInTheDocument();
+      // But validation error label should show
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('uses boundary anchor ring color for cross-container pinholes', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createBoundaryRoute());
+      const { container } = renderConnector();
+      const pinholes = container.querySelector('[data-testid="connection-pinholes"]');
+      expect(pinholes).toBeInTheDocument();
+      // The filled-top ellipse (Layer 2) should use boundary anchor ring color
+      const ellipses = pinholes!.querySelectorAll('ellipse');
+      // Each pinhole glyph has 3+ ellipses; the Layer 2 fill should be boundary-colored
+      const fillColors = Array.from(ellipses).map((e) => e.getAttribute('fill'));
+      expect(fillColors.some((c) => c?.includes('--connection-boundary-anchor-ring'))).toBe(true);
+    });
+  });
+
+  describe('semantic anchor styles', () => {
+    it('uses semantic-based pinhole style from endpoint, not connection type', () => {
+      const httpConnection: Connection = {
+        id: 'conn-http-semantic',
+        from: endpointId('source-1', 'output', 'http'),
+        to: endpointId('target-1', 'input', 'data'),
+        metadata: { type: 'http' },
+      };
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          architecture: {
+            ...useArchitectureStore.getState().workspace.architecture,
+            connections: [httpConnection],
+            endpoints: [
+              {
+                id: httpConnection.from,
+                blockId: 'source-1',
+                direction: 'output',
+                semantic: 'http',
+              },
+              { id: httpConnection.to, blockId: 'target-1', direction: 'input', semantic: 'data' },
+            ],
+          },
+        },
+      });
+
+      const { container } = render(
+        <svg aria-label="Test SVG">
+          <title>Test SVG</title>
+          <ConnectionRenderer
+            connection={httpConnection}
+            blocks={[]}
+            plates={[]}
+            originX={100}
+            originY={200}
+          />
+        </svg>,
+      );
+
+      const pinholes = container.querySelector('[data-testid="connection-pinholes"]');
+      expect(pinholes).toBeInTheDocument();
+      // Should render 2 pinhole groups (src + tgt) with different semantic overlays
+      const pinGroups = pinholes!.children;
+      expect(pinGroups.length).toBe(2);
+    });
+  });
 });

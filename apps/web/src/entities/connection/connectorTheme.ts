@@ -1,4 +1,4 @@
-import type { ConnectionType } from '@cloudblocks/schema';
+import type { ConnectionType, EndpointSemantic } from '@cloudblocks/schema';
 
 export type PinHoleStyle = 'open' | 'filled' | 'cross' | 'double' | 'dashed';
 
@@ -46,6 +46,17 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     accent: '#8BA3CF',
     pinHoleStyle: 'dashed',
   },
+};
+
+/**
+ * Semantic anchor styles: maps endpoint semantic → pinhole overlay shape.
+ * Used by ConnectionRenderer to encode what flows through the endpoint,
+ * independent of the connection type (which determines dash pattern).
+ */
+export const SEMANTIC_ANCHOR_STYLES: Record<EndpointSemantic, PinHoleStyle> = {
+  http: 'filled',
+  event: 'cross',
+  data: 'double',
 };
 
 export interface DiffTheme {

@@ -79,3 +79,23 @@ export function getConnectionColorsForType(
   if (isNeutral) return NEUTRAL_CONNECTION_COLORS;
   return getConnectionColors(semantic);
 }
+
+// ─── Boundary-Crossing Colors (cross-container scope indicator) ───
+// Layered on top of existing semantic/neutral colors — only the casing
+// and label styling change, inner trace remains type-specific.
+
+export interface BoundaryColors {
+  casing: string;
+  anchorRing: string;
+  labelFill: string;
+  labelStroke: string;
+  labelText: string;
+}
+
+export const BOUNDARY_CONNECTION_COLORS: BoundaryColors = {
+  casing: 'var(--connection-boundary-casing, #4f6f7a)',
+  anchorRing: 'var(--connection-boundary-anchor-ring, #7ea7b2)',
+  labelFill: 'var(--connection-boundary-label-fill, #e7f1f4)',
+  labelStroke: 'var(--connection-boundary-label-stroke, #7ea7b2)',
+  labelText: 'var(--connection-boundary-label-text, #35515a)',
+};

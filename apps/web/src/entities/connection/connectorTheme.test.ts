@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { lightenColor, CONNECTOR_THEMES, DIFF_THEMES } from './connectorTheme';
+import {
+  lightenColor,
+  CONNECTOR_THEMES,
+  DIFF_THEMES,
+  SEMANTIC_ANCHOR_STYLES,
+} from './connectorTheme';
 
 describe('lightenColor', () => {
   it('returns same color when amount is 0', () => {
@@ -72,5 +77,30 @@ describe('DIFF_THEMES', () => {
 
   it('removed state has reduced opacity', () => {
     expect(DIFF_THEMES.removed.opacity).toBeLessThan(1);
+  });
+});
+
+describe('SEMANTIC_ANCHOR_STYLES', () => {
+  it('maps http to filled', () => {
+    expect(SEMANTIC_ANCHOR_STYLES.http).toBe('filled');
+  });
+
+  it('maps event to cross', () => {
+    expect(SEMANTIC_ANCHOR_STYLES.event).toBe('cross');
+  });
+
+  it('maps data to double', () => {
+    expect(SEMANTIC_ANCHOR_STYLES.data).toBe('double');
+  });
+
+  it('covers exactly 3 semantics (http, event, data)', () => {
+    expect(Object.keys(SEMANTIC_ANCHOR_STYLES)).toEqual(['http', 'event', 'data']);
+  });
+
+  it('all values are valid PinHoleStyle literals', () => {
+    const validStyles = new Set(['open', 'filled', 'cross', 'double', 'dashed']);
+    for (const style of Object.values(SEMANTIC_ANCHOR_STYLES)) {
+      expect(validStyles.has(style)).toBe(true);
+    }
   });
 });
