@@ -21,6 +21,7 @@ import {
   ARROW_MARKER_REF_X,
   PORT_DOT_RX,
   PORT_DOT_RY,
+  PORT_DOT_HEIGHT,
   PORT_DOT_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import {
@@ -165,7 +166,9 @@ function getLabelPosition(points: readonly ScreenPoint[]): ScreenPoint | null {
 
 import type { PinHoleStyle } from './connectorTheme';
 
-/** Render a pinhole glyph at a connection endpoint. */
+/** Render a pinhole glyph at a connection endpoint.
+ *  3-layer base (shadow + filled top + inner ring) with type-specific overlay.
+ */
 function renderPinhole(
   x: number,
   y: number,
@@ -177,62 +180,87 @@ function renderPinhole(
   const ry = PORT_DOT_RY;
   const sw = PORT_DOT_STROKE_WIDTH;
 
+  // Type-specific overlay rendered on top of the base glyph
+  let overlay: React.ReactElement | null = null;
   switch (style) {
     case 'filled':
-      return <ellipse key={key} cx={x} cy={y} rx={r} ry={ry} fill={stroke} opacity={0.8} />;
+      // No overlay needed — base glyph is already filled
+      break;
     case 'cross':
-      return (
-        <g key={key} opacity={0.8}>
-          <line x1={x - r} y1={y} x2={x + r} y2={y} stroke={stroke} strokeWidth={sw} />
-          <line x1={x} y1={y - ry} x2={x} y2={y + ry} stroke={stroke} strokeWidth={sw} />
-        </g>
-      );
-    case 'double':
-      return (
-        <g key={key} opacity={0.8}>
-          <ellipse cx={x} cy={y} rx={r} ry={ry} fill="none" stroke={stroke} strokeWidth={sw} />
-          <ellipse
-            cx={x}
-            cy={y}
-            rx={r * 0.5}
-            ry={ry * 0.5}
-            fill="none"
-            stroke={stroke}
-            strokeWidth={sw * 0.8}
+      overlay = (
+        <g opacity={0.9}>
+          <line
+            x1={x - r * 0.45}
+            y1={y}
+            x2={x + r * 0.45}
+            y2={y}
+            stroke="rgba(255,255,255,0.8)"
+            strokeWidth={sw}
+          />
+          <line
+            x1={x}
+            y1={y - ry * 0.45}
+            x2={x}
+            y2={y + ry * 0.45}
+            stroke="rgba(255,255,255,0.8)"
+            strokeWidth={sw}
           />
         </g>
       );
-    case 'dashed':
-      return (
+      break;
+    case 'double':
+      overlay = (
         <ellipse
-          key={key}
           cx={x}
           cy={y}
-          rx={r}
-          ry={ry}
+          rx={r * 0.5}
+          ry={ry * 0.5}
           fill="none"
-          stroke={stroke}
+          stroke="rgba(255,255,255,0.6)"
+          strokeWidth={sw * 0.8}
+        />
+      );
+      break;
+    case 'dashed':
+      overlay = (
+        <ellipse
+          cx={x}
+          cy={y}
+          rx={r * 0.7}
+          ry={ry * 0.7}
+          fill="none"
+          stroke="rgba(255,255,255,0.5)"
           strokeWidth={sw}
           strokeDasharray="2 2"
-          opacity={0.8}
         />
       );
+      break;
     case 'open':
     default:
-      return (
-        <ellipse
-          key={key}
-          cx={x}
-          cy={y}
-          rx={r}
-          ry={ry}
-          fill="none"
-          stroke={stroke}
-          strokeWidth={sw}
-          opacity={0.8}
-        />
-      );
+      // Inner ring from base glyph is sufficient for open style
+      break;
   }
+
+  return (
+    <g key={key} opacity={0.8}>
+      {/* Layer 1: Shadow */}
+      <ellipse cx={x} cy={y + PORT_DOT_HEIGHT} rx={r} ry={ry} fill="rgba(0,0,0,0.2)" />
+      {/* Layer 2: Filled top */}
+      <ellipse cx={x} cy={y} rx={r} ry={ry} fill={stroke} />
+      {/* Layer 3: Inner ring */}
+      <ellipse
+        cx={x}
+        cy={y}
+        rx={r * 0.6}
+        ry={ry * 0.6}
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth={1}
+      />
+      {/* Type-specific overlay */}
+      {overlay}
+    </g>
+  );
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: rendering component with dual path requires unified control flow

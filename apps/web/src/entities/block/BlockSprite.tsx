@@ -8,7 +8,11 @@ import type {
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
-import { generateEndpointsForBlock, isExternalResourceType } from '@cloudblocks/schema';
+import {
+  generateEndpointsForBlock,
+  isExternalResourceType,
+  CATEGORY_PORTS,
+} from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import type { DiffDelta } from '../../shared/types/diff';
@@ -21,9 +25,10 @@ import { validatePlacement } from '../validation/placement';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
-import { BlockSvg } from './BlockSvg';
+import { BlockSvg, type OccupiedPorts } from './BlockSvg';
 import './BlockSprite.css';
 import { resolveBlockPresentation } from '../../shared/presentation/blockPresentation';
+import { semanticToPortIndex } from '../connection/endpointAnchors';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -107,6 +112,42 @@ export const BlockSprite = memo(function BlockSprite({
       return [...relevantConnectionIds];
     }),
   );
+  // Encode occupied ports as a flat sorted array: [inboundCount, ...inbound, ...outbound]
+  // so useShallow can do element-wise comparison on a single array.
+  const occupiedPortKey = useArchitectureStore(
+    useShallow((state) => {
+      if (!resolvedBlockId) return undefined;
+      const block = state.nodeById.get(resolvedBlockId);
+      if (!block || block.kind !== 'resource') return undefined;
+      const ports = CATEGORY_PORTS[block.category];
+      if (!ports) return undefined;
+      const inbound: number[] = [];
+      const outbound: number[] = [];
+      for (const endpoint of generateEndpointsForBlock(resolvedBlockId)) {
+        const connections = state.connectionsByEndpoint.get(endpoint.id);
+        if (connections && connections.length > 0) {
+          const side = endpoint.direction === 'output' ? 'outbound' : 'inbound';
+          const total = side === 'inbound' ? ports.inbound : ports.outbound;
+          const portIndex = semanticToPortIndex(endpoint.semantic, total);
+          if (portIndex !== null) {
+            if (side === 'inbound') inbound.push(portIndex);
+            else outbound.push(portIndex);
+          }
+        }
+      }
+      if (inbound.length === 0 && outbound.length === 0) return undefined;
+      inbound.sort();
+      outbound.sort();
+      // Flat array: [inboundCount, ...inboundPorts, ...outboundPorts]
+      return [inbound.length, ...inbound, ...outbound];
+    }),
+  );
+  const occupiedPorts: OccupiedPorts | undefined = occupiedPortKey
+    ? {
+        inbound: new Set(occupiedPortKey.slice(1, 1 + occupiedPortKey[0])),
+        outbound: new Set(occupiedPortKey.slice(1 + occupiedPortKey[0])),
+      }
+    : undefined;
 
   const activeProvider = useUIStore((s) => s.activeProvider);
   const diffMode = useUIStore((s) => s.diffMode);
@@ -399,6 +440,7 @@ export const BlockSprite = memo(function BlockSprite({
             aggregationCount={resolvedBlock.aggregation?.count}
             roles={resolvedBlock.roles}
             healthStatus={blockStatus?.disabled ? undefined : blockStatus?.healthStatus}
+            occupiedPorts={occupiedPorts}
           />
         </div>
       </button>
