@@ -5,6 +5,7 @@ import {
   getConnectionColorsForType,
   NEUTRAL_CONNECTION_COLORS,
   DEFAULT_CONNECTION_SEMANTIC,
+  BOUNDARY_CONNECTION_COLORS,
 } from '../connectionFaceColors';
 import type { ConnectionRenderSemantic } from '../connectionFaceColors';
 import { PROVIDER_BRAND_COLOR } from '../../block/blockFaceColors';
@@ -97,6 +98,28 @@ describe('connectionFaceColors', () => {
       for (const semantic of semantics) {
         expect(getConnectionColorsForType(semantic, true)).toBe(NEUTRAL_CONNECTION_COLORS);
       }
+    });
+  });
+
+  describe('BOUNDARY_CONNECTION_COLORS', () => {
+    it('uses CSS boundary variables with fallback hex values', () => {
+      expect(BOUNDARY_CONNECTION_COLORS.casing).toContain('--connection-boundary-casing');
+      expect(BOUNDARY_CONNECTION_COLORS.anchorRing).toContain('--connection-boundary-anchor-ring');
+      expect(BOUNDARY_CONNECTION_COLORS.labelFill).toContain('--connection-boundary-label-fill');
+      expect(BOUNDARY_CONNECTION_COLORS.labelStroke).toContain(
+        '--connection-boundary-label-stroke',
+      );
+      expect(BOUNDARY_CONNECTION_COLORS.labelText).toContain('--connection-boundary-label-text');
+    });
+
+    it('each token has a fallback hex value', () => {
+      for (const value of Object.values(BOUNDARY_CONNECTION_COLORS)) {
+        expect(value).toMatch(/#[0-9A-Fa-f]{6}/);
+      }
+    });
+
+    it('has exactly 5 color properties', () => {
+      expect(Object.keys(BOUNDARY_CONNECTION_COLORS)).toHaveLength(5);
     });
   });
 });

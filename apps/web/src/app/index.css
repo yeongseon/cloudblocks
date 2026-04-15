@@ -111,6 +111,12 @@
   --connection-neutral-stroke: #9fb0c7;
   --connection-neutral-casing: #5c6d84;
 
+  /* ── Boundary-crossing connections (cross-container scope indicator) ── */
+  --connection-boundary-casing: #4f6f7a;
+  --connection-boundary-anchor-ring: #7ea7b2;
+  --connection-boundary-label-fill: #e7f1f4;
+  --connection-boundary-label-stroke: #7ea7b2;
+  --connection-boundary-label-text: #35515a;
   /* ── Block shadow tokens (systematized #1580) ── */
   --shadow-block-base: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08))
     drop-shadow(0px 6px 10px rgba(0, 0, 0, 0.06));
@@ -204,6 +210,13 @@
   --connection-neutral-stroke: #64748b;
   --connection-neutral-casing: #334155;
 
+  /* ── Boundary-crossing connections (cross-container scope indicator) ── */
+  --connection-boundary-casing: #3a5863;
+  --connection-boundary-anchor-ring: #71a7b4;
+  --connection-boundary-label-fill: #17303a;
+  --connection-boundary-label-stroke: #4d7c88;
+  --connection-boundary-label-text: #d5ebf0;
+
   /* ── Block shadow tokens (systematized #1580) ── */
   --shadow-block-base: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3))
     drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2));
@@ -296,6 +309,13 @@
   /* ── Connection neutral (base wire color, recedes behind blocks) ── */
   --connection-neutral-stroke: #9fb0c7;
   --connection-neutral-casing: #5c6d84;
+
+  /* ── Boundary-crossing connections (cross-container scope indicator) ── */
+  --connection-boundary-casing: #4f6f7a;
+  --connection-boundary-anchor-ring: #7ea7b2;
+  --connection-boundary-label-fill: #e7f1f4;
+  --connection-boundary-label-stroke: #7ea7b2;
+  --connection-boundary-label-text: #35515a;
 
   /* ── Block shadow tokens (systematized #1580) ── */
   --shadow-block-base: drop-shadow(1px 4px 0px rgba(0, 0, 0, 0.08))

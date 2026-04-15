@@ -34,7 +34,7 @@ import {
 import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
-import { getConnectionColorsForType } from './connectionFaceColors';
+import { getConnectionColorsForType, BOUNDARY_CONNECTION_COLORS } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 import { offsetScreenPoints } from './overlapOffset';
 import { PacketFlowLayer } from './PacketFlowLayer';
@@ -75,6 +75,7 @@ const ERROR_LABEL_FONT: SvgTextMeasureSpec = { fontSize: 11 } as const;
 const TYPE_TOP_FONT: SvgTextMeasureSpec = { fontSize: 10, fontWeight: 600 } as const;
 const TYPE_BOTTOM_FONT: SvgTextMeasureSpec = { fontSize: 9 } as const;
 const HOVER_TYPE_FONT: SvgTextMeasureSpec = { fontSize: 10 } as const;
+const CROSS_SCOPE_FONT: SvgTextMeasureSpec = { fontSize: 9, fontWeight: 500 } as const;
 
 const LABEL_NAME_MAX_CHARS = 14;
 function truncateName(name: string): string {
@@ -468,6 +469,10 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     [resolvedConnection, routeBlocks, routeEndpoints, routePlates],
   );
 
+  const isBoundaryCrossing = Boolean(
+    surfaceRoute && surfaceRoute.srcPort.containerId !== surfaceRoute.tgtPort.containerId,
+  );
+
   const surfaceRender = useMemo(() => {
     if (!surfaceRoute) return null;
 
@@ -514,6 +519,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       : undefined;
   const isNeutral = connectionType === 'dataflow' || connectionType === undefined;
   const colors = getColors(renderSemantic, diffState, isHighlighted, isNeutral);
+  // Boundary-crossing override: replace casing color to indicate cross-scope,
+  // but keep the inner trace color unchanged (preserves connection type identity).
+  const renderCasing = isBoundaryCrossing ? BOUNDARY_CONNECTION_COLORS.casing : colors.casing;
   const hitPath = activeHitPath;
   const hitPoints = activeHitPoints;
   const labelPos = surfaceRender.labelPos;
@@ -553,6 +561,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       data-connector-type={connectionType ?? 'dataflow'}
       data-highlighted={isHighlighted ? 'true' : 'false'}
       data-selected={isSelected ? 'true' : 'false'}
+      data-boundary-crossing={isBoundaryCrossing ? 'true' : undefined}
     >
       {shouldRenderVisuals && (
         <defs>
@@ -619,7 +628,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           {/* Layer 1: Outer casing path */}
           <path
             d={hitPath}
-            stroke={colors.casing}
+            stroke={renderCasing}
             strokeWidth={casingWidth}
             strokeOpacity={isHighlighted ? 0.9 : 0.82}
             strokeDasharray={visualStyle.strokeDasharray}
@@ -691,8 +700,20 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
           {/* Port pinhole indicators at connection endpoints */}
           {diffState === 'unchanged' && (
             <g data-testid="connection-pinholes" pointerEvents="none">
-              {renderPinhole(sourcePos.x, sourcePos.y, pinHoleStyle, colors.stroke, 'src')}
-              {renderPinhole(targetPos.x, targetPos.y, pinHoleStyle, colors.stroke, 'tgt')}
+              {renderPinhole(
+                sourcePos.x,
+                sourcePos.y,
+                pinHoleStyle,
+                isBoundaryCrossing ? BOUNDARY_CONNECTION_COLORS.anchorRing : colors.stroke,
+                'src',
+              )}
+              {renderPinhole(
+                targetPos.x,
+                targetPos.y,
+                pinHoleStyle,
+                isBoundaryCrossing ? BOUNDARY_CONNECTION_COLORS.anchorRing : colors.stroke,
+                'tgt',
+              )}
             </g>
           )}
 
@@ -838,6 +859,49 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                     style={{ pointerEvents: 'none' }}
                   >
                     {humanLabel}
+                  </text>
+                </g>
+              );
+            })()}
+
+          {/* Cross-scope indicator pill for boundary-crossing connections */}
+          {isBoundaryCrossing &&
+            isHighlighted &&
+            !hasValidationError &&
+            labelPos &&
+            (() => {
+              const scopeText = 'Cross-scope';
+              const pillWidth = measureSvgTextWidth(scopeText, CROSS_SCOPE_FONT) + 12;
+              const pillHeight = 16;
+              // Position the pill below the main label area
+              const pillY = labelPos.y + 6;
+
+              return (
+                <g data-testid="connection-boundary-pill" pointerEvents="none">
+                  <rect
+                    x={labelPos.x - pillWidth / 2}
+                    y={pillY}
+                    width={pillWidth}
+                    height={pillHeight}
+                    rx={8}
+                    fill={BOUNDARY_CONNECTION_COLORS.labelFill}
+                    fillOpacity={0.92}
+                    stroke={BOUNDARY_CONNECTION_COLORS.labelStroke}
+                    strokeWidth={1}
+                    strokeOpacity={0.8}
+                  />
+                  <text
+                    x={labelPos.x}
+                    y={pillY + pillHeight / 2}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={BOUNDARY_CONNECTION_COLORS.labelText}
+                    fontSize={9}
+                    fontWeight={500}
+                    fontFamily="var(--font-ui, system-ui)"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {scopeText}
                   </text>
                 </g>
               );
