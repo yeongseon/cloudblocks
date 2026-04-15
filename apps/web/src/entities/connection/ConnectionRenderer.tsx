@@ -23,6 +23,7 @@ import {
   PORT_DOT_RY,
   PORT_DOT_HEIGHT,
   PORT_DOT_STROKE_WIDTH,
+  DOCKING_STEM_PX,
 } from '../../shared/tokens/designTokens';
 import {
   resolveConnectionVisualStyle,
@@ -472,7 +473,9 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
     const rawPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
     const offsetPoints = overlapOffset ? offsetScreenPoints(rawPoints, overlapOffset) : rawPoints;
-    const { path: hitPath, flowPoints } = buildRoundedConnectionGeometry(offsetPoints);
+    const { path: hitPath, flowPoints } = buildRoundedConnectionGeometry(offsetPoints, {
+      startStraightReserve: DOCKING_STEM_PX,
+    });
 
     if (flowPoints.length < 2) return null;
 

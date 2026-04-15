@@ -124,19 +124,31 @@ export function sampleArcInterior(
 
 // ─── Main builder ────────────────────────────────────────────────────
 
+/** Options for buildRoundedConnectionGeometry(). */
+export interface RoundedConnectionOptions {
+  /** Corner arc radius in px (default: CONNECTION_CORNER_RADIUS). */
+  radius?: number;
+  /** Minimum straight px reserved at path END for arrow marker (default: MIN_ARROW_STRAIGHT_PX). */
+  endStraightReserve?: number;
+  /** Minimum straight px reserved at path START for docking stem (default: 0). */
+  startStraightReserve?: number;
+}
+
 /**
  * Build a rounded SVG path and dense flow-point array from a polyline.
  *
- * @param inputPoints        - Screen-space polyline (≥2 points)
- * @param radius             - Corner arc radius in px (default: CONNECTION_CORNER_RADIUS)
- * @param endStraightReserve - Minimum straight px reserved at path end for
- *                             arrow marker orientation (default: MIN_ARROW_STRAIGHT_PX)
+ * @param inputPoints - Screen-space polyline (≥2 points)
+ * @param opts        - Corner radius, end/start straight reserves
  */
 export function buildRoundedConnectionGeometry(
   inputPoints: readonly ScreenPoint[],
-  radius: number = CONNECTION_CORNER_RADIUS,
-  endStraightReserve: number = MIN_ARROW_STRAIGHT_PX,
+  opts: RoundedConnectionOptions = {},
 ): RoundedPathGeometry {
+  const {
+    radius = CONNECTION_CORNER_RADIUS,
+    endStraightReserve = MIN_ARROW_STRAIGHT_PX,
+    startStraightReserve = 0,
+  } = opts;
   const pts = dedupeConsecutivePoints(inputPoints);
 
   // Edge case: 0-1 points → degenerate.
@@ -189,8 +201,12 @@ export function buildRoundedConnectionGeometry(
     const halfTan = Math.tan(turnAngle / 2);
     const rawTrim = radius * halfTan;
 
+    // Respect startStraightReserve on the first segment.
+    let inAvail = segLen[i - 1] / 2;
+    if (i === 1 && startStraightReserve > 0) {
+      inAvail = Math.min(inAvail, Math.max(0, segLen[i - 1] - startStraightReserve));
+    }
     // Also respect endStraightReserve on the last segment.
-    const inAvail = segLen[i - 1] / 2;
     let outAvail = segLen[i] / 2;
     if (i === n - 2) {
       // Last interior vertex — reserve straight segment at the end for arrow.

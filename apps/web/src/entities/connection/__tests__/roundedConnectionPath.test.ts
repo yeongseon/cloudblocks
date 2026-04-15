@@ -6,6 +6,7 @@ import {
   sampleArcInterior,
 } from '../roundedConnectionPath';
 
+const EPS = 1e-3;
 // ─── dedupeConsecutivePoints ─────────────────────────────────────────
 
 describe('dedupeConsecutivePoints', () => {
@@ -147,7 +148,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 0 },
       { x: 100, y: 100 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
     // Path should contain an A (arc) command
     expect(result.path).toContain('A ');
@@ -163,7 +164,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 0 },
       { x: 100, y: 100 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
     // Should have many flow points (sampled at ~6px)
     // Total path length ≈ 200px, so ~33 samples minimum
@@ -188,7 +189,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 80 },
       { x: 0, y: 80 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
     const arcCount = (result.path.match(/A /g) ?? []).length;
     expect(arcCount).toBe(2);
   });
@@ -201,7 +202,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 50, y: 0 },
       { x: 100, y: 0 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
     // Collinear → cross product = 0 → no arc
     expect(result.path).not.toContain('A ');
   });
@@ -216,7 +217,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 20, y: 0 },
       { x: 20, y: 20 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
     // Should still produce an arc, just with a smaller effective trim
     expect(result.path).toContain('A ');
@@ -239,7 +240,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 0 },
       { x: 100, y: 40 }, // Last segment is 40px
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12, 18);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12, endStraightReserve: 18 });
 
     // The last flow point should be the endpoint
     const last = result.flowPoints[result.flowPoints.length - 1];
@@ -262,8 +263,8 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 200, y: 0 },
       { x: 200, y: 200 },
     ];
-    const smallRadius = buildRoundedConnectionGeometry(pts, 5);
-    const largeRadius = buildRoundedConnectionGeometry(pts, 30);
+    const smallRadius = buildRoundedConnectionGeometry(pts, { radius: 5 });
+    const largeRadius = buildRoundedConnectionGeometry(pts, { radius: 30 });
 
     // Both should have arcs
     expect(smallRadius.path).toContain('A ');
@@ -284,7 +285,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 120, y: 60 },
       { x: 120, y: 120 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
     // Should have 3 arcs (3 interior vertices)
     const arcCount = (result.path.match(/A /g) ?? []).length;
@@ -303,7 +304,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 0 },
       { x: 100, y: 100 },
     ];
-    const rResult = buildRoundedConnectionGeometry(rightTurn, 12);
+    const rResult = buildRoundedConnectionGeometry(rightTurn, { radius: 12 });
 
     // Left turn (CCW): going right then up
     const leftTurn: ScreenPoint[] = [
@@ -311,7 +312,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 100 },
       { x: 100, y: 0 },
     ];
-    const lResult = buildRoundedConnectionGeometry(leftTurn, 12);
+    const lResult = buildRoundedConnectionGeometry(leftTurn, { radius: 12 });
 
     // Both should produce valid paths with arcs
     expect(rResult.path).toContain('A ');
@@ -343,7 +344,7 @@ describe('buildRoundedConnectionGeometry', () => {
     ];
 
     for (const pts of cases) {
-      const result = buildRoundedConnectionGeometry(pts, 12);
+      const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
       expect(typeof result.path).toBe('string');
       expect(Array.isArray(result.flowPoints)).toBe(true);
       for (const p of result.flowPoints) {
@@ -363,7 +364,7 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 100, y: 0 },
       { x: 100, y: 100 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
     // Compute cumulative distance — should be monotonically increasing
     let cumDist = 0;
@@ -387,8 +388,143 @@ describe('buildRoundedConnectionGeometry', () => {
       { x: 5, y: 5 },
     ];
     // radius 12 is larger than segment lengths (5px)
-    const result = buildRoundedConnectionGeometry(pts, 12);
+    const result = buildRoundedConnectionGeometry(pts, { radius: 12 });
     expect(result.path).toBeTruthy();
     expect(result.flowPoints.length).toBeGreaterThanOrEqual(2);
+  });
+
+  // ─── startStraightReserve (docking stem) ──────────────────────────
+
+  it('preserves a straight stem at path start when startStraightReserve is set', () => {
+    // L-shape: horizontal 100px → vertical 100px
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
+    const result = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 12,
+    });
+
+    // The first few flow points should be collinear along y=0 (the
+    // horizontal stem before the rounding starts).
+    // With a 12px reserve on a 100px segment, the trim is capped at
+    // min(segLen/2, segLen - reserve) = min(50, 88) = 50, so the arc
+    // entry is at x=50..88.  The first ~2 flow points must lie on y≈0.
+    const stemPoints = result.flowPoints.filter((p) => Math.abs(p.y) < 0.1);
+    expect(stemPoints.length).toBeGreaterThanOrEqual(2);
+    // All stem points should progress rightward (x increasing).
+    for (let i = 1; i < stemPoints.length; i++) {
+      expect(stemPoints[i].x).toBeGreaterThan(stemPoints[i - 1].x - EPS);
+    }
+  });
+
+  it('path starts with M then L before first A when startStraightReserve > 0', () => {
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
+    const result = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 12,
+    });
+
+    // Path should follow M ... L ... A ... pattern
+    expect(result.path).toMatch(/^M .+ L .+ A /);
+  });
+
+  it('startStraightReserve 0 matches default (no reserve)', () => {
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
+    const withZero = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 0,
+    });
+    const withDefault = buildRoundedConnectionGeometry(pts, { radius: 12 });
+
+    expect(withZero.path).toBe(withDefault.path);
+    expect(withZero.flowPoints.length).toBe(withDefault.flowPoints.length);
+  });
+
+  it('caps rounding when startStraightReserve is large relative to segment', () => {
+    // Short first segment (30px) with a 20px reserve → only 10px available
+    // for trim on the incoming side of the corner.
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 30, y: 0 },
+      { x: 30, y: 100 },
+    ];
+    const withReserve = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 20,
+    });
+    const noReserve = buildRoundedConnectionGeometry(pts, { radius: 12 });
+
+    // Both should still produce valid paths with arcs.
+    expect(withReserve.path).toContain('A ');
+    expect(noReserve.path).toContain('A ');
+
+    // With reserve, the rounding trim should be smaller (less space).
+    // This means the arc entry x should be closer to the corner (x=30).
+    // We can verify the first L command's x is further right in reserved.
+    const extractFirstL = (p: string) => {
+      const m = p.match(/L ([\d.]+) /);
+      return m ? parseFloat(m[1]) : 0;
+    };
+    const reservedEntryX = extractFirstL(withReserve.path);
+    const normalEntryX = extractFirstL(noReserve.path);
+    // With reserve, entry is closer to the corner (larger x), because
+    // less space is available for the trim on the incoming side.
+    expect(reservedEntryX).toBeGreaterThanOrEqual(normalEntryX - 0.01);
+  });
+
+  it('handles short 3-point path with startStraightReserve gracefully', () => {
+    // Both segments shorter than the reserve.
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 8, y: 0 },
+      { x: 8, y: 8 },
+    ];
+    const result = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 12,
+    });
+    // Should produce a valid (non-empty) path.
+    expect(result.path).toBeTruthy();
+    expect(result.flowPoints.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('startStraightReserve does not affect middle corners of 5-point path', () => {
+    // Zigzag with 4 turns — only the first corner is affected.
+    const pts: ScreenPoint[] = [
+      { x: 0, y: 0 },
+      { x: 60, y: 0 },
+      { x: 60, y: 60 },
+      { x: 120, y: 60 },
+      { x: 120, y: 120 },
+    ];
+    const withReserve = buildRoundedConnectionGeometry(pts, {
+      radius: 12,
+      startStraightReserve: 12,
+    });
+    const noReserve = buildRoundedConnectionGeometry(pts, { radius: 12 });
+
+    // Both should have 3 arcs (3 interior vertices).
+    const countArcs = (p: string) => (p.match(/A /g) ?? []).length;
+    expect(countArcs(withReserve.path)).toBe(3);
+    expect(countArcs(noReserve.path)).toBe(3);
+
+    // The second and third arcs should be identical between both variants
+    // because startStraightReserve only affects i===1.
+    const extractArcs = (p: string) => {
+      const arcs = p.match(/A [\d.]+ [\d.]+ \d \d \d [\d.-]+ [\d.-]+/g) ?? [];
+      return arcs.slice(1); // skip first arc (affected by reserve)
+    };
+    expect(extractArcs(withReserve.path)).toEqual(extractArcs(noReserve.path));
   });
 });

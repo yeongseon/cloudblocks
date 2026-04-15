@@ -30,6 +30,7 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   PORT_DOT_HEIGHT: 5,
   PORT_DOT_STROKE_WIDTH: 1.5,
   CONNECTION_CORNER_RADIUS: 12,
+  DOCKING_STEM_PX: 12,
 }));
 
 vi.mock('../../shared/utils/diff', () => ({

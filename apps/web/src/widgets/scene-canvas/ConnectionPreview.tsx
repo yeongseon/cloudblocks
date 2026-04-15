@@ -8,7 +8,7 @@ import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS, isExternalResourceType } from '@cloudblocks/schema';
 import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
-import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
+import { PORT_OUT_PX, DOCKING_STEM_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../shared/types/endpoint';
 import { getPreviewRoutePoints } from './previewRoutePoints';
@@ -217,7 +217,9 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
   const target = snappedTarget ?? cursor ?? sourceScreen;
   const routePoints = getPreviewRoutePoints(sourceScreen, target);
-  const { path: pathD } = buildRoundedConnectionGeometry(routePoints);
+  const { path: pathD } = buildRoundedConnectionGeometry(routePoints, {
+    startStraightReserve: DOCKING_STEM_PX,
+  });
 
   return (
     <path
