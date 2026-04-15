@@ -6,7 +6,6 @@ import {
   sampleArcInterior,
 } from '../roundedConnectionPath';
 
-const EPS = 1e-3;
 // ─── dedupeConsecutivePoints ─────────────────────────────────────────
 
 describe('dedupeConsecutivePoints', () => {
@@ -396,43 +395,55 @@ describe('buildRoundedConnectionGeometry', () => {
   // ─── startStraightReserve (docking stem) ──────────────────────────
 
   it('preserves a straight stem at path start when startStraightReserve is set', () => {
-    // L-shape: horizontal 100px → vertical 100px
+    // L-shape: first segment 20px (sensitive range: 12 < 20 < 24).
+    // Without reserve: inAvail = 20/2 = 10, rawTrim for 90° = 12*tan(45°) ≈ 12 → trim = 10.
+    // With reserve 12: inAvail = min(10, max(0, 20-12)) = min(10, 8) = 8 → trim = 8.
+    // So with reserve the arc entry moves from x=10 to x=12, preserving 12px of stem.
     const pts: ScreenPoint[] = [
       { x: 0, y: 0 },
-      { x: 100, y: 0 },
-      { x: 100, y: 100 },
+      { x: 20, y: 0 },
+      { x: 20, y: 100 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, {
+    const withReserve = buildRoundedConnectionGeometry(pts, {
       radius: 12,
       startStraightReserve: 12,
     });
+    const noReserve = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
-    // The first few flow points should be collinear along y=0 (the
-    // horizontal stem before the rounding starts).
-    // With a 12px reserve on a 100px segment, the trim is capped at
-    // min(segLen/2, segLen - reserve) = min(50, 88) = 50, so the arc
-    // entry is at x=50..88.  The first ~2 flow points must lie on y≈0.
-    const stemPoints = result.flowPoints.filter((p) => Math.abs(p.y) < 0.1);
-    expect(stemPoints.length).toBeGreaterThanOrEqual(2);
-    // All stem points should progress rightward (x increasing).
-    for (let i = 1; i < stemPoints.length; i++) {
-      expect(stemPoints[i].x).toBeGreaterThan(stemPoints[i - 1].x - EPS);
-    }
+    // Extract the first L command x-coordinate (arc entry point).
+    const extractFirstL = (p: string) => {
+      const m = p.match(/L ([\d.]+) /);
+      return m ? parseFloat(m[1]) : 0;
+    };
+    const reservedEntryX = extractFirstL(withReserve.path);
+    const normalEntryX = extractFirstL(noReserve.path);
+
+    // With reserve, trim is smaller → entry is closer to corner (larger x).
+    expect(reservedEntryX).toBeGreaterThan(normalEntryX + 0.5);
+    // Entry should be at x = 20 - 8 = 12, leaving exactly 12px of stem.
+    expect(reservedEntryX).toBeCloseTo(12, 0);
   });
 
-  it('path starts with M then L before first A when startStraightReserve > 0', () => {
+  it('geometry differs between reserved and unreserved on sensitive-range segment', () => {
+    // 18px first segment — in the sensitive range where reserve changes geometry.
+    // Without reserve: inAvail = 9, rawTrim ≈ 12 → trim = 9.
+    // With reserve 12: inAvail = min(9, max(0, 18-12)) = min(9, 6) = 6 → trim = 6.
     const pts: ScreenPoint[] = [
       { x: 0, y: 0 },
-      { x: 100, y: 0 },
-      { x: 100, y: 100 },
+      { x: 18, y: 0 },
+      { x: 18, y: 80 },
     ];
-    const result = buildRoundedConnectionGeometry(pts, {
+    const withReserve = buildRoundedConnectionGeometry(pts, {
       radius: 12,
       startStraightReserve: 12,
     });
+    const noReserve = buildRoundedConnectionGeometry(pts, { radius: 12 });
 
-    // Path should follow M ... L ... A ... pattern
-    expect(result.path).toMatch(/^M .+ L .+ A /);
+    // The paths MUST differ because the reserve changes the trim.
+    expect(withReserve.path).not.toBe(noReserve.path);
+    // Both should still produce valid arcs.
+    expect(withReserve.path).toContain('A ');
+    expect(noReserve.path).toContain('A ');
   });
 
   it('startStraightReserve 0 matches default (no reserve)', () => {
