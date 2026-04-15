@@ -71,3 +71,9 @@ export const LABEL_FACE_SCALE = 0.28;
 // Radius in screen px for rounded orthogonal connection corners.
 // Safe for 32-128px segment lengths. Must be ≤ min(segLen)/2.
 export const CONNECTION_CORNER_RADIUS = 12;
+
+// -- Docking Stem --
+// Minimum straight px reserved at path START so the first corner
+// rounding does not consume the exit segment from the block face.
+// Matches PORT_DOT_RX for visual consistency.
+export const DOCKING_STEM_PX = 12;
