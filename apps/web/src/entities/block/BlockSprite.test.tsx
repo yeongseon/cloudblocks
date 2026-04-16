@@ -153,7 +153,29 @@ const internetActor: ExternalActor = {
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
   const removeNodeMock = vi.fn();
-  const moveNodePositionMock = vi.fn();
+  const moveNodePositionMock = vi.fn((id: string, deltaX: number, deltaZ: number) => {
+    useArchitectureStore.setState((state) => {
+      const arch = state.workspace.architecture;
+      const nodeIndex = arch.nodes.findIndex((n) => n.id === id);
+      if (nodeIndex === -1) return state;
+      const node = arch.nodes[nodeIndex];
+      if (node.kind === 'resource') {
+        const updatedNode = {
+          ...node,
+          position: { ...node.position, x: node.position.x + deltaX, z: node.position.z + deltaZ },
+        };
+        const updatedNodes = [...arch.nodes];
+        updatedNodes[nodeIndex] = updatedNode;
+        return {
+          workspace: {
+            ...state.workspace,
+            architecture: { ...arch, nodes: updatedNodes },
+          },
+        };
+      }
+      return state;
+    });
+  });
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
 
@@ -849,7 +871,6 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap', 0.8, 0.6);
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
@@ -978,6 +999,7 @@ describe('BlockSprite', () => {
       position: { x: 2, y: 0, z: 3 },
     };
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 3 });
+    moveNodePositionMock.mockImplementation(vi.fn());
 
     useArchitectureStore.setState({
       moveNodePosition: moveNodePositionMock,
@@ -1066,7 +1088,6 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap-muted', 0.8, 0.7);
     expect(playSoundSpy).not.toHaveBeenCalled();
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();

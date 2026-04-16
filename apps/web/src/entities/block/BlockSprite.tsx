@@ -264,6 +264,7 @@ export const BlockSprite = memo(function BlockSprite({
           if (imgEl) imgEl.classList.remove('is-dragging');
 
           let didSnap = false;
+          let snapRejected = false;
           if (isDragging.current) {
             const currentNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
             const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
@@ -274,12 +275,28 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                didSnap = true;
+                // Record position before attempting move
+                const posBefore = { x: currentBlock.position.x, z: currentBlock.position.z };
                 (onMove ?? moveNodePosition)(resolvedBlockId, deltaX, deltaZ);
 
-                const { isSoundMuted } = useUIStore.getState();
-                if (!isSoundMuted) {
-                  audioService.playSound('block-snap');
+                // Re-read position to check if move was accepted
+                const updatedNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
+                const updatedBlock = updatedNode?.kind === 'resource' ? updatedNode : null;
+                const posAfter = updatedBlock
+                  ? { x: updatedBlock.position.x, z: updatedBlock.position.z }
+                  : posBefore;
+
+                if (posAfter.x === posBefore.x && posAfter.z === posBefore.z) {
+                  // Move was rejected — invalid placement
+                  didSnap = false;
+                  snapRejected = true;
+                } else {
+                  // Move was accepted — normal snap
+                  didSnap = true;
+                  const { isSoundMuted } = useUIStore.getState();
+                  if (!isSoundMuted) {
+                    audioService.playSound('block-snap');
+                  }
                 }
               }
             }
@@ -324,13 +341,22 @@ export const BlockSprite = memo(function BlockSprite({
                 };
 
                 snapAnimationFrameRef.current = requestAnimationFrame(animateSnap);
-              } else if (!didSnap) {
+              } else if (!didSnap && !snapRejected) {
                 droppingEl.classList.add('is-dropping');
                 const handleAnimEnd = () => {
                   droppingEl.classList.remove('is-dropping');
                   droppingEl.removeEventListener('animationend', handleAnimEnd);
                 };
                 droppingEl.addEventListener('animationend', handleAnimEnd);
+              }
+              // Handle shake for rejected snaps
+              if (snapRejected && !prefersReducedMotion) {
+                droppingEl.classList.add('is-shake-invalid');
+                const handleShakeEnd = () => {
+                  droppingEl.classList.remove('is-shake-invalid');
+                  droppingEl.removeEventListener('animationend', handleShakeEnd);
+                };
+                droppingEl.addEventListener('animationend', handleShakeEnd);
               }
             }
           }
@@ -358,6 +384,7 @@ export const BlockSprite = memo(function BlockSprite({
       }
       el.querySelector('.block-img')?.classList.remove('is-dragging');
       el.querySelector('.block-img')?.classList.remove('is-dropping');
+      el.querySelector('.block-img')?.classList.remove('is-shake-invalid');
       const snapEl = el.querySelector('.block-img') as HTMLElement | null;
       if (snapEl) {
         snapEl.classList.remove('is-snapping');

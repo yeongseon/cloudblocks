@@ -176,6 +176,31 @@
   animation: bounce-drop 250ms cubic-bezier(0.22, 1.36, 0.36, 1) forwards;
 }
 
+@keyframes shake-invalid {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.block-img.is-shake-invalid {
+  animation: shake-invalid 400ms ease-out forwards;
+}
+
 .block-sprite.is-building .block-img {
   opacity: calc(0.3 + 0.7 * var(--build-progress, 1));
   filter: saturate(var(--build-progress, 1)) var(--shadow-block-glow);
@@ -236,6 +261,8 @@
   }
 
   .block-img.is-dropping,
+  .block-img.is-snapping,
+  .block-img.is-shake-invalid,
   .block-img.is-snapping,
   .block-sprite.is-upgrading .block-img,
   .block-sprite.is-valid-target .block-img,
