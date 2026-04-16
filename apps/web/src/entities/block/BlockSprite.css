@@ -201,6 +201,23 @@
   animation: shake-invalid 400ms ease-out forwards;
 }
 
+/* ── Container settle animation ─ */
+@keyframes container-settle {
+  0% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  60% {
+    transform: translateY(1px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.block-img.is-settling {
+  animation: container-settle 250ms ease-out forwards;
+}
+
 .block-sprite.is-building .block-img {
   opacity: calc(0.3 + 0.7 * var(--build-progress, 1));
   filter: saturate(var(--build-progress, 1)) var(--shadow-block-glow);
@@ -263,7 +280,7 @@
   .block-img.is-dropping,
   .block-img.is-snapping,
   .block-img.is-shake-invalid,
-  .block-img.is-snapping,
+  .block-img.is-settling,
   .block-sprite.is-upgrading .block-img,
   .block-sprite.is-valid-target .block-img,
   .block-sprite.is-warning .block-img,

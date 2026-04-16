@@ -159,6 +159,9 @@ export const BlockSprite = memo(function BlockSprite({
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const snapAnimationFrameRef = useRef<number | null>(null);
   const dragZoomRef = useRef(1);
+  const previousParentContainerIdRef = useRef<string | null | undefined | symbol>(
+    Symbol('initial'),
+  );
   const prefersReducedMotion = useReducedMotion();
 
   // Resolve provider-aware presentation for correct short labels / icons
@@ -401,6 +404,27 @@ export const BlockSprite = memo(function BlockSprite({
     resolvedBlockId,
     toolMode,
   ]);
+  // ── Container settle animation (#1874) ──
+  useEffect(() => {
+    const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+    if (!imgEl || !resolvedBlockId) return;
+
+    // Check if parentContainerId changed (not initial mount)
+    const prevParentId = previousParentContainerIdRef.current;
+    const isInitialMount = typeof prevParentId === 'symbol';
+    const hasChanged = prevParentId !== resolvedParentContainerId && !isInitialMount;
+
+    if (hasChanged && !prefersReducedMotion) {
+      imgEl.classList.add('is-settling');
+      const handleSettleEnd = () => {
+        imgEl.classList.remove('is-settling');
+        imgEl.removeEventListener('animationend', handleSettleEnd);
+      };
+      imgEl.addEventListener('animationend', handleSettleEnd);
+    }
+
+    previousParentContainerIdRef.current = resolvedParentContainerId;
+  }, [resolvedParentContainerId, prefersReducedMotion, resolvedBlockId]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!resolvedBlock || !resolvedBlockId) return;

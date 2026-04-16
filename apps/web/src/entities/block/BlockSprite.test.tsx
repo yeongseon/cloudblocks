@@ -1419,4 +1419,41 @@ describe('BlockSprite', () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  // ── Container settle animation (#1874) ──
+  it('applies is-settling class when parentContainerId changes on rerender', () => {
+    const block = makeBlock('block-settle', 'compute');
+    const container1: ContainerBlock = { ...parentContainer, id: 'container-1' };
+    const container2: ContainerBlock = { ...parentContainer, id: 'container-2' };
+
+    const { rerender, container } = render(
+      <BlockSprite
+        block={block}
+        parentContainerId="container-1"
+        parentContainer={container1}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const imgEl = container.querySelector('.block-img') as HTMLElement;
+    expect(imgEl).not.toHaveClass('is-settling');
+
+    // Rerender with different parent container
+    rerender(
+      <BlockSprite
+        block={block}
+        parentContainerId="container-2"
+        parentContainer={container2}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    expect(imgEl).toHaveClass('is-settling');
+    fireEvent.animationEnd(imgEl);
+    expect(imgEl).not.toHaveClass('is-settling');
+  });
 });
