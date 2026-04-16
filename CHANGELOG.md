@@ -6,6 +6,34 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.53.0] — 2026-04-17
+
+**Milestone 53 — Cosmetic Physics & Micro-interactions**
+
+Zero-dependency spring math and CSS keyframes for editor cosmetic effects: snap overshoot, invalid placement shake, container settle, and soft collision feedback during drag.
+
+### Added
+
+- Critically-damped spring solver utility (`springMath.ts`) for smooth animation curves (#1872)
+- Magnetic snap overshoot animation on successful grid snap using rAF + CSS custom properties (#1872)
+- Invalid placement shake feedback (400ms horizontal keyframe) when snap-to-grid is rejected (#1873)
+- Container settle animation (250ms translateY + scale) on block reparenting (#1874)
+- Soft collision feedback during drag: orange glow on dragged block when near or overlapping siblings (#1875)
+- AABB sibling proximity helper (`dragFeedback.ts`) with center-based coordinate math (#1875)
+- 24 new tests across spring math, drag feedback, and BlockSprite animation behaviors
+
+### Changed
+
+- Tuned drop bounce from 300ms to 250ms with snappier easing curve (#1872)
+- All motion effects gated on `prefers-reduced-motion` for accessibility (#1872–#1875)
+
+### Fixed
+
+- Center-based AABB coordinate system in `dragFeedback.ts` matching store convention (Oracle review fix)
+- Cancel in-flight snap animation RAF when a new drag starts (Oracle review fix)
+
+---
+
 ## [v0.51.0] — 2026-04-16
 
 **Milestone 51 — Connection Docking & Anchor Visibility**
