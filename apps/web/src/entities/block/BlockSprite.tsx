@@ -26,6 +26,8 @@ import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg, type OccupiedPorts } from './BlockSvg';
+import { useReducedMotion } from '../../shared/hooks/useReducedMotion';
+import { criticallyDampedSpring } from '../../shared/utils/springMath';
 import './BlockSprite.css';
 import { resolveBlockPresentation } from '../../shared/presentation/blockPresentation';
 import { semanticToPortIndex } from '../connection/endpointAnchors';
@@ -155,7 +157,9 @@ export const BlockSprite = memo(function BlockSprite({
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const snapAnimationFrameRef = useRef<number | null>(null);
   const dragZoomRef = useRef(1);
+  const prefersReducedMotion = useReducedMotion();
 
   // Resolve provider-aware presentation for correct short labels / icons
   const isExternalBlock = resolvedBlock
@@ -259,18 +263,7 @@ export const BlockSprite = memo(function BlockSprite({
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
           if (imgEl) imgEl.classList.remove('is-dragging');
 
-          if (isDragging.current) {
-            const droppingEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
-            if (droppingEl) {
-              droppingEl.classList.add('is-dropping');
-              const handleAnimEnd = () => {
-                droppingEl.classList.remove('is-dropping');
-                droppingEl.removeEventListener('animationend', handleAnimEnd);
-              };
-              droppingEl.addEventListener('animationend', handleAnimEnd);
-            }
-          }
-
+          let didSnap = false;
           if (isDragging.current) {
             const currentNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
             const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
@@ -281,12 +274,63 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
+                didSnap = true;
                 (onMove ?? moveNodePosition)(resolvedBlockId, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
                   audioService.playSound('block-snap');
                 }
+              }
+            }
+          }
+
+          if (isDragging.current) {
+            const droppingEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+            if (droppingEl) {
+              if (snapAnimationFrameRef.current !== null) {
+                cancelAnimationFrame(snapAnimationFrameRef.current);
+                snapAnimationFrameRef.current = null;
+              }
+
+              droppingEl.classList.remove('is-snapping');
+              droppingEl.classList.remove('is-dropping');
+              droppingEl.style.removeProperty('--snap-scale');
+              droppingEl.style.removeProperty('--snap-rotate');
+
+              if (didSnap && !prefersReducedMotion) {
+                const startTime = performance.now();
+                const durationMs = 200;
+
+                const animateSnap = (frameTime: number) => {
+                  const elapsedMs = frameTime - startTime;
+                  const elapsedSec = elapsedMs / 1000;
+                  const scale = criticallyDampedSpring(elapsedSec, 1.04, 1, 6);
+                  const rotate = criticallyDampedSpring(elapsedSec, 2, 0, 6);
+
+                  droppingEl.classList.add('is-snapping');
+                  droppingEl.style.setProperty('--snap-scale', String(scale));
+                  droppingEl.style.setProperty('--snap-rotate', `${rotate}deg`);
+
+                  if (elapsedMs >= durationMs || (scale === 1 && rotate === 0)) {
+                    droppingEl.classList.remove('is-snapping');
+                    droppingEl.style.removeProperty('--snap-scale');
+                    droppingEl.style.removeProperty('--snap-rotate');
+                    snapAnimationFrameRef.current = null;
+                    return;
+                  }
+
+                  snapAnimationFrameRef.current = requestAnimationFrame(animateSnap);
+                };
+
+                snapAnimationFrameRef.current = requestAnimationFrame(animateSnap);
+              } else if (!didSnap) {
+                droppingEl.classList.add('is-dropping');
+                const handleAnimEnd = () => {
+                  droppingEl.classList.remove('is-dropping');
+                  droppingEl.removeEventListener('animationend', handleAnimEnd);
+                };
+                droppingEl.addEventListener('animationend', handleAnimEnd);
               }
             }
           }
@@ -309,11 +353,27 @@ export const BlockSprite = memo(function BlockSprite({
       if (dragResetTimerRef.current) {
         clearTimeout(dragResetTimerRef.current);
       }
+      if (snapAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(snapAnimationFrameRef.current);
+      }
       el.querySelector('.block-img')?.classList.remove('is-dragging');
       el.querySelector('.block-img')?.classList.remove('is-dropping');
+      const snapEl = el.querySelector('.block-img') as HTMLElement | null;
+      if (snapEl) {
+        snapEl.classList.remove('is-snapping');
+        snapEl.style.removeProperty('--snap-scale');
+        snapEl.style.removeProperty('--snap-rotate');
+      }
       interactable.unset();
     };
-  }, [blockStatus?.disabled, moveNodePosition, onMove, resolvedBlockId, toolMode]);
+  }, [
+    blockStatus?.disabled,
+    moveNodePosition,
+    onMove,
+    prefersReducedMotion,
+    resolvedBlockId,
+    toolMode,
+  ]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!resolvedBlock || !resolvedBlockId) return;

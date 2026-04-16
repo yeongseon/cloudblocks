@@ -47,12 +47,18 @@ const interactMocks = vi.hoisted(() => ({
   unsetFn: vi.fn(),
 }));
 
+const useReducedMotionMock = vi.hoisted(() => vi.fn(() => false));
+
 const toastMocks = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
 vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
+}));
+
+vi.mock('../../shared/hooks/useReducedMotion', () => ({
+  useReducedMotion: () => useReducedMotionMock(),
 }));
 
 vi.mock('react-hot-toast', () => ({
@@ -153,6 +159,8 @@ describe('BlockSprite', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useReducedMotionMock.mockReset();
+    useReducedMotionMock.mockReturnValue(false);
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
     addConnectionMock.mockReturnValue('conn-test-id');
@@ -845,6 +853,173 @@ describe('BlockSprite', () => {
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
+  });
+
+  it('applies spring snapping class and CSS variables on snapped drag end', () => {
+    const block = {
+      ...makeBlock('block-snap-overshoot', 'compute'),
+      position: { x: 1.2, y: 0, z: 0.4 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+    let frameTriggered = false;
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(((
+      callback: FrameRequestCallback,
+    ) => {
+      if (!frameTriggered) {
+        frameTriggered = true;
+        callback(16);
+      }
+      return 1;
+    }) as typeof window.requestAnimationFrame);
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-snapping');
+    expect(image).not.toHaveClass('is-dropping');
+    expect(image.style.getPropertyValue('--snap-scale')).not.toBe('');
+    expect(image.style.getPropertyValue('--snap-rotate')).not.toBe('');
+
+    requestAnimationFrameSpy.mockRestore();
+    snapSpy.mockRestore();
+  });
+
+  it('does not apply snapping classes or CSS variables when reduced motion is enabled', () => {
+    useReducedMotionMock.mockReturnValue(true);
+
+    const block = {
+      ...makeBlock('block-snap-reduced-motion', 'compute'),
+      position: { x: 1.2, y: 0, z: 0.4 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).not.toHaveClass('is-snapping');
+    expect(image).not.toHaveClass('is-dropping');
+    expect(image.style.getPropertyValue('--snap-scale')).toBe('');
+    expect(image.style.getPropertyValue('--snap-rotate')).toBe('');
+
+    snapSpy.mockRestore();
+  });
+
+  it('keeps bounce-drop animation for drag end when no snap delta is applied', () => {
+    const block = {
+      ...makeBlock('block-no-snap-delta', 'compute'),
+      position: { x: 2, y: 0, z: 3 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 3 });
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-dropping');
+    expect(image).not.toHaveClass('is-snapping');
+
+    snapSpy.mockRestore();
   });
 
   it('snaps on drag end without sound when muted', () => {
