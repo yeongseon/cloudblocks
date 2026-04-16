@@ -31,6 +31,7 @@ import { criticallyDampedSpring } from '../../shared/utils/springMath';
 import './BlockSprite.css';
 import { resolveBlockPresentation } from '../../shared/presentation/blockPresentation';
 import { semanticToPortIndex } from '../connection/endpointAnchors';
+import { getSiblingProximity } from './dragFeedback';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -158,6 +159,7 @@ export const BlockSprite = memo(function BlockSprite({
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const snapAnimationFrameRef = useRef<number | null>(null);
+  const proximityCheckCounterRef = useRef(0);
   const dragZoomRef = useRef(1);
   const previousParentContainerIdRef = useRef<string | null | undefined | symbol>(
     Symbol('initial'),
@@ -233,6 +235,7 @@ export const BlockSprite = memo(function BlockSprite({
       listeners: {
         start(event) {
           isDragging.current = false;
+          proximityCheckCounterRef.current = 0;
 
           dragZoomRef.current = 1;
           const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
@@ -261,10 +264,75 @@ export const BlockSprite = memo(function BlockSprite({
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
           (onMove ?? moveNodePosition)(resolvedBlockId, dWorldX, dWorldZ);
+
+          proximityCheckCounterRef.current = (proximityCheckCounterRef.current + 1) % 3;
+          if (proximityCheckCounterRef.current !== 0 || !imgEl) {
+            return;
+          }
+
+          const clearCollisionClasses = () => {
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.remove('is-collision-overlap');
+          };
+
+          const state = useArchitectureStore.getState();
+          const currentNode = state.nodeById.get(resolvedBlockId);
+          const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
+
+          if (!currentBlock) {
+            clearCollisionClasses();
+            return;
+          }
+
+          const siblings = [...state.nodeById.values()]
+            .filter(
+              (node): node is ResourceBlock =>
+                node.kind === 'resource' &&
+                node.id !== resolvedBlockId &&
+                node.parentId === currentBlock.parentId,
+            )
+            .map((node) => ({
+              id: node.id,
+              position: { x: node.position.x, z: node.position.z },
+              category: node.category,
+              provider: node.provider,
+              subtype: node.subtype,
+            }));
+
+          const currentSize = getBlockDimensions(
+            currentBlock.category,
+            currentBlock.provider,
+            currentBlock.subtype,
+          );
+          const { nearestGap, wouldOverlap } = getSiblingProximity(
+            resolvedBlockId,
+            { x: currentBlock.position.x, z: currentBlock.position.z },
+            { width: currentSize.width, depth: currentSize.depth },
+            siblings,
+            2,
+          );
+
+          if (wouldOverlap) {
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.add('is-collision-overlap');
+            return;
+          }
+
+          if (nearestGap < 2) {
+            imgEl.classList.remove('is-collision-overlap');
+            imgEl.classList.add('is-collision-near');
+            return;
+          }
+
+          clearCollisionClasses();
         },
         end() {
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
-          if (imgEl) imgEl.classList.remove('is-dragging');
+          if (imgEl) {
+            imgEl.classList.remove('is-dragging');
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.remove('is-collision-overlap');
+          }
 
           let didSnap = false;
           let snapRejected = false;
@@ -386,6 +454,8 @@ export const BlockSprite = memo(function BlockSprite({
         cancelAnimationFrame(snapAnimationFrameRef.current);
       }
       el.querySelector('.block-img')?.classList.remove('is-dragging');
+      el.querySelector('.block-img')?.classList.remove('is-collision-near');
+      el.querySelector('.block-img')?.classList.remove('is-collision-overlap');
       el.querySelector('.block-img')?.classList.remove('is-dropping');
       el.querySelector('.block-img')?.classList.remove('is-shake-invalid');
       const snapEl = el.querySelector('.block-img') as HTMLElement | null;

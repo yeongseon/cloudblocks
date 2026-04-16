@@ -551,6 +551,112 @@ describe('BlockSprite', () => {
     expect(moveNodePositionMock).toHaveBeenCalledWith('block-drag-move', 0.3125, 0);
   });
 
+  it('applies near collision feedback class on dragged block when sibling is close', () => {
+    const draggedBlock = {
+      ...makeBlock('block-collision-dragged', 'compute'),
+      position: { x: 0, y: 0, z: 0 },
+    };
+    const nearbySibling = {
+      ...makeBlock('block-collision-nearby', 'compute'),
+      position: { x: 3, y: 0, z: 0 },
+    };
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [draggedBlock, nearbySibling] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={draggedBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+
+    expect(image).toHaveClass('is-collision-near');
+    expect(image).not.toHaveClass('is-collision-overlap');
+  });
+
+  it('removes collision feedback classes on drag end', () => {
+    const draggedBlock = {
+      ...makeBlock('block-collision-end', 'compute'),
+      position: { x: 0, y: 0, z: 0 },
+    };
+    const nearbySibling = {
+      ...makeBlock('block-collision-end-nearby', 'compute'),
+      position: { x: 3, y: 0, z: 0 },
+    };
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [draggedBlock, nearbySibling] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={draggedBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    expect(image).toHaveClass('is-collision-near');
+
+    draggableConfig.listeners.end();
+
+    expect(image).not.toHaveClass('is-collision-near');
+    expect(image).not.toHaveClass('is-collision-overlap');
+  });
+
   it('caches zoom value at drag start and reuses it during move', () => {
     const block = makeBlock('block-zoom-cache', 'compute');
     const { container } = render(

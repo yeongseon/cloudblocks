@@ -218,6 +218,16 @@
   animation: container-settle 250ms ease-out forwards;
 }
 
+.block-img.is-dragging.is-collision-near {
+  filter: var(--shadow-block-drag) drop-shadow(0 0 4px rgba(255, 160, 0, 0.5));
+  transition: filter 150ms ease;
+}
+
+.block-img.is-dragging.is-collision-overlap {
+  filter: var(--shadow-block-drag) drop-shadow(0 0 6px rgba(255, 80, 0, 0.7));
+  transition: filter 150ms ease;
+}
+
 .block-sprite.is-building .block-img {
   opacity: calc(0.3 + 0.7 * var(--build-progress, 1));
   filter: saturate(var(--build-progress, 1)) var(--shadow-block-glow);
