@@ -26,9 +26,12 @@ import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg, type OccupiedPorts } from './BlockSvg';
+import { useReducedMotion } from '../../shared/hooks/useReducedMotion';
+import { criticallyDampedSpring } from '../../shared/utils/springMath';
 import './BlockSprite.css';
 import { resolveBlockPresentation } from '../../shared/presentation/blockPresentation';
 import { semanticToPortIndex } from '../connection/endpointAnchors';
+import { getSiblingProximity } from './dragFeedback';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
@@ -155,7 +158,13 @@ export const BlockSprite = memo(function BlockSprite({
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const snapAnimationFrameRef = useRef<number | null>(null);
+  const proximityCheckCounterRef = useRef(0);
   const dragZoomRef = useRef(1);
+  const previousParentContainerIdRef = useRef<string | null | undefined | symbol>(
+    Symbol('initial'),
+  );
+  const prefersReducedMotion = useReducedMotion();
 
   // Resolve provider-aware presentation for correct short labels / icons
   const isExternalBlock = resolvedBlock
@@ -226,6 +235,13 @@ export const BlockSprite = memo(function BlockSprite({
       listeners: {
         start(event) {
           isDragging.current = false;
+          proximityCheckCounterRef.current = 0;
+
+          // Cancel any in-flight snap animation from previous drag
+          if (snapAnimationFrameRef.current !== null) {
+            cancelAnimationFrame(snapAnimationFrameRef.current);
+            snapAnimationFrameRef.current = null;
+          }
 
           dragZoomRef.current = 1;
           const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
@@ -254,23 +270,77 @@ export const BlockSprite = memo(function BlockSprite({
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
           (onMove ?? moveNodePosition)(resolvedBlockId, dWorldX, dWorldZ);
+
+          proximityCheckCounterRef.current = (proximityCheckCounterRef.current + 1) % 3;
+          if (proximityCheckCounterRef.current !== 0 || !imgEl) {
+            return;
+          }
+
+          const clearCollisionClasses = () => {
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.remove('is-collision-overlap');
+          };
+
+          const state = useArchitectureStore.getState();
+          const currentNode = state.nodeById.get(resolvedBlockId);
+          const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
+
+          if (!currentBlock) {
+            clearCollisionClasses();
+            return;
+          }
+
+          const siblings = [...state.nodeById.values()]
+            .filter(
+              (node): node is ResourceBlock =>
+                node.kind === 'resource' &&
+                node.id !== resolvedBlockId &&
+                node.parentId === currentBlock.parentId,
+            )
+            .map((node) => ({
+              id: node.id,
+              position: { x: node.position.x, z: node.position.z },
+              category: node.category,
+              provider: node.provider,
+              subtype: node.subtype,
+            }));
+
+          const currentSize = getBlockDimensions(
+            currentBlock.category,
+            currentBlock.provider,
+            currentBlock.subtype,
+          );
+          const { nearestGap, wouldOverlap } = getSiblingProximity(
+            resolvedBlockId,
+            { x: currentBlock.position.x, z: currentBlock.position.z },
+            { width: currentSize.width, depth: currentSize.depth },
+            siblings,
+          );
+
+          if (wouldOverlap) {
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.add('is-collision-overlap');
+            return;
+          }
+
+          if (nearestGap < 2) {
+            imgEl.classList.remove('is-collision-overlap');
+            imgEl.classList.add('is-collision-near');
+            return;
+          }
+
+          clearCollisionClasses();
         },
         end() {
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
-          if (imgEl) imgEl.classList.remove('is-dragging');
-
-          if (isDragging.current) {
-            const droppingEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
-            if (droppingEl) {
-              droppingEl.classList.add('is-dropping');
-              const handleAnimEnd = () => {
-                droppingEl.classList.remove('is-dropping');
-                droppingEl.removeEventListener('animationend', handleAnimEnd);
-              };
-              droppingEl.addEventListener('animationend', handleAnimEnd);
-            }
+          if (imgEl) {
+            imgEl.classList.remove('is-dragging');
+            imgEl.classList.remove('is-collision-near');
+            imgEl.classList.remove('is-collision-overlap');
           }
 
+          let didSnap = false;
+          let snapRejected = false;
           if (isDragging.current) {
             const currentNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
             const currentBlock = currentNode?.kind === 'resource' ? currentNode : null;
@@ -281,12 +351,88 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
+                // Record position before attempting move
+                const posBefore = { x: currentBlock.position.x, z: currentBlock.position.z };
                 (onMove ?? moveNodePosition)(resolvedBlockId, deltaX, deltaZ);
 
-                const { isSoundMuted } = useUIStore.getState();
-                if (!isSoundMuted) {
-                  audioService.playSound('block-snap');
+                // Re-read position to check if move was accepted
+                const updatedNode = useArchitectureStore.getState().nodeById.get(resolvedBlockId);
+                const updatedBlock = updatedNode?.kind === 'resource' ? updatedNode : null;
+                const posAfter = updatedBlock
+                  ? { x: updatedBlock.position.x, z: updatedBlock.position.z }
+                  : posBefore;
+
+                if (posAfter.x === posBefore.x && posAfter.z === posBefore.z) {
+                  // Move was rejected — invalid placement
+                  didSnap = false;
+                  snapRejected = true;
+                } else {
+                  // Move was accepted — normal snap
+                  didSnap = true;
+                  const { isSoundMuted } = useUIStore.getState();
+                  if (!isSoundMuted) {
+                    audioService.playSound('block-snap');
+                  }
                 }
+              }
+            }
+          }
+
+          if (isDragging.current) {
+            const droppingEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+            if (droppingEl) {
+              if (snapAnimationFrameRef.current !== null) {
+                cancelAnimationFrame(snapAnimationFrameRef.current);
+                snapAnimationFrameRef.current = null;
+              }
+
+              droppingEl.classList.remove('is-snapping');
+              droppingEl.classList.remove('is-dropping');
+              droppingEl.style.removeProperty('--snap-scale');
+              droppingEl.style.removeProperty('--snap-rotate');
+
+              if (didSnap && !prefersReducedMotion) {
+                const startTime = performance.now();
+                const durationMs = 200;
+
+                const animateSnap = (frameTime: number) => {
+                  const elapsedMs = frameTime - startTime;
+                  const elapsedSec = elapsedMs / 1000;
+                  const scale = criticallyDampedSpring(elapsedSec, 1.04, 1, 6);
+                  const rotate = criticallyDampedSpring(elapsedSec, 2, 0, 6);
+
+                  droppingEl.classList.add('is-snapping');
+                  droppingEl.style.setProperty('--snap-scale', String(scale));
+                  droppingEl.style.setProperty('--snap-rotate', `${rotate}deg`);
+
+                  if (elapsedMs >= durationMs || (scale === 1 && rotate === 0)) {
+                    droppingEl.classList.remove('is-snapping');
+                    droppingEl.style.removeProperty('--snap-scale');
+                    droppingEl.style.removeProperty('--snap-rotate');
+                    snapAnimationFrameRef.current = null;
+                    return;
+                  }
+
+                  snapAnimationFrameRef.current = requestAnimationFrame(animateSnap);
+                };
+
+                snapAnimationFrameRef.current = requestAnimationFrame(animateSnap);
+              } else if (!didSnap && !snapRejected) {
+                droppingEl.classList.add('is-dropping');
+                const handleAnimEnd = () => {
+                  droppingEl.classList.remove('is-dropping');
+                  droppingEl.removeEventListener('animationend', handleAnimEnd);
+                };
+                droppingEl.addEventListener('animationend', handleAnimEnd);
+              }
+              // Handle shake for rejected snaps
+              if (snapRejected && !prefersReducedMotion) {
+                droppingEl.classList.add('is-shake-invalid');
+                const handleShakeEnd = () => {
+                  droppingEl.classList.remove('is-shake-invalid');
+                  droppingEl.removeEventListener('animationend', handleShakeEnd);
+                };
+                droppingEl.addEventListener('animationend', handleShakeEnd);
               }
             }
           }
@@ -309,11 +455,51 @@ export const BlockSprite = memo(function BlockSprite({
       if (dragResetTimerRef.current) {
         clearTimeout(dragResetTimerRef.current);
       }
+      if (snapAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(snapAnimationFrameRef.current);
+      }
       el.querySelector('.block-img')?.classList.remove('is-dragging');
+      el.querySelector('.block-img')?.classList.remove('is-collision-near');
+      el.querySelector('.block-img')?.classList.remove('is-collision-overlap');
       el.querySelector('.block-img')?.classList.remove('is-dropping');
+      el.querySelector('.block-img')?.classList.remove('is-shake-invalid');
+      const snapEl = el.querySelector('.block-img') as HTMLElement | null;
+      if (snapEl) {
+        snapEl.classList.remove('is-snapping');
+        snapEl.style.removeProperty('--snap-scale');
+        snapEl.style.removeProperty('--snap-rotate');
+      }
       interactable.unset();
     };
-  }, [blockStatus?.disabled, moveNodePosition, onMove, resolvedBlockId, toolMode]);
+  }, [
+    blockStatus?.disabled,
+    moveNodePosition,
+    onMove,
+    prefersReducedMotion,
+    resolvedBlockId,
+    toolMode,
+  ]);
+  // ── Container settle animation (#1874) ──
+  useEffect(() => {
+    const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+    if (!imgEl || !resolvedBlockId) return;
+
+    // Check if parentContainerId changed (not initial mount)
+    const prevParentId = previousParentContainerIdRef.current;
+    const isInitialMount = typeof prevParentId === 'symbol';
+    const hasChanged = prevParentId !== resolvedParentContainerId && !isInitialMount;
+
+    if (hasChanged && !prefersReducedMotion) {
+      imgEl.classList.add('is-settling');
+      const handleSettleEnd = () => {
+        imgEl.classList.remove('is-settling');
+        imgEl.removeEventListener('animationend', handleSettleEnd);
+      };
+      imgEl.addEventListener('animationend', handleSettleEnd);
+    }
+
+    previousParentContainerIdRef.current = resolvedParentContainerId;
+  }, [resolvedParentContainerId, prefersReducedMotion, resolvedBlockId]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!resolvedBlock || !resolvedBlockId) return;

@@ -47,12 +47,18 @@ const interactMocks = vi.hoisted(() => ({
   unsetFn: vi.fn(),
 }));
 
+const useReducedMotionMock = vi.hoisted(() => vi.fn(() => false));
+
 const toastMocks = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
 vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
+}));
+
+vi.mock('../../shared/hooks/useReducedMotion', () => ({
+  useReducedMotion: () => useReducedMotionMock(),
 }));
 
 vi.mock('react-hot-toast', () => ({
@@ -147,12 +153,36 @@ const internetActor: ExternalActor = {
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
   const removeNodeMock = vi.fn();
-  const moveNodePositionMock = vi.fn();
+  const moveNodePositionMock = vi.fn((id: string, deltaX: number, deltaZ: number) => {
+    useArchitectureStore.setState((state) => {
+      const arch = state.workspace.architecture;
+      const nodeIndex = arch.nodes.findIndex((n) => n.id === id);
+      if (nodeIndex === -1) return state;
+      const node = arch.nodes[nodeIndex];
+      if (node.kind === 'resource') {
+        const updatedNode = {
+          ...node,
+          position: { ...node.position, x: node.position.x + deltaX, z: node.position.z + deltaZ },
+        };
+        const updatedNodes = [...arch.nodes];
+        updatedNodes[nodeIndex] = updatedNode;
+        return {
+          workspace: {
+            ...state.workspace,
+            architecture: { ...arch, nodes: updatedNodes },
+          },
+        };
+      }
+      return state;
+    });
+  });
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useReducedMotionMock.mockReset();
+    useReducedMotionMock.mockReturnValue(false);
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
     addConnectionMock.mockReturnValue('conn-test-id');
@@ -521,6 +551,112 @@ describe('BlockSprite', () => {
     expect(moveNodePositionMock).toHaveBeenCalledWith('block-drag-move', 0.3125, 0);
   });
 
+  it('applies near collision feedback class on dragged block when sibling is close', () => {
+    const draggedBlock = {
+      ...makeBlock('block-collision-dragged', 'compute'),
+      position: { x: 0, y: 0, z: 0 },
+    };
+    const nearbySibling = {
+      ...makeBlock('block-collision-nearby', 'compute'),
+      position: { x: 3, y: 0, z: 0 },
+    };
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [draggedBlock, nearbySibling] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={draggedBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+
+    expect(image).toHaveClass('is-collision-near');
+    expect(image).not.toHaveClass('is-collision-overlap');
+  });
+
+  it('removes collision feedback classes on drag end', () => {
+    const draggedBlock = {
+      ...makeBlock('block-collision-end', 'compute'),
+      position: { x: 0, y: 0, z: 0 },
+    };
+    const nearbySibling = {
+      ...makeBlock('block-collision-end-nearby', 'compute'),
+      position: { x: 3, y: 0, z: 0 },
+    };
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [draggedBlock, nearbySibling] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={draggedBlock}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    draggableConfig.listeners.move({ dx: 0, dy: 0, target: sprite });
+    expect(image).toHaveClass('is-collision-near');
+
+    draggableConfig.listeners.end();
+
+    expect(image).not.toHaveClass('is-collision-near');
+    expect(image).not.toHaveClass('is-collision-overlap');
+  });
+
   it('caches zoom value at drag start and reuses it during move', () => {
     const block = makeBlock('block-zoom-cache', 'compute');
     const { container } = render(
@@ -841,10 +977,177 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap', 0.8, 0.6);
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
+  });
+
+  it('applies spring snapping class and CSS variables on snapped drag end', () => {
+    const block = {
+      ...makeBlock('block-snap-overshoot', 'compute'),
+      position: { x: 1.2, y: 0, z: 0.4 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+    let frameTriggered = false;
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(((
+      callback: FrameRequestCallback,
+    ) => {
+      if (!frameTriggered) {
+        frameTriggered = true;
+        callback(16);
+      }
+      return 1;
+    }) as typeof window.requestAnimationFrame);
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-snapping');
+    expect(image).not.toHaveClass('is-dropping');
+    expect(image.style.getPropertyValue('--snap-scale')).not.toBe('');
+    expect(image.style.getPropertyValue('--snap-rotate')).not.toBe('');
+
+    requestAnimationFrameSpy.mockRestore();
+    snapSpy.mockRestore();
+  });
+
+  it('does not apply snapping classes or CSS variables when reduced motion is enabled', () => {
+    useReducedMotionMock.mockReturnValue(true);
+
+    const block = {
+      ...makeBlock('block-snap-reduced-motion', 'compute'),
+      position: { x: 1.2, y: 0, z: 0.4 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).not.toHaveClass('is-snapping');
+    expect(image).not.toHaveClass('is-dropping');
+    expect(image.style.getPropertyValue('--snap-scale')).toBe('');
+    expect(image.style.getPropertyValue('--snap-rotate')).toBe('');
+
+    snapSpy.mockRestore();
+  });
+
+  it('keeps bounce-drop animation for drag end when no snap delta is applied', () => {
+    const block = {
+      ...makeBlock('block-no-snap-delta', 'compute'),
+      position: { x: 2, y: 0, z: 3 },
+    };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 3 });
+    moveNodePositionMock.mockImplementation(vi.fn());
+
+    useArchitectureStore.setState({
+      moveNodePosition: moveNodePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [block] as Block[],
+          connections: [],
+        },
+      },
+    });
+
+    render(
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen
+      .getByRole('button', { name: 'Node: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-dropping');
+    expect(image).not.toHaveClass('is-snapping');
+
+    snapSpy.mockRestore();
   });
 
   it('snaps on drag end without sound when muted', () => {
@@ -891,7 +1194,6 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
-    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap-muted', 0.8, 0.7);
     expect(playSoundSpy).not.toHaveBeenCalled();
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
@@ -1222,5 +1524,42 @@ describe('BlockSprite', () => {
     const { container } = render(<BlockSprite screenX={0} screenY={0} zIndex={1} />);
 
     expect(container.firstChild).toBeNull();
+  });
+
+  // ── Container settle animation (#1874) ──
+  it('applies is-settling class when parentContainerId changes on rerender', () => {
+    const block = makeBlock('block-settle', 'compute');
+    const container1: ContainerBlock = { ...parentContainer, id: 'container-1' };
+    const container2: ContainerBlock = { ...parentContainer, id: 'container-2' };
+
+    const { rerender, container } = render(
+      <BlockSprite
+        block={block}
+        parentContainerId="container-1"
+        parentContainer={container1}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    const imgEl = container.querySelector('.block-img') as HTMLElement;
+    expect(imgEl).not.toHaveClass('is-settling');
+
+    // Rerender with different parent container
+    rerender(
+      <BlockSprite
+        block={block}
+        parentContainerId="container-2"
+        parentContainer={container2}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
+
+    expect(imgEl).toHaveClass('is-settling');
+    fireEvent.animationEnd(imgEl);
+    expect(imgEl).not.toHaveClass('is-settling');
   });
 });

@@ -24,10 +24,16 @@
   width: 100%;
   height: 100%;
   pointer-events: visiblePainted;
+  --snap-scale: 1;
+  --snap-rotate: 0deg;
   transition:
     filter 0.2s ease,
     transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: var(--shadow-block-base);
+}
+
+.block-img.is-snapping {
+  transform: scale(var(--snap-scale)) rotate(var(--snap-rotate));
 }
 
 .block-button:hover .block-img,
@@ -167,7 +173,59 @@
 }
 
 .block-img.is-dropping {
-  animation: bounce-drop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: bounce-drop 250ms cubic-bezier(0.22, 1.36, 0.36, 1) forwards;
+}
+
+@keyframes shake-invalid {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.block-img.is-shake-invalid {
+  animation: shake-invalid 400ms ease-out forwards;
+}
+
+/* ── Container settle animation ─ */
+@keyframes container-settle {
+  0% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  60% {
+    transform: translateY(1px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.block-img.is-settling {
+  animation: container-settle 250ms ease-out forwards;
+}
+
+.block-img.is-dragging.is-collision-near {
+  filter: var(--shadow-block-drag) drop-shadow(0 0 4px rgba(255, 160, 0, 0.5));
+  transition: filter 150ms ease;
+}
+
+.block-img.is-dragging.is-collision-overlap {
+  filter: var(--shadow-block-drag) drop-shadow(0 0 6px rgba(255, 80, 0, 0.7));
+  transition: filter 150ms ease;
 }
 
 .block-sprite.is-building .block-img {
@@ -226,10 +284,13 @@
 /* ── Accessibility ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .block-img {
-    transition: none !important;
+    transition: none;
   }
 
   .block-img.is-dropping,
+  .block-img.is-snapping,
+  .block-img.is-shake-invalid,
+  .block-img.is-settling,
   .block-sprite.is-upgrading .block-img,
   .block-sprite.is-valid-target .block-img,
   .block-sprite.is-warning .block-img,
@@ -242,6 +303,10 @@
 
   .block-sprite.is-drag-hover-valid .block-img {
     transition: none;
+    transform: none;
+  }
+
+  .block-img.is-snapping {
     transform: none;
   }
 }
