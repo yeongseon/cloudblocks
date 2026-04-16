@@ -237,6 +237,12 @@ export const BlockSprite = memo(function BlockSprite({
           isDragging.current = false;
           proximityCheckCounterRef.current = 0;
 
+          // Cancel any in-flight snap animation from previous drag
+          if (snapAnimationFrameRef.current !== null) {
+            cancelAnimationFrame(snapAnimationFrameRef.current);
+            snapAnimationFrameRef.current = null;
+          }
+
           dragZoomRef.current = 1;
           const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
           if (sceneWorld) {
@@ -309,7 +315,6 @@ export const BlockSprite = memo(function BlockSprite({
             { x: currentBlock.position.x, z: currentBlock.position.z },
             { width: currentSize.width, depth: currentSize.depth },
             siblings,
-            2,
           );
 
           if (wouldOverlap) {

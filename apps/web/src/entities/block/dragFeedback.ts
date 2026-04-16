@@ -3,10 +3,10 @@ import type { ResourceBlock } from '@cloudblocks/schema';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 
 interface BlockRect {
-  x: number;
-  z: number;
-  width: number;
-  depth: number;
+  cx: number;
+  cz: number;
+  halfW: number;
+  halfD: number;
 }
 
 type SiblingBlock = Pick<ResourceBlock, 'id' | 'category' | 'provider' | 'subtype'> & {
@@ -18,16 +18,16 @@ function toRect(
   size: { width: number; depth: number },
 ): BlockRect {
   return {
-    x: position.x,
-    z: position.z,
-    width: size.width,
-    depth: size.depth,
+    cx: position.x,
+    cz: position.z,
+    halfW: size.width / 2,
+    halfD: size.depth / 2,
   };
 }
 
 function getAabbGap(a: BlockRect, b: BlockRect): { gap: number; overlap: boolean } {
-  const gapX = Math.max(a.x - (b.x + b.width), b.x - (a.x + a.width));
-  const gapZ = Math.max(a.z - (b.z + b.depth), b.z - (a.z + a.depth));
+  const gapX = Math.abs(a.cx - b.cx) - (a.halfW + b.halfW);
+  const gapZ = Math.abs(a.cz - b.cz) - (a.halfD + b.halfD);
 
   const overlap = gapX < 0 && gapZ < 0;
   if (overlap) {
@@ -47,7 +47,6 @@ export function getSiblingProximity(
   position: { x: number; z: number },
   blockSize: { width: number; depth: number },
   siblings: ReadonlyArray<SiblingBlock>,
-  _threshold: number,
 ): { nearestGap: number; wouldOverlap: boolean } {
   const selfRect = toRect(position, blockSize);
 
