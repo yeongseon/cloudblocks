@@ -77,7 +77,7 @@ jobs:
           cp -r site/ apps/web/dist/docs/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist
           retention-days: 1
