@@ -109,12 +109,12 @@ function getArch(): LegacyArchitectureModel {
       .filter((node) => node.parentId === container.id)
       .map((node) => node.id),
   }));
-  const blocks: LegacyBlock[] = architecture.nodes.filter(isBlockNode).map(
-    (block): LegacyBlock => ({
+  const blocks: LegacyBlock[] = architecture.nodes
+    .filter(isBlockNode)
+    .map((block): LegacyBlock => ({
       ...block,
       placementId: block.parentId ?? '',
-    }),
-  );
+    }));
   return {
     ...architecture,
     plates,
