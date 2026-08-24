@@ -52,14 +52,7 @@ export type AggregationMode = 'single' | 'count';
  * Visual-only annotations that describe the function of a block.
  */
 export type BlockRole =
-  | 'primary'
-  | 'secondary'
-  | 'reader'
-  | 'writer'
-  | 'public'
-  | 'private'
-  | 'internal'
-  | 'external';
+  'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external';
 
 /**
  * Connection protocol/type between blocks.

@@ -48,23 +48,21 @@ export function migrateExternalActorsToBlocks(
 ): ResourceBlock[] {
   return externalActors
     .filter((actor) => !existingNodeIds.has(actor.id))
-    .map(
-      (actor): ResourceBlock => ({
-        id: actor.id,
-        name: actor.name,
-        kind: 'resource',
-        layer: 'resource',
-        resourceType: actor.type,
-        category: 'delivery',
-        provider,
-        parentId: null,
-        position: actor.position ?? {
-          ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[actor.type] ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
-        },
-        metadata: {},
-        roles: ['external'],
-      }),
-    );
+    .map((actor): ResourceBlock => ({
+      id: actor.id,
+      name: actor.name,
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: actor.type,
+      category: 'delivery',
+      provider,
+      parentId: null,
+      position: actor.position ?? {
+        ...(EXTERNAL_ACTOR_DEFAULT_POSITIONS[actor.type] ?? DEFAULT_EXTERNAL_ACTOR_POSITION),
+      },
+      metadata: {},
+      roles: ['external'],
+    }));
 }
 /**
  * SCHEMA_VERSION: Controls the serialization/storage format.

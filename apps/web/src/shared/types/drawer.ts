@@ -1,8 +1,2 @@
 export type DrawerPanelId =
-  | 'properties'
-  | 'validation'
-  | 'connections'
-  | 'scenarios'
-  | 'learning'
-  | 'code'
-  | 'templates';
+  'properties' | 'validation' | 'connections' | 'scenarios' | 'learning' | 'code' | 'templates';

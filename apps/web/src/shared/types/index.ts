@@ -269,16 +269,10 @@ export const PLATE_ENCYCLOPEDIA: Record<
 // ─── ContainerBlock Profile System ──────────────────────────────────
 
 export type NetworkProfileId =
-  | 'network-sandbox'
-  | 'network-application'
-  | 'network-platform'
-  | 'network-hub';
+  'network-sandbox' | 'network-application' | 'network-platform' | 'network-hub';
 
 export type SubnetProfileId =
-  | 'subnet-utility'
-  | 'subnet-service'
-  | 'subnet-workload'
-  | 'subnet-scale';
+  'subnet-utility' | 'subnet-service' | 'subnet-workload' | 'subnet-scale';
 
 export type ContainerBlockProfileId = NetworkProfileId | SubnetProfileId;
 

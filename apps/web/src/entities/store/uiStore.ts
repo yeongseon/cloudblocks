@@ -23,12 +23,7 @@ export type AppView = 'landing' | 'builder';
 export type InspectorTabId = 'properties' | 'code' | 'connections';
 export type LabelMode = 'compact' | 'learning' | 'inspect';
 export type RightOverlayId =
-  | 'githubLogin'
-  | 'githubRepos'
-  | 'githubSync'
-  | 'githubPR'
-  | 'diff'
-  | null;
+  'githubLogin' | 'githubRepos' | 'githubSync' | 'githubPR' | 'diff' | null;
 export interface ActivityLogEntry {
   id: string;
   ts: string;
