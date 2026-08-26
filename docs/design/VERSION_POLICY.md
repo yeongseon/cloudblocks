@@ -18,28 +18,33 @@ All publishable packages in the CloudBlocks monorepo share **one version number*
 
 ### When to Bump
 
-Versions are bumped as part of the **release workflow** (see `AGENTS.md § Release Workflow`). A version bump happens exactly once per milestone completion:
+Versions represent **user-visible product state**, not planning progress. A
+version bump happens only when there is a learner-visible reason to release —
+not when a milestone closes. See [ADR-0019](../adr/0019-decouple-versioning-from-milestones.md).
 
 ```
-Milestone N completed → version becomes 0.N.0
+Meaningful capability bundle → v0.x.0
+Bug fix / hotfix             → v0.x.y
 ```
 
-**Do not bump versions mid-milestone.** Work-in-progress code on feature branches uses the _current_ released version until the milestone ships.
+**Do not bump versions** for routine PRs, visual tweaks, docs, refactors, or
+dependency updates. Work-in-progress code on feature branches uses the
+_current_ released version until a release is cut.
 
 ### Versioning Convention
 
 ```
-v0.{milestone}.{patch}
+v0.{minor}.{patch}
 
 Examples:
-  v0.16.0  — Milestone 16 release
-  v0.16.1  — Hotfix on Milestone 16
-  v0.17.0  — Milestone 17 release
+  v0.51.0  — last release under the legacy Milestone = version convention
+  v0.52.0  — next meaningful capability bundle (chosen by significance)
+  v0.52.1  — hotfix on that release
 ```
 
 - **Major** (`0.x.y`): Stays at `0` until the project reaches production stability (v1.0.0).
-- **Minor** (`x.N.y`): Matches the milestone number. Milestone 17 = `0.17.0`.
-- **Patch** (`x.y.Z`): Reserved for hotfixes only. Starts at `0` for each milestone release.
+- **Minor** (`x.N.y`): Incremented for a meaningful capability bundle. No longer tied to a milestone number (superseded by ADR-0019; releases through `v0.51.0` followed the old `v0.N.0 = Milestone N` convention).
+- **Patch** (`x.y.Z`): Reserved for bug fixes and hotfixes.
 
 ### Pre-1.0 Caveat
 
@@ -124,11 +129,11 @@ Living documentation files include a `Verified against` marker in their metadata
    - `Verified against: app v0.40.0, schema v4.1.0` (both)
 3. **Update only after review**: A marker means "a human verified this document accurately describes the codebase at version X (and/or schema S)". Do not bulk-update markers without actually reviewing content.
 4. **Exempt documents**: ADRs (`docs/adr/`) and documents marked "Historical (Superseded)" do not carry freshness markers — they are immutable records.
-5. **Staleness threshold**: A marker more than 5 milestones behind the current release is considered stale and should be prioritized for review.
+5. **Staleness threshold**: A marker more than 5 releases behind the current release is considered stale and should be prioritized for review.
 
 ### Release Checklist Integration
 
-During each milestone release, the release PR must review and update the `Verified against` marker for at least these **core documents**:
+During each release, the release PR must review and update the `Verified against` marker for at least these **core documents**:
 
 - `docs/concept/ARCHITECTURE.md`
 - `docs/model/DOMAIN_MODEL.md`
@@ -136,7 +141,7 @@ During each milestone release, the release PR must review and update the `Verifi
 - `docs/user-guide/quick-start.md`
 - `docs/user-guide/core-concepts.md`
 
-Other documents should be updated opportunistically when their content area is affected by the milestone.
+Other documents should be updated opportunistically when their content area is affected by the release.
 
 ## Enforcement
 
@@ -162,7 +167,7 @@ During the release process (see `AGENTS.md § Release Workflow`), the release co
 
 ## Bump Procedure
 
-When completing a milestone release:
+When cutting a release:
 
 ```bash
 # 1. Determine the new version

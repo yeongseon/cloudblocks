@@ -24,6 +24,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0016](0016-connection-type-taxonomy-alignment.md)     | Connection Type Taxonomy Alignment        | Accepted           | 2026-04 |
 | [0017](0017-uniform-block-height.md)                   | Uniform Block Height Across Categories    | Accepted           | 2026-04 |
 | [0018](0018-canvas-improvement-strategy.md)             | Canvas Improvement Strategy               | Accepted           | 2026-04 |
+| [0019](0019-decouple-versioning-from-milestones.md)     | Decouple Versioning from Milestones       | Accepted           | 2026-08 |
 
 ## ADR Template
 
