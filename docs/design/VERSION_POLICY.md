@@ -52,7 +52,7 @@ CloudBlocks is pre-1.0 software. No stability guarantees are provided for:
 
 - Internal package APIs (`@cloudblocks/schema`, `@cloudblocks/domain`)
 - Store shape or state management interfaces
-- Backend API contracts (endpoints may change between milestones)
+- Backend API contracts (endpoints may change between releases)
 - File formats (architecture JSON schema may evolve)
 
 Consumers should pin to specific versions and review changelogs before upgrading.
@@ -111,7 +111,7 @@ App v0.35.0  →  Schema v4.1.0  (same schema, minor addition)
 App v0.40.0  →  Schema v4.1.0  (possible — no format change needed)
 ```
 
-Schema version bumps less frequently than app version. Many milestones may ship on the same schema version.
+Schema version bumps less frequently than app version. Many app releases may use the same schema version.
 
 ## Documentation Freshness Markers
 
