@@ -147,6 +147,8 @@ apps/web/src/
 
 ## Making Changes
 
+> **Current policy**: [AGENTS.md](AGENTS.md#planning) and [ADR-0019](docs/adr/0019-decouple-versioning-from-milestones.md) supersede the legacy milestone workflow below. Use `Issue -> Branch -> PR`; milestones are optional and do not determine releases. Full guide alignment and planning buckets are tracked in #1912.
+
 CloudBlocks uses two planning paths:
 
 - **Roadmap implementation work**: `Milestone -> Epic -> Sub-issue -> Branch -> PR`

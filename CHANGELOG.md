@@ -2,7 +2,7 @@
 
 All notable changes to CloudBlocks are documented in this file.
 
-This project uses [Semantic Versioning](https://semver.org/). Version numbers follow the convention `v0.{milestone}.{patch}` — each milestone maps directly to a minor version.
+This project uses [Semantic Versioning](https://semver.org/). Versions represent user-visible product state, independently of milestones; see the [Version Policy](docs/design/VERSION_POLICY.md). Releases through v0.53.0 used the legacy `v0.{milestone}.{patch}` convention.
 
 ---
 
