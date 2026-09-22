@@ -61,4 +61,4 @@ Release when there is a **learner-visible reason** — not when a milestone clos
 - `v0.x.y` — bug fixes and hotfixes.
 - No version bump for routine PRs, visual tweaks, docs, refactors, or dependency updates.
 
-Release steps: verify the live demo works (`pnpm build`, serve `apps/web/dist`, check core flows), bump all version sources together and run `./scripts/check-versions.sh` (exit 0), update `CHANGELOG.md`, squash-merge, tag `v0.x.y`, push tag, create the GitHub Release, and sync `docs/concept/ROADMAP.md`. See `docs/design/RELEASE_GATES.md` for gate checks.
+Release steps: verify the live demo works (`pnpm build`, serve `apps/web/dist`, check core flows), bump all version sources together and run `./scripts/check-versions.sh` (exit 0), update `CHANGELOG.md`, squash-merge, tag `v0.x.y`, push tag, and create the GitHub Release. Update `docs/concept/ROADMAP.md` only when product direction or capability status changes. See `docs/design/RELEASE_GATES.md` for gate checks.
