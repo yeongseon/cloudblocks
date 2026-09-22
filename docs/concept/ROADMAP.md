@@ -84,7 +84,7 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 ### Version Transition
 
 ```
-v0.51.0 was the last release under the legacy v0.{milestone}.0 convention.
+v0.53.0 was the last release under the legacy v0.{milestone}.0 convention.
 ```
 
 Versions now represent user-visible product state, decoupled from milestone numbers: `v0.x.0` for a meaningful capability bundle, `v0.x.y` for fixes. Release only when there is a learner-visible reason. See [ADR-0019](../adr/0019-decouple-versioning-from-milestones.md) and `docs/design/VERSION_POLICY.md`.

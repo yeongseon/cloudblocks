@@ -45,7 +45,7 @@ becomes 0.N.0").
    version is chosen by the significance of the delivered capability, continuing
    from the current released version.
 4. **Milestones are optional planning aids, not release units.** Planning moves to
-   `Now / Next / Later` buckets (tracked as follow-up in #1900). Issues and PRs no
+   `Now / Next / Later` buckets (tracked as follow-up in #1912). Issues and PRs no
    longer require universal milestone assignment.
 
 The single-version alignment across packages (root `package.json`,
@@ -64,7 +64,7 @@ The single-version alignment across packages (root `package.json`,
 ### Negative
 
 - Version numbers no longer encode the milestone number, so historical
-  `v0.N.0 = Milestone N` mappings apply only to releases through `v0.51.0`.
+  `v0.N.0 = Milestone N` mappings apply only to releases through `v0.53.0`.
   The 0.x history in `docs/concept/ROADMAP_0X_HISTORY.md` remains an accurate
   record of that earlier convention.
 - Requires judgment about what constitutes a "learner-visible" release rather

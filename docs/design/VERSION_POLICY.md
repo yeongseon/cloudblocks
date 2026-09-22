@@ -37,13 +37,13 @@ _current_ released version until a release is cut.
 v0.{minor}.{patch}
 
 Examples:
-  v0.51.0  — last release under the legacy Milestone = version convention
-  v0.52.0  — next meaningful capability bundle (chosen by significance)
-  v0.52.1  — hotfix on that release
+  v0.53.0  — last release under the legacy Milestone = version convention
+  v0.54.0  — next meaningful capability bundle (chosen by significance)
+  v0.54.1  — hotfix on that release
 ```
 
 - **Major** (`0.x.y`): Stays at `0` until the project reaches production stability (v1.0.0).
-- **Minor** (`x.N.y`): Incremented for a meaningful capability bundle. No longer tied to a milestone number (superseded by ADR-0019; releases through `v0.51.0` followed the old `v0.N.0 = Milestone N` convention).
+- **Minor** (`x.N.y`): Incremented for a meaningful capability bundle. No longer tied to a milestone number (superseded by ADR-0019; releases through `v0.53.0` followed the old `v0.N.0 = Milestone N` convention).
 - **Patch** (`x.y.Z`): Reserved for bug fixes and hotfixes.
 
 ### Pre-1.0 Caveat
@@ -163,7 +163,7 @@ This script is intended to be integrated into CI (issue #434, Wave 8).
 
 ### Manual Review
 
-During the release process (see `AGENTS.md § Release Workflow`), the release commit must update **all** version sources simultaneously. The PR reviewer must verify version alignment before merge.
+During the release process (see [AGENTS.md § Releases](../../AGENTS.md#releases)), the release commit must update **all** version sources simultaneously. The PR reviewer must verify version alignment before merge.
 
 ## Bump Procedure
 
@@ -201,7 +201,7 @@ git commit -m "chore: release v$NEW_VERSION"
 
 ## Related Documents
 
-- [AGENTS.md § Release Workflow](../../AGENTS.md) — Full release process
+- [AGENTS.md § Releases](../../AGENTS.md#releases) — Full release process
 - [RELEASE_GATES.md](RELEASE_GATES.md) — Pre-release gate checks
 - [CHANGELOG.md](../../CHANGELOG.md) — Release history
 - [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) — Schema version referenced in model docs
