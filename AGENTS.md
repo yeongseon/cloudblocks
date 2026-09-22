@@ -35,7 +35,7 @@
 ## Planning
 
 - Use lightweight `Issue → Branch → PR` for all work. Milestones are optional planning aids, not release units — do not create a milestone per small change, and do not require one on every issue/PR.
-- Track direction with `Now` (max 3) / `Next` (max 10) / `Later` (roadmap narrative) rather than a sequential milestone ladder.
+- These planning and release rules take precedence over legacy milestone workflows in `CONTRIBUTING.md`; full guide alignment and `Now / Next / Later` adoption are tracked in #1912.
 - Before starting an issue: check the assignee (don't pick up others' work; assign yourself if unassigned), then sync `main`:
   ```bash
   git checkout main && git pull --ff-only origin main
