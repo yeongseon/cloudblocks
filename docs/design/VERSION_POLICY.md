@@ -18,28 +18,33 @@ All publishable packages in the CloudBlocks monorepo share **one version number*
 
 ### When to Bump
 
-Versions are bumped as part of the **release workflow** (see `AGENTS.md § Release Workflow`). A version bump happens exactly once per milestone completion:
+Versions represent **user-visible product state**, not planning progress. A
+version bump happens only when there is a learner-visible reason to release —
+not when a milestone closes. See [ADR-0019](../adr/0019-decouple-versioning-from-milestones.md).
 
 ```
-Milestone N completed → version becomes 0.N.0
+Meaningful capability bundle → v0.x.0
+Bug fix / hotfix             → v0.x.y
 ```
 
-**Do not bump versions mid-milestone.** Work-in-progress code on feature branches uses the _current_ released version until the milestone ships.
+**Do not bump versions** for routine PRs, visual tweaks, docs, refactors, or
+dependency updates. Work-in-progress code on feature branches uses the
+_current_ released version until a release is cut.
 
 ### Versioning Convention
 
 ```
-v0.{milestone}.{patch}
+v0.{minor}.{patch}
 
 Examples:
-  v0.16.0  — Milestone 16 release
-  v0.16.1  — Hotfix on Milestone 16
-  v0.17.0  — Milestone 17 release
+  v0.53.0  — last release under the legacy Milestone = version convention
+  v0.54.0  — next meaningful capability bundle (chosen by significance)
+  v0.54.1  — hotfix on that release
 ```
 
 - **Major** (`0.x.y`): Stays at `0` until the project reaches production stability (v1.0.0).
-- **Minor** (`x.N.y`): Matches the milestone number. Milestone 17 = `0.17.0`.
-- **Patch** (`x.y.Z`): Reserved for hotfixes only. Starts at `0` for each milestone release.
+- **Minor** (`x.N.y`): Incremented for a meaningful capability bundle. No longer tied to a milestone number (superseded by ADR-0019; releases through `v0.53.0` followed the old `v0.N.0 = Milestone N` convention).
+- **Patch** (`x.y.Z`): Reserved for bug fixes and hotfixes.
 
 ### Pre-1.0 Caveat
 
@@ -47,7 +52,7 @@ CloudBlocks is pre-1.0 software. No stability guarantees are provided for:
 
 - Internal package APIs (`@cloudblocks/schema`, `@cloudblocks/domain`)
 - Store shape or state management interfaces
-- Backend API contracts (endpoints may change between milestones)
+- Backend API contracts (endpoints may change between releases)
 - File formats (architecture JSON schema may evolve)
 
 Consumers should pin to specific versions and review changelogs before upgrading.
@@ -106,7 +111,7 @@ App v0.35.0  →  Schema v4.1.0  (same schema, minor addition)
 App v0.40.0  →  Schema v4.1.0  (possible — no format change needed)
 ```
 
-Schema version bumps less frequently than app version. Many milestones may ship on the same schema version.
+Schema version bumps less frequently than app version. Many app releases may use the same schema version.
 
 ## Documentation Freshness Markers
 
@@ -124,11 +129,11 @@ Living documentation files include a `Verified against` marker in their metadata
    - `Verified against: app v0.40.0, schema v4.1.0` (both)
 3. **Update only after review**: A marker means "a human verified this document accurately describes the codebase at version X (and/or schema S)". Do not bulk-update markers without actually reviewing content.
 4. **Exempt documents**: ADRs (`docs/adr/`) and documents marked "Historical (Superseded)" do not carry freshness markers — they are immutable records.
-5. **Staleness threshold**: A marker more than 5 milestones behind the current release is considered stale and should be prioritized for review.
+5. **Staleness threshold**: A marker more than 5 releases behind the current release is considered stale and should be prioritized for review.
 
 ### Release Checklist Integration
 
-During each milestone release, the release PR must review and update the `Verified against` marker for at least these **core documents**:
+During each release, the release PR must review and update the `Verified against` marker for at least these **core documents**:
 
 - `docs/concept/ARCHITECTURE.md`
 - `docs/model/DOMAIN_MODEL.md`
@@ -136,7 +141,7 @@ During each milestone release, the release PR must review and update the `Verifi
 - `docs/user-guide/quick-start.md`
 - `docs/user-guide/core-concepts.md`
 
-Other documents should be updated opportunistically when their content area is affected by the milestone.
+Other documents should be updated opportunistically when their content area is affected by the release.
 
 ## Enforcement
 
@@ -158,11 +163,11 @@ This script is intended to be integrated into CI (issue #434, Wave 8).
 
 ### Manual Review
 
-During the release process (see `AGENTS.md § Release Workflow`), the release commit must update **all** version sources simultaneously. The PR reviewer must verify version alignment before merge.
+During the release process (see [AGENTS.md § Releases](../../AGENTS.md#releases)), the release commit must update **all** version sources simultaneously. The PR reviewer must verify version alignment before merge.
 
 ## Bump Procedure
 
-When completing a milestone release:
+When cutting a release:
 
 ```bash
 # 1. Determine the new version
@@ -196,7 +201,7 @@ git commit -m "chore: release v$NEW_VERSION"
 
 ## Related Documents
 
-- [AGENTS.md § Release Workflow](../../AGENTS.md) — Full release process
+- [AGENTS.md § Releases](../../AGENTS.md#releases) — Full release process
 - [RELEASE_GATES.md](RELEASE_GATES.md) — Pre-release gate checks
 - [CHANGELOG.md](../../CHANGELOG.md) — Release history
 - [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) — Schema version referenced in model docs
