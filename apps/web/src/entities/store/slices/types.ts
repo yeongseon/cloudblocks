@@ -125,6 +125,7 @@ export interface ArchitectureState {
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** Bridge action: move root external block in both nodes[] and externalActors[] atomically */
   moveExternalBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
+  moveRootResourcePosition: (id: string, deltaX: number, deltaZ: number) => void;
   addExternalBlock: (
     type: 'internet' | 'browser',
     position?: { x: number; y: number; z: number },

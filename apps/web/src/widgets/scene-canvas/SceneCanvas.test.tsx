@@ -51,6 +51,7 @@ vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
 const mockSetSelectedId = vi.fn();
 const mockAddNode = vi.fn();
 const mockMoveExternalBlockPosition = vi.fn();
+const mockMoveRootResourcePosition = vi.fn();
 const mockClearSelection = vi.fn();
 const mockSetSelectedIds = vi.fn();
 const mockCompleteInteraction = vi.fn();
@@ -81,6 +82,7 @@ function setupStoreMocks() {
       workspace: { architecture },
       addNode: mockAddNode,
       moveExternalBlockPosition: mockMoveExternalBlockPosition,
+      moveRootResourcePosition: mockMoveRootResourcePosition,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useArchitectureStore);
@@ -822,7 +824,7 @@ describe('SceneCanvas fit-to-content', () => {
     ).toBe(true);
   });
 
-  it('renders a root-allowed delivery block outside the external lane', () => {
+  it('routes root-allowed delivery block moves through the bounded root action', () => {
     const frontDoor: ResourceBlock = {
       id: 'front-door',
       name: 'Front Door',
@@ -843,8 +845,8 @@ describe('SceneCanvas fit-to-content', () => {
     expect(
       blockSpriteMock.mock.calls.some(
         ([props]) =>
-          (props as { blockId?: string; draggable?: boolean }).blockId === frontDoor.id &&
-          (props as { draggable?: boolean }).draggable === false,
+          (props as { blockId?: string; onMove?: unknown }).blockId === frontDoor.id &&
+          (props as { onMove?: unknown }).onMove === mockMoveRootResourcePosition,
       ),
     ).toBe(true);
   });
@@ -1358,6 +1360,7 @@ describe('SceneCanvas placement flows', () => {
           workspace: { architecture },
           addNode: mockAddNode,
           moveExternalBlockPosition: mockMoveExternalBlockPosition,
+          moveRootResourcePosition: mockMoveRootResourcePosition,
         };
         return (selector as (s: typeof state) => unknown)(state);
       }) as typeof useArchitectureStore);

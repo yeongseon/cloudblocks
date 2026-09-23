@@ -24,6 +24,8 @@ vi.mock('uuid', () => ({
 
 import { useArchitectureStore } from '../architectureStore';
 import { useUIStore } from '../uiStore';
+import { getBlockDimensions } from '../../../shared/types/visualProfile';
+import { blocksOverlapAABB } from './helpers';
 
 function getState() {
   return useArchitectureStore.getState();
@@ -418,6 +420,82 @@ describe('domainSlice – targeted branch coverage', () => {
 
       const unchanged = getBlocks().find((block) => block.id === 'ext-b')!;
       expect(unchanged.position).toEqual(extB.position);
+    });
+  });
+
+  describe('moveRootResourcePosition', () => {
+    const rootSql = (position: { x: number; z: number }): ResourceBlock => ({
+      id: 'root-sql',
+      name: 'SQL Database',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'sql_database',
+      category: 'data',
+      provider: 'azure',
+      parentId: null,
+      position: { ...position, y: 0 },
+      metadata: {},
+    });
+
+    it('moves a root SQL resource outside the VNet and records undo history', () => {
+      seedState({ nodes: [makeContainerNode('vnet'), rootSql({ x: -20, z: 0 })] });
+      getState().moveRootResourcePosition('root-sql', -4, 0);
+      expect(getBlocks().find((block) => block.id === 'root-sql')?.position.x).toBe(-24);
+      expect(getState().canUndo).toBe(true);
+      getState().undo();
+      expect(getBlocks().find((block) => block.id === 'root-sql')?.position.x).toBe(-20);
+    });
+
+    it('creates a root SQL resource outside an existing VNet so it can be moved', () => {
+      const network = makeContainerNode('vnet');
+      seedState({ nodes: [network] });
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'sql_database',
+        name: 'SQL Database',
+        parentId: null,
+      });
+      const sql = getBlocks().find((block) => block.resourceType === 'sql_database');
+      expect(sql).toBeDefined();
+      if (!sql) return;
+      const sqlSize = getBlockDimensions(sql.category, sql.provider, sql.subtype);
+      expect(blocksOverlapAABB(sql.position, sqlSize, network.position, network.frame)).toBe(false);
+      const before = sql.position.x;
+      getState().moveRootResourcePosition(sql.id, -1, 0);
+      expect(getBlocks().find((block) => block.id === sql.id)?.position.x).toBe(before - 1);
+    });
+
+    it('rejects moving root SQL into the VNet or into another root resource', () => {
+      const sql = rootSql({ x: -20, z: 0 });
+      const sibling = makeExternalBlock('internet', 'internet', { x: -25, y: 0, z: 0 });
+      seedState({ nodes: [makeContainerNode('vnet'), sql, sibling] });
+      const before = getArch();
+      getState().moveRootResourcePosition(sql.id, 15, 0);
+      expect(getArch()).toBe(before);
+      getState().moveRootResourcePosition(sql.id, -5, 0);
+      expect(getArch()).toBe(before);
+    });
+
+    it('does not use root-resource movement for an external actor or nested resource', () => {
+      const actor = makeExternalBlock('internet', 'internet', { x: -20, y: 0, z: 0 });
+      const nested = makeLeafNode('nested', 'vnet');
+      seedState({ nodes: [makeContainerNode('vnet'), actor, nested] });
+      const before = getArch();
+      getState().moveRootResourcePosition(actor.id, -3, 0);
+      getState().moveRootResourcePosition(nested.id, 3, 0);
+      expect(getArch()).toBe(before);
+    });
+
+    it('rejects root moves into a container from different directions', () => {
+      const network = makeContainerNode('vnet');
+      const west = rootSql({ x: -20, z: 0 });
+      const north = { ...rootSql({ x: 0, z: -15 }), id: 'north-sql' };
+      seedState({ nodes: [network, west, north] });
+      const before = getArch();
+      getState().moveRootResourcePosition(north.id, 0, 9);
+      expect(getArch()).toBe(before);
+      getState().moveRootResourcePosition(west.id, 13, 0);
+      expect(getArch()).toBe(before);
     });
   });
 

@@ -40,6 +40,7 @@ import {
   DEFAULT_PLATE_SIZE,
   findNonOverlappingPosition,
   nextGridPosition,
+  blocksOverlapAABB,
   overlapsAnySiblingResource,
   resolveMoveDelta,
   withHistory,
@@ -65,6 +66,7 @@ type DomainSlice = Pick<
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveExternalBlockPosition'
+  | 'moveRootResourcePosition'
   | 'addExternalBlock'
   | 'addExternalBlock'
   | 'addConnection'
@@ -373,6 +375,20 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             ).depth,
           },
         }));
+        if (!isExternalResourceType(resolvedResourceType)) {
+          rootSiblings.push(
+            ...arch.nodes
+              .filter(
+                (candidate): candidate is ContainerBlock =>
+                  candidate.kind === 'container' && candidate.parentId === null,
+              )
+              .map((candidate) => ({
+                id: candidate.id,
+                position: { x: candidate.position.x, z: candidate.position.z },
+                frame: { width: candidate.frame.width, depth: candidate.frame.depth },
+              })),
+          );
+        }
         const nonOverlappingPosition = findNonOverlappingPosition(
           { x: -3, z: -3 },
           {
@@ -1110,6 +1126,51 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       });
 
       return withHistory(state, { ...arch, nodes, ...(externalActors ? { externalActors } : {}) });
+    });
+  },
+
+  moveRootResourcePosition: (id, deltaX, deltaZ) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const block = arch.nodes.find(
+        (candidate): candidate is ResourceBlock =>
+          candidate.kind === 'resource' && candidate.id === id,
+      );
+      if (
+        !block ||
+        block.parentId !== null ||
+        isExternalResourceType(block.resourceType) ||
+        block.roles?.includes('external')
+      ) {
+        return state;
+      }
+
+      const position = { x: block.position.x + deltaX, z: block.position.z + deltaZ };
+      const size = getBlockDimensions(block.category, block.provider, block.subtype);
+      if (
+        arch.nodes.some((candidate) => {
+          if (candidate.kind === 'container' && candidate.parentId === null) {
+            return blocksOverlapAABB(position, size, candidate.position, candidate.frame);
+          }
+          if (candidate.kind === 'resource' && candidate.parentId === null && candidate.id !== id) {
+            return blocksOverlapAABB(
+              position,
+              size,
+              candidate.position,
+              getBlockDimensions(candidate.category, candidate.provider, candidate.subtype),
+            );
+          }
+          return false;
+        })
+      )
+        return state;
+
+      const nodes = arch.nodes.map((candidate) =>
+        candidate.id === id
+          ? { ...candidate, position: { ...candidate.position, ...position } }
+          : candidate,
+      );
+      return withHistory(state, { ...arch, nodes });
     });
   },
 

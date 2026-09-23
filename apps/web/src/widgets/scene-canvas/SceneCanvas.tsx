@@ -33,14 +33,16 @@ import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 const EMPTY_OCCUPIED_CELLS = new Set<string>();
 
 export function SceneCanvas() {
-  const { architecture, nodeById, addNode, moveExternalBlockPosition } = useArchitectureStore(
-    useShallow((state) => ({
-      architecture: state.workspace.architecture,
-      nodeById: state.nodeById,
-      addNode: state.addNode,
-      moveExternalBlockPosition: state.moveExternalBlockPosition,
-    })),
-  );
+  const { architecture, nodeById, addNode, moveExternalBlockPosition, moveRootResourcePosition } =
+    useArchitectureStore(
+      useShallow((state) => ({
+        architecture: state.workspace.architecture,
+        nodeById: state.nodeById,
+        addNode: state.addNode,
+        moveExternalBlockPosition: state.moveExternalBlockPosition,
+        moveRootResourcePosition: state.moveRootResourcePosition,
+      })),
+    );
   const nodes = architecture.nodes;
   const connections = architecture.connections;
   const indexedNodeById = useMemo(
@@ -678,7 +680,7 @@ export function SceneCanvas() {
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
-                draggable={false}
+                onMove={moveRootResourcePosition}
               />
             );
           })}
