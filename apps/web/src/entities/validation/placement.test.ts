@@ -61,6 +61,14 @@ function makeSize(overrides: Partial<{ width: number; height: number; depth: num
 }
 
 describe('validatePlacement', () => {
+  it.each(['sql_database', 'cache_store'])(
+    'allows root-hosted %s without treating it as a subnet member',
+    (resourceType) => {
+      const block = makeBlock({ resourceType, parentId: null, category: 'data' });
+      expect(validatePlacement(block, undefined)).toBeNull();
+      expect(canPlaceBlock('data', null, resourceType)).toBe(true);
+    },
+  );
   it('returns error when block is not placed on a container', () => {
     const block = makeBlock({ id: 'compute-1', name: 'Compute A', category: 'compute' });
 
@@ -390,20 +398,21 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when subnet-only resource (sql_database) has no parent', () => {
+  it('returns error when subnet-only data resource (relational_database) has no parent', () => {
     const block = makeBlock({
-      id: 'sql-1',
-      name: 'SQL DB',
+      id: 'relational-1',
+      name: 'Relational Database',
       category: 'data',
-      resourceType: 'sql_database',
+      resourceType: 'relational_database',
     });
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-container-exists',
       severity: 'error',
-      message: '"SQL DB" needs a container — place it on a Subnet or Region container.',
+      message:
+        '"Relational Database" needs a container — place it on a Subnet or Region container.',
       suggestion:
         'Most resources need a parent container to define their network scope. Drag this block onto a container on the canvas.',
-      targetId: 'sql-1',
+      targetId: 'relational-1',
     });
   });
 
@@ -611,6 +620,8 @@ it('returns true for dual-placement resource type with null container', () => {
   expect(canPlaceBlock('compute', null, 'app_service')).toBe(true);
   expect(canPlaceBlock('compute', null, 'container_instances')).toBe(true);
   expect(canPlaceBlock('data', null, 'cosmos_db')).toBe(true);
+  expect(canPlaceBlock('data', null, 'sql_database')).toBe(true);
+  expect(canPlaceBlock('data', null, 'cache_store')).toBe(true);
   expect(canPlaceBlock('security', null, 'key_vault')).toBe(true);
   expect(canPlaceBlock('identity', null, 'identity_access')).toBe(true);
 });
@@ -618,17 +629,16 @@ it('returns true for dual-placement resource type with null container', () => {
 it('returns false for subnet-only resource type with null container', () => {
   expect(canPlaceBlock('compute', null, 'virtual_machine')).toBe(false);
   expect(canPlaceBlock('compute', null, 'kubernetes_cluster')).toBe(false);
-  expect(canPlaceBlock('data', null, 'sql_database')).toBe(false);
-  expect(canPlaceBlock('data', null, 'cache_store')).toBe(false);
+  expect(canPlaceBlock('data', null, 'relational_database')).toBe(false);
   expect(canPlaceBlock('security', null, 'bastion_host')).toBe(false);
   expect(canPlaceBlock('operations', null, 'monitoring')).toBe(false);
 });
 
-it('returns false when category alone (no resourceType) is not root-allowed', () => {
+it('uses the category representative when resourceType is omitted', () => {
   // When resourceType is not provided, it uses the category representative type
   // e.g. 'compute' → 'web_compute', which is not in ROOT_ALLOWED_RESOURCE_TYPES
   expect(canPlaceBlock('compute', null)).toBe(false);
-  expect(canPlaceBlock('data', null)).toBe(false);
+  expect(canPlaceBlock('data', null)).toBe(true);
   expect(canPlaceBlock('security', null)).toBe(false);
 });
 
