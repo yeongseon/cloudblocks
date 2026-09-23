@@ -52,8 +52,8 @@ Open [http://localhost:5173](http://localhost:5173) to verify the app is running
 
 ### Terminology
 
-- **Milestone** = official planning container (GitHub milestone). Use this term for all new planning work.
-- **Phase** = legacy label from early development. Keep it only when referencing completed historical work for traceability.
+- **Now / Next / Later** = current work, bounded near-term queue, and product direction.
+- **Milestone / Phase** = optional grouping or historical reference, never a release trigger.
 
 ---
 
@@ -133,7 +133,7 @@ The frontend follows [Feature-Sliced Design](https://feature-sliced.design/) (FS
 apps/web/src/
 ├── app/                 # App shell, providers, routing
 ├── shared/              # Types, utils, storage (used everywhere)
-│   ├── types/           # Domain types — CANONICAL source for Milestone 1
+│   ├── types/           # App types; canonical model lives in packages/schema
 │   └── utils/           # ID generation, storage operations
 ├── entities/            # Domain entities (store, blocks, connections)
 │   └── validation/      # Validation engine (placement + connection rules)
@@ -147,14 +147,25 @@ apps/web/src/
 
 ## Making Changes
 
-> **Current policy**: [AGENTS.md](AGENTS.md#planning) and [ADR-0019](docs/adr/0019-decouple-versioning-from-milestones.md) supersede the legacy milestone workflow below. Use `Issue -> Branch -> PR`; milestones are optional and do not determine releases. Full guide alignment and planning buckets are tracked in #1912.
+Use `Issue -> Branch -> PR` for all work. Milestones and Epics are optional aids for genuinely related work, not prerequisites or release units. See [ADR-0019](docs/adr/0019-decouple-versioning-from-milestones.md).
 
-CloudBlocks uses two planning paths:
+### Re-entry Checklist
 
-- **Roadmap implementation work**: `Milestone -> Epic -> Sub-issue -> Branch -> PR`
-- **Small fixes, documentation, and maintenance**: `Issue -> Branch -> PR`
+Start each development burst with this short check, not a full repository audit:
 
-Current roadmap work is tracked under [open milestones](https://github.com/yeongseon/cloudblocks/milestones). Each milestone contains one or more Epic issues that group related sub-issues.
+1. Read [README.md](README.md) and the [V1 Product Contract](docs/concept/V1_PRODUCT_CONTRACT.md).
+2. Check the working tree, sync a clean `main`, install with `pnpm install --frozen-lockfile`, then run `pnpm dev` and relevant tests. Use `pnpm test` for frontend/packages and `python3 -m pytest apps/api` for backend work.
+3. Review open PRs and issues (`gh pr list`, `gh issue list`); identify failing CI or unfinished work before starting something new.
+4. Pick one **Now** item, check its assignee, and assign yourself if unassigned. Do not take another contributor's work.
+5. Clear stale administrative noise only where completion is verified; timebox housekeeping so the burst produces learner value.
+
+### Planning Buckets
+
+- **Now**: at most 3 active items; select one to work on at a time.
+- **Next**: at most 10 concrete queued items. Promote one when Now has room.
+- **Later**: narrative in [ROADMAP.md](docs/concept/ROADMAP.md), not a numbered milestone ladder.
+
+Record Now/Next selections in a small issue checklist or project view; do not add a new management system just to hold the buckets. A completed milestone does not imply a version bump.
 
 ### Labeling Rules
 
@@ -206,80 +217,9 @@ Documentation issues may omit domain labels when the change is cross-cutting. If
 | Documentation           | `documentation` + optional domain label(s)       |
 | Small fix / maintenance | `bug` or `enhancement` + 1 or more domain labels |
 
-### Roadmap Implementation Workflow
+### Issue-to-PR Workflow
 
-Use the full workflow for any feature that spans multiple PRs, multiple domains, or a named roadmap milestone.
-
-1. **Create or reuse a milestone**
-   - Create a milestone when the work is a named roadmap milestone or release, spans multiple Epics, or needs shared tracking across multiple implementation issues.
-   - Milestone names use the format `Milestone N - Name`.
-   - Reuse an existing open milestone when the work clearly belongs to it.
-
-2. **Create an Epic issue**
-   - Use the title format `[Epic] <feature area>`.
-   - Assign the Epic to the milestone.
-   - Apply the `epic` label plus one or more domain labels.
-   - Do not apply a type label to an Epic.
-   - The Epic body must use this structure:
-
-   ```md
-   ## Overview
-
-   ## Problems Solved
-
-   | Problem | Why it matters |
-   | ------- | -------------- |
-   | ...     | ...            |
-
-   ## Architecture
-
-   ## Sub-Issues
-
-   - [ ] #123
-   - [ ] #124
-
-   ## Dependencies
-
-   ## Constraints
-
-   ## Branch Name
-
-   `feature/<short-description>`
-   ```
-
-3. **Create sub-issues from the Epic**
-   - Break the Epic into focused implementation units that fit in a single branch and a single PR.
-   - A good sub-issue usually covers one entity, one route, one UI slice, one provider integration, one migration, or one test suite.
-   - Assign each sub-issue to the same milestone and link it from the Epic checklist.
-   - Apply exactly one type label and one or more domain labels.
-   - Do not apply the `epic` label to sub-issues.
-
-4. **Sync `main` before starting work**
-   - Always update local `main` before creating or refreshing a branch:
-
-   ```bash
-   git checkout main
-   git pull --ff-only origin main
-   ```
-
-5. **Create a branch from `main`**
-   - `feature/description` — new features
-   - `fix/description` — bug fixes
-   - `docs/description` — documentation changes
-
-6. **Implement and open a PR**
-   - Work on one sub-issue per branch.
-   - Open one PR per branch.
-   - Reference the issue in the PR description with `Closes #<issue-number>`.
-   - Keep each PR focused on one logical change.
-
-7. **Merge requirements**
-   - CI must pass before merge.
-   - Merge via squash-and-merge to `main`.
-
-### Small Changes Workflow
-
-Small bug fixes, documentation updates, and maintenance tasks that do not belong to a milestone may use the simpler `Issue -> Branch -> PR` flow.
+Keep one logical change per PR. Split larger work into linked issues only when it helps execution.
 
 1. **Create or find an issue**
    - Check existing issues first.
@@ -299,7 +239,7 @@ Small bug fixes, documentation updates, and maintenance tasks that do not belong
    ```
 
 4. **Create a branch**
-   - `feature/description` — new features
+   - `feat/<issue>-description` — new features
    - `fix/description` — bug fixes
    - `docs/description` — documentation changes
 
@@ -358,10 +298,10 @@ pnpm lint
 Write clear, descriptive commit messages:
 
 ```
-Add drag-and-drop block repositioning      # Feature
-Fix connection validation for gateway       # Bug fix
-Update DOMAIN_MODEL.md with connection rules # Documentation
-Refactor container block rendering to use shared utils # Refactoring
+feat(web): add drag-and-drop block repositioning
+fix(web): correct gateway connection validation
+docs(model): update connection rules
+refactor(web): share container block rendering helpers
 ```
 
 ---
@@ -376,8 +316,8 @@ Refactor container block rendering to use shared utils # Refactoring
 
 ### Documentation Rules
 
-1. **Milestone 1 documents must match code exactly** — verify against canonical source files
-2. **Future features must be labeled** with version markers (`> **Milestone 6+**: ...`)
+1. **Implementation documents must match code exactly** — verify against canonical source files
+2. **Future features must be labeled** explicitly (`> **Future (V2+)**: ...`)
 3. **Field names must match** `DOMAIN_MODEL.md` / `index.ts` — never invent your own
 4. **ROADMAP.md is canonical** for version timelines
 5. **DOMAIN_MODEL.md is canonical** for model specification
@@ -390,9 +330,9 @@ When docs mix implemented behavior and future design, use these rules:
 1. **Implementation docs must match code**
    - Verify claims against canonical source files before merging.
 2. **Future concepts must be explicitly labeled**
-   - Use version markers for non-implemented features (for example: `> **Milestone 6+**: ...`).
+   - Use explicit future markers for non-implemented features (for example: `> **Future (V2+)**: ...`).
 3. **ROADMAP is the canonical timeline**
-   - Milestone/phase status and "when does X ship?" are defined only in `docs/concept/ROADMAP.md`.
+   - Product direction and capability status are defined in `docs/concept/ROADMAP.md`; release history lives in `CHANGELOG.md`.
 4. **One concept, one canonical owner**
    - `DOMAIN_MODEL.md` owns domain model semantics.
    - `generator.md` owns generation pipeline semantics.
@@ -430,7 +370,7 @@ If no docs change is needed, the PR description must explicitly state why.
 - [ ] Field names match canonical types (`placementId` not `plateId`, `category` not `type`)
 - [ ] Connection rules follow initiator model (database/storage are receiver-only)
 - [ ] Connection types are `dataflow`, `http`, `internal`, `data`, `async`
-- [ ] `Workspace.architecture` is singular (not `architectures[]`) in Milestone 1 context
+- [ ] `Workspace.architecture` is singular (not `architectures[]`) in the current model
 - [ ] Future features have explicit version labels
 - [ ] Cross-references use correct paths (docs are in subdirectories)
 
@@ -470,7 +410,7 @@ Brief description of what this PR does and why.
 1. Submit PR against `main`
 2. Automated checks must pass
 3. Follow current branch protection requirements for approvals (maintainer review is recommended)
-4. Address review feedback
+4. Read available review feedback, fix actual correctness/security defects, and explain dismissed or deferred suggestions. Copilot review is recommended for substantial changes, not a merge prerequisite; bot availability and stylistic nits do not block merging.
 5. Squash and merge
 
 ---
