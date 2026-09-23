@@ -470,6 +470,10 @@ export function mountThree(
         bodyById.get(node.id)?.position.set(origin.x, base + 1.9, origin.z);
         topById.get(node.id)?.position.set(origin.x, base + 3.8, origin.z);
         centers.get(node.id)?.set(origin.x, base + 4.2, origin.z);
+        const body = bodyById.get(node.id);
+        if (body?.material instanceof THREE.MeshStandardMaterial) {
+          body.material.emissive.set(adjacentIds?.has(node.id) ? colors[node.category] : 0);
+        }
       }
     }
     blockDrag = null;

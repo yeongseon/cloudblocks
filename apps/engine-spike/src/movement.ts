@@ -39,7 +39,6 @@ export function validateStudyMove(
     return { valid: false, reason: 'parent' };
   }
   const size = getBlockDimensions(block.category, block.provider, block.subtype);
-  const current = moved.get(block.id) ?? { ...block.position, parentId: block.parentId };
   if (parentId === null) {
     const network = activeFixture.nodes.find((node) => node.id === 'vnet');
     if (
@@ -75,7 +74,7 @@ export function validateStudyMove(
         siblingSize,
       );
     });
-  if (overlapsAt(position) && !(current.parentId === parentId && overlapsAt(current))) {
+  if (overlapsAt(position)) {
     return { valid: false, reason: 'overlap' };
   }
   return { valid: true, position };

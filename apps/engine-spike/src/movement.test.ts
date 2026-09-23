@@ -39,6 +39,17 @@ describe('same-parent study movement', () => {
     });
   });
 
+  it('rejects another overlap even when the resource starts in an invalid overlap', () => {
+    const moved = new Map([
+      ['app', { x: -28, z: 3, parentId: null }],
+      ['function', { x: -28, z: 10, parentId: null }],
+    ]);
+    expect(validateStudyMove(app, { x: -28, z: 10 }, moved)).toEqual({
+      valid: false,
+      reason: 'overlap',
+    });
+  });
+
   it('assigns a free position when transferring to the other subnet', () => {
     expect(destinationParent({ x: 8, z: 1 })).toBe('subnet-b');
     const result = firstAvailableInParent(gateway, new Map(), 'subnet-b');

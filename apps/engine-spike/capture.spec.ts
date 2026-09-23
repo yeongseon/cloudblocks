@@ -25,11 +25,12 @@ for (const mode of ['stacked', 'three'] as const) {
   });
 }
 
-test('unreadable selected-connection URL does not replace the default study', async ({ page }) => {
+test('unsupported connection query leaves the full unfiltered study visible', async ({ page }) => {
   await page.goto('/?mode=three&connection=app-sql');
   await expect(page.locator('#scene canvas')).toBeVisible();
-  await expect(page.locator('[data-connection]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'All rails' })).toHaveCount(0);
+  await expect(page.locator('[data-relationship]')).toHaveCount(spikeFixture.connections.length);
+  await expect(page.getByLabel('INSPECT BLOCK')).toHaveValue('');
+  await expect(page.locator('[data-inspection-path]')).toHaveCount(0);
 });
 
 test('block inspection shows directed typed adjacency without hiding the canvas', async ({
@@ -226,6 +227,32 @@ test('overlapping drop is rejected without changing the fixture position', async
   ).toBe(beforePath);
   await mkdir('iterations/resource-move', { recursive: true });
   await page.screenshot({ path: 'iterations/resource-move/rejected.png', animations: 'disabled' });
+});
+
+test('cancelled resource drag restores its appearance and leaves history unchanged', async ({
+  page,
+}) => {
+  await page.goto('/?mode=three&link=app-sql');
+  const app = page.locator('.overlay text').filter({ hasText: /^App Service$/ });
+  const before = await app.boundingBox();
+  if (!before) throw new Error('App Service label not projected');
+  const x = before.x + before.width / 2;
+  const y = before.y + before.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 25, y - 10, { steps: 5 });
+  await page.locator('#scene canvas').evaluate((canvas) => {
+    canvas.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 1 }));
+  });
+  await page.mouse.up();
+  await expect(page.locator('.viewport')).toHaveAttribute('data-moved-count', '0');
+  await expect(page.getByRole('button', { name: 'Undo move' })).toBeDisabled();
+  const after = await app.boundingBox();
+  if (!after) throw new Error('App Service label disappeared');
+  expect(Math.abs(after.x - before.x)).toBeLessThan(1);
+  expect(Math.abs(after.y - before.y)).toBeLessThan(1);
+  await mkdir('iterations/resource-move', { recursive: true });
+  await page.screenshot({ path: 'iterations/resource-move/cancelled.png', animations: 'disabled' });
 });
 
 test('zoomed scene keeps resource drag distinct from prior camera pan', async ({ page }) => {
