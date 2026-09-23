@@ -59,7 +59,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 | Rule                      | Description                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Root Blocks**           | An `ArchitectureModel` has one or more root blocks (`parentId: null`). Root blocks include `ContainerBlock` with `virtual_network` as well as 14 resource types that allow root placement (see `ROOT_ALLOWED_RESOURCE_TYPES` in `placement.ts`): `public_ip`, `dns_zone`, `cdn_profile`, `front_door`, `blob_storage`, `managed_identity`, `service_account`, `function_compute`, `app_service`, `container_instances`, `cosmos_db`, `key_vault`, `identity_access`, and `virtual_network`. |
+| **Root Blocks**           | An `ArchitectureModel` has one or more root blocks (`parentId: null`). Root eligibility is derived from `RESOURCE_RULES.allowedParents` (see `ROOT_ALLOWED_RESOURCE_TYPES` in `placement.ts`). Azure hosted PaaS examples include `app_service`, `function_compute`, `sql_database`, `cache_store`, and `key_vault`. Placement validity does not imply private-network reachability or provider deployability. |
 | **Containment Hierarchy** | `ContainerBlock`s form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`.                                                                                                                                                                                                                            |
 | **Resource Placement**    | A `ResourceBlock`'s `parentId` references a `ContainerBlock` or is `null` for root-allowed types. Allowed parents are determined by `RESOURCE_RULES.allowedParents`. Most resources require a `subnet` parent; messaging resources (`message_queue`, `event_hub`) require `virtual_network`; root-allowed resources can have `parentId: null`.                           |
 | **Kind Consistency**      | A block's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateBlockIntegrity()`.                                                                                                                                                                                                |
@@ -184,10 +184,10 @@ export interface ResourceRuleEntry {
 | `web_compute`            | ❌         | `subnet`          | compute    | web         |
 | `app_compute`            | ❌         | `subnet`          | compute    | app         |
 | `blob_storage`           | ❌         | `null` (root)     | data       | data        |
-| `sql_database`           | ❌         | `subnet`          | data       | data        |
+| `sql_database`           | ❌         | `subnet`, `null`  | data       | data        |
 | `cosmos_db`              | ❌         | `subnet`, `null`  | data       | data        |
 | `relational_database`    | ❌         | `subnet`          | data       | data        |
-| `cache_store`            | ❌         | `subnet`          | data       | data        |
+| `cache_store`            | ❌         | `subnet`, `null`  | data       | data        |
 | `key_vault`              | ❌         | `subnet`, `null`  | security   | shared      |
 | `bastion_host`           | ❌         | `subnet`          | security   | shared      |
 | `firewall_security`      | ❌         | `subnet`          | security   | shared      |
