@@ -5,6 +5,17 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 10
+    groups:
+      development-dependencies:
+        applies-to: version-updates
+        dependency-type: development
+        patterns:
+          - '*'
+    ignore:
+      # Review compiler majors manually with tsc -b and typescript-eslint.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
     labels:
       - 'dependencies'
 
