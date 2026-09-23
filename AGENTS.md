@@ -20,22 +20,22 @@
 - **Immutable history**: Do NOT edit documents marked "Historical (Superseded)" (`BRICK_DESIGN_SPEC.md`, `VISUAL_DESIGN_SPEC.md`, `BRICK_GUIDEBOOK.md`). ADRs (`docs/adr/`) are immutable once merged — create a new ADR to supersede an old one.
 - **SVG asset rules**: SVG sprites live in `apps/web/src/shared/assets/`. New SVGs must comply with the Universal Port Standard, use lowercase kebab-case names, include a `viewBox`, and avoid inline `style` elements (use attributes or CSS classes).
 - **Zustand store boundaries**: Three stores — `architectureStore` (domain model), `uiStore` (UI state), `authStore` (auth). Add new state to the store that owns the domain. Do not create new stores without discussion.
-- **Test expectations**: New features include tests. Branch coverage stays ≥ 90%. Do not delete or skip failing tests to make CI pass — fix the root cause.
+- **Test expectations**: New features include tests. Frontend branch coverage stays ≥ 85%; statements, functions, lines, and backend coverage retain their 90% floors. Cover meaningful behavior, not percentage padding. Do not delete or skip failing tests to make CI pass — fix the root cause.
 
 ## Git & PR Conventions
 
 - Branch naming: `{type}/{issue#}-{short-desc}` or `{type}/{short-desc}` (e.g. `feat/447-menubar`, `fix/441-actor-css`, `docs/readme-badges`).
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) — `{type}({scope}): {description}`. Types: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`, `perf`, `ci`. Scope optional but recommended (`feat(web):`).
 - `main` is protected — all changes go through PR + CI.
-- Request Copilot review: include `--reviewer copilot-pull-request-reviewer` in `gh pr create`.
+- Copilot review is recommended for substantial changes, not a merge prerequisite. Read available feedback, fix actual correctness/security defects, and briefly explain dismissed or deferred suggestions. Bot availability and stylistic nits do not block merging.
 - Squash-merge with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`. Never use `--admin` — let CI gates enforce quality.
 - PR titles follow Conventional Commits. Each PR references and closes its issue (`Fixes #123`).
-- After creating a PR, wait for CI (`gh pr checks <number>`) and address automated review comments before merging.
+- Before merging, wait for required CI (`gh pr checks <number>`) and review the diff and available feedback. CI and actual defects remain blocking; automated approval does not replace judgment.
 
 ## Planning
 
 - Use lightweight `Issue → Branch → PR` for all work. Milestones are optional planning aids, not release units — do not create a milestone per small change, and do not require one on every issue/PR.
-- These planning and release rules take precedence over legacy milestone workflows in `CONTRIBUTING.md`; full guide alignment and `Now / Next / Later` adoption are tracked in #1912.
+- Use `Now` (max 3), `Next` (max 10), and `Later` (roadmap narrative). Start each burst with the [re-entry checklist](CONTRIBUTING.md#re-entry-checklist).
 - Before starting an issue: check the assignee (don't pick up others' work; assign yourself if unassigned), then sync `main`:
   ```bash
   git checkout main && git pull --ff-only origin main

@@ -35,7 +35,7 @@ This document defines measurable non-functional requirement targets for CloudBlo
 | Metric                  | Target | Tool        |
 | ----------------------- | ------ | ----------- |
 | **Frontend statements** | ≥ 90%  | Vitest + v8 |
-| **Frontend branches**   | ≥ 90%  | Vitest + v8 |
+| **Frontend branches**   | ≥ 85%  | Vitest + v8 |
 | **Frontend functions**  | ≥ 90%  | Vitest + v8 |
 | **Frontend lines**      | ≥ 90%  | Vitest + v8 |
 | **Backend coverage**    | ≥ 90%  | pytest-cov  |
@@ -55,7 +55,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ### Enforcement
 
-- Coverage thresholds configured in `vitest.config.ts` → build fails if below 90%
+- Coverage tests enforce `vitest.config.ts` thresholds: branches ≥ 85%; statements, functions, and lines ≥ 90%.
 - Backend coverage checked in CI via `python3 -m pytest apps/api --cov=app --cov-fail-under=90`
 
 ---

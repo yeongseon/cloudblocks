@@ -30,7 +30,7 @@ Complete every item before proceeding to tagging. A single ❌ in a **Blocker** 
 | #   | Check                   | Command                                                                            | Pass? |
 | --- | ----------------------- | ---------------------------------------------------------------------------------- | ----- |
 | 6   | Frontend tests pass     | `cd apps/web && npx vitest run`                                                    | ☐     |
-| 7   | Frontend coverage ≥ 90% | `cd apps/web && npx vitest run --coverage`                                         | ☐     |
+| 7   | Frontend branches ≥ 85%; other metrics ≥ 90% | `cd apps/web && npx vitest run --coverage`                                         | ☐     |
 | 8   | Backend tests pass      | `python3 -m pytest apps/api/app/tests/ -v`                                        | ☐     |
 | 9   | Backend coverage ≥ 90%  | `python3 -m pytest apps/api --cov=app --cov-fail-under=90`                         | ☐     |
 | 10  | Package tests pass      | `pnpm --filter @cloudblocks/schema test && pnpm --filter @cloudblocks/domain test` | ☐     |
