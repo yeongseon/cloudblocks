@@ -822,6 +822,33 @@ describe('SceneCanvas fit-to-content', () => {
     ).toBe(true);
   });
 
+  it('renders a root-allowed delivery block outside the external lane', () => {
+    const frontDoor: ResourceBlock = {
+      id: 'front-door',
+      name: 'Front Door',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'front_door',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -5, y: 0, z: 0 },
+      metadata: {},
+    };
+    architecture.nodes = [frontDoor];
+
+    const { queryByTestId } = render(<SceneCanvas />);
+
+    expect(queryByTestId('external-lane-zone')).toBeNull();
+    expect(
+      blockSpriteMock.mock.calls.some(
+        ([props]) =>
+          (props as { blockId?: string; onMove?: unknown }).blockId === frontDoor.id &&
+          (props as { onMove?: unknown }).onMove === mockMoveExternalBlockPosition,
+      ),
+    ).toBe(true);
+  });
+
   it('skips nested blocks whose parent container cannot be resolved', () => {
     const orphanedBlock: ResourceBlock = {
       id: 'orphaned-block',

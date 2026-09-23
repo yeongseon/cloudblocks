@@ -12,6 +12,7 @@ import {
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
+  getAllowedParents,
   isExternalResourceType,
   parseEndpointId,
 } from '@cloudblocks/schema';
@@ -151,11 +152,11 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       if (typeof node.parentId !== 'string' && node.parentId !== null) {
         throw new Error(`${context}: resource node parentId must be a string or null`);
       }
-      // Non-external resources must have a parent container
       if (
         node.parentId === null &&
         (typeof node.resourceType !== 'string' ||
-          !isExternalResourceType(node.resourceType as string))
+          (!isExternalResourceType(node.resourceType) &&
+            !getAllowedParents(node.resourceType)?.includes(null)))
       ) {
         throw new Error(`${context}: non-external resource node parentId must be a string`);
       }

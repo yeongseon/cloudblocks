@@ -1199,4 +1199,27 @@ describe('validateArchitectureShape — external resource blocks', () => {
       'non-external resource node parentId must be a string',
     );
   });
+
+  it('accepts root-capable resources without admitting subnet-only types at root', () => {
+    const resource = {
+      id: 'edge-entry',
+      name: 'Front Door',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'front_door',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+    };
+    expect(validateArchitectureShape({ nodes: [resource], connections: [] })).toEqual({
+      valid: true,
+    });
+    expect(() =>
+      validateArchitectureShape({
+        nodes: [{ ...resource, resourceType: 'virtual_machine' }],
+        connections: [],
+      }),
+    ).toThrow('non-external resource node parentId must be a string');
+  });
 });

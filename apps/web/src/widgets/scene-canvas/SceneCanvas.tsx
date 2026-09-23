@@ -91,6 +91,20 @@ export function SceneCanvas() {
       }),
     [blockIds, indexedNodeById],
   );
+  const rootResourceBlockIds = useMemo(
+    () =>
+      blockIds.filter((blockId) => {
+        const block = indexedNodeById.get(blockId);
+        return (
+          block?.kind === 'resource' &&
+          block.parentId === null &&
+          ROOT_ALLOWED_RESOURCE_TYPES.has(block.resourceType) &&
+          !block.roles?.includes('external') &&
+          !isExternalResourceType(block.resourceType)
+        );
+      }),
+    [blockIds, indexedNodeById],
+  );
   const overlapOffsets = useMemo(
     () => computeOverlapOffsets(connections, OVERLAP_OFFSET_PX),
     [connections],
@@ -625,6 +639,28 @@ export function SceneCanvas() {
             );
           })}
           {rootExternalBlockIds.map((blockId) => {
+            const block = indexedNodeById.get(blockId);
+            if (block?.kind !== 'resource') return null;
+            const screenPos = worldToScreen(
+              block.position.x,
+              block.position.y,
+              block.position.z,
+              origin.x,
+              origin.y,
+            );
+            const zIndex = depthKey(block.position.x, block.position.z, block.position.y, 2);
+            return (
+              <BlockSprite
+                key={block.id}
+                blockId={block.id}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
+                onMove={moveExternalBlockPosition}
+              />
+            );
+          })}
+          {rootResourceBlockIds.map((blockId) => {
             const block = indexedNodeById.get(blockId);
             if (block?.kind !== 'resource') return null;
             const screenPos = worldToScreen(
