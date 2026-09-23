@@ -57,6 +57,7 @@ interface BlockSpriteProps {
   zIndex: number;
   /** Override move handler for root external blocks (bridge action). */
   onMove?: (id: string, deltaX: number, deltaZ: number) => void;
+  draggable?: boolean;
 }
 
 export const BlockSprite = memo(function BlockSprite({
@@ -68,6 +69,7 @@ export const BlockSprite = memo(function BlockSprite({
   screenY,
   zIndex,
   onMove,
+  draggable = true,
 }: BlockSpriteProps) {
   const resolvedBlockId = blockId ?? block?.id ?? null;
   const storeBlock = useArchitectureStore((state) => {
@@ -226,6 +228,7 @@ export const BlockSprite = memo(function BlockSprite({
       toolMode === 'delete' ||
       toolMode === 'connect' ||
       blockStatus?.disabled ||
+      !draggable ||
       !el
     ) {
       return;
@@ -473,6 +476,7 @@ export const BlockSprite = memo(function BlockSprite({
     };
   }, [
     blockStatus?.disabled,
+    draggable,
     moveNodePosition,
     onMove,
     prefersReducedMotion,

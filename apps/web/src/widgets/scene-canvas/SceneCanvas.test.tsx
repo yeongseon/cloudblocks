@@ -843,8 +843,8 @@ describe('SceneCanvas fit-to-content', () => {
     expect(
       blockSpriteMock.mock.calls.some(
         ([props]) =>
-          (props as { blockId?: string; onMove?: unknown }).blockId === frontDoor.id &&
-          (props as { onMove?: unknown }).onMove === mockMoveExternalBlockPosition,
+          (props as { blockId?: string; draggable?: boolean }).blockId === frontDoor.id &&
+          (props as { draggable?: boolean }).draggable === false,
       ),
     ).toBe(true);
   });

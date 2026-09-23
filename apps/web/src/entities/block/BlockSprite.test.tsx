@@ -217,6 +217,16 @@ describe('BlockSprite', () => {
     expect(root).toHaveStyle({ left: '120px', top: '240px', zIndex: '7' });
   });
 
+  it('does not install a drag handler for a visible root resource without a safe move path', () => {
+    const block = {
+      ...makeBlock('root-sql', 'data'),
+      resourceType: 'sql_database',
+      parentId: null,
+    };
+    render(<BlockSprite block={block} screenX={120} screenY={240} zIndex={7} draggable={false} />);
+    expect(interactMocks.draggableFn).not.toHaveBeenCalled();
+  });
+
   it.each([
     'delivery',
     'compute',

@@ -678,7 +678,7 @@ export function SceneCanvas() {
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}
-                onMove={moveExternalBlockPosition}
+                draggable={false}
               />
             );
           })}
