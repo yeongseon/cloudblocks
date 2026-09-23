@@ -24,7 +24,8 @@ const modes: { id: Mode; name: string; description: string }[] = [
   },
 ];
 const moments: Moment[] = ['rest', 'place', 'reject', 'connect', 'select'];
-let mode: Mode = new URLSearchParams(location.search).get('mode') === 'three' ? 'three' : 'stacked';
+const requestedMode = new URLSearchParams(location.search).get('mode');
+let mode: Mode = modes.find((candidate) => candidate.id === requestedMode)?.id ?? 'stacked';
 let moment: Moment = 'rest';
 let zoom = clampZoom(Number(new URLSearchParams(location.search).get('zoom') ?? 1));
 let pan = { x: 0, z: 0 };
@@ -43,6 +44,12 @@ let inspectedConnectionId: string | null = relationships.some((item) => item.id 
   ? requestedLink
   : null;
 let dispose: (() => void) | undefined;
+
+function fixtureHref(fixture: 'baseline' | 'dense'): string {
+  const url = new URL(location.href);
+  url.searchParams.set('fixture', fixture);
+  return `${url.pathname}${url.search}`;
+}
 
 function inspectBlock(id: string | null): void {
   inspectedBlockId = id;
@@ -193,7 +200,7 @@ function render(): void {
     : relationships;
   const inspectedName = inspectedBlockId ? blockName(inspectedBlockId) : 'All blocks';
   root.innerHTML = `<div class="shell"><header><div class="brand">CLOUDBLOCKS <span>/ RENDER STUDY</span></div><div class="tag">ISSUE #1927 · v0.53.0 · NOT A PRODUCT VIEW</div></header>
-  <div class="layout"><aside class="panel"><div class="eyebrow">01 / METHOD</div><h1>One model.<br><b>Different light.</b></h1><p>Test whether vertical hierarchy helps learners read scope without rewriting the architecture.</p><div class="fixture-switch" role="group" aria-label="Architecture fixture"><a href="?mode=three&fixture=baseline" aria-current="${fixtureName === 'baseline' ? 'true' : 'false'}">Baseline</a><a href="?mode=three&fixture=dense" aria-current="${fixtureName === 'dense' ? 'true' : 'false'}">Dense</a></div>
+  <div class="layout"><aside class="panel"><div class="eyebrow">01 / METHOD</div><h1>One model.<br><b>Different light.</b></h1><p>Test whether vertical hierarchy helps learners read scope without rewriting the architecture.</p><div class="fixture-switch" role="group" aria-label="Architecture fixture"><a href="${fixtureHref('baseline')}" aria-current="${fixtureName === 'baseline' ? 'true' : 'false'}">Baseline</a><a href="${fixtureHref('dense')}" aria-current="${fixtureName === 'dense' ? 'true' : 'false'}">Dense</a></div>
   <nav aria-label="Renderer candidates">${modes.map((candidate, index) => `<button data-mode="${candidate.id}" aria-pressed="${candidate.id === mode}"><small>0${index + 1}</small><span><strong>${candidate.name}</strong><em>${candidate.description}</em></span></button>`).join('')}</nav><div class="method-note">The real production SVG baseline is captured separately from the editor; this panel does not impersonate it.</div></aside>
   <main><div class="heading"><div><div class="eyebrow">02 / LIVE PROTOTYPE</div><h2>${modes.find((item) => item.id === mode)?.name}</h2></div><div class="fixture-label">${fixtureName === 'dense' ? 'DENSE WEB API' : 'WEB API'} · AZURE<br><span>1 VNet / 2 subnets / ${activeFixture.nodes.filter((node) => node.kind === 'resource').length} resources</span></div></div>
   <div class="viewport" data-mode="${mode}" data-moment="${moment}" data-zoom="${zoom.toFixed(1)}" data-pan-x="${pan.x.toFixed(2)}" data-moved-count="${moved.size}"><div class="scene" id="scene">${mode === 'stacked' ? renderSvg(moment, zoom, moved) : mode === 'hybrid' ? '<div class="notice"><strong>Not tested.</strong><p>There is no authored render atlas or resizable surface art. A generated gradient would not test this pipeline.</p></div>' : ''}</div><div class="caption">SHARED FIXTURE · FIXED ORTHOGRAPHIC VIEW · VISUAL STATES ONLY</div><div class="zoom-controls" role="group" aria-label="Scene zoom"><button type="button" data-zoom-action="out" aria-label="Zoom out" ${zoom <= MIN_ZOOM ? 'disabled' : ''}>−</button><output aria-label="Zoom level">${Math.round(zoom * 100)}%</output><button type="button" data-zoom-action="in" aria-label="Zoom in" ${zoom >= MAX_ZOOM ? 'disabled' : ''}>+</button><button type="button" data-zoom-action="reset" aria-label="Reset zoom" ${zoom === 1 && pan.x === 0 && pan.z === 0 ? 'disabled' : ''}>Fit</button></div></div>

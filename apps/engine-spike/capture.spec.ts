@@ -33,6 +33,31 @@ test('unsupported connection query leaves the full unfiltered study visible', as
   await expect(page.locator('[data-inspection-path]')).toHaveCount(0);
 });
 
+test('fixture switch preserves renderer, zoom, and inspected relationship', async ({ page }) => {
+  await page.goto('/?mode=stacked&fixture=baseline&zoom=1.4&link=app-sql&inspect=app');
+  await page.getByRole('link', { name: 'Dense' }).click();
+  await expect(page.locator('.viewport')).toHaveAttribute('data-mode', 'stacked');
+  await expect(page.locator('.viewport')).toHaveAttribute('data-zoom', '1.4');
+  await expect(page.getByLabel('INSPECT BLOCK')).toHaveValue('app');
+  await expect(page.locator('[data-relationship="app-sql"] button')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.locator('[data-relationship="gateway-app-b"]')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Baseline' }).click();
+  await expect(page.locator('.viewport')).toHaveAttribute('data-mode', 'stacked');
+  await expect(page.locator('.viewport')).toHaveAttribute('data-zoom', '1.4');
+  await expect(page.getByLabel('INSPECT BLOCK')).toHaveValue('app');
+  await expect(page.locator('[data-relationship="app-sql"] button')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await page.locator('button[data-mode="three"]').click();
+  await page.getByRole('link', { name: 'Dense' }).click();
+  await expect(page.locator('.viewport')).toHaveAttribute('data-mode', 'three');
+  await expect(page.locator('[data-inspection-path="app-sql"]')).toHaveCount(1);
+});
+
 test('block inspection shows directed typed adjacency without hiding the canvas', async ({
   page,
 }) => {
