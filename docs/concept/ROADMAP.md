@@ -47,7 +47,9 @@ CloudBlocks evolves through four stages — from visual cloud learning tool to e
 - Production-grade code generation guarantees
 - README generation (planned for later milestone)
 
-### V1 Milestones
+### Historical V1 Milestones
+
+This table records completed work, not the active planning queue. Use Now / Next / Later for new work; see the [contributing workflow](../../CONTRIBUTING.md#making-changes).
 
 | Milestone | Focus                               | Status  |
 | --------- | ----------------------------------- | ------- |
@@ -133,9 +135,9 @@ Versions now represent user-visible product state, decoupled from milestone numb
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 51 (M8–M51, all closed; M48 empty/skipped)                                                                |
-| Tests passing            | 3,609+                                                                                                     |
-| Branch coverage          | ≥ 90%                                                                                                     |
+| Last release             | v0.53.0                                                                                                   |
+| Web tests passing        | 3,633 (160 test files; measured 2026-09-23)                                                                 |
+| Frontend branch coverage | 90.04% measured; 85% required floor                                                                        |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
 

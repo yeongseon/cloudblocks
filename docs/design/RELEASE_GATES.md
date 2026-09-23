@@ -32,7 +32,7 @@ Every release to `main` (or tagged release) must pass ALL of the following gates
 | ----------------- | ----------------------------------------------------- | ---------------------------------------------- | ----------- |
 | Frontend tests    | `cd apps/web && npx vitest run`                       | All pass                                       | **Blocker** |
 | Backend tests     | `python3 -m pytest apps/api/app/tests/ -v`                | All pass                                       | **Blocker** |
-| Frontend coverage | `cd apps/web && npx vitest run --coverage`            | ≥ 90% (statements, branches, functions, lines) | **Blocker** |
+| Frontend coverage | `cd apps/web && npx vitest run --coverage`            | Branches ≥ 85%; statements, functions, lines ≥ 90% | **Blocker** |
 | Backend coverage  | `python3 -m pytest apps/api --cov=app --cov-fail-under=90`| ≥ 90%                                          | **Blocker** |
 
 ### Gate 4: Security
@@ -64,7 +64,7 @@ A blocker is any condition that:
 
 - Breaks the build or type safety
 - Causes test failures
-- Drops coverage below 90%
+- Drops coverage below its configured floor (frontend branches 85%; other frontend metrics and backend coverage 90%)
 - Introduces a security vulnerability
 - Violates a design contract (validation rules, session cookie transport, session secret policy)
 - Breaks backward compatibility without migration path
@@ -387,12 +387,12 @@ Record baseline measurements after each milestone release. Compare against thres
 | Metric                  | Target | Tool        |
 | ----------------------- | ------ | ----------- |
 | **Frontend statements** | ≥ 90%  | Vitest + v8 |
-| **Frontend branches**   | ≥ 90%  | Vitest + v8 |
+| **Frontend branches**   | ≥ 85%  | Vitest + v8 |
 | **Frontend functions**  | ≥ 90%  | Vitest + v8 |
 | **Frontend lines**      | ≥ 90%  | Vitest + v8 |
 | **Backend coverage**    | ≥ 90%  | pytest-cov  |
 
-- Coverage thresholds configured in `vitest.config.ts` → tests/CI fail if below 90%
+- Coverage tests enforce `vitest.config.ts` thresholds: branches ≥ 85%; statements, functions, and lines ≥ 90%.
 - Backend coverage checked in CI via `python3 -m pytest apps/api --cov=app --cov-fail-under=90`
 
 #### CI Reliability

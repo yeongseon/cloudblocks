@@ -23,9 +23,6 @@ Start from built-in architecture templates, learn cloud infrastructure patterns 
 
 ## Demo
 
-<p align="center">
-</p>
-
 > **Start** from a guided template, **learn** cloud architecture patterns step by step, **customize** with drag-and-drop blocks, and **export** Terraform starter code — all in the browser.
 
 _Automated demo video coming soon. For now, [try the live demo](https://yeongseon.github.io/cloudblocks/)._
