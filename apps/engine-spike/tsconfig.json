@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["vite/client", "node"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src", "playwright.config.ts", "capture.spec.ts"]
+}

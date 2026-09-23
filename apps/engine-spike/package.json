@@ -1,0 +1,30 @@
+{
+  "name": "@cloudblocks/engine-spike",
+  "private": true,
+  "version": "0.53.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "lint": "eslint .",
+    "test": "vitest run src",
+    "capture": "playwright test"
+  },
+  "dependencies": {
+    "@cloudblocks/domain": "workspace:*",
+    "@cloudblocks/schema": "workspace:*",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "@types/three": "^0.180.0",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "~5.9.3",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "typescript-eslint": "^8.58.2"
+  }
+}
