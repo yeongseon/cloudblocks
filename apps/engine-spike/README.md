@@ -1,0 +1,47 @@
+# Rendering study workspace
+
+This disposable workspace explores how CloudBlocks can show layered containment and typed connections without changing the production renderer. Follow [issue #1927](https://github.com/yeongseon/cloudblocks/issues/1927); read [LOOK_SPEC.md](LOOK_SPEC.md) for the provisional visual target and [REVIEW.md](REVIEW.md) for observed results and open questions. **Lit 3D with a relationship inspector is the current least-bad visual study, not an approved product direction.**
+
+## Resume the study
+
+From the repository root, on the issue branch with its changes present:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --filter @cloudblocks/engine-spike test
+pnpm --filter @cloudblocks/engine-spike build
+pnpm --filter @cloudblocks/engine-spike capture
+pnpm --filter @cloudblocks/engine-spike dev --port 5179
+```
+
+Open `http://127.0.0.1:5179/?mode=three&inspect=app` to inspect App Service's incoming/outgoing connections. Clear **Inspect block** to see all connections. Compare the **Layered SVG** mode using the same model. The production SVG baseline is a screenshot from the real editor, not an interactive mode in this workspace. `capture` starts a preview of the previously built `apps/web/dist` on port 4179 as well as the study on 5179; **run `pnpm build` first** or the baseline may be stale. Local servers must be available on those ports. If Playwright reports a missing browser, run `pnpm --filter @cloudblocks/engine-spike exec playwright install chromium` and retry.
+
+The shared architecture is `src/fixture.ts`. It uses the current schema: a root VNet with two subnet children, seven resources including the root Internet actor, and six typed connections including Internet → Front Door. App Service, Functions, Azure SQL Database and Key Vault are root-level hosted PaaS resources, **not subnet occupants**; the dense fixture adds root Cache and a SQL replica and extends the model to 11 resources and 14 connections. [The Azure locality audit](iterations/2026-09-24-azure-locality-audit.md) separates service placement from private endpoints and lists concepts the schema cannot express. Its validation lives in `src/fixture.test.ts`. Do not introduce a separate Region model node or place Front Door in a subnet just to match the reference image. `capture.spec.ts` uses a 1440 × 900 browser viewport and saves locally generated images under `iterations/`. PNG files and browser reports are ignored; **regenerate them when needed rather than relying on a screenshot path being present in a fresh checkout**. The original reference image is not checked in; see [ref/README.md](ref/README.md) for provenance requirements.
+
+## Run one bounded iteration
+
+Use the same loop every time: **hypothesis → fixed baseline → one change → identical capture → human observation → keep/remove/unknown → next question**. A passing automated capture means the view rendered, not that the hypothesis passed. Record the verdict only after looking at the images.
+
+1. Copy [EXPERIMENT_TEMPLATE.md](EXPERIMENT_TEMPLATE.md) into a new dated note under `iterations/` (Markdown files are tracked; generated PNGs are not). State what a learner should be able to read or do, one proposed change, and a falsifiable stop condition. Name the current candidate and starting revision so the comparison can be reproduced. Timebox the candidate to one session; do not polish after recording a failed gate.
+2. Change only the relevant study seam: `src/three.ts` for Lit 3D geometry and picking, `src/routes.ts` for illustrative surface paths, `src/relationships.ts` and `src/main.ts` for the relationship inspection UI, or `src/svg.ts` for the layered SVG control. `src/fixture.ts` and `src/fixture.test.ts` are the common baseline, not a place to tailor architecture to an image. If a denser fixture is necessary, add and validate it separately, and run both fixtures rather than replacing the original. Add a matching test and a capture case in `capture.spec.ts` for each visible candidate.
+3. Preserve block, connection, and port semantics, including the universal three-layer port dimensions (rx=12, ry=6, height=5). Do not modify accepted ADRs. If a product behavior changes, write a separate follow-up issue or new superseding ADR rather than silently altering production rules.
+4. Run the fixture tests, study build, and browser captures. Inspect **the actual images** for placement, occlusion, labels, and density. Compare one valid same-subnet connection, a root-to-subnet connection, and a cross-subnet connection; include a higher-density case before claiming an overlap solution. A passing screenshot test proves that a frame was captured, not that the visual result is readable.
+5. Record visual readability, connection direction/type, editor action parity (place, reject, connect, select, zoom/pan), keyboard/reduced-motion behavior, WebGL fallback, and measured loaded bytes/frame time as **pass / fail / unknown** with evidence. Do not promote unknown to pass. For interaction parity, run actual editor actions in both candidates; the moment buttons are illustrative states only.
+6. Append a short outcome to [REVIEW.md](REVIEW.md), link the dated note, and leave an issue comment. Keep the better candidate or remove the failed one while preserving its finding in the note. If the outcome is unknown, identify the one missing observation needed next. Do not choose a renderer or release from a still image alone.
+
+## When to change the product
+
+The current Lit 3D scene plus relationship inspector is a **study baseline, not an approved replacement** for `apps/web`. Keep that application working while experimenting here. Only plan a production renderer migration after the same fixture passes real placement/rejection, typed connection creation, selection, zoom/pan, keyboard/reduced-motion and WebGL-fallback checks against the current editor, with measured performance and a reviewed superseding ADR. Split the actual migration into a separate issue/PR; do not copy this disposable scene wholesale into the product.
+
+The tested mid-body hose, all-endpoint riser, and selected single-route variants failed on clutter or occlusion and are documented in `REVIEW.md`; their rejected controls are intentionally absent. The relationship inspector solves **reading source, target, direction, and type** for this fixture, but does not make a hidden rail visually traceable. That distinction is the starting point for the next experiment.
+
+The first follow-up is [the inspected-link overlay experiment](iterations/2026-09-23-inspected-link-overlay.md): click a relationship in the right panel or open `http://127.0.0.1:5179/?mode=three&link=app-sql` to compare a temporary above-scene inspection path against the unchanged surface rails. This is a screen-space reading aid, **not** a physical 3D connection or an approved product design. Its five-link result does not establish dense-graph readability.
+
+The [dense-and-narrow follow-up](iterations/2026-09-23-dense-responsive-inspection.md) originally tested a **separately validated** 10-resource, 13-connection fixture; after the Internet extension it contains 11 resources and 14 connections. Use `?mode=three&fixture=dense&link=app-sql` to reproduce the current version, or the Baseline / Dense links in the study. The 820px capture failed the combined readability gate: overlapping block labels and a relationship list below the initial scene. The fixture remains available as a stress test, not as an approved responsive design. PNGs must be regenerated locally.
+
+[The Internet and zoom extension](iterations/2026-09-23-internet-and-zoom.md) added a root Internet actor and HTTP entry link to **both** fixtures after the earlier visual experiments. It also added accessible zoom buttons (60%–180%) and a reset; the Lit 3D viewport can be dragged to pan after zooming. Open `?mode=three&fixture=dense&link=internet-front` and use the controls at the bottom right. Earlier notes describe historical fixture sizes; the current baseline is 7 resources/6 links and dense is 11 resources/14 links. Zoomed-out labels and the narrow inspector still need separate experiments.
+
+[The first resource movement experiment](iterations/2026-09-23-resource-move.md) established same-parent drag and empty-space camera pan in Lit 3D. Invalid overlap/boundary drops revert, accepted moves update the study-only scene and connection paths, and reload restores the unchanged fixture. The Place and Reject buttons are still illustrative motion states, not the drag interaction. See the later extension below for parent transfer and history.
+
+[The transfer/preview/history extension](iterations/2026-09-23-transfer-preview-history.md) adds cross-subnet dragging for subnet occupants such as App Gateway, a live preview of connected rails, arrow-key/visible-button nudging and transient Undo/Redo to this isolated study. Select a resource with the scene or **Inspect block** control to use the transfer and nudge controls; the hosted PaaS services remain outside even where generic legacy rules permit subnet parents. Moving Application Gateway to Data Subnet verifies UI mechanics **but is not an Azure-deployable gateway configuration** because gateways need a dedicated subnet. After reload the fixed fixture is restored. This extends the earlier same-parent movement experiment without replacing the production store, autosizing, keyboard accessibility review or persistence.
