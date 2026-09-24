@@ -153,11 +153,11 @@ Use `Issue -> Branch -> PR` for all work. Milestones and Epics are optional aids
 
 Start each development burst with this short check, not a full repository audit:
 
-1. Read [README.md](README.md) and the [V1 Product Contract](docs/concept/V1_PRODUCT_CONTRACT.md).
-2. Check the working tree, sync a clean `main`, install with `pnpm install --frozen-lockfile`, then run `pnpm dev` and relevant tests. Use `pnpm test` for frontend/packages and `python3 -m pytest apps/api` for backend work.
-3. Review open PRs and issues (`gh pr list`, `gh issue list`); identify failing CI or unfinished work before starting something new.
-4. Pick one **Now** item, check its assignee, and assign yourself if unassigned. Do not take another contributor's work.
-5. Clear stale administrative noise only where completion is verified; timebox housekeeping so the burst produces learner value.
+1. Check `git status`, `gh pr list`, and the latest issue/PR comments. Resume an existing assigned PR and its failing check or next action before choosing new work. Keep uncommitted changes intact.
+2. Read [README.md](README.md) and the [V1 Product Contract](docs/concept/V1_PRODUCT_CONTRACT.md) where the task needs product context. For an experiment, resume from its latest dated evidence and one next test; see [the rendering-study handoff](apps/engine-spike/README.md#run-one-bounded-iteration).
+3. If starting a new issue, check its assignee, then sync a **clean** `main` with `git pull --ff-only origin main` and create an issue branch. Do not switch away from uncommitted work or take another contributor's issue.
+4. Install dependencies only if the lockfile or local installation changed. Run the relevant tests for the area touched; start `pnpm dev` only when interactive verification is needed. Before merging, run required CI and review available feedback.
+5. Leave a short handoff in the issue or PR: current branch/PR, what passed or failed, decision and evidence link, and the **one next action**. Keep a timeboxed experiment's hypothesis, observation, and keep/remove/unknown decision in its dated evidence; do not treat a study as product migration approval.
 
 ### Planning Buckets
 
@@ -169,21 +169,21 @@ Record Now/Next selections in a small issue checklist or project view; do not ad
 
 ### Labeling Rules
 
-Apply labels before starting work.
+Labels and size estimates are optional planning aids, not prerequisites for starting or merging a small change. Use them when they improve discovery or prioritization.
 
 #### 1) Size / tracking labels
 
-- `epic` — required for Epic tracking issues only
+- `epic` — use for Epic tracking issues only
 - `size/S` — Small: 1–2 files, < 1 hour
 - `size/M` — Medium: 3–5 files, 1–3 hours
 - `size/L` — Large: 6–10 files, 3–8 hours
 - `size/XL` — Extra Large: 10+ files, 8+ hours
 
-Every non-Epic issue should have exactly one `size/*` label. Assign it when the issue is created.
+Choose one `size/*` label when an estimate helps scheduling; a small fix may remain unlabeled.
 
 #### 2) Type labels
 
-Use exactly one type label for every non-Epic issue:
+Use one type label when classification helps triage:
 
 - `enhancement` — feature work
 - `bug` — defect fixes
@@ -206,11 +206,11 @@ Use one or more domain labels for implementation work:
 
 Documentation issues may omit domain labels when the change is cross-cutting. If the docs clearly belong to one area, add the matching domain label.
 
-#### 4) Required label combinations
+#### 4) Suggested label combinations
 
-| Issue kind              | Required labels                                  |
+| Issue kind              | Suggested labels                                 |
 | ----------------------- | ------------------------------------------------ |
-| Epic                    | `epic` + 1 or more domain labels                 |
+| Epic                    | `epic` and relevant domain labels                |
 | Sub-issue (feature)     | `enhancement` + 1 or more domain labels          |
 | Sub-issue (bug)         | `bug` + 1 or more domain labels                  |
 | Sub-issue (testing)     | `testing` + 1 or more domain labels              |
@@ -225,10 +225,8 @@ Keep one logical change per PR. Split larger work into linked issues only when i
    - Check existing issues first.
    - Every PR must reference an issue. Open an issue before starting work.
 
-2. **Apply labels**
-   - Use exactly one type label.
-   - Add one or more domain labels for implementation work.
-   - Documentation issues may omit domain labels when the scope is cross-cutting.
+2. **Add labels when useful**
+   - Prefer one type and relevant domain labels for discoverability; do not block a small fix on label administration.
 
 3. **Sync `main`**
    - Always update local `main` first:
@@ -240,8 +238,8 @@ Keep one logical change per PR. Split larger work into linked issues only when i
 
 4. **Create a branch**
    - `feat/<issue>-description` — new features
-   - `fix/description` — bug fixes
-   - `docs/description` — documentation changes
+   - `fix/<issue>-description` — bug fixes
+   - `docs/<issue>-description` — documentation changes
 
 5. **Implement, verify, and open a PR**
    - Keep changes focused: one logical change per PR.
