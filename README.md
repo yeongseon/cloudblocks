@@ -31,13 +31,13 @@ _Automated demo video coming soon. For now, [try the live demo](https://yeongseo
 
 Most diagram tools produce static images. CloudBlocks produces a **live architecture model** with built-in learning and validation — designed for people just getting started with cloud infrastructure.
 
-|             | Diagram Tool | CloudBlocks                               |
-| ----------- | ------------ | ----------------------------------------- |
-| Output      | Static image | Interactive architecture model            |
-| Validation  | None         | Real-time rule engine                     |
-| Semantics   | Visual only  | Every block maps to a real cloud resource |
-| Learning    | None         | Guided scenarios for beginners            |
-| Code Export | None         | Terraform starter code                    |
+|             | Diagram Tool | CloudBlocks                                                                    |
+| ----------- | ------------ | ------------------------------------------------------------------------------ |
+| Output      | Static image | Interactive architecture model                                                 |
+| Validation  | None         | Real-time rule engine                                                          |
+| Semantics   | Visual only  | Typed model; some export mappings are incomplete or select a different service |
+| Learning    | None         | Guided scenarios for beginners                                                 |
+| Code Export | None         | Terraform starter code                                                         |
 
 ## Features
 
@@ -46,7 +46,7 @@ Most diagram tools produce static images. CloudBlocks produces a **live architec
 - 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **8 resource categories** — Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations
-- ⚡ **Terraform starter export** — Export your design to Terraform starter code for learning and prototyping
+- ⚡ **Terraform starter export** — Generate illustrative Terraform for learning; some blocks select a different service or omit required configuration. [Review the mapping limits](docs/user-guide/provider-support.md) before using any output.
 - 🌐 **Azure-first templates** — Built on Azure with mapped preview for AWS and GCP (coverage varies by template)
 - 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
 - ⚗️ **Bicep & Pulumi** _(Experimental)_ — Additional IaC export formats
