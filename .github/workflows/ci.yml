@@ -43,6 +43,11 @@ jobs:
               - 'tsconfig.json'
             engine-spike:
               - 'apps/engine-spike/**'
+              - 'apps/web/src/entities/store/slices/helpers.ts'
+              - 'apps/web/src/entities/store/slices/persistenceSlice.ts'
+              - 'apps/web/src/entities/validation/engine.ts'
+              - 'apps/web/src/entities/validation/placement.ts'
+              - 'apps/web/src/shared/types/visualProfile.ts'
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
