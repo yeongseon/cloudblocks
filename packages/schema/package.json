@@ -25,12 +25,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.2.0",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "ts-json-schema-generator": "2.9.0",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.11"
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
   }
 }
