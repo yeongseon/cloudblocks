@@ -1147,23 +1147,24 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       const position = { x: block.position.x + deltaX, z: block.position.z + deltaZ };
       const size = getBlockDimensions(block.category, block.provider, block.subtype);
-      if (
+      const overlapsRootObstacle = (at: { x: number; z: number }) =>
         arch.nodes.some((candidate) => {
           if (candidate.kind === 'container' && candidate.parentId === null) {
-            return blocksOverlapAABB(position, size, candidate.position, candidate.frame);
+            return blocksOverlapAABB(at, size, candidate.position, candidate.frame);
           }
           if (candidate.kind === 'resource' && candidate.parentId === null && candidate.id !== id) {
             return blocksOverlapAABB(
-              position,
+              at,
               size,
               candidate.position,
               getBlockDimensions(candidate.category, candidate.provider, candidate.subtype),
             );
           }
           return false;
-        })
-      )
+        });
+      if (!overlapsRootObstacle(block.position) && overlapsRootObstacle(position)) {
         return state;
+      }
 
       const nodes = arch.nodes.map((candidate) =>
         candidate.id === id

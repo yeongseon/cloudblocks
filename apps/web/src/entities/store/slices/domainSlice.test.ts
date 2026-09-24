@@ -476,6 +476,32 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getArch()).toBe(before);
     });
 
+    it('lets an imported root SQL escape a VNet through incremental moves', () => {
+      const network = makeContainerNode('vnet');
+      const sql = rootSql({ x: 0, z: 0 });
+      seedState({ nodes: [network, sql] });
+      const size = getBlockDimensions(sql.category, sql.provider, sql.subtype);
+
+      for (let step = 1; step <= 12; step++) {
+        getState().moveRootResourcePosition(sql.id, -1, 0);
+        const moved = getBlocks().find((block) => block.id === sql.id)!;
+        expect(moved.position.x).toBe(-step);
+        if (step === 1) {
+          expect(blocksOverlapAABB(moved.position, size, network.position, network.frame)).toBe(
+            true,
+          );
+        }
+      }
+
+      const escaped = getBlocks().find((block) => block.id === sql.id)!;
+      expect(blocksOverlapAABB(escaped.position, size, network.position, network.frame)).toBe(
+        false,
+      );
+      const beforeRejectedMove = getArch();
+      getState().moveRootResourcePosition(sql.id, 4, 0);
+      expect(getArch()).toBe(beforeRejectedMove);
+    });
+
     it('does not use root-resource movement for an external actor or nested resource', () => {
       const actor = makeExternalBlock('internet', 'internet', { x: -20, y: 0, z: 0 });
       const nested = makeLeafNode('nested', 'vnet');
