@@ -141,7 +141,7 @@ describe('azureProviderDefinition', () => {
     expect(requiredProviders).toContain('required_providers {');
     expect(requiredProviders).toContain('azurerm = {');
     expect(requiredProviders).toContain('source  = "hashicorp/azurerm"');
-    expect(requiredProviders).toContain('version = "~> 3.0"');
+    expect(requiredProviders).toContain('version = "= 3.117.1"');
   });
 });
 
