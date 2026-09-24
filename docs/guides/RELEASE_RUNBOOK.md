@@ -2,7 +2,7 @@
 
 > Covers issue #476.  
 > Single reference for validation, tagging, release creation, and post-release checks.  
-> See also: [RELEASE_GATES.md](../design/RELEASE_GATES.md).
+> See also: [RELEASE_GATES.md](../design/RELEASE_GATES.md) and [VERSION_POLICY.md](../design/VERSION_POLICY.md).
 
 ---
 
@@ -66,59 +66,13 @@ Complete every item before proceeding to tagging. A single ❌ in a **Blocker** 
 
 ## 2. Release Steps
 
-Execute in order after all checklist items pass.
+Release only for a learner-visible capability bundle or a bug fix, not because a milestone closed. Follow [Version Alignment Policy](../design/VERSION_POLICY.md#when-to-bump) to select `v0.x.0` or `v0.x.y` and update **all** version sources together. A beta prerelease has additional evidence gates in [#1916](https://github.com/yeongseon/cloudblocks/issues/1916); routine maintenance does not authorize one.
 
-```bash
-# Variables — set these for your release
-export MILESTONE=20
-export VERSION="0.${MILESTONE}.0"
-export TITLE="UX Polish & GitHub Hardening"
-export OWNER=yeongseon
-export REPO=cloudblocks
-
-# Step 1: Version bump
-# Update `version` in package.json to $VERSION
-
-# Step 2: CHANGELOG
-# Add new section to CHANGELOG.md using the template
-
-# Step 3: Release commit
-git add package.json CHANGELOG.md
-git commit -m "chore: release v${VERSION}"
-
-# Step 4: Squash-merge the release PR
-gh pr merge <PR_NUMBER> --squash --delete-branch
-
-# Step 5: Pull the merge commit
-git checkout main && git pull --ff-only origin main
-
-# Step 6: Create annotated tag
-git tag -a "v${VERSION}" -m "v${VERSION} — ${TITLE}"
-
-# Step 7: Push tag
-git push origin "v${VERSION}"
-
-# Step 8: Create GitHub Release
-gh release create "v${VERSION}" \
-  --title "v${VERSION} — ${TITLE}" \
-  --notes-file - <<< "$(sed -n "/## \[v${VERSION}\]/,/^## \[/{ /^## \[v${VERSION}\]/d; /^## \[/d; p; }" CHANGELOG.md)"
-
-# Step 9: Close milestone
-MILESTONE_NUMBER=$(gh api "repos/${OWNER}/${REPO}/milestones" --jq ".[] | select(.title | contains(\"Milestone ${MILESTONE}\")) | .number")
-gh api "repos/${OWNER}/${REPO}/milestones/${MILESTONE_NUMBER}" -X PATCH -f state=closed
-
-# Step 10: CI cleanup
-gh api "repos/${OWNER}/${REPO}/actions/caches" --paginate \
-  --jq '.actions_caches[] | select(.ref != "refs/heads/main") | .id' | \
-  while read id; do gh api -X DELETE "repos/${OWNER}/${REPO}/actions/caches/$id"; done
-
-gh api "repos/${OWNER}/${REPO}/actions/artifacts" --paginate \
-  --jq '[.artifacts[].id] | .[3:] | .[]' | \
-  while read id; do gh api -X DELETE "repos/${OWNER}/${REPO}/actions/artifacts/$id"; done
-
-# Step 11: Roadmap sync
-# Update docs/concept/ROADMAP.md — check exit criteria, update summary chain
-```
+1. Verify the production build and core flows against the active [release gates](../design/RELEASE_GATES.md). Record any unmeasured gate as unknown, not passed.
+2. Create an issue-linked release branch, update the version sources and `CHANGELOG.md`, and run `./scripts/check-versions.sh` until it exits 0.
+3. Open a release PR, wait for required CI and review available feedback. Squash-merge normally with `gh pr merge <PR_NUMBER> --squash --delete-branch`; never bypass branch protection.
+4. Sync clean `main`, create and push an annotated `v0.x.y` tag, then create the GitHub Release with notes drawn from the matching changelog section.
+5. Verify the release page and live demo. Update the roadmap only when product direction or capability status changes. Milestones and CI cache cleanup are optional housekeeping, not release gates.
 
 ---
 
@@ -129,8 +83,7 @@ gh api "repos/${OWNER}/${REPO}/actions/artifacts" --paginate \
 | 1   | GitHub Release page shows correct tag and notes           | ☐     |
 | 2   | GitHub Pages deployment succeeded (if frontend changed)   | ☐     |
 | 3   | Live demo loads: https://yeongseon.github.io/cloudblocks/ | ☐     |
-| 4   | Milestone closed on GitHub                                | ☐     |
-| 5   | ROADMAP.md updated with completion markers                | ☐     |
+| 4   | Product direction or capability status updated if changed | ☐     |
 
 ---
 
@@ -227,6 +180,6 @@ For patch releases (v0.N.1, v0.N.2), use a simplified format:
 
 ### Version Convention
 
-- **Milestone N → v0.N.0** (feature release)
-- **Patch → v0.N.1, v0.N.2** (hotfix releases)
-- See `AGENTS.md` Release Workflow for the full release process.
+- **Meaningful capability bundle → v0.x.0** (feature release)
+- **Bug fix / hotfix → v0.x.y** (patch release)
+- See [Version Alignment Policy](../design/VERSION_POLICY.md) for the canonical release convention.
