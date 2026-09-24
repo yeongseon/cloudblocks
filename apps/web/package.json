@@ -20,7 +20,7 @@
   "dependencies": {
     "@cloudblocks/domain": "workspace:*",
     "@cloudblocks/schema": "workspace:*",
-    "elkjs": "^0.11.1",
+    "elkjs": "^0.12.0",
     "interactjs": "^1.10.28",
     "lucide-react": "^1.27.0",
     "react": "^19.2.8",
