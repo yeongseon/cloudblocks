@@ -46,7 +46,7 @@ The user noted that App Service and Functions do not live on subnet surfaces. A 
 
 ## Captured on current v0.53.0 source
 
-The same `src/fixture.ts` architecture is used in all three tested paths. The actual editor is loaded from a schema-versioned workspace and captured after onboarding is dismissed and Fit to screen is used. Its untouched production renderer is in `apps/web`; the only production changes on this branch correct root-resource import and visibility so that the canonical root-only Front Door is not silently lost. The fixture and the production import validator, connection engine and canvas regression tests pass.
+The same `src/fixture.ts` architecture is used in all three tested paths. The actual editor is loaded from a schema-versioned workspace and captured after onboarding is dismissed and Fit to screen is used. Its production renderer remains in `apps/web` and is unchanged. PR #1929 also updated schema placement rules, import validation, domain-store creation and bounded movement, and canvas rendering for root-hosted SQL and Cache; older subnet placements remain compatible. These narrow production locality changes are separate from the isolated renderer study and do not model private networking. The fixture and the production import validator, connection engine and canvas regression tests pass.
 
 Run from the repository root:
 

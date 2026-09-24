@@ -112,6 +112,7 @@ Each entry defines:
 | `web_compute`         | ❌         | `subnet`          | compute    | web         |
 | `app_compute`         | ❌         | `subnet`          | compute    | app         |
 | `relational_database` | ❌         | `subnet`          | data       | data        |
+| `sql_database`        | ❌         | `subnet`, `null`  | data       | data        |
 | `cache_store`         | ❌         | `subnet`, `null`  | data       | data        |
 | `firewall_security`   | ❌         | `subnet`          | security   | shared      |
 | `secret_store`        | ❌         | `subnet`          | security   | shared      |
