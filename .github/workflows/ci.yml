@@ -21,6 +21,7 @@ jobs:
       pull-requests: read
     outputs:
       web: ${{ steps.filter.outputs.web }}
+      engine-spike: ${{ steps.filter.outputs.engine-spike }}
       api: ${{ steps.filter.outputs.api }}
       packages: ${{ steps.filter.outputs.packages }}
       ci: ${{ steps.filter.outputs.ci }}
@@ -38,6 +39,13 @@ jobs:
               - 'apps/web/**'
               - 'packages/**'
               - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'tsconfig.json'
+            engine-spike:
+              - 'apps/engine-spike/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'package.json'
               - 'tsconfig.json'
             api:
@@ -270,6 +278,39 @@ jobs:
       - name: Test @cloudblocks/domain
         run: pnpm --filter @cloudblocks/domain test
 
+  engine-spike:
+    name: Engine Spike
+    needs: changes
+    if: needs.changes.outputs.engine-spike != 'false' || needs.changes.outputs.ci != 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm run build:packages
+
+      - name: Lint study
+        run: pnpm --filter @cloudblocks/engine-spike lint
+
+      - name: Build study
+        run: pnpm --filter @cloudblocks/engine-spike build
+
+      - name: Test study
+        run: pnpm --filter @cloudblocks/engine-spike test
+
   # ─── API ─────────────────────────────────────────────────────────
   api-lint:
     name: API Lint
@@ -331,7 +372,8 @@ jobs:
   ci-gate:
     name: CI Gate
     if: always()
-    needs: [web-lint, web-build, web-test, package-tests, api-lint, api-test, banned-terms]
+    needs:
+      [web-lint, web-build, web-test, package-tests, engine-spike, api-lint, api-test, banned-terms]
     runs-on: ubuntu-latest
     steps:
       - name: Check results
@@ -340,6 +382,7 @@ jobs:
           WEB_BUILD: ${{ needs.web-build.result }}
           WEB_TEST: ${{ needs.web-test.result }}
           PKG_TESTS: ${{ needs.package-tests.result }}
+          ENGINE_SPIKE: ${{ needs.engine-spike.result }}
           API_LINT: ${{ needs.api-lint.result }}
           API_TEST: ${{ needs.api-test.result }}
           BANNED_TERMS: ${{ needs.banned-terms.result }}
@@ -347,7 +390,7 @@ jobs:
           echo "=== CI Gate Check ==="
           FAILED=0
           for pair in "web-lint:$WEB_LINT" "web-build:$WEB_BUILD" "web-test:$WEB_TEST" \
-                      "package-tests:$PKG_TESTS" "api-lint:$API_LINT" "api-test:$API_TEST" \
+                      "package-tests:$PKG_TESTS" "engine-spike:$ENGINE_SPIKE" "api-lint:$API_LINT" "api-test:$API_TEST" \
                       "banned-terms:$BANNED_TERMS"; do
             job="${pair%%:*}"
             result="${pair#*:}"

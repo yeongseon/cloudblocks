@@ -372,14 +372,14 @@ Rules define **compatibility and placement constraints**. All placement rules ar
 
 Placement validation is implemented in `apps/web/src/entities/validation/placement.ts`. Rules are derived from `RESOURCE_RULES` at module load time via `buildCategoryPlacementMap()`.
 
-The placement engine also maintains a `ROOT_ALLOWED_RESOURCE_TYPES` set (built from `buildRootAllowedResourceTypes()`) that identifies which resource types can be placed at root level (`parentId: null`). Currently 14 resource types plus `virtual_network` allow root placement — see the Resource Type Table in §4.2 for which types have `null` in their `allowedParents`.
+The placement engine also maintains a `ROOT_ALLOWED_RESOURCE_TYPES` set (built from `buildRootAllowedResourceTypes()`) that identifies which resource types can be placed at root level (`parentId: null`). This set is derived from `RESOURCE_RULES.allowedParents` — see the Resource Type Table in §4.2 for types that include `null` in their `allowedParents`.
 
 | Category     | Typical Parent             | Notes                                                         |
 | ------------ | -------------------------- | ------------------------------------------------------------- |
 | `network`    | `null` or `virtual_network` | `virtual_network` and `public_ip` at root; others on subnet |
 | `delivery`   | `subnet` or `null`         | `dns_zone`, `cdn_profile`, `front_door` at root; others on subnet |
 | `compute`    | `subnet` or `null`         | `function_compute`, `app_service`, `container_instances` allow root |
-| `data`       | `subnet` or `null`         | `blob_storage`, `cosmos_db` allow root                       |
+| `data`       | `subnet` or `null`         | `blob_storage`, `cosmos_db`, `sql_database`, `cache_store` allow root |
 | `security`   | `subnet` or `null`         | `key_vault` allows root                                       |
 | `identity`   | `null` or `subnet`         | `managed_identity`, `service_account` at root; `identity_access` allows both |
 | `operations` | `subnet`                   | —                                                             |
