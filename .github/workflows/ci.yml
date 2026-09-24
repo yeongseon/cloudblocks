@@ -43,6 +43,7 @@ jobs:
               - 'tsconfig.json'
             engine-spike:
               - 'apps/engine-spike/**'
+              - 'apps/web/**'
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
