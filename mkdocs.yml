@@ -97,6 +97,7 @@ exclude_docs: |
   user-guide/create-architecture.md
   design/CLOUDBLOCKS_SPEC_V2.md
   concept/ARCHITECTURE_0X_HISTORY.md
+  concept/PLAN.md
 
 nav:
   - Home: README.md
