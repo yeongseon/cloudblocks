@@ -89,16 +89,16 @@ Release only for a learner-visible capability bundle or a bug fix, not because a
 
 ## 4. Hotfix Release (Abbreviated)
 
-For patch releases (v0.N.1+), use the abbreviated flow:
+For patch releases (`v0.x.y`), use the abbreviated flow:
 
-1. Branch from the latest tag: `git checkout -b hotfix/v0.N.P v0.N.0`
+1. Branch from the latest applicable tag: `git checkout -b hotfix/v0.x.y v0.x.0`
 2. Apply minimal fix
 3. Run Gates 1–3 (build, lint, tests)
 4. Run Gate 5 (demo verification)
 5. Commit, push, create PR, merge
-6. Tag: `git tag -a v0.N.P -m "v0.N.P — hotfix description"`
+6. Create an annotated tag for the selected patch version.
 7. Push tag, create GitHub Release
-8. Do NOT close the milestone (already closed)
+8. Verify the release and live demo; milestones remain optional planning aids.
 
 ---
 
@@ -120,9 +120,9 @@ See [RELEASE_GATES.md § Rollback Plan](../design/RELEASE_GATES.md#4-rollback-pl
 Use this template when adding a new entry to `CHANGELOG.md`. Copy the block below and fill in the details.
 
 ```markdown
-## [v0.{milestone}.0] — {YYYY-MM-DD}
+## [v0.{minor}.0] — {YYYY-MM-DD}
 
-**Milestone {milestone} — {Milestone Title}**
+**{Learner-visible capability bundle}**
 
 {1-3 sentence summary of what this milestone delivers, focused on user-facing impact.}
 
@@ -164,10 +164,10 @@ Use this template when adding a new entry to `CHANGELOG.md`. Copy the block belo
 
 ### Hotfix Entries
 
-For patch releases (v0.N.1, v0.N.2), use a simplified format:
+For patch releases (`v0.x.y`), use a simplified format:
 
 ```markdown
-## [v0.{milestone}.{patch}] — {YYYY-MM-DD}
+## [v0.{minor}.{patch}] — {YYYY-MM-DD}
 
 **Hotfix — {Brief Description}**
 
