@@ -13,9 +13,9 @@ function buildAzureContainerBody(ctx: TerraformContainerContext): string[] {
 
   lines.push(`  name                = "\${var.project_name}-${ctx.resourceName}"`);
   lines.push('  resource_group_name = azurerm_resource_group.main.name');
-  lines.push('  location            = azurerm_resource_group.main.location');
 
   if (ctx.container.layer !== 'subnet') {
+    lines.push('  location            = azurerm_resource_group.main.location');
     lines.push('  address_space       = ["10.0.0.0/16"]');
   }
 
@@ -39,6 +39,7 @@ function buildAzureImplicitResources(ctx: TerraformBlockContext): string[] {
 
   const needsPip =
     (ctx.block.category === 'compute' && ctx.block.subtype === 'vm') ||
+    ctx.mapping.resourceType === 'azurerm_application_gateway' ||
     (ctx.block.category === 'delivery' && ctx.block.subtype === 'firewall');
   const needsNic = ctx.block.category === 'compute' && ctx.block.subtype === 'vm';
 
@@ -81,15 +82,25 @@ function buildAzureImplicitResources(ctx: TerraformBlockContext): string[] {
 
 function buildAzureBlockBody(ctx: TerraformBlockContext): string[] {
   const lines: string[] = [];
+  const resourceType = ctx.mapping.resourceType;
 
   lines.push(`  name                = "\${var.project_name}-${ctx.resourceName}"`);
-  lines.push('  resource_group_name = azurerm_resource_group.main.name');
-  lines.push('  location            = azurerm_resource_group.main.location');
+  if (resourceType !== 'azurerm_mssql_database' && resourceType !== 'azurerm_storage_queue') {
+    lines.push('  resource_group_name = azurerm_resource_group.main.name');
+    lines.push('  location            = azurerm_resource_group.main.location');
+  }
 
-  switch (ctx.mapping.resourceType) {
+  switch (resourceType) {
     case 'azurerm_linux_web_app':
+      lines.push('  service_plan_id     = azurerm_service_plan.main.id');
+      lines.push('  site_config {}');
+      break;
     case 'azurerm_linux_function_app':
       lines.push('  service_plan_id     = azurerm_service_plan.main.id');
+      lines.push('  storage_account_name = azurerm_storage_account.functions.name');
+      lines.push(
+        '  storage_account_access_key = azurerm_storage_account.functions.primary_access_key',
+      );
       lines.push('  site_config {}');
       break;
     case 'azurerm_linux_virtual_machine':
@@ -102,6 +113,12 @@ function buildAzureBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('    caching              = "ReadWrite"');
       lines.push('    storage_account_type = "Standard_LRS"');
       lines.push('  }');
+      lines.push('  source_image_reference {');
+      lines.push('    publisher = "Canonical"');
+      lines.push('    offer     = "0001-com-ubuntu-server-jammy"');
+      lines.push('    sku       = "22_04-lts"');
+      lines.push('    version   = "latest"');
+      lines.push('  }');
       break;
     case 'azurerm_postgresql_flexible_server':
       lines.push('  administrator_login    = var.db_admin_username');
@@ -111,7 +128,7 @@ function buildAzureBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('  storage_mb             = 32768');
       break;
     case 'azurerm_mssql_database':
-      lines.push('  # SQL Database requires an azurerm_mssql_server parent');
+      lines.push('  server_id = azurerm_mssql_server.main.id');
       lines.push('  sku_name = "S0"');
       break;
     case 'azurerm_cosmosdb_account':
@@ -130,17 +147,56 @@ function buildAzureBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('  account_replication_type = "LRS"');
       break;
     case 'azurerm_application_gateway':
-      lines.push('  # Application Gateway configuration');
-      lines.push('  # Requires additional subnet, frontend IP, and backend pool configuration');
+      lines.push('  # Starter listener only; review dedicated subnet and backend before applying.');
       lines.push('  sku {');
       lines.push('    name     = "Standard_v2"');
       lines.push('    tier     = "Standard_v2"');
       lines.push('    capacity = 1');
       lines.push('  }');
+      lines.push('  gateway_ip_configuration {');
+      lines.push('    name = "gateway-ip"');
+      if (ctx.parentResourceName) {
+        lines.push(`    subnet_id = azurerm_subnet.${ctx.parentResourceName}.id`);
+      }
+      lines.push('  }');
+      lines.push('  frontend_port {');
+      lines.push('    name = "http"');
+      lines.push('    port = 80');
+      lines.push('  }');
+      lines.push('  frontend_ip_configuration {');
+      lines.push('    name = "public"');
+      lines.push(`    public_ip_address_id = azurerm_public_ip.${ctx.resourceName}_pip.id`);
+      lines.push('  }');
+      lines.push('  backend_address_pool { name = "placeholder" }');
+      lines.push('  backend_http_settings {');
+      lines.push('    name = "http"');
+      lines.push('    cookie_based_affinity = "Disabled"');
+      lines.push('    port = 80');
+      lines.push('    protocol = "Http"');
+      lines.push('    request_timeout = 30');
+      lines.push('  }');
+      lines.push('  http_listener {');
+      lines.push('    name = "http"');
+      lines.push('    frontend_ip_configuration_name = "public"');
+      lines.push('    frontend_port_name = "http"');
+      lines.push('    protocol = "Http"');
+      lines.push('  }');
+      lines.push('  request_routing_rule {');
+      lines.push('    name = "http"');
+      lines.push('    rule_type = "Basic"');
+      lines.push('    http_listener_name = "http"');
+      lines.push('    backend_address_pool_name = "placeholder"');
+      lines.push('    backend_http_settings_name = "http"');
+      lines.push('    priority = 100');
+      lines.push('  }');
       break;
     case 'azurerm_storage_queue':
-      lines.push('  account_tier             = "Standard"');
-      lines.push('  account_replication_type = "LRS"');
+      lines.push('  storage_account_name = azurerm_storage_account.queues.name');
+      break;
+    case 'azurerm_api_management':
+      lines.push('  publisher_name = "CloudBlocks"');
+      lines.push('  publisher_email = var.publisher_email');
+      lines.push('  sku_name = "Developer_1"');
       break;
     case 'azurerm_virtual_network':
       lines.push('  # Network resource configuration');
@@ -321,7 +377,7 @@ export const azureProviderDefinition: ProviderDefinition = {
           '  required_providers {',
           '    azurerm = {',
           '      source  = "hashicorp/azurerm"',
-          '      version = "~> 3.0"',
+          '      version = "= 3.117.1"',
           '    }',
           '  }',
           '}',
@@ -329,6 +385,24 @@ export const azureProviderDefinition: ProviderDefinition = {
       providerBlock: (region: string) =>
         ['provider "azurerm" {', '  features {}', `  # region: ${region}`, '}'].join('\n'),
       regionVariableDescription: 'Azure region for resource deployment',
+      extraVariables: (ctx) =>
+        ctx.normalized.architecture.nodes.some(
+          (node) =>
+            node.kind === 'resource' &&
+            resolveBlockMapping(
+              azureBlockMappings,
+              azureSubtypeBlockMappings,
+              node.category,
+              node.subtype,
+            )?.resourceType === 'azurerm_api_management',
+        )
+          ? [
+              'variable "publisher_email" {',
+              '  description = "API Management publisher email"',
+              '  type = string',
+              '}',
+            ]
+          : [],
       renderSharedResources: (ctx) => {
         const lines: string[] = [];
         const resources = ctx.normalized.architecture.nodes.filter(
@@ -341,15 +415,20 @@ export const azureProviderDefinition: ProviderDefinition = {
         lines.push('}');
         lines.push('');
 
-        const needsServicePlan = resources.some((resource) => {
-          const mapping = resolveBlockMapping(
-            azureBlockMappings,
-            azureSubtypeBlockMappings,
-            resource.category,
-            resource.subtype,
-          );
-          return mapping !== undefined && servicePlanResourceTypes.has(mapping.resourceType);
-        });
+        const resourceTypes = new Set(
+          resources.map(
+            (resource) =>
+              resolveBlockMapping(
+                azureBlockMappings,
+                azureSubtypeBlockMappings,
+                resource.category,
+                resource.subtype,
+              )?.resourceType,
+          ),
+        );
+        const needsServicePlan = [...resourceTypes].some((type) =>
+          type ? servicePlanResourceTypes.has(type) : false,
+        );
         if (needsServicePlan) {
           lines.push('resource "azurerm_service_plan" "main" {');
           lines.push('  name                = "${var.project_name}-plan"');
@@ -357,6 +436,32 @@ export const azureProviderDefinition: ProviderDefinition = {
           lines.push('  location            = azurerm_resource_group.main.location');
           lines.push('  os_type             = "Linux"');
           lines.push('  sku_name            = "B1"');
+          lines.push('}');
+          lines.push('');
+        }
+
+        for (const [needed, name] of [
+          [resourceTypes.has('azurerm_linux_function_app'), 'functions'],
+          [resourceTypes.has('azurerm_storage_queue'), 'queues'],
+        ] as const) {
+          if (!needed) continue;
+          lines.push(`resource "azurerm_storage_account" "${name}" {`);
+          lines.push(`  name = substr("cb${name}\${substr(md5(var.project_name), 0, 18)}", 0, 24)`);
+          lines.push('  resource_group_name = azurerm_resource_group.main.name');
+          lines.push('  location = azurerm_resource_group.main.location');
+          lines.push('  account_tier = "Standard"');
+          lines.push('  account_replication_type = "LRS"');
+          lines.push('}');
+          lines.push('');
+        }
+        if (resourceTypes.has('azurerm_mssql_database')) {
+          lines.push('resource "azurerm_mssql_server" "main" {');
+          lines.push('  name = "${var.project_name}-sql-server"');
+          lines.push('  resource_group_name = azurerm_resource_group.main.name');
+          lines.push('  location = azurerm_resource_group.main.location');
+          lines.push('  version = "12.0"');
+          lines.push('  administrator_login = var.db_admin_username');
+          lines.push('  administrator_login_password = var.db_admin_password');
           lines.push('}');
           lines.push('');
         }

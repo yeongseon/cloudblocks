@@ -328,6 +328,9 @@ describe('generateMainTf', () => {
 
     expect(hcl).toContain('virtual_network_name = azurerm_virtual_network.vnet_network-a.name');
     expect(hcl).toContain('address_prefixes     = ["10.0.1.0/24"]');
+    const subnetBody = hcl.split('resource "azurerm_subnet" "subnet_public-a" {')[1];
+    expect(subnetBody).toBeDefined();
+    expect(subnetBody!.split('}')[0]).not.toContain('location');
   });
 
   it('generates category-specific hcl for compute, data, and edge blocks', () => {
@@ -506,6 +509,97 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
   });
 
+  it('provides schema-required companions for gateway, functions, SQL, queue and API Management', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'net1', name: 'VNet', type: 'region', parentId: null }),
+        createPlate({ id: 'sub1', name: 'Gateway Subnet', type: 'subnet', parentId: 'net1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'gw',
+          name: 'Gateway',
+          category: 'delivery',
+          subtype: 'application-gateway',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'fn',
+          name: 'Function',
+          category: 'compute',
+          subtype: 'functions',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'db',
+          name: 'SQL',
+          category: 'data',
+          subtype: 'sql-database',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'queue',
+          name: 'Queue',
+          category: 'messaging',
+          subtype: 'service-bus',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'apim',
+          name: 'API Management',
+          category: 'delivery',
+          subtype: 'api-management',
+          placementId: 'sub1',
+        }),
+      ],
+    });
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
+
+    expect(hcl).toContain('resource "azurerm_public_ip" "appgw_gateway_pip"');
+    expect(hcl).toContain('subnet_id = azurerm_subnet.subnet_gateway_subnet.id');
+    expect(hcl).toContain('request_routing_rule {');
+    expect(hcl).toContain('resource "azurerm_storage_account" "functions"');
+    expect(hcl).toContain(
+      'storage_account_access_key = azurerm_storage_account.functions.primary_access_key',
+    );
+    expect(hcl).toContain('resource "azurerm_storage_account" "queues"');
+    expect(hcl).toContain('storage_account_name = azurerm_storage_account.queues.name');
+    expect(hcl).toContain('resource "azurerm_mssql_server" "main"');
+    expect(hcl).toContain('server_id = azurerm_mssql_server.main.id');
+    expect(hcl).toContain('publisher_email = var.publisher_email');
+    const vars = generateVariablesTf(
+      defaultOptions,
+      azureProviderDefinition,
+      normalize(model, azureProviderDefinition),
+    );
+    expect(vars).toContain('variable "publisher_email"');
+  });
+
+  it('does not require an API Management publisher for other Azure resources', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'vm', name: 'VM', category: 'compute', subtype: 'vm' })],
+    });
+    const vars = generateVariablesTf(
+      defaultOptions,
+      azureProviderDefinition,
+      normalize(model, azureProviderDefinition),
+    );
+    expect(vars).not.toContain('variable "publisher_email"');
+  });
+
+  it('keeps user-supplied project labels from injecting HCL lines', () => {
+    const model = createTestModel();
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, {
+      ...defaultOptions,
+      projectName: 'demo\nresource "unsafe" "injected" {}',
+    });
+    expect(hcl).not.toContain('\nresource "unsafe"');
+  });
+
   it('generates implicit PIP + NIC for VM blocks', () => {
     const model = createTestModel({
       blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
@@ -519,6 +613,7 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('resource "azurerm_network_interface" "vm_webserver_nic"');
     expect(hcl).toContain('public_ip_address_id          = azurerm_public_ip.vm_webserver_pip.id');
     expect(hcl).toContain('resource "azurerm_linux_virtual_machine" "vm_webserver"');
+    expect(hcl).toContain('source_image_reference {');
 
     const pipIndex = hcl.indexOf('azurerm_public_ip');
     const nicIndex = hcl.indexOf('azurerm_network_interface');
@@ -716,7 +811,11 @@ describe('generateMainTf', () => {
 
 describe('generateVariablesTf', () => {
   it('includes project_name, location, db_admin_username, and db_admin_password variables', () => {
-    const hcl = generateVariablesTf(defaultOptions, azureProviderDefinition);
+    const hcl = generateVariablesTf(
+      defaultOptions,
+      azureProviderDefinition,
+      normalize(createTestModel(), azureProviderDefinition),
+    );
 
     expect(hcl).toContain('variable "project_name" {');
     expect(hcl).toContain('variable "location" {');
@@ -731,13 +830,18 @@ describe('generateVariablesTf', () => {
         projectName: ' Project!!! Name @@@ ',
       },
       azureProviderDefinition,
+      normalize(createTestModel(), azureProviderDefinition),
     );
 
     expect(hcl).toContain('default     = "project_name"');
   });
 
   it('uses default region description when provider hook is absent', () => {
-    const hcl = generateVariablesTf(defaultOptions, awsProviderDefinition);
+    const hcl = generateVariablesTf(
+      defaultOptions,
+      awsProviderDefinition,
+      normalize(createTestModel(), awsProviderDefinition),
+    );
 
     expect(hcl).toContain('description = "AWS region for resource deployment"');
   });
@@ -852,7 +956,7 @@ describe('AWS full-output HCL smoke test', () => {
     expect(hcl).not.toContain('null');
 
     // Variables file
-    const vars = generateVariablesTf(awsOptions, awsProviderDefinition);
+    const vars = generateVariablesTf(awsOptions, awsProviderDefinition, normalized);
     expect(vars).toContain('variable "project_name"');
     expect(vars).toContain('variable "location"');
 
@@ -900,7 +1004,7 @@ describe('GCP full-output HCL smoke test', () => {
     expect(hcl).not.toContain('undefined');
     expect(hcl).not.toContain('null');
 
-    const vars = generateVariablesTf(gcpOptions, gcpProviderDefinition);
+    const vars = generateVariablesTf(gcpOptions, gcpProviderDefinition, normalized);
     expect(vars).toContain('variable "project_name"');
     expect(vars).toContain('variable "location"');
     expect(vars).toContain('variable "project_id"');
