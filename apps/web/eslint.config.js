@@ -33,5 +33,17 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: [
+      'src/widgets/github-pr/GitHubPR.tsx',
+      'src/widgets/github-repos/GitHubRepos.tsx',
+      'src/widgets/github-sync/GitHubSync.tsx',
+    ],
+    // Keep upgrade diagnostics visible until #1947 removes these legacy effect/ref patterns.
+    rules: {
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+    },
+  },
   eslintConfigPrettier,
 ]);
