@@ -21,6 +21,7 @@ jobs:
       pull-requests: read
     outputs:
       web: ${{ steps.filter.outputs.web }}
+      terraform: ${{ steps.filter.outputs.terraform }}
       engine-spike: ${{ steps.filter.outputs.engine-spike }}
       api: ${{ steps.filter.outputs.api }}
       packages: ${{ steps.filter.outputs.packages }}
@@ -37,6 +38,17 @@ jobs:
           filters: |
             web:
               - 'apps/web/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'tsconfig.json'
+            terraform:
+              - 'apps/web/src/features/templates/**'
+              - 'apps/web/src/features/generate/**'
+              - 'apps/web/src/entities/validation/**'
+              - 'apps/web/src/entities/store/slices/persistenceSlice.ts'
+              - 'apps/web/src/shared/types/template.ts'
+              - 'apps/web/scripts/export-builtin-terraform.mjs'
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'package.json'
@@ -316,6 +328,58 @@ jobs:
       - name: Test study
         run: pnpm --filter @cloudblocks/engine-spike test
 
+  terraform-validate:
+    name: Terraform Validate
+    needs: changes
+    if: needs.changes.outputs.terraform != 'false' || needs.changes.outputs.ci != 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm run build:packages
+
+      - name: Export all six built-in Azure templates
+        env:
+          CLOUDBLOCKS_TERRAFORM_OUTPUT: ${{ runner.temp }}/terraform-templates
+        run: pnpm --filter @cloudblocks/web exec node scripts/export-builtin-terraform.mjs
+
+      - name: Install Terraform CLI
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.4
+
+      - name: Validate generated configurations
+        env:
+          CLOUDBLOCKS_TERRAFORM_OUTPUT: ${{ runner.temp }}/terraform-templates
+        run: |
+          set -euo pipefail
+          count=0
+          for directory in "$CLOUDBLOCKS_TERRAFORM_OUTPUT"/template-*; do
+            test -d "$directory"
+            echo "Validating $(basename "$directory")"
+            test -f "$directory/main.tf"
+            test -f "$directory/variables.tf"
+            test -f "$directory/outputs.tf"
+            terraform -chdir="$directory" init -backend=false -input=false -no-color
+            terraform -chdir="$directory" validate -no-color
+            count=$((count + 1))
+          done
+          test "$count" -eq 6
+
   # ─── API ─────────────────────────────────────────────────────────
   api-lint:
     name: API Lint
@@ -378,7 +442,17 @@ jobs:
     name: CI Gate
     if: always()
     needs:
-      [web-lint, web-build, web-test, package-tests, engine-spike, api-lint, api-test, banned-terms]
+      [
+        web-lint,
+        web-build,
+        web-test,
+        package-tests,
+        engine-spike,
+        terraform-validate,
+        api-lint,
+        api-test,
+        banned-terms,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Check results
@@ -388,6 +462,7 @@ jobs:
           WEB_TEST: ${{ needs.web-test.result }}
           PKG_TESTS: ${{ needs.package-tests.result }}
           ENGINE_SPIKE: ${{ needs.engine-spike.result }}
+          TERRAFORM_VALIDATE: ${{ needs.terraform-validate.result }}
           API_LINT: ${{ needs.api-lint.result }}
           API_TEST: ${{ needs.api-test.result }}
           BANNED_TERMS: ${{ needs.banned-terms.result }}
@@ -395,7 +470,7 @@ jobs:
           echo "=== CI Gate Check ==="
           FAILED=0
           for pair in "web-lint:$WEB_LINT" "web-build:$WEB_BUILD" "web-test:$WEB_TEST" \
-                      "package-tests:$PKG_TESTS" "engine-spike:$ENGINE_SPIKE" "api-lint:$API_LINT" "api-test:$API_TEST" \
+                      "package-tests:$PKG_TESTS" "engine-spike:$ENGINE_SPIKE" "terraform-validate:$TERRAFORM_VALIDATE" "api-lint:$API_LINT" "api-test:$API_TEST" \
                       "banned-terms:$BANNED_TERMS"; do
             job="${pair%%:*}"
             result="${pair#*:}"
