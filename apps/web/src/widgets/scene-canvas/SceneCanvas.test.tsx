@@ -51,6 +51,7 @@ vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
 const mockSetSelectedId = vi.fn();
 const mockAddNode = vi.fn();
 const mockMoveExternalBlockPosition = vi.fn();
+const mockMoveRootResourcePosition = vi.fn();
 const mockClearSelection = vi.fn();
 const mockSetSelectedIds = vi.fn();
 const mockCompleteInteraction = vi.fn();
@@ -81,6 +82,7 @@ function setupStoreMocks() {
       workspace: { architecture },
       addNode: mockAddNode,
       moveExternalBlockPosition: mockMoveExternalBlockPosition,
+      moveRootResourcePosition: mockMoveRootResourcePosition,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useArchitectureStore);
@@ -822,6 +824,33 @@ describe('SceneCanvas fit-to-content', () => {
     ).toBe(true);
   });
 
+  it('routes root-allowed delivery block moves through the bounded root action', () => {
+    const frontDoor: ResourceBlock = {
+      id: 'front-door',
+      name: 'Front Door',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'front_door',
+      category: 'delivery',
+      provider: 'azure',
+      parentId: null,
+      position: { x: -5, y: 0, z: 0 },
+      metadata: {},
+    };
+    architecture.nodes = [frontDoor];
+
+    const { queryByTestId } = render(<SceneCanvas />);
+
+    expect(queryByTestId('external-lane-zone')).toBeNull();
+    expect(
+      blockSpriteMock.mock.calls.some(
+        ([props]) =>
+          (props as { blockId?: string; onMove?: unknown }).blockId === frontDoor.id &&
+          (props as { onMove?: unknown }).onMove === mockMoveRootResourcePosition,
+      ),
+    ).toBe(true);
+  });
+
   it('skips nested blocks whose parent container cannot be resolved', () => {
     const orphanedBlock: ResourceBlock = {
       id: 'orphaned-block',
@@ -1331,6 +1360,7 @@ describe('SceneCanvas placement flows', () => {
           workspace: { architecture },
           addNode: mockAddNode,
           moveExternalBlockPosition: mockMoveExternalBlockPosition,
+          moveRootResourcePosition: mockMoveRootResourcePosition,
         };
         return (selector as (s: typeof state) => unknown)(state);
       }) as typeof useArchitectureStore);

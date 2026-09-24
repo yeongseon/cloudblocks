@@ -51,6 +51,12 @@ describe('Resource rule coverage', () => {
     const knownTypes = Object.keys(RESOURCE_RULES);
     expect(knownTypes.length).toBeGreaterThanOrEqual(32);
   });
+
+  it('allows managed SQL and cache services at root while retaining legacy subnet models', () => {
+    expect(RESOURCE_RULES.sql_database.allowedParents).toEqual(['subnet', null]);
+    expect(RESOURCE_RULES.cache_store.allowedParents).toEqual(['subnet', null]);
+    expect(RESOURCE_RULES.application_gateway.allowedParents).toEqual(['subnet']);
+  });
 });
 
 describe('External block resource rules', () => {

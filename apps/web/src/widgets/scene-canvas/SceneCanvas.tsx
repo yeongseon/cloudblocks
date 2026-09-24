@@ -33,14 +33,16 @@ import { useAnimationClock } from '../../shared/hooks/useAnimationClock';
 const EMPTY_OCCUPIED_CELLS = new Set<string>();
 
 export function SceneCanvas() {
-  const { architecture, nodeById, addNode, moveExternalBlockPosition } = useArchitectureStore(
-    useShallow((state) => ({
-      architecture: state.workspace.architecture,
-      nodeById: state.nodeById,
-      addNode: state.addNode,
-      moveExternalBlockPosition: state.moveExternalBlockPosition,
-    })),
-  );
+  const { architecture, nodeById, addNode, moveExternalBlockPosition, moveRootResourcePosition } =
+    useArchitectureStore(
+      useShallow((state) => ({
+        architecture: state.workspace.architecture,
+        nodeById: state.nodeById,
+        addNode: state.addNode,
+        moveExternalBlockPosition: state.moveExternalBlockPosition,
+        moveRootResourcePosition: state.moveRootResourcePosition,
+      })),
+    );
   const nodes = architecture.nodes;
   const connections = architecture.connections;
   const indexedNodeById = useMemo(
@@ -87,6 +89,20 @@ export function SceneCanvas() {
           block?.kind === 'resource' &&
           block.parentId === null &&
           (Boolean(block.roles?.includes('external')) || isExternalResourceType(block.resourceType))
+        );
+      }),
+    [blockIds, indexedNodeById],
+  );
+  const rootResourceBlockIds = useMemo(
+    () =>
+      blockIds.filter((blockId) => {
+        const block = indexedNodeById.get(blockId);
+        return (
+          block?.kind === 'resource' &&
+          block.parentId === null &&
+          ROOT_ALLOWED_RESOURCE_TYPES.has(block.resourceType) &&
+          !block.roles?.includes('external') &&
+          !isExternalResourceType(block.resourceType)
         );
       }),
     [blockIds, indexedNodeById],
@@ -643,6 +659,28 @@ export function SceneCanvas() {
                 screenY={screenPos.y}
                 zIndex={zIndex}
                 onMove={moveExternalBlockPosition}
+              />
+            );
+          })}
+          {rootResourceBlockIds.map((blockId) => {
+            const block = indexedNodeById.get(blockId);
+            if (block?.kind !== 'resource') return null;
+            const screenPos = worldToScreen(
+              block.position.x,
+              block.position.y,
+              block.position.z,
+              origin.x,
+              origin.y,
+            );
+            const zIndex = depthKey(block.position.x, block.position.z, block.position.y, 2);
+            return (
+              <BlockSprite
+                key={block.id}
+                blockId={block.id}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
+                onMove={moveRootResourcePosition}
               />
             );
           })}

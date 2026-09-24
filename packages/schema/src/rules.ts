@@ -163,7 +163,7 @@ export const RESOURCE_RULES = {
   },
   sql_database: {
     containerCapable: false,
-    allowedParents: ['subnet'],
+    allowedParents: ['subnet', null],
     category: 'data',
     canvasTier: 'data',
   },
@@ -181,7 +181,7 @@ export const RESOURCE_RULES = {
   },
   cache_store: {
     containerCapable: false,
-    allowedParents: ['subnet'],
+    allowedParents: ['subnet', null],
     category: 'data',
     canvasTier: 'data',
   },
