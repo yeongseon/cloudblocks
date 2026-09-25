@@ -13,13 +13,13 @@
   "dependencies": {
     "@cloudblocks/domain": "workspace:*",
     "@cloudblocks/schema": "workspace:*",
-    "three": "^0.180.0"
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
-    "@types/three": "^0.180.0",
+    "@types/three": "^0.186.0",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "typescript": "~5.9.3",
