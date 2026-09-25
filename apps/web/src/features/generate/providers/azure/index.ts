@@ -1,11 +1,11 @@
 import type {
   BlockResourceMap,
   ProviderDefinition,
+  ResourceTypeResourceMap,
   SubtypeResourceMap,
   TerraformBlockContext,
   TerraformContainerContext,
 } from '../../types';
-import { resolveBlockMapping } from '../../types';
 import { isExternalResourceType } from '@cloudblocks/schema';
 
 function buildAzureContainerBody(ctx: TerraformContainerContext): string[] {
@@ -38,10 +38,9 @@ function buildAzureImplicitResources(ctx: TerraformBlockContext): string[] {
   const sections: string[] = [];
 
   const needsPip =
-    (ctx.block.category === 'compute' && ctx.block.subtype === 'vm') ||
-    ctx.mapping.resourceType === 'azurerm_application_gateway' ||
-    (ctx.block.category === 'delivery' && ctx.block.subtype === 'firewall');
-  const needsNic = ctx.block.category === 'compute' && ctx.block.subtype === 'vm';
+    ctx.mapping.resourceType === 'azurerm_linux_virtual_machine' ||
+    ctx.mapping.resourceType === 'azurerm_application_gateway';
+  const needsNic = ctx.mapping.resourceType === 'azurerm_linux_virtual_machine';
 
   if (needsPip) {
     const pipName = `${ctx.resourceName}_pip`;
@@ -193,6 +192,9 @@ function buildAzureBlockBody(ctx: TerraformBlockContext): string[] {
     case 'azurerm_storage_queue':
       lines.push('  storage_account_name = azurerm_storage_account.queues.name');
       break;
+    case 'azurerm_servicebus_namespace':
+      lines.push('  sku = "Standard"');
+      break;
     case 'azurerm_api_management':
       lines.push('  publisher_name = "CloudBlocks"');
       lines.push('  publisher_email = var.publisher_email');
@@ -315,6 +317,57 @@ const azureBlockMappings: BlockResourceMap = {
   },
 };
 
+export const azureTerraformResourceTypeMappings: ResourceTypeResourceMap = {
+  application_gateway: {
+    resourceType: 'azurerm_application_gateway',
+    namePrefix: 'appgw',
+  },
+  'application-gateway': {
+    resourceType: 'azurerm_application_gateway',
+    namePrefix: 'appgw',
+  },
+  virtual_machine: { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' },
+  vm: { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' },
+  function_compute: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
+  functions: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
+  'timer-trigger': { resourceType: 'azurerm_linux_function_app', namePrefix: 'timer' },
+  app_service: { resourceType: 'azurerm_linux_web_app', namePrefix: 'appsvc' },
+  'app-service': { resourceType: 'azurerm_linux_web_app', namePrefix: 'appsvc' },
+  web_compute: { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' },
+  app_compute: { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' },
+  sql_database: { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
+  'sql-database': { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
+  relational_database: {
+    resourceType: 'azurerm_postgresql_flexible_server',
+    namePrefix: 'pgserver',
+  },
+  'azure-postgresql': {
+    resourceType: 'azurerm_postgresql_flexible_server',
+    namePrefix: 'pgserver',
+  },
+  blob_storage: { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
+  'blob-storage': { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
+  cosmos_db: { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
+  'cosmos-db': { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
+  message_queue: { resourceType: 'azurerm_servicebus_namespace', namePrefix: 'servicebus' },
+  'service-bus': { resourceType: 'azurerm_servicebus_namespace', namePrefix: 'servicebus' },
+  'event-grid': { resourceType: 'azurerm_eventgrid_topic', namePrefix: 'evtopic' },
+  monitoring: { resourceType: 'azurerm_monitor_workspace', namePrefix: 'monitor' },
+  managed_identity: {
+    resourceType: 'azurerm_user_assigned_identity',
+    namePrefix: 'identity',
+  },
+  identity_access: {
+    resourceType: 'azurerm_user_assigned_identity',
+    namePrefix: 'identity',
+  },
+  network_security_group: {
+    resourceType: 'azurerm_network_security_group',
+    namePrefix: 'nsg',
+  },
+  'api-management': { resourceType: 'azurerm_api_management', namePrefix: 'apim' },
+};
+
 const servicePlanResourceTypes = new Set(['azurerm_linux_web_app', 'azurerm_linux_function_app']);
 
 /**
@@ -389,12 +442,8 @@ export const azureProviderDefinition: ProviderDefinition = {
         ctx.normalized.architecture.nodes.some(
           (node) =>
             node.kind === 'resource' &&
-            resolveBlockMapping(
-              azureBlockMappings,
-              azureSubtypeBlockMappings,
-              node.category,
-              node.subtype,
-            )?.resourceType === 'azurerm_api_management',
+            azureTerraformResourceTypeMappings[node.resourceType]?.resourceType ===
+              'azurerm_api_management',
         )
           ? [
               'variable "publisher_email" {',
@@ -417,13 +466,7 @@ export const azureProviderDefinition: ProviderDefinition = {
 
         const resourceTypes = new Set(
           resources.map(
-            (resource) =>
-              resolveBlockMapping(
-                azureBlockMappings,
-                azureSubtypeBlockMappings,
-                resource.category,
-                resource.subtype,
-              )?.resourceType,
+            (resource) => azureTerraformResourceTypeMappings[resource.resourceType]?.resourceType,
           ),
         );
         const needsServicePlan = [...resourceTypes].some((type) =>
@@ -471,6 +514,7 @@ export const azureProviderDefinition: ProviderDefinition = {
       renderContainerBody: (ctx) => buildAzureContainerBody(ctx),
       renderBlockCompanions: (ctx) => buildAzureImplicitResources(ctx),
       renderBlockBody: (ctx) => buildAzureBlockBody(ctx),
+      resourceTypeMappings: azureTerraformResourceTypeMappings,
       extraOutputs: () => [
         {
           name: 'resource_group_name',

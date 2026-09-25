@@ -123,6 +123,37 @@ describe('normalize', () => {
     expect(normalized.resourceNames.get('web-3')).toBe('webapp_app_3');
   });
 
+  it('uses canonical resourceType when subtype is absent or misleading', () => {
+    const model = createTestModel({
+      blocks: [
+        createBlock({
+          id: 'sql-1',
+          name: 'SQL',
+          category: 'data',
+          resourceType: 'sql_database',
+          subtype: undefined,
+        }),
+        createBlock({
+          id: 'function-1',
+          name: 'Function',
+          category: 'compute',
+          resourceType: 'function_compute',
+          subtype: 'app-service',
+        }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
+
+    expect(hcl).toContain('resource "azurerm_mssql_database" "sqldb_sql"');
+    expect(hcl).toContain('resource "azurerm_linux_function_app" "func_function"');
+    expect(hcl).not.toContain('azurerm_postgresql_flexible_server');
+  });
+
   it('sanitizes names by replacing special characters with underscores', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net-1', name: '*** Core Network ###', type: 'region' })],
@@ -337,10 +368,34 @@ describe('generateMainTf', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'sub1', name: 'Subnet One', type: 'subnet' })],
       blocks: [
-        createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
-        createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
-        createBlock({ id: 'st', name: 'Storage', category: 'data', placementId: 'sub1' }),
-        createBlock({ id: 'gw', name: 'Gateway', category: 'delivery', placementId: 'sub1' }),
+        createBlock({
+          id: 'cmp',
+          name: 'Compute',
+          category: 'compute',
+          resourceType: 'web_compute',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'db',
+          name: 'Database',
+          category: 'data',
+          resourceType: 'relational_database',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'st',
+          name: 'Storage',
+          category: 'data',
+          resourceType: 'blob_storage',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'gw',
+          name: 'Gateway',
+          category: 'delivery',
+          resourceType: 'application_gateway',
+          placementId: 'sub1',
+        }),
       ],
     });
 
@@ -359,8 +414,12 @@ describe('generateMainTf', () => {
   it('generates category-specific comments for network and identity blocks', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'net', name: 'NetworkCore', category: 'network' }),
-        createBlock({ id: 'idn', name: 'IdentityCore', category: 'identity' }),
+        createBlock({
+          id: 'idn',
+          name: 'IdentityCore',
+          category: 'identity',
+          resourceType: 'managed_identity',
+        }),
       ],
     });
 
@@ -370,7 +429,6 @@ describe('generateMainTf', () => {
       defaultOptions,
     );
 
-    expect(hcl).toContain('# Network resource configuration');
     expect(hcl).toContain('# Managed identity configuration');
   });
 
@@ -470,12 +528,41 @@ describe('generateMainTf', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
       blocks: [
-        createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' }),
-        createBlock({ id: 'q1', name: 'TaskQueue', category: 'messaging', placementId: 'net1' }),
-        createBlock({ id: 'ev1', name: 'EventSrc', category: 'messaging', placementId: 'net1' }),
-        createBlock({ id: 'an1', name: 'Analytics', category: 'operations', placementId: 'net1' }),
-        createBlock({ id: 'id1', name: 'Identity', category: 'security', placementId: 'net1' }),
-        createBlock({ id: 'ob1', name: 'Monitor', category: 'operations', placementId: 'net1' }),
+        createBlock({
+          id: 'fn1',
+          name: 'Handler',
+          category: 'compute',
+          resourceType: 'app_service',
+          placementId: 'net1',
+        }),
+        createBlock({
+          id: 'q1',
+          name: 'TaskQueue',
+          category: 'messaging',
+          resourceType: 'message_queue',
+          placementId: 'net1',
+        }),
+        createBlock({
+          id: 'ev1',
+          name: 'EventSrc',
+          category: 'messaging',
+          resourceType: 'event-grid',
+          placementId: 'net1',
+        }),
+        createBlock({
+          id: 'id1',
+          name: 'Identity',
+          category: 'identity',
+          resourceType: 'managed_identity',
+          parentId: null,
+        }),
+        createBlock({
+          id: 'ob1',
+          name: 'Monitor',
+          category: 'operations',
+          resourceType: 'monitoring',
+          placementId: 'net1',
+        }),
       ],
     });
 
@@ -486,8 +573,8 @@ describe('generateMainTf', () => {
     );
 
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
-    expect(hcl).toContain('resource "azurerm_storage_queue"');
-    expect(hcl).toContain('resource "azurerm_log_analytics_workspace"');
+    expect(hcl).toContain('resource "azurerm_servicebus_namespace"');
+    expect(hcl).toContain('resource "azurerm_monitor_workspace"');
     expect(hcl).toContain('resource "azurerm_user_assigned_identity"');
   });
 
@@ -495,7 +582,13 @@ describe('generateMainTf', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
       blocks: [
-        createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' }),
+        createBlock({
+          id: 'fn1',
+          name: 'Handler',
+          category: 'compute',
+          resourceType: 'function_compute',
+          placementId: 'net1',
+        }),
       ],
     });
 
@@ -506,7 +599,7 @@ describe('generateMainTf', () => {
     );
 
     expect(hcl).toContain('resource "azurerm_service_plan" "main"');
-    expect(hcl).toContain('resource "azurerm_linux_web_app"');
+    expect(hcl).toContain('resource "azurerm_linux_function_app"');
   });
 
   it('provides schema-required companions for gateway, functions, SQL, queue and API Management', () => {
@@ -520,6 +613,7 @@ describe('generateMainTf', () => {
           id: 'gw',
           name: 'Gateway',
           category: 'delivery',
+          resourceType: 'application_gateway',
           subtype: 'application-gateway',
           placementId: 'sub1',
         }),
@@ -527,6 +621,7 @@ describe('generateMainTf', () => {
           id: 'fn',
           name: 'Function',
           category: 'compute',
+          resourceType: 'function_compute',
           subtype: 'functions',
           placementId: 'sub1',
         }),
@@ -534,6 +629,7 @@ describe('generateMainTf', () => {
           id: 'db',
           name: 'SQL',
           category: 'data',
+          resourceType: 'sql_database',
           subtype: 'sql-database',
           placementId: 'sub1',
         }),
@@ -541,6 +637,7 @@ describe('generateMainTf', () => {
           id: 'queue',
           name: 'Queue',
           category: 'messaging',
+          resourceType: 'message_queue',
           subtype: 'service-bus',
           placementId: 'sub1',
         }),
@@ -548,6 +645,7 @@ describe('generateMainTf', () => {
           id: 'apim',
           name: 'API Management',
           category: 'delivery',
+          resourceType: 'api-management',
           subtype: 'api-management',
           placementId: 'sub1',
         }),
@@ -566,8 +664,8 @@ describe('generateMainTf', () => {
     expect(hcl).toContain(
       'storage_account_access_key = azurerm_storage_account.functions.primary_access_key',
     );
-    expect(hcl).toContain('resource "azurerm_storage_account" "queues"');
-    expect(hcl).toContain('storage_account_name = azurerm_storage_account.queues.name');
+    expect(hcl).toContain('resource "azurerm_servicebus_namespace" "servicebus_queue"');
+    expect(hcl).toContain('sku = "Standard"');
     expect(hcl).toContain('resource "azurerm_mssql_server" "main"');
     expect(hcl).toContain('server_id = azurerm_mssql_server.main.id');
     expect(hcl).toContain('publisher_email = var.publisher_email');
@@ -581,7 +679,15 @@ describe('generateMainTf', () => {
 
   it('does not require an API Management publisher for other Azure resources', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'vm', name: 'VM', category: 'compute', subtype: 'vm' })],
+      blocks: [
+        createBlock({
+          id: 'vm',
+          name: 'VM',
+          category: 'compute',
+          resourceType: 'virtual_machine',
+          subtype: 'vm',
+        }),
+      ],
     });
     const vars = generateVariablesTf(
       defaultOptions,
@@ -602,7 +708,15 @@ describe('generateMainTf', () => {
 
   it('generates implicit PIP + NIC for VM blocks', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
+      blocks: [
+        createBlock({
+          id: 'vm1',
+          name: 'WebServer',
+          category: 'compute',
+          resourceType: 'virtual_machine',
+          subtype: 'vm',
+        }),
+      ],
     });
 
     const normalized = normalize(model, azureProviderDefinition);
@@ -622,37 +736,40 @@ describe('generateMainTf', () => {
     expect(nicIndex).toBeLessThan(vmIndex);
   });
 
-  it('generates implicit PIP for firewall blocks but no NIC', () => {
+  it('rejects unsupported firewall blocks instead of generating another delivery service', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'delivery', subtype: 'firewall' }),
+        createBlock({
+          id: 'fw1',
+          name: 'MainFirewall',
+          category: 'security',
+          resourceType: 'firewall_security',
+          subtype: 'azure-firewall',
+        }),
       ],
     });
 
-    const normalized = normalize(model, azureProviderDefinition);
-    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
-
-    expect(hcl).toContain('resource "azurerm_public_ip" "appgw_mainfirewall_pip"');
-    expect(hcl).not.toContain('azurerm_network_interface');
+    expect(() => normalize(model, azureProviderDefinition)).toThrow(
+      'MainFirewall (firewall_security) is not supported for Azure Terraform export.',
+    );
   });
 
-  it('does not generate implicit resources for internal-lb blocks', () => {
+  it('rejects unsupported internal load balancers instead of generating Application Gateway', () => {
     const model = createTestModel({
       blocks: [
         createBlock({
           id: 'lb1',
           name: 'InternalLB',
           category: 'delivery',
+          resourceType: 'internal_load_balancer',
           subtype: 'internal-lb',
         }),
       ],
     });
 
-    const normalized = normalize(model, azureProviderDefinition);
-    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
-
-    expect(hcl).not.toContain('azurerm_public_ip');
-    expect(hcl).not.toContain('azurerm_network_interface');
+    expect(() => normalize(model, azureProviderDefinition)).toThrow(
+      'InternalLB (internal_load_balancer) is not supported for Azure Terraform export.',
+    );
   });
 
   it('does not generate implicit resources for regular compute blocks without subtype', () => {
@@ -851,8 +968,20 @@ describe('generateOutputsTf', () => {
   it('includes resource_group_name output and one output per block', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
-        createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
+        createBlock({
+          id: 'cmp',
+          name: 'Compute',
+          category: 'compute',
+          resourceType: 'web_compute',
+          placementId: 'sub1',
+        }),
+        createBlock({
+          id: 'db',
+          name: 'Database',
+          category: 'data',
+          resourceType: 'relational_database',
+          placementId: 'sub1',
+        }),
       ],
     });
 
