@@ -1,6 +1,13 @@
 import type { GeneratorPlugin } from './types';
 import { GENERATOR_METADATA_VERSION } from './types';
-import { normalize, generateMainTf, generateVariablesTf, generateOutputsTf } from './terraform';
+import {
+  normalize,
+  generateMainTf,
+  generateVariablesTf,
+  generateOutputsTf,
+  resolveTerraformBlockMapping,
+} from './terraform';
+import { isExternalResourceType } from '@cloudblocks/schema';
 
 /**
  * Terraform Generator Plugin (v1.0)
@@ -12,6 +19,25 @@ export const terraformPlugin: GeneratorPlugin = {
   id: 'terraform',
   displayName: 'Terraform (HCL)',
   supportedProviders: ['azure', 'aws', 'gcp'],
+
+  validate: (architecture, { provider }) =>
+    architecture.nodes.flatMap((node) => {
+      if (node.kind !== 'resource' || isExternalResourceType(node.resourceType)) {
+        return [];
+      }
+
+      if (resolveTerraformBlockMapping(provider, node)) {
+        return [];
+      }
+
+      return [
+        {
+          severity: 'error' as const,
+          blockId: node.id,
+          message: `${node.name} (${node.resourceType}) is not supported for ${provider.displayName} Terraform export.`,
+        },
+      ];
+    }),
 
   filePlan: () => [
     { path: 'main.tf', language: 'hcl' },

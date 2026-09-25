@@ -52,6 +52,23 @@ function getContainerLayer(
   return container.layer;
 }
 
+export function resolveTerraformBlockMapping(
+  provider: ProviderDefinition,
+  block: ResourceBlock,
+): ResourceMapping | undefined {
+  const exactMappings = provider.generators.terraform.resourceTypeMappings;
+  if (exactMappings) {
+    return exactMappings[block.resourceType];
+  }
+
+  return resolveBlockMapping(
+    provider.blockMappings,
+    provider.subtypeBlockMappings,
+    block.category,
+    block.subtype,
+  );
+}
+
 // ─── Normalize Stage ────────────────────────────────────────
 
 export function normalize(
@@ -85,12 +102,12 @@ export function normalize(
 
   // Map blocks
   for (const block of resources) {
-    const mapping = resolveBlockMapping(
-      provider.blockMappings,
-      provider.subtypeBlockMappings,
-      block.category,
-      block.subtype,
-    )!;
+    const mapping = resolveTerraformBlockMapping(provider, block);
+    if (!mapping) {
+      throw new Error(
+        `${block.name} (${block.resourceType}) is not supported for ${provider.displayName} Terraform export.`,
+      );
+    }
     const name = uniqueName(mapping.namePrefix, block.name);
     resourceNames.set(block.id, name);
   }
@@ -261,12 +278,12 @@ export function generateMainTf(
   // Blocks
   for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
-    const mapping = resolveBlockMapping(
-      provider.blockMappings,
-      provider.subtypeBlockMappings,
-      block.category,
-      block.subtype,
-    )!;
+    const mapping = resolveTerraformBlockMapping(provider, block);
+    if (!mapping) {
+      throw new Error(
+        `${block.name} (${block.resourceType}) is not supported for ${provider.displayName} Terraform export.`,
+      );
+    }
     const subnetName = resourceNames.get(block.parentId ?? '') ?? null;
 
     const blockCtx = {
@@ -369,12 +386,12 @@ export function generateOutputsTf(
   // Output each block's key attribute
   for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
-    const mapping = resolveBlockMapping(
-      provider.blockMappings,
-      provider.subtypeBlockMappings,
-      block.category,
-      block.subtype,
-    )!;
+    const mapping = resolveTerraformBlockMapping(provider, block);
+    if (!mapping) {
+      throw new Error(
+        `${block.name} (${block.resourceType}) is not supported for ${provider.displayName} Terraform export.`,
+      );
+    }
 
     sections.push('');
     sections.push(`output "${resName}_id" {`);

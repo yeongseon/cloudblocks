@@ -105,6 +105,7 @@ export type ContainerBlockResourceMap = Record<PlateLayerType, ResourceMapping>;
  * Used alongside BlockResourceMap for subtype-specific resource resolution.
  */
 export type SubtypeResourceMap = Partial<Record<ResourceCategory, Record<string, ResourceMapping>>>;
+export type ResourceTypeResourceMap = Readonly<Record<string, ResourceMapping>>;
 
 /**
  * Resolve the correct ResourceMapping for a block based on category and optional subtype.
@@ -142,6 +143,7 @@ export interface TerraformProviderConfig {
   renderBlockCompanions?: (ctx: TerraformBlockContext) => string[];
   renderBlockBody: (ctx: TerraformBlockContext) => string[];
   extraOutputs?: (ctx: TerraformRenderContext) => TerraformOutputSpec[];
+  resourceTypeMappings?: ResourceTypeResourceMap;
 }
 
 export interface BicepProviderConfig {
