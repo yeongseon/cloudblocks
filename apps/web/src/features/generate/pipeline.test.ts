@@ -170,6 +170,26 @@ describe('pipeline', () => {
       });
     });
 
+    it('rejects an unsupported canonical resource instead of using a category fallback', () => {
+      const unsupportedModel: ArchitectureModel = {
+        ...validModel,
+        nodes: [
+          ...validModel.nodes.slice(0, 2),
+          createResource({
+            id: 'redis-1',
+            name: 'Redis Cache',
+            resourceType: 'cache_store',
+            category: 'data',
+            subtype: 'redis-cache',
+          }),
+        ],
+      };
+
+      expect(() => generateCode(unsupportedModel, validOptions)).toThrow(
+        'Redis Cache (cache_store) is not supported for Azure Terraform export.',
+      );
+    });
+
     it('should throw GenerationError with invalid model (edge on region without subnet)', () => {
       const invalidModel: ArchitectureModel = {
         id: 'arch-2',
