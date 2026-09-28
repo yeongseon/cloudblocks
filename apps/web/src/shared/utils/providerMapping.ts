@@ -136,9 +136,15 @@ export function toAzureSubtypeCandidates(
   providerSubtype: string,
   provider: ProviderType,
 ): string[] {
-  if (provider === 'azure') return [providerSubtype];
+  const subtypeMap = Object.hasOwn(PROVIDER_SUBTYPE_MAP, provider)
+    ? PROVIDER_SUBTYPE_MAP[provider]
+    : undefined;
 
-  const candidates = Object.entries(PROVIDER_SUBTYPE_MAP[provider])
+  if (provider === 'azure' || !subtypeMap) {
+    return [providerSubtype];
+  }
+
+  const candidates = Object.entries(subtypeMap)
     .filter(([, mapped]) => mapped === providerSubtype)
     .map(([azureSubtype]) => azureSubtype);
 

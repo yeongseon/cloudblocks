@@ -412,6 +412,7 @@ export function deserialize(json: string): Workspace[] {
             node.resourceType,
             typeof node.subtype === 'string' ? node.subtype : undefined,
             nodeProvider,
+            typeof node.category === 'string' ? (node.category as ResourceCategory) : undefined,
           );
           node.resourceType = canonical.resourceType;
           if (canonical.subtype !== undefined) {

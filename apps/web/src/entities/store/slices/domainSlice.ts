@@ -17,10 +17,10 @@ import {
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
+  getDefaultCategory,
   getPortsForResourceType,
   isExternalResourceType,
   parseEndpointId,
-  RESOURCE_RULES,
 } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import { toCanonicalResourceType } from '../../../shared/types/resourceIdentity';
@@ -154,11 +154,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const layer = input.layer as PlateLayerType;
       get().addPlate(layer, input.name, input.parentId, input.profileId);
     } else {
-      // Derive category from RESOURCE_RULES or fall back to 'compute'
-      const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[
-        input.resourceType
-      ];
-      const category: ResourceCategory = rule?.category ?? 'compute';
+      // Derive the category from the canonical type so it cannot disagree with
+      // the resourceType the block is ultimately stored with.
+      const canonicalType = resolveCanonicalIdentity(
+        input.resourceType,
+        input.subtype,
+        'compute',
+        input.provider,
+      ).resourceType;
+      const category: ResourceCategory = getDefaultCategory(canonicalType) ?? 'compute';
       get().addBlock(
         category,
         input.name,
