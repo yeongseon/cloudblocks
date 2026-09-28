@@ -58,7 +58,7 @@ export function resolveTerraformBlockMapping(
 ): ResourceMapping | undefined {
   const exactMappings = provider.generators.terraform.resourceTypeMappings;
   if (exactMappings) {
-    return exactMappings[block.resourceType];
+    return exactMappings.get(block.resourceType);
   }
 
   return resolveBlockMapping(

@@ -1,6 +1,7 @@
 import type {
   BlockResourceMap,
   ProviderDefinition,
+  ResourceMapping,
   ResourceTypeResourceMap,
   SubtypeResourceMap,
   TerraformBlockContext,
@@ -317,56 +318,39 @@ const azureBlockMappings: BlockResourceMap = {
   },
 };
 
-export const azureTerraformResourceTypeMappings: ResourceTypeResourceMap = {
-  application_gateway: {
-    resourceType: 'azurerm_application_gateway',
-    namePrefix: 'appgw',
-  },
-  'application-gateway': {
-    resourceType: 'azurerm_application_gateway',
-    namePrefix: 'appgw',
-  },
-  virtual_machine: { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' },
-  vm: { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' },
-  function_compute: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
-  functions: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
-  'timer-trigger': { resourceType: 'azurerm_linux_function_app', namePrefix: 'timer' },
-  app_service: { resourceType: 'azurerm_linux_web_app', namePrefix: 'appsvc' },
-  'app-service': { resourceType: 'azurerm_linux_web_app', namePrefix: 'appsvc' },
-  web_compute: { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' },
-  app_compute: { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' },
-  sql_database: { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
-  'sql-database': { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
-  relational_database: {
-    resourceType: 'azurerm_postgresql_flexible_server',
-    namePrefix: 'pgserver',
-  },
-  'azure-postgresql': {
-    resourceType: 'azurerm_postgresql_flexible_server',
-    namePrefix: 'pgserver',
-  },
-  blob_storage: { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
-  'blob-storage': { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
-  cosmos_db: { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
-  'cosmos-db': { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
-  message_queue: { resourceType: 'azurerm_servicebus_namespace', namePrefix: 'servicebus' },
-  'service-bus': { resourceType: 'azurerm_servicebus_namespace', namePrefix: 'servicebus' },
-  'event-grid': { resourceType: 'azurerm_eventgrid_topic', namePrefix: 'evtopic' },
-  monitoring: { resourceType: 'azurerm_monitor_workspace', namePrefix: 'monitor' },
-  managed_identity: {
-    resourceType: 'azurerm_user_assigned_identity',
-    namePrefix: 'identity',
-  },
-  identity_access: {
-    resourceType: 'azurerm_user_assigned_identity',
-    namePrefix: 'identity',
-  },
-  network_security_group: {
-    resourceType: 'azurerm_network_security_group',
-    namePrefix: 'nsg',
-  },
-  'api-management': { resourceType: 'azurerm_api_management', namePrefix: 'apim' },
-};
+/**
+ * Canonical resourceType → Azure Terraform resource.
+ *
+ * Keys are `RESOURCE_RULES` identities only. Provider/display aliases
+ * (`vm`, `nsg`, `azure-monitor`, ...) are deliberately absent: accepting them
+ * here would let a model that lost its canonical identity export silently
+ * instead of being reported as unsupported (#1963).
+ */
+export const azureTerraformResourceTypeMappings: ResourceTypeResourceMap = new Map<
+  string,
+  ResourceMapping
+>([
+  ['application_gateway', { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' }],
+  ['api_management', { resourceType: 'azurerm_api_management', namePrefix: 'apim' }],
+  ['virtual_machine', { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' }],
+  ['function_compute', { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' }],
+  ['app_service', { resourceType: 'azurerm_linux_web_app', namePrefix: 'appsvc' }],
+  ['web_compute', { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' }],
+  ['app_compute', { resourceType: 'azurerm_linux_web_app', namePrefix: 'webapp' }],
+  ['sql_database', { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' }],
+  [
+    'relational_database',
+    { resourceType: 'azurerm_postgresql_flexible_server', namePrefix: 'pgserver' },
+  ],
+  ['blob_storage', { resourceType: 'azurerm_storage_account', namePrefix: 'st' }],
+  ['cosmos_db', { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' }],
+  ['message_queue', { resourceType: 'azurerm_servicebus_namespace', namePrefix: 'servicebus' }],
+  ['event_grid', { resourceType: 'azurerm_eventgrid_topic', namePrefix: 'evtopic' }],
+  ['monitoring', { resourceType: 'azurerm_monitor_workspace', namePrefix: 'monitor' }],
+  ['managed_identity', { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' }],
+  ['identity_access', { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' }],
+  ['network_security_group', { resourceType: 'azurerm_network_security_group', namePrefix: 'nsg' }],
+]);
 
 const servicePlanResourceTypes = new Set(['azurerm_linux_web_app', 'azurerm_linux_function_app']);
 
@@ -442,7 +426,7 @@ export const azureProviderDefinition: ProviderDefinition = {
         ctx.normalized.architecture.nodes.some(
           (node) =>
             node.kind === 'resource' &&
-            azureTerraformResourceTypeMappings[node.resourceType]?.resourceType ===
+            azureTerraformResourceTypeMappings.get(node.resourceType)?.resourceType ===
               'azurerm_api_management',
         )
           ? [
@@ -466,7 +450,8 @@ export const azureProviderDefinition: ProviderDefinition = {
 
         const resourceTypes = new Set(
           resources.map(
-            (resource) => azureTerraformResourceTypeMappings[resource.resourceType]?.resourceType,
+            (resource) =>
+              azureTerraformResourceTypeMappings.get(resource.resourceType)?.resourceType,
           ),
         );
         const needsServicePlan = [...resourceTypes].some((type) =>

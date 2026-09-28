@@ -105,7 +105,7 @@ export type ContainerBlockResourceMap = Record<PlateLayerType, ResourceMapping>;
  * Used alongside BlockResourceMap for subtype-specific resource resolution.
  */
 export type SubtypeResourceMap = Partial<Record<ResourceCategory, Record<string, ResourceMapping>>>;
-export type ResourceTypeResourceMap = Readonly<Record<string, ResourceMapping>>;
+export type ResourceTypeResourceMap = ReadonlyMap<string, ResourceMapping>;
 
 /**
  * Resolve the correct ResourceMapping for a block based on category and optional subtype.

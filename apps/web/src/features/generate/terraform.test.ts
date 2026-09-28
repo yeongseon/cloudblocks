@@ -546,7 +546,7 @@ describe('generateMainTf', () => {
           id: 'ev1',
           name: 'EventSrc',
           category: 'messaging',
-          resourceType: 'event-grid',
+          resourceType: 'event_grid',
           placementId: 'net1',
         }),
         createBlock({
@@ -645,7 +645,7 @@ describe('generateMainTf', () => {
           id: 'apim',
           name: 'API Management',
           category: 'delivery',
-          resourceType: 'api-management',
+          resourceType: 'api_management',
           subtype: 'api-management',
           placementId: 'sub1',
         }),
