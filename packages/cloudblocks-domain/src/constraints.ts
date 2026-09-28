@@ -2,7 +2,12 @@
 // Runtime validators driven by RESOURCE_RULES from @cloudblocks/schema.
 // These are the canonical functions for placement and block integrity checks.
 
-import { RESOURCE_RULES, getAllowedParents } from '@cloudblocks/schema';
+import {
+  KNOWN_RESOURCE_TYPES,
+  RESOURCE_RULES,
+  getAllowedParents,
+  isContainerCapable,
+} from '@cloudblocks/schema';
 import type { Block } from '@cloudblocks/schema';
 
 // ---------------------------------------------------------------------------
@@ -23,7 +28,8 @@ export interface ContainmentError {
  * Rules:
  * - If `allowedParents` includes `null`, the child can be root-level (parentBlock = undefined).
  * - Otherwise the parent's resourceType must be in the child's `allowedParents`.
- * - Unknown resource types are allowed (graceful degradation for future extensions).
+ * - Unknown resource types are rejected: an identity the registry does not know
+ *   carries no constraints, so accepting it would bypass containment entirely.
  *
  * @returns `null` if valid, or a `ContainmentError` describing the violation.
  */
@@ -33,9 +39,14 @@ export function validateContainment(
 ): ContainmentError | null {
   const allowedParents = getAllowedParents(child.resourceType);
 
-  // Unknown resource type — skip validation (graceful for future extensions)
   if (allowedParents === undefined) {
-    return null;
+    return {
+      childId: child.id,
+      childResourceType: child.resourceType,
+      parentId: parent?.id ?? null,
+      parentResourceType: parent?.resourceType ?? null,
+      reason: `${child.resourceType} is not a known resource type, so its placement cannot be validated.`,
+    };
   }
 
   // Root placement
@@ -80,26 +91,27 @@ export interface BlockIntegrityError {
  * Validate that a block's `kind` is consistent with its `resourceType`.
  *
  * Rules:
- * - If resourceType is known and `containerCapable` is false, kind must be 'resource'.
- * - If resourceType is known and `containerCapable` is true, kind can be either
- *   (containers can also theoretically be leaves, though unusual).
- * - Unknown resource types pass validation (graceful degradation).
+ * - Unknown resource types are rejected — `kind` cannot be checked without a rule.
+ * - If `containerCapable` is false, kind must be 'resource'.
+ * - If `containerCapable` is true, kind can be either (containers can also
+ *   theoretically be leaves, though unusual).
  *
  * @returns Array of integrity errors (empty if valid).
  */
 export function validateBlockIntegrity(block: Block): BlockIntegrityError[] {
   const errors: BlockIntegrityError[] = [];
-  const rule = (RESOURCE_RULES as Record<string, { containerCapable: boolean }>)[
-    block.resourceType
-  ];
 
-  if (rule === undefined) {
-    // Unknown resource type — skip (graceful)
+  if (!KNOWN_RESOURCE_TYPES.has(block.resourceType)) {
+    errors.push({
+      blockId: block.id,
+      field: 'resourceType',
+      reason: `${block.resourceType} is not a known resource type.`,
+    });
     return errors;
   }
 
   // kind: 'container' on a non-container-capable resource type
-  if (block.kind === 'container' && !rule.containerCapable) {
+  if (block.kind === 'container' && !isContainerCapable(block.resourceType)) {
     errors.push({
       blockId: block.id,
       field: 'kind',

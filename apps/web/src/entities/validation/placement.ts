@@ -1,6 +1,7 @@
 import type { ResourceBlock, ContainerBlock, ResourceCategory, Size } from '@cloudblocks/schema';
 import {
   CATEGORY_DEFAULT_RESOURCE_TYPE,
+  KNOWN_RESOURCE_TYPES,
   RESOURCE_RULES,
   getAllowedParents,
 } from '@cloudblocks/schema';
@@ -59,6 +60,17 @@ export function validatePlacement(
   resource: ResourceBlock,
   parent: ContainerBlock | undefined,
 ): ValidationError | null {
+  if (!KNOWN_RESOURCE_TYPES.has(resource.resourceType)) {
+    return {
+      ruleId: 'rule-unknown-resource-type',
+      severity: 'error',
+      message: `"${resource.name}" uses an unknown resource type "${resource.resourceType}".`,
+      suggestion:
+        'This block came from an older or hand-edited file and cannot be validated or exported. Replace it with a resource from the palette.',
+      targetId: resource.id,
+    };
+  }
+
   if (!parent) {
     // Root-level placement is valid for resource types whose allowedParents includes null
     if (ROOT_ALLOWED_RESOURCE_TYPES.has(resource.resourceType)) {

@@ -334,6 +334,21 @@ export const CONTAINER_CAPABLE_TYPES: ReadonlySet<string> = new Set(
 export const EXTERNAL_RESOURCE_TYPES: ReadonlySet<string> = new Set(['internet', 'browser']);
 
 /**
+ * Look up a rule by resourceType.
+ *
+ * `resourceType` can come from imported or hand-edited models, so the lookup is
+ * gated on own-property membership: a bare index would resolve inherited names
+ * such as `constructor` or `toString` to `Object.prototype` members and report
+ * an unknown type as known.
+ */
+function getResourceRule(resourceType: string): ResourceRuleEntry | undefined {
+  if (!Object.hasOwn(RESOURCE_RULES, resourceType)) {
+    return undefined;
+  }
+  return (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
+}
+
+/**
  * Check whether a given resourceType is an external actor type
  * (internet, browser) folded into the block model.
  * Use this to filter external blocks from IaC output and apply
@@ -355,8 +370,7 @@ export function isContainerCapable(resourceType: string): boolean {
  * Returns `undefined` for unknown resource types.
  */
 export function getAllowedParents(resourceType: string): readonly (string | null)[] | undefined {
-  const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
-  return rule?.allowedParents;
+  return getResourceRule(resourceType)?.allowedParents;
 }
 
 /**
@@ -364,8 +378,7 @@ export function getAllowedParents(resourceType: string): readonly (string | null
  * Returns `undefined` for unknown resource types.
  */
 export function getCanvasTier(resourceType: string): CanvasTier | undefined {
-  const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
-  return rule?.canvasTier;
+  return getResourceRule(resourceType)?.canvasTier;
 }
 
 /**
@@ -373,8 +386,7 @@ export function getCanvasTier(resourceType: string): CanvasTier | undefined {
  * Returns `undefined` for unknown resource types.
  */
 export function getDefaultCategory(resourceType: string): ResourceCategory | undefined {
-  const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
-  return rule?.category;
+  return getResourceRule(resourceType)?.category;
 }
 
 // ---------------------------------------------------------------------------
