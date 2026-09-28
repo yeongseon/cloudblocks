@@ -73,7 +73,7 @@ const createTestModel = (): ArchitectureModel => ({
       category: 'delivery',
       provider: 'azure',
       parentId: 'container-public',
-      position: { x: -1.5, y: 0.5, z: -2 },
+      position: { x: -2, y: 0.5, z: -2 },
       metadata: {},
     },
     {
@@ -85,7 +85,7 @@ const createTestModel = (): ArchitectureModel => ({
       category: 'compute',
       provider: 'azure',
       parentId: 'container-public',
-      position: { x: 1.5, y: 0.5, z: 1 },
+      position: { x: 2, y: 0.5, z: 1 },
       metadata: {},
     },
     {

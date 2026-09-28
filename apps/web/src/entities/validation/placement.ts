@@ -9,6 +9,7 @@ import type { ResourceRuleEntry, ResourceType } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 import { VALID_PARENTS, validateContainment } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
+import { isGridAligned, planarOverlap } from '../../shared/types/planarGeometry';
 
 /**
  * Placement Rules (v4.0 — canonical containment delegation):
@@ -180,9 +181,7 @@ export function validateLayerPlacement(
  * Spec §15: "Position not aligned to CU grid" → must reject
  */
 export function validateGridAlignment(resource: ResourceBlock): ValidationError | null {
-  const { x, z } = resource.position;
-
-  if (!Number.isInteger(x) || !Number.isInteger(z)) {
+  if (!isGridAligned(resource.position)) {
     return {
       ruleId: 'rule-grid-alignment',
       severity: 'error',
@@ -197,12 +196,16 @@ export function validateGridAlignment(resource: ResourceBlock): ValidationError 
 }
 
 /**
- * Validate that a resource does not overlap with any sibling resource on the same container.
- * Spec §10: "Resources must not overlap"
- * Spec §15: "Resource overlapping another resource" → must reject
+ * Validate that a resource does not overlap with any sibling resource on the
+ * same container, using the shared planar geometry contract (#1958).
  *
- * Uses axis-aligned bounding box (AABB) overlap detection
- * in world coordinates (x, z plane).
+ * Reported as a warning rather than an error. Overlap is a layout problem, not
+ * a corrupt model: the editor's own live guard deliberately allows dragging a
+ * block that is *already* overlapping so the user can pull it out, and making
+ * this blocking would also stop export for an architecture the editor let the
+ * user build. Grid misalignment stays an error, because every generated and
+ * reflowed position is now CU-aligned, so an off-grid value means hand-edited
+ * or corrupt data.
  */
 export function validateNoOverlap(
   resource: ResourceBlock,
@@ -210,28 +213,14 @@ export function validateNoOverlap(
   getResourceSize: (resource: ResourceBlock) => Size,
 ): ValidationError | null {
   const blockSize = getResourceSize(resource);
-  const bx1 = resource.position.x;
-  const bz1 = resource.position.z;
-  const bx2 = bx1 + blockSize.width;
-  const bz2 = bz1 + blockSize.depth;
 
   for (const sibling of siblingResources) {
     if (sibling.id === resource.id) continue;
 
-    const siblingSize = getResourceSize(sibling);
-    const sx1 = sibling.position.x;
-    const sz1 = sibling.position.z;
-    const sx2 = sx1 + siblingSize.width;
-    const sz2 = sz1 + siblingSize.depth;
-
-    // AABB overlap: two rectangles overlap if they overlap on both axes
-    const overlapX = bx1 < sx2 && bx2 > sx1;
-    const overlapZ = bz1 < sz2 && bz2 > sz1;
-
-    if (overlapX && overlapZ) {
+    if (planarOverlap(resource.position, blockSize, sibling.position, getResourceSize(sibling))) {
       return {
         ruleId: 'rule-no-overlap',
-        severity: 'error',
+        severity: 'warning',
         message: `"${resource.name}" overlaps with "${sibling.name}".`,
         suggestion:
           "Move one of them so they don't overlap. Each resource needs its own space on the container.",

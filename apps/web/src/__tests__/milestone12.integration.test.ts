@@ -75,11 +75,12 @@ function makeBlock(overrides: LeafOverrides = {}): ResourceBlock {
 
 function makeArchitecture(overrides: ArchitectureOverrides = {}): ArchitectureModel {
   const { containers = [makePlate()], resources = [], nodes = [], ...rest } = overrides;
-  const normalizedResources: ResourceBlock[] = resources.map((resource) => {
-    if ('kind' in resource && resource.kind === 'resource') {
-      return resource;
-    }
-    return makeBlock(resource);
+  // Space fixtures apart: they do not model placement, and stacking them all on
+  // one point would trip the overlap rule for reasons unrelated to what they test.
+  const normalizedResources: ResourceBlock[] = resources.map((resource, index) => {
+    const block =
+      'kind' in resource && resource.kind === 'resource' ? resource : makeBlock(resource);
+    return { ...block, position: { ...block.position, x: block.position.x + index * 4 } };
   });
   return {
     id: 'arch-1',
