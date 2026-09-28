@@ -49,7 +49,7 @@ function makePlate(overrides: ContainerOverrides = {}): ContainerBlock {
     category: 'network',
     provider: 'azure',
     profileId: 'subnet-service',
-    parentId: 'container-network-1',
+    parentId: null,
     position: { x: 0, y: 0.7, z: 0 },
     frame: { width: 8, height: 0.5, depth: 8 },
     metadata: {},
