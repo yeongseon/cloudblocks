@@ -391,6 +391,20 @@ export function withHistory(
   state: ArchitectureState,
   newArch: ArchitectureModel,
 ): Partial<ArchitectureState> {
+  // A gesture is one edit. Every pointer move during a drag would otherwise
+  // push its own entry, so one long drag could consume the whole undo budget
+  // and evict earlier work. `commitGesture` pushes the single entry.
+  if (state.gestureOrigin !== null) {
+    return {
+      workspace: {
+        ...state.workspace,
+        architecture: touchModel(newArch),
+        updatedAt: new Date().toISOString(),
+      },
+      validationResult: null,
+    };
+  }
+
   const newHistory = pushHistory(state.history, state.workspace.architecture);
 
   return {
@@ -420,13 +434,14 @@ export function upsertCurrentWorkspace(workspaces: Workspace[], workspace: Works
 
 export function resetTransientState(): Pick<
   ArchitectureState,
-  'validationResult' | 'history' | 'canUndo' | 'canRedo'
+  'validationResult' | 'history' | 'canUndo' | 'canRedo' | 'gestureOrigin'
 > {
   return {
     validationResult: null,
     history: resetHistory(),
     canUndo: false,
     canRedo: false,
+    gestureOrigin: null,
   };
 }
 
