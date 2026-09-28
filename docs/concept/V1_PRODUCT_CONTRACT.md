@@ -12,7 +12,7 @@ These features are stable, tested, and will not break without a major version bu
 | ------------------------ | -------------------------------------------------------------------------------------------------- |
 | Guided Templates         | Start from 6 built-in architecture templates with step-by-step learning scenarios                  |
 | Learning Mode            | Interactive guided scenarios to learn cloud architecture patterns (beginner → advanced)            |
-| Terraform Starter Export | Generate illustrative starter code for learning; some mappings select a different service or omit required configuration. Review [provider support](../user-guide/provider-support.md) before applying output. |
+| Terraform Starter Export | Generate illustrative starter code for learning. Azure blocks unsupported canonical resources instead of silently selecting another service; supported output can still omit production configuration. AWS/GCP mappings remain partial. Review [provider support](../user-guide/provider-support.md) before applying output. |
 | Editable Diagrams        | Customize template layouts with drag-and-drop block placement                                      |
 | Curated Palette          | 8 resource categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
 | Block Modeling           | Container blocks (boundaries) + Resource blocks (resources) + typed Connections                    |
