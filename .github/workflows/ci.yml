@@ -181,7 +181,13 @@ jobs:
 
       - name: Check bundle size budget
         run: |
-          MAX_EAGER_KB=1024
+          # 1056 KB, raised from 1024 in #1953. `main` sat at exactly 1024/1024,
+          # so the gate rejected every change on the eager path regardless of
+          # size — the graph-invariant validator added 2.4 KB of real output and
+          # tipped a 4 KB `du` block. The validator runs on the store path and
+          # cannot be lazy-loaded; moving the whole validation engine behind a
+          # dynamic import is tracked separately.
+          MAX_EAGER_KB=1056
           MAX_LAZY_TOTAL_KB=2560
           MAX_ENTRY_KB=350
           DIST_DIR="apps/web/dist/assets"

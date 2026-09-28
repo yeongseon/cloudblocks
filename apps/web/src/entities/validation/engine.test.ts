@@ -23,7 +23,7 @@ function makePlate(overrides: LegacyPlateOverrides = {}): ContainerBlock {
     id: 'subnet-1',
     name: 'Subnet',
     type: 'subnet',
-    parentId: 'network-1',
+    parentId: null,
     position: { x: 0, y: 0, z: 0 },
     frame: { width: 8, height: 1, depth: 8 },
     metadata: {},
@@ -253,6 +253,7 @@ describe('validateArchitecture', () => {
     );
 
     const model = makeModel({
+      plates: [makePlate({ id: 'subnet-private-1' })],
       blocks: [makeBlock({ id: 'compute-1' })],
       connections: [
         makeConnection({
