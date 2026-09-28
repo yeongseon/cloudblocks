@@ -4,6 +4,7 @@ import type {
   ArchitectureModel,
   Block,
   ContainerBlock,
+  ProviderType,
   ResourceCategory,
   ResourceBlock,
 } from '@cloudblocks/schema';
@@ -18,6 +19,15 @@ import {
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { migrateExternalActorsToBlocks } from '../../../shared/types/schema';
+import { canonicalizeResourceNodes } from '../../../shared/types/resourceIdentity';
+
+interface CanonicalizableRawNode {
+  kind: string;
+  resourceType: string;
+  subtype?: string;
+  provider?: ProviderType;
+  category?: ResourceCategory;
+}
 import {
   saveWorkspaces,
   loadWorkspaces,
@@ -88,6 +98,17 @@ const validateSize = (value: unknown, context: string, field: 'size' | 'frame' =
   ) {
     throw new Error(`${context}.${field} must contain numeric width, height, depth values`);
   }
+};
+
+const canonicalizeRawNodes = (imported: unknown, provider: ProviderType): void => {
+  if (!isRecord(imported) || !Array.isArray(imported.nodes)) {
+    return;
+  }
+
+  canonicalizeResourceNodes(
+    imported.nodes.filter(isRecord) as unknown as CanonicalizableRawNode[],
+    provider,
+  );
 };
 
 export const validateArchitectureShape = (imported: unknown): { valid: true } => {
@@ -459,6 +480,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
   importArchitecture: (json, provider) => {
     try {
       const importedRaw = JSON.parse(json) as unknown;
+      // Canonicalize before validating: the shape validator rejects a root
+      // resource whose resourceType is a legacy alias, which would reject
+      // exactly the payloads this migration exists to accept.
+      canonicalizeRawNodes(importedRaw, provider);
       validateImportData(importedRaw, json.length);
       const imported = importedRaw as Record<string, unknown>;
 
@@ -605,6 +630,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       };
 
       // ─── Remap imported nodes to active provider ──────────────
+      canonicalizeResourceNodes(normalized.nodes, provider);
       if (provider !== 'azure') {
         for (const node of normalized.nodes) {
           const azureSubtype = node.subtype ?? node.resourceType;
@@ -621,9 +647,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             node.name = remapName(azureSubtype, node.name, provider);
             if (node.subtype) {
               node.subtype = remapSubtype(node.subtype, provider);
-            }
-            if (node.resourceType) {
-              node.resourceType = remapSubtype(node.resourceType, provider);
             }
           }
         }
@@ -673,6 +696,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     clonedArch.endpoints = nodeIds.flatMap((id: string) => generateEndpointsForBlock(id));
 
     // ─── Remap nodes to active provider ──────────────────────
+    canonicalizeResourceNodes(clonedArch.nodes ?? [], provider);
+
     if (provider !== 'azure') {
       for (const node of clonedArch.nodes ?? []) {
         const azureSubtype = node.subtype ?? node.resourceType;
@@ -695,9 +720,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
           node.name = remapName(azureSubtype, node.name, provider);
           if (node.subtype) {
             node.subtype = remapSubtype(node.subtype, provider);
-          }
-          if (node.resourceType) {
-            node.resourceType = remapSubtype(node.resourceType, provider);
           }
         }
       }
@@ -733,12 +755,18 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
   },
 
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => {
-    validateArchitectureShape(snapshot);
-
     const state = get();
+    const provider = state.workspace.provider ?? 'azure';
+    const cloned = isRecord(snapshot)
+      ? (JSON.parse(JSON.stringify(snapshot)) as ArchitectureSnapshot)
+      : snapshot;
+
+    canonicalizeRawNodes(cloned, provider);
+    validateArchitectureShape(cloned);
+
     const now = new Date().toISOString();
     const newArch: ArchitectureModel = {
-      ...JSON.parse(JSON.stringify(snapshot)),
+      ...cloned,
       id: state.workspace.architecture.id,
       createdAt: state.workspace.architecture.createdAt,
       updatedAt: now,

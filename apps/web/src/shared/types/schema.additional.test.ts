@@ -146,7 +146,7 @@ describe('schema deserialize additional branch coverage', () => {
     });
     expect(subnetPlate).toMatchObject({ parentId: null, metadata: {} });
     expect(app).toMatchObject({
-      resourceType: 'lambda',
+      resourceType: 'function_compute',
       provider: 'aws',
       metadata: { env: 'prod' },
       subtype: 'lambda',
@@ -154,7 +154,11 @@ describe('schema deserialize additional branch coverage', () => {
       aggregation: { mode: 'count', count: 3 },
       roles: ['primary'],
     });
-    expect(queue).toMatchObject({ resourceType: 'messaging', provider: 'azure', metadata: {} });
+    expect(queue).toMatchObject({
+      resourceType: 'message_queue',
+      provider: 'azure',
+      metadata: {},
+    });
   });
 
   it('migrates legacy payloads that omit blocks array', () => {

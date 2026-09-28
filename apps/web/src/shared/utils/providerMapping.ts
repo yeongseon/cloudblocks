@@ -126,6 +126,31 @@ export function remapSubtype(azureSubtype: string, provider: ProviderType): stri
   return PROVIDER_SUBTYPE_MAP[provider][azureSubtype] ?? azureSubtype;
 }
 
+/**
+ * Inverse of {@link remapSubtype}. Returns every Azure subtype that maps to
+ * `providerSubtype` under `provider`. More than one Azure subtype can collapse
+ * onto the same provider subtype (e.g. both `front-door` and `cdn-profile`
+ * become `cloudfront`), so callers must resolve the ambiguity themselves.
+ */
+export function toAzureSubtypeCandidates(
+  providerSubtype: string,
+  provider: ProviderType,
+): string[] {
+  const subtypeMap = Object.hasOwn(PROVIDER_SUBTYPE_MAP, provider)
+    ? PROVIDER_SUBTYPE_MAP[provider]
+    : undefined;
+
+  if (provider === 'azure' || !subtypeMap) {
+    return [providerSubtype];
+  }
+
+  const candidates = Object.entries(subtypeMap)
+    .filter(([, mapped]) => mapped === providerSubtype)
+    .map(([azureSubtype]) => azureSubtype);
+
+  return candidates.length > 0 ? candidates : [providerSubtype];
+}
+
 // ─── Azure Resource Name → Provider Name Mapping ──────────
 // Maps Azure-specific display names to provider-appropriate names.
 // Keyed by Azure subtype for easy lookup from template nodes.

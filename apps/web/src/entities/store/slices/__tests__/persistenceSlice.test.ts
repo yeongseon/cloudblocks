@@ -641,7 +641,7 @@ describe('persistenceSlice branches', () => {
       expect(result).toBeNull();
       expect(container).toMatchObject({ category: 'network', profileId: 'network-hub' });
       expect(app).toMatchObject({
-        resourceType: 'app-service',
+        resourceType: 'app_service',
         provider: 'gcp',
         subtype: 'app-service',
         config: { tier: 'basic' },

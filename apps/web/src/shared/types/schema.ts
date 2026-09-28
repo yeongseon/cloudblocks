@@ -23,6 +23,8 @@ import {
   generateEndpointsForBlock,
   SCHEMA_VERSION,
 } from '@cloudblocks/schema';
+import type { ProviderType } from '@cloudblocks/schema';
+import { canonicalizeResourceIdentity } from './resourceIdentity';
 
 const EXTERNAL_ACTOR_DEFAULT_POSITIONS: Record<string, Position> = {
   browser: { x: 1, y: 0, z: 10 },
@@ -400,6 +402,22 @@ export function deserialize(json: string): Workspace[] {
         }
         if (typeof node.subtype === 'string' && node.subtype in SUBTYPE_ALIASES) {
           node.subtype = SUBTYPE_ALIASES[node.subtype];
+        }
+
+        if (node.kind === 'resource' && typeof node.resourceType === 'string') {
+          const nodeProvider = (
+            typeof node.provider === 'string' ? node.provider : (ws.provider ?? 'azure')
+          ) as ProviderType;
+          const canonical = canonicalizeResourceIdentity(
+            node.resourceType,
+            typeof node.subtype === 'string' ? node.subtype : undefined,
+            nodeProvider,
+            typeof node.category === 'string' ? (node.category as ResourceCategory) : undefined,
+          );
+          node.resourceType = canonical.resourceType;
+          if (canonical.subtype !== undefined) {
+            node.subtype = canonical.subtype;
+          }
         }
 
         const sizeOrFrame = isRecord(node.frame)

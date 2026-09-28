@@ -5,6 +5,7 @@ import type {
   ResourceCategory,
   ResourceType as SchemaResourceType,
 } from '@cloudblocks/schema';
+import { getAllowedParents } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -653,15 +654,15 @@ export function buildTechTreeState(architecture: ArchitectureModel): TechTreeSta
   };
 
   const getTargetPlateId = (type: ResourceType): string | null => {
-    const def = RESOURCE_DEFINITIONS[type];
+    const allowedParents = getAllowedParents(RESOURCE_DEFINITIONS[type].schemaResourceType) ?? [];
 
-    if (def.category === 'vnet-required') {
-      if (subnetPlates.length > 0) return subnetPlates[0].id;
-      if (networkPlates.length > 0) return networkPlates[0].id;
-      return null;
+    if (allowedParents.includes('subnet') && subnetPlates.length > 0) {
+      return subnetPlates[0].id;
+    }
+    if (allowedParents.includes('virtual_network') && networkPlates.length > 0) {
+      return networkPlates[0].id;
     }
 
-    if (networkPlates.length > 0) return networkPlates[0].id;
     return null;
   };
 
