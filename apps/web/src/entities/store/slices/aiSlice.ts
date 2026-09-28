@@ -63,7 +63,10 @@ export const createAiSlice: ArchitectureSlice<AiSlice> = (set, get) => ({
         return;
       }
 
-      get().replaceArchitecture(result.architecture as unknown as ArchitectureSnapshot);
+      get().replaceArchitecture(
+        result.architecture as unknown as ArchitectureSnapshot,
+        'ai-generation',
+      );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate architecture';
       set({ generateError: message, generateLoading: false, generateResult: null });
