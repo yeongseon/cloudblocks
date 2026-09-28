@@ -8,8 +8,8 @@
  * Builds up to and including v4.1.0 stored the Azure subtype alias in
  * `resourceType`, so every ingestion path canonicalizes through this module.
  */
-import type { ProviderType, ResourceType } from '@cloudblocks/schema';
-import { KNOWN_RESOURCE_TYPES } from '@cloudblocks/schema';
+import type { ProviderType, ResourceCategory, ResourceType } from '@cloudblocks/schema';
+import { CATEGORY_DEFAULT_RESOURCE_TYPE, KNOWN_RESOURCE_TYPES } from '@cloudblocks/schema';
 import { RESOURCE_DEFINITIONS } from '../hooks/useTechTree';
 import { toAzureSubtypeCandidates } from '../utils/providerMapping';
 
@@ -85,15 +85,24 @@ export function toCanonicalResourceType(
  * Migrate a persisted resource identity to the canonical invariant.
  *
  * When `resourceType` holds a provider alias, it is replaced by its canonical
- * form and the original alias is preserved as `subtype`. Values that cannot be
- * resolved are returned untouched so ingestion reports them instead of guessing.
+ * form and the original alias is preserved as `subtype`.
+ *
+ * Legacy `plates`/`blocks` payloads stored the bare category when a block had no
+ * subtype, so an identifier matching `category` resolves to that category's
+ * default type. Anything else that cannot be resolved is returned untouched, so
+ * ingestion reports it instead of guessing.
  */
 export function canonicalizeResourceIdentity(
   resourceType: string,
   subtype: string | undefined,
   provider: ProviderType,
+  category?: ResourceCategory,
 ): { resourceType: string; subtype: string | undefined } {
-  const canonical = toCanonicalResourceType(resourceType, provider);
+  const canonical =
+    toCanonicalResourceType(resourceType, provider) ??
+    (category !== undefined && resourceType === category
+      ? CATEGORY_DEFAULT_RESOURCE_TYPE[category]
+      : undefined);
 
   if (!canonical || canonical === resourceType) {
     return { resourceType, subtype };
@@ -107,6 +116,7 @@ interface CanonicalizableNode {
   resourceType: string;
   subtype?: string;
   provider?: ProviderType;
+  category?: ResourceCategory;
 }
 
 export function canonicalizeResourceNodes<T extends CanonicalizableNode>(
@@ -122,6 +132,7 @@ export function canonicalizeResourceNodes<T extends CanonicalizableNode>(
       node.resourceType,
       node.subtype,
       node.provider ?? fallbackProvider,
+      node.category,
     );
 
     node.resourceType = canonical.resourceType;

@@ -152,6 +152,29 @@ describe('#1963 canonical resource identity — palette production path', () => 
     }
   });
 
+  it('generates endpoints and keeps canonical identity when duplicating a block', () => {
+    const containers = createContainers();
+    const sourceId = createFromPalette('vm', targetParentFor('vm', containers), 'azure');
+
+    const before = new Set(
+      useArchitectureStore.getState().workspace.architecture.nodes.map((n) => n.id),
+    );
+    useArchitectureStore.getState().duplicateBlock(sourceId);
+
+    const duplicate = useArchitectureStore
+      .getState()
+      .workspace.architecture.nodes.find((node) => !before.has(node.id));
+
+    expect(duplicate).toBeDefined();
+    expect(duplicate!.resourceType).toBe('virtual_machine');
+    expect(duplicate!.subtype).toBe('vm');
+    expect(
+      useArchitectureStore
+        .getState()
+        .workspace.architecture.endpoints.filter((endpoint) => endpoint.blockId === duplicate!.id),
+    ).toHaveLength(6);
+  });
+
   it('survives a save → load round trip without identity loss', () => {
     const containers = createContainers();
 
@@ -208,6 +231,129 @@ describe('#1963 canonical resource identity — palette production path', () => 
 describe('#1963 legacy alias migration', () => {
   beforeEach(() => {
     resetStore();
+  });
+
+  it('imports a legacy payload whose root resource uses an alias resourceType', () => {
+    const legacyExport = JSON.stringify({
+      id: 'arch-import',
+      name: 'Imported',
+      version: '1',
+      nodes: [
+        {
+          id: 'block-import-storage',
+          name: 'Storage',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'blob-storage',
+          category: 'data',
+          provider: 'azure',
+          parentId: null,
+          position: { x: 0, y: 0, z: 0 },
+          metadata: {},
+        },
+      ],
+      endpoints: [],
+      connections: [],
+    });
+
+    const error = useArchitectureStore.getState().importArchitecture(legacyExport, 'azure');
+
+    expect(error).toBeNull();
+    const imported = useArchitectureStore
+      .getState()
+      .workspace.architecture.nodes.find((node) => node.id === 'block-import-storage');
+    expect(imported?.resourceType).toBe('blob_storage');
+    expect(imported?.subtype).toBe('blob-storage');
+  });
+
+  it('leaves an unrecognised provider unresolved instead of failing the load', () => {
+    const payload = JSON.stringify({
+      schemaVersion: '4.1.0',
+      workspaces: [
+        {
+          id: 'ws-bad-provider',
+          name: 'Bad Provider',
+          provider: 'not-a-cloud',
+          architecture: {
+            id: 'arch-bad-provider',
+            name: 'Bad Provider',
+            version: '1',
+            nodes: [
+              {
+                id: 'block-bad-provider',
+                name: 'Mystery',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'some-unmapped-subtype',
+                category: 'compute',
+                provider: 'not-a-cloud',
+                parentId: null,
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+            ],
+            endpoints: [],
+            connections: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const [workspace] = deserialize(payload);
+
+    expect(workspace.architecture.nodes[0].resourceType).toBe('some-unmapped-subtype');
+  });
+
+  it('resolves a category-only legacy block to that category default', () => {
+    const legacy = JSON.stringify({
+      schemaVersion: '3.0.0',
+      workspaces: [
+        {
+          id: 'ws-category-only',
+          name: 'Category Only',
+          provider: 'azure',
+          architecture: {
+            id: 'arch-category-only',
+            name: 'Category Only',
+            version: '1',
+            plates: [
+              {
+                id: 'container-1',
+                name: 'VNet',
+                type: 'region',
+                parentId: null,
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 16, height: 0.3, depth: 20 },
+              },
+            ],
+            blocks: [
+              {
+                id: 'block-category-only',
+                name: 'Queue',
+                category: 'messaging',
+                placementId: 'container-1',
+                position: { x: 1, y: 0.5, z: 1 },
+              },
+            ],
+            connections: [],
+            endpoints: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const [workspace] = deserialize(legacy);
+    const block = workspace.architecture.nodes.find((n) => n.id === 'block-category-only');
+
+    expect(block?.resourceType).toBe('message_queue');
   });
 
   it('canonicalizes alias-typed resourceType from a persisted payload', () => {
