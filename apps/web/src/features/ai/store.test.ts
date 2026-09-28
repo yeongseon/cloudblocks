@@ -84,7 +84,7 @@ describe('useAiStore', () => {
       });
 
       await useAiStore.getState().generate('test', 'aws');
-      expect(mockReplaceArchitecture).toHaveBeenCalledWith(arch);
+      expect(mockReplaceArchitecture).toHaveBeenCalledWith(arch, 'ai-generation');
     });
 
     it('sets error on failure', async () => {
