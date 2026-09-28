@@ -1,6 +1,7 @@
 import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
-import { validatePlacement } from './placement';
+import { validateGridAlignment, validateNoOverlap, validatePlacement } from './placement';
+import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { validateGraphInvariants } from './graph';
 import { validateConnection } from './connection';
 import { validateProviderRules } from './providerValidation';
@@ -13,7 +14,7 @@ import { validateRoles } from './role';
  * Checks:
  * 1. Graph invariants — unique ids, parent links, dimensions, endpoint
  *    ownership and port capacity (#1953)
- * 2. All resource nodes satisfy placement rules
+ * 2. All resource nodes satisfy placement, grid-alignment and overlap rules
  * 3. All connections satisfy connection rules
  * 4. All resource nodes satisfy aggregation rules (v2.0 §8)
  * 5. All resource nodes satisfy role rules (v2.0 §9)
@@ -35,10 +36,19 @@ export function validateArchitecture(model: ArchitectureModel): ValidationResult
   }
 
   // ── Placement validation ──
+  const resourceSize = (resource: ResourceBlock) =>
+    getBlockDimensions(resource.category, resource.provider, resource.subtype);
+
   for (const resource of resources) {
     const parent = containers.find((c) => c.id === resource.parentId);
-    const error = validatePlacement(resource, parent);
-    if (error) {
+    const siblings = resources.filter((candidate) => candidate.parentId === resource.parentId);
+
+    for (const error of [
+      validatePlacement(resource, parent),
+      validateGridAlignment(resource),
+      validateNoOverlap(resource, siblings, resourceSize),
+    ]) {
+      if (!error) continue;
       if (error.severity === 'error') {
         errors.push(error);
       } else {

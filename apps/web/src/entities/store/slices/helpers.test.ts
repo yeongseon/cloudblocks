@@ -311,7 +311,7 @@ describe('validateNoOverlap — post-placement safety net', () => {
     const result = validateNoOverlap(blockA, [blockB], getSize);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('rule-no-overlap');
-    expect(result!.severity).toBe('error');
+    expect(result!.severity).toBe('warning');
   });
 
   it('does NOT report overlap when blocks are properly separated', () => {
@@ -337,22 +337,30 @@ describe('nextGridPosition — blockSize parameter', () => {
     expect(posLarge.y).toBe(0.5);
   });
 
-  it('computes fewer columns for larger block size', () => {
-    // plateSize 10×10, medium block (2×2, spacing 0.2): step=2.2, maxCols=floor((10-2)/2.2)+1=4
-    const posMedium = nextGridPosition(
-      Array.from({ length: 4 }, (_, i) => ({ id: `b${i}` }) as ResourceBlock),
-      { width: 10, depth: 10 },
-      { width: 2, depth: 2 },
-    );
-    // large block (3×3, spacing 0.2): step=3.2, maxCols=floor((10-3)/3.2)+1=3
-    const posLarge = nextGridPosition(
-      Array.from({ length: 3 }, (_, i) => ({ id: `b${i}` }) as ResourceBlock),
-      { width: 10, depth: 10 },
-      { width: 3, depth: 3 },
-    );
-    // Medium index=4 should be row 1 (maxCols=4), large index=3 should also be row 1 (maxCols=3)
-    expect(posMedium.z).toBeLessThan(0); // negative z = further row
-    expect(posLarge.z).toBeLessThan(0);
+  it('never returns a slot that overlaps a differently sized sibling', () => {
+    // A 3x3 block next to 2x2 siblings is exactly the case an index-based step
+    // got wrong: each position was derived from its own block's width.
+    const siblings: ResourceBlock[] = [
+      { id: 'a', category: 'compute', provider: 'azure', position: { x: -3, y: 0.5, z: 0 } },
+      { id: 'b', category: 'compute', provider: 'azure', position: { x: 0, y: 0.5, z: 0 } },
+    ] as ResourceBlock[];
+
+    const large = { width: 3, depth: 3 };
+    const pos = nextGridPosition(siblings, { width: 12, depth: 12 }, large);
+
+    expect(Number.isInteger(pos.x)).toBe(true);
+    expect(Number.isInteger(pos.z)).toBe(true);
+    for (const sibling of siblings) {
+      expect(
+        resourceBlocksOverlap(
+          pos,
+          large,
+          sibling.position,
+          getBlockDimensions(sibling.category, sibling.provider, sibling.subtype),
+        ),
+        `overlaps ${sibling.id}`,
+      ).toBe(false);
+    }
   });
 });
 

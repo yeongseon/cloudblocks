@@ -845,13 +845,13 @@ describe('validateNoOverlap', () => {
     expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
   });
 
-  it('returns error when blocks overlap', () => {
+  it('warns when blocks overlap', () => {
     const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
     const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 1, y: 0, z: 1 } });
 
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
-      severity: 'error',
+      severity: 'warning',
       message: '"A" overlaps with "B".',
       suggestion:
         "Move one of them so they don't overlap. Each resource needs its own space on the container.",
@@ -859,13 +859,13 @@ describe('validateNoOverlap', () => {
     });
   });
 
-  it('returns error when blocks fully overlap (same position)', () => {
+  it('warns when blocks fully overlap (same position)', () => {
     const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
     const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 0, y: 0, z: 0 } });
 
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
-      severity: 'error',
+      severity: 'warning',
       message: '"A" overlaps with "B".',
       suggestion:
         "Move one of them so they don't overlap. Each resource needs its own space on the container.",

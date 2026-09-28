@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
+import { getBlockDimensions } from '../../../../shared/types/visualProfile';
 import {
   snapEvenUp,
   chooseGrid,
@@ -8,6 +9,7 @@ import {
   parentFrameFromChildSubnets,
   parentFrameFromChildren,
   autosizeContainerTree,
+  blocksOverlapAABB,
   nextGridPosition,
   findNonOverlappingPosition,
   roundToTenth,
@@ -912,13 +914,18 @@ describe('nextGridPosition', () => {
     expect(pos).toEqual({ x: 0, y: 0.5, z: 0 });
   });
 
-  it('wraps to next row when exceeding maxCols', () => {
+  it('returns a CU-aligned slot that clears every existing sibling', () => {
     const existing = Array.from({ length: 5 }, (_, i) => makeResource(`b${i}`, 'p1'));
 
     const pos = nextGridPosition(existing, { width: 6, depth: 8 });
+    const size = getBlockDimensions('compute', 'azure', undefined);
 
-    expect(pos.x).toBeGreaterThan(0);
-    expect(pos.z).toBeLessThan(-4);
+    expect(Number.isInteger(pos.x)).toBe(true);
+    expect(Number.isInteger(pos.z)).toBe(true);
+    expect(
+      existing.some((block) => blocksOverlapAABB(pos, size, block.position, size)),
+      'generated slot overlaps an existing sibling',
+    ).toBe(false);
   });
 
   it('uses containerHeight for y', () => {

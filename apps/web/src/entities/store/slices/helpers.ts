@@ -19,6 +19,7 @@ import {
   resetHistory,
 } from '../../../shared/utils/history';
 import { generateId } from '../../../shared/utils/id';
+import { planarOverlap, snapToGrid } from '../../../shared/types/planarGeometry';
 import type { ArchitectureState } from './types';
 
 const DEFAULT_WORKSPACE_NAME = 'My Architecture';
@@ -120,11 +121,8 @@ export function reflowBlockPositions(
   return Array.from({ length: count }, (_, index) => {
     const col = index % grid.cols;
     const row = Math.floor(index / grid.cols);
-    return {
-      x: roundToTenth(startX + col * stepX),
-      y: containerHeight,
-      z: roundToTenth(startZ - row * stepZ),
-    };
+    const snapped = snapToGrid({ x: startX + col * stepX, z: startZ - row * stepZ });
+    return { x: snapped.x, y: containerHeight, z: snapped.z };
   });
 }
 
@@ -319,30 +317,54 @@ export function autosizeContainerTree(
   return nodes.map((node) => nodeUpdates.get(node.id) ?? node);
 }
 
+/**
+ * First free slot for a new resource on a container.
+ *
+ * Slots are laid out on the integer CU grid so the result passes
+ * `validateGridAlignment`, and each candidate is tested against the *actual*
+ * extents of the existing siblings. An index-based step cannot do that: two
+ * siblings of different sizes placed at consecutive indices overlap, because
+ * each position was computed from its own block's width.
+ */
 export function nextGridPosition(
   existingBlocks: ResourceBlock[],
   plateSize: { width: number; depth: number },
   blockSize?: { width: number; depth: number },
   containerHeight: number = 0.5,
 ): Position {
-  const blockWidth = blockSize?.width ?? DEFAULT_BLOCK_SIZE.width;
-  const blockDepth = blockSize?.depth ?? DEFAULT_BLOCK_SIZE.depth;
-  const spacing = 0.2;
-  const stepX = blockWidth + spacing;
-  const stepZ = blockDepth + spacing;
-
-  const maxCols = Math.max(1, Math.floor((plateSize.width - blockWidth) / stepX) + 1);
-  const index = existingBlocks.length;
-  const col = index % maxCols;
-  const row = Math.floor(index / maxCols);
-  const startX = -((maxCols - 1) * stepX) / 2;
-  const startZ = 0;
-
-  return {
-    x: roundToTenth(startX + col * stepX),
-    y: containerHeight,
-    z: roundToTenth(startZ - row * stepZ),
+  const size = {
+    width: blockSize?.width ?? DEFAULT_BLOCK_SIZE.width,
+    depth: blockSize?.depth ?? DEFAULT_BLOCK_SIZE.depth,
   };
+  const stepX = Math.max(1, Math.ceil(size.width + BLOCK_GAP));
+  const stepZ = Math.max(1, Math.ceil(size.depth + BLOCK_GAP));
+  const maxCols = Math.max(1, Math.floor((plateSize.width - size.width) / stepX) + 1);
+  const startX = -Math.round(((maxCols - 1) * stepX) / 2);
+
+  const occupied = existingBlocks
+    .filter((block) => block.position !== undefined)
+    .map((block) => ({
+      position: block.position,
+      size: getBlockDimensions(block.category, block.provider, block.subtype),
+    }));
+
+  for (let index = 0; index <= existingBlocks.length; index += 1) {
+    const candidate = {
+      x: startX + (index % maxCols) * stepX,
+      z: 0 - Math.floor(index / maxCols) * stepZ,
+    };
+
+    const collides = occupied.some((other) =>
+      planarOverlap(candidate, size, other.position, other.size),
+    );
+
+    if (!collides) {
+      return { x: candidate.x, y: containerHeight, z: candidate.z };
+    }
+  }
+
+  const fallbackRow = Math.floor(existingBlocks.length / maxCols) + 1;
+  return { x: startX, y: containerHeight, z: 0 - fallbackRow * stepZ };
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -408,27 +430,8 @@ export function resetTransientState(): Pick<
   };
 }
 
-/**
- * Generic AABB overlap on XZ plane (touching edges excluded).
- * Both container and resource blocks use center-based positions with
- * half-width/half-depth extents, so a single implementation covers both.
- */
-export function blocksOverlapAABB(
-  posA: { x: number; z: number },
-  sizeA: { width: number; depth: number },
-  posB: { x: number; z: number },
-  sizeB: { width: number; depth: number },
-): boolean {
-  const halfWA = sizeA.width / 2;
-  const halfDA = sizeA.depth / 2;
-  const halfWB = sizeB.width / 2;
-  const halfDB = sizeB.depth / 2;
-
-  const overlapX = posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
-  const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
-
-  return overlapX && overlapZ;
-}
+/** @see planarOverlap — the single placement geometry contract (#1958). */
+export const blocksOverlapAABB = planarOverlap;
 
 /** @deprecated Use `blocksOverlapAABB` — kept as alias for existing call sites. */
 export const containerBlocksOverlap = blocksOverlapAABB;
