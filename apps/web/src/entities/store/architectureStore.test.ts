@@ -253,7 +253,8 @@ describe('architectureStore', () => {
 
       expect(getArch().blocks).toHaveLength(1);
       expect(getArch().blocks[0].category).toBe('compute');
-      expect(getArch().blocks[0].resourceType).toBe('totally_unknown_type');
+      expect(getArch().blocks[0].resourceType).toBe('web_compute');
+      expect(getArch().blocks[0].subtype).toBe('totally_unknown_type');
     });
 
     it('removeNode cascades for container by default and removes only target resource nodes', () => {

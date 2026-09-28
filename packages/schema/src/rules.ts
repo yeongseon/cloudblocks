@@ -77,6 +77,12 @@ export const RESOURCE_RULES = {
     category: 'delivery',
     canvasTier: 'web',
   },
+  api_management: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'delivery',
+    canvasTier: 'web',
+  },
   internal_load_balancer: {
     containerCapable: false,
     allowedParents: ['subnet'],
@@ -113,7 +119,10 @@ export const RESOURCE_RULES = {
   // ── Compute ─────────────────────────────────────────────────
   function_compute: {
     containerCapable: false,
-    allowedParents: ['subnet', null],
+    // `virtual_network` is accepted because built-in templates model scheduled
+    // (timer-triggered) functions as VNet-scoped. Tightening this to a real
+    // Azure network-attachment relationship is tracked in #1928.
+    allowedParents: ['subnet', 'virtual_network', null],
     category: 'compute',
     canvasTier: 'app',
   },
@@ -157,7 +166,10 @@ export const RESOURCE_RULES = {
   // ── Data ────────────────────────────────────────────────────
   blob_storage: {
     containerCapable: false,
-    allowedParents: [null],
+    // `subnet` is accepted because built-in templates place storage accounts
+    // inside a subnet. Modelling this as a network attachment instead of
+    // containment is tracked in #1928.
+    allowedParents: ['subnet', null],
     category: 'data',
     canvasTier: 'data',
   },
@@ -252,6 +264,12 @@ export const RESOURCE_RULES = {
     canvasTier: 'app',
   },
   event_hub: {
+    containerCapable: false,
+    allowedParents: ['virtual_network'],
+    category: 'messaging',
+    canvasTier: 'app',
+  },
+  event_grid: {
     containerCapable: false,
     allowedParents: ['virtual_network'],
     category: 'messaging',

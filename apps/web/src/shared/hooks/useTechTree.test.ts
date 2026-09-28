@@ -545,14 +545,14 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('selects target container for vm: subnet first, then network, otherwise null', () => {
+  it('selects only containers allowed by RESOURCE_RULES for vm (subnet-only)', () => {
     const { result: emptyResult } = renderHook(() => useTechTree(buildArchitecture([], 0)));
     expect(emptyResult.current.getTargetPlateId('vm')).toBeNull();
 
     const { result: networkOnlyResult } = renderHook(() =>
       useTechTree(buildArchitecture([NETWORK_PLATE], 0)),
     );
-    expect(networkOnlyResult.current.getTargetPlateId('vm')).toBe('net-1');
+    expect(networkOnlyResult.current.getTargetPlateId('vm')).toBeNull();
 
     const { result: withSubnetResult } = renderHook(() =>
       useTechTree(buildArchitecture([NETWORK_PLATE, SUBNET_PLATE], 0)),
@@ -560,10 +560,19 @@ describe('useTechTree hook', () => {
     expect(withSubnetResult.current.getTargetPlateId('vm')).toBe('sub-1');
   });
 
-  it('selects network container for non-vnet-required resources like storage', () => {
+  it('selects the network container for message_queue, which allows virtual_network', () => {
     const { result } = renderHook(() => useTechTree(buildArchitecture([NETWORK_PLATE], 0)));
 
-    expect(result.current.getTargetPlateId('storage')).toBe('net-1');
+    expect(result.current.getTargetPlateId('queue')).toBe('net-1');
+  });
+
+  it('returns null for root-only resources so they are placed at root', () => {
+    const { result } = renderHook(() =>
+      useTechTree(buildArchitecture([NETWORK_PLATE, SUBNET_PLATE], 0)),
+    );
+
+    expect(result.current.getTargetPlateId('dns')).toBeNull();
+    expect(result.current.getTargetPlateId('managed-identity')).toBeNull();
   });
 
   it('returns null target container for non-vnet-required resources when no network exists', () => {

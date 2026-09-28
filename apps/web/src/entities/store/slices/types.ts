@@ -102,6 +102,7 @@ export interface ArchitectureState {
     provider?: ProviderType,
     subtype?: string,
     config?: Record<string, unknown>,
+    resourceType?: string,
   ) => void;
   /** @deprecated Use addNode + duplicate logic */
   duplicateBlock: (blockId: string) => void;

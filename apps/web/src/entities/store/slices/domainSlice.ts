@@ -3,6 +3,7 @@ import type {
   Connection,
   ContainerCapableResourceType,
   ContainerBlock,
+  ProviderType,
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
@@ -16,12 +17,13 @@ import {
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
+  getDefaultCategory,
   getPortsForResourceType,
   isExternalResourceType,
   parseEndpointId,
-  RESOURCE_RULES,
 } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
+import { toCanonicalResourceType } from '../../../shared/types/resourceIdentity';
 import { metricsService } from '../../../shared/utils/metricsService';
 import { useUIStore } from '../uiStore';
 import type {
@@ -113,6 +115,36 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceTy
   subnet: 'subnet',
 };
 
+/**
+ * Resolve the canonical `resourceType` for a new resource block.
+ *
+ * An explicit canonical type always wins. A provider/display alias is only used
+ * to look up its canonical form — it is never stored as the identity itself.
+ * An identifier that resolves to nothing falls back to the category default and
+ * is preserved as `subtype` so the caller's intent is not lost.
+ */
+function resolveCanonicalIdentity(
+  resourceType: string | undefined,
+  subtype: string | undefined,
+  category: ResourceCategory,
+  provider: ProviderType | undefined,
+): { resourceType: string; subtype: string | undefined } {
+  const effectiveProvider = provider ?? 'azure';
+
+  const canonical =
+    (resourceType ? toCanonicalResourceType(resourceType, effectiveProvider) : undefined) ??
+    (subtype ? toCanonicalResourceType(subtype, effectiveProvider) : undefined);
+
+  if (canonical) {
+    return { resourceType: canonical, subtype };
+  }
+
+  return {
+    resourceType: CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category,
+    subtype: subtype ?? resourceType,
+  };
+}
+
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   // ── Unified Node API ─────────────────────────────────────────────────────
 
@@ -122,18 +154,23 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const layer = input.layer as PlateLayerType;
       get().addPlate(layer, input.name, input.parentId, input.profileId);
     } else {
-      // Derive category from RESOURCE_RULES or fall back to 'compute'
-      const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[
-        input.resourceType
-      ];
-      const category: ResourceCategory = rule?.category ?? 'compute';
+      // Derive the category from the canonical type so it cannot disagree with
+      // the resourceType the block is ultimately stored with.
+      const canonicalType = resolveCanonicalIdentity(
+        input.resourceType,
+        input.subtype,
+        'compute',
+        input.provider,
+      ).resourceType;
+      const category: ResourceCategory = getDefaultCategory(canonicalType) ?? 'compute';
       get().addBlock(
         category,
         input.name,
         input.parentId,
         input.provider,
-        input.subtype ?? input.resourceType,
+        input.subtype,
         input.config,
+        input.resourceType,
       );
     }
   },
@@ -351,11 +388,13 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
-  addBlock: (category, name, placementId, provider, subtype, config) => {
+  addBlock: (category, name, placementId, provider, subtype, config, resourceType) => {
     const prevCount = get().workspace.architecture.nodes.length;
     set((state) => {
       const arch = state.workspace.architecture;
-      const resolvedResourceType = subtype ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category;
+      const canonical = resolveCanonicalIdentity(resourceType, subtype, category, provider);
+      const resolvedResourceType = canonical.resourceType;
+      const resolvedSubtype = canonical.subtype;
 
       if (!placementId) {
         const rootResources = arch.nodes.filter(isResource).filter((b) => b.parentId === null);
@@ -412,7 +451,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           roles: isExternalResourceType(resolvedResourceType)
             ? (['external'] as ResourceBlock['roles'])
             : undefined,
-          ...(subtype ? { subtype } : {}),
+          ...(resolvedSubtype ? { subtype: resolvedSubtype } : {}),
           ...(config ? { config } : {}),
         };
 
@@ -450,7 +489,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           container.frame.height,
         ),
         metadata: {},
-        ...(subtype ? { subtype } : {}),
+        ...(resolvedSubtype ? { subtype: resolvedSubtype } : {}),
         ...(config ? { config } : {}),
       };
 
@@ -527,6 +566,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return withHistory(state, {
         ...arch,
         nodes: resizedNodes,
+        endpoints: [...arch.endpoints, ...generateEndpointsForBlock(newBlock.id)],
       });
     });
   },
