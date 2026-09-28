@@ -89,6 +89,7 @@ export function applyLayoutPatch(
 export async function runAutoLayout(): Promise<boolean> {
   const state = useArchitectureStore.getState();
   const architecture = state.workspace.architecture;
+  const originWorkspaceId = state.workspace.id;
 
   // Nothing to layout if no nodes
   if (architecture.nodes.length === 0) {
@@ -110,10 +111,20 @@ export async function runAutoLayout(): Promise<boolean> {
     return false;
   }
 
-  // 4. Apply as single undo step against latest state to avoid race conditions
+  // 4. Discard a result the user has already moved past.
+  //
+  // Patches are keyed by node id, and cloning a workspace preserves node ids,
+  // so applying them to whatever workspace happens to be active would silently
+  // relayout a *different* architecture. Both the workspace and the exact
+  // architecture object must still be the ones the layout was computed from.
+  const latest = useArchitectureStore.getState();
+  if (latest.workspace.id !== originWorkspaceId || latest.workspace.architecture !== architecture) {
+    return false;
+  }
+
+  // 5. Apply as a single undo step
   useArchitectureStore.setState((currentState) => {
-    const freshArch = currentState.workspace.architecture;
-    const newArch = applyLayoutPatch(freshArch, patches);
+    const newArch = applyLayoutPatch(currentState.workspace.architecture, patches);
     return withHistory(currentState, newArch);
   });
 

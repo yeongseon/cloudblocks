@@ -3,6 +3,7 @@ import type {
   Connection,
   ContainerCapableResourceType,
   ContainerBlock,
+  Endpoint,
   ProviderType,
   ResourceBlock,
   ResourceCategory,
@@ -105,7 +106,36 @@ function clampEven(value: number, min: number, max: number): number {
   return clamped <= min ? min : clamped - 1;
 }
 
-const endpointIdPrefix = (nodeId: string): string => `endpoint-${nodeId}-`;
+/**
+ * Endpoint ids owned by a block.
+ *
+ * Resolved through `endpoint.blockId` rather than an `endpoint-${id}-` string
+ * prefix: a prefix also matches a *different* node whose id extends this one
+ * (deleting `service` would match `endpoint-service-worker-output-data`).
+ * `parseEndpointId` covers connections whose endpoint row is already missing.
+ */
+const collectEndpointIdsForBlock = (
+  arch: { endpoints: readonly Endpoint[]; connections: readonly Connection[] },
+  blockId: string,
+): ReadonlySet<string> => {
+  const owned = new Set<string>();
+
+  for (const endpoint of arch.endpoints) {
+    if (endpoint.blockId === blockId) {
+      owned.add(endpoint.id);
+    }
+  }
+
+  for (const connection of arch.connections) {
+    for (const endpointRef of [connection.from, connection.to]) {
+      if (parseEndpointId(endpointRef)?.blockId === blockId) {
+        owned.add(endpointRef);
+      }
+    }
+  }
+
+  return owned;
+};
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceType> = {
   global: 'virtual_network',
@@ -574,9 +604,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   removeBlock: (id) => {
     // Clear bursts for connections that will be cascade-deleted
     const arch = get().workspace.architecture;
-    const prefix = endpointIdPrefix(id);
+    const ownedEndpointIds = collectEndpointIdsForBlock(arch, id);
     for (const connection of arch.connections) {
-      if (connection.from.startsWith(prefix) || connection.to.startsWith(prefix)) {
+      if (ownedEndpointIds.has(connection.from) || ownedEndpointIds.has(connection.to)) {
         useUIStore.getState().clearConnectionCreationBurst(connection.id);
       }
     }
@@ -589,6 +619,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const removedEndpointIds = collectEndpointIdsForBlock(arch, id);
       const nodesWithoutBlock = arch.nodes.filter((candidate) => candidate.id !== id);
       const resizedNodes = block.parentId
         ? autosizeContainerTree(nodesWithoutBlock, [block.parentId], true)
@@ -600,9 +631,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         endpoints: arch.endpoints.filter((endpoint) => endpoint.blockId !== id),
         connections: arch.connections.filter(
           (connection) =>
-            !connection.from.startsWith(endpointIdPrefix(id)) &&
-            !connection.to.startsWith(endpointIdPrefix(id)),
+            !removedEndpointIds.has(connection.from) && !removedEndpointIds.has(connection.to),
         ),
+        ...(arch.externalActors
+          ? { externalActors: arch.externalActors.filter((actor) => actor.id !== id) }
+          : {}),
       });
     });
   },
