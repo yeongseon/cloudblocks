@@ -1,33 +1,8 @@
 import type { Workspace } from '../../../shared/types/index';
 import logger from '../../../shared/utils/logger';
-import type {
-  ArchitectureModel,
-  Block,
-  ContainerBlock,
-  ProviderType,
-  ResourceCategory,
-  ResourceBlock,
-} from '@cloudblocks/schema';
-import {
-  CATEGORY_DEFAULT_RESOURCE_TYPE,
-  connectionTypeToSemantic,
-  endpointId,
-  generateEndpointsForBlock,
-  getAllowedParents,
-  isExternalResourceType,
-  parseEndpointId,
-} from '@cloudblocks/schema';
-import type { ArchitectureSnapshot } from '../../../shared/types/learning';
-import { migrateExternalActorsToBlocks } from '../../../shared/types/schema';
-import { canonicalizeResourceNodes } from '../../../shared/types/resourceIdentity';
-
-interface CanonicalizableRawNode {
-  kind: string;
-  resourceType: string;
-  subtype?: string;
-  provider?: ProviderType;
-  category?: ResourceCategory;
-}
+import type { ArchitectureModel, ResourceCategory } from '@cloudblocks/schema';
+import { getAllowedParents, isExternalResourceType, parseEndpointId } from '@cloudblocks/schema';
+import { ingestArchitecture, type IngestionSource } from '../../ingestion/pipeline';
 import {
   saveWorkspaces,
   loadWorkspaces,
@@ -98,17 +73,6 @@ const validateSize = (value: unknown, context: string, field: 'size' | 'frame' =
   ) {
     throw new Error(`${context}.${field} must contain numeric width, height, depth values`);
   }
-};
-
-const canonicalizeRawNodes = (imported: unknown, provider: ProviderType): void => {
-  if (!isRecord(imported) || !Array.isArray(imported.nodes)) {
-    return;
-  }
-
-  canonicalizeResourceNodes(
-    imported.nodes.filter(isRecord) as unknown as CanonicalizableRawNode[],
-    provider,
-  );
 };
 
 export const validateArchitectureShape = (imported: unknown): { valid: true } => {
@@ -378,14 +342,6 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
   return { valid: true };
 };
 
-const validateImportData = (imported: unknown, jsonLength: number): { valid: true } => {
-  if (jsonLength > MAX_IMPORT_SIZE_BYTES) {
-    throw new Error('Import exceeds 5MB limit');
-  }
-
-  return validateArchitectureShape(imported);
-};
-
 type PersistenceSlice = Pick<
   ArchitectureState,
   | 'saveToStorage'
@@ -479,145 +435,39 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
 
   importArchitecture: (json, provider) => {
     try {
-      const importedRaw = JSON.parse(json) as unknown;
-      // Canonicalize before validating: the shape validator rejects a root
-      // resource whose resourceType is a legacy alias, which would reject
-      // exactly the payloads this migration exists to accept.
-      canonicalizeRawNodes(importedRaw, provider);
-      validateImportData(importedRaw, json.length);
-      const imported = importedRaw as Record<string, unknown>;
+      if (json.length > MAX_IMPORT_SIZE_BYTES) {
+        return 'Import exceeds 5MB limit';
+      }
 
+      const importedRaw = JSON.parse(json) as unknown;
       const now = new Date().toISOString();
 
-      // Handle legacy (plates+blocks) or new (nodes) format
-      let nodes: Block[];
-      const importedAny = imported as Record<string, unknown>;
-      if (Array.isArray(importedAny.nodes)) {
-        nodes = (importedAny.nodes as Block[]).map((node) => {
-          if (node.kind !== 'container') {
-            return node;
-          }
+      const ingested = ingestArchitecture(importedRaw, {
+        source: 'file-import',
+        provider,
+        name: 'Imported Architecture',
+        now,
+        materializeExternalActors: true,
+        regenerateEndpoints: true,
+        validateShape: validateArchitectureShape,
+      });
 
-          const container = node as ContainerBlock & { size?: ContainerBlock['frame'] };
-          return {
-            ...container,
-            frame: container.frame ?? container.size,
-          };
-        });
-      } else if (Array.isArray(importedAny.plates) && Array.isArray(importedAny.blocks)) {
-        // Migrate legacy format
-        const containerNodes = (importedAny.plates as Record<string, unknown>[]).map(
-          (container): ContainerBlock => ({
-            id: container.id as string,
-            name: container.name as string,
-            kind: 'container',
-            layer: container.type as ContainerBlock['layer'],
-            resourceType: ((container.type as string) === 'region'
-              ? 'virtual_network'
-              : container.type === 'subnet'
-                ? 'subnet'
-                : 'virtual_network') as ContainerBlock['resourceType'],
-            category: 'network',
-            provider: 'azure',
-            parentId: (container.parentId as string | null | undefined) ?? null,
-            position: container.position as ContainerBlock['position'],
-            frame: container.size as ContainerBlock['frame'],
-            metadata: (container.metadata as Record<string, unknown>) ?? {},
-            ...(typeof container.profileId === 'string' ? { profileId: container.profileId } : {}),
-          }),
-        );
-        const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map(
-          (block): ResourceBlock => ({
-            id: block.id as string,
-            name: block.name as string,
-            kind: 'resource',
-            layer: 'resource',
-            resourceType:
-              (block.subtype as string | undefined) ??
-              CATEGORY_DEFAULT_RESOURCE_TYPE[block.category as ResourceCategory] ??
-              (block.category as string),
-            category: block.category as ResourceCategory,
-            provider: (block.provider as ResourceBlock['provider'] | undefined) ?? 'azure',
-            parentId: block.placementId as string,
-            position: block.position as ResourceBlock['position'],
-            metadata: (block.metadata as Record<string, unknown>) ?? {},
-            ...(typeof block.subtype === 'string' ? { subtype: block.subtype } : {}),
-            ...(block.config && typeof block.config === 'object'
-              ? { config: block.config as Record<string, unknown> }
-              : {}),
-          }),
-        );
-        nodes = [...containerNodes, ...leafNodes];
-      } else {
-        nodes = [];
+      if (!ingested.ok) {
+        const message = ingested.issues[0].message;
+        logger.error('Failed to import architecture:', message);
+        return message;
       }
 
-      // Migrate externalActors into block nodes (same helper as deserialize)
-      const importedExternalActors = imported.externalActors as ArchitectureModel['externalActors'];
-      if (Array.isArray(importedExternalActors) && importedExternalActors.length > 0) {
-        const existingNodeIds = new Set(nodes.map((n) => n.id));
-        const migratedBlocks = migrateExternalActorsToBlocks(
-          importedExternalActors,
-          existingNodeIds,
-          provider,
-        );
-        nodes.push(...migratedBlocks);
-      }
-
-      const endpoints = nodes.flatMap((node) => generateEndpointsForBlock(node.id));
-      const rawConnections = ((imported.connections as unknown[]) ?? []).filter(
-        (connection): connection is Record<string, unknown> => isRecord(connection),
-      );
-      const connections: ArchitectureModel['connections'] = rawConnections
-        .map((connection) => {
-          if (typeof connection.from === 'string' && typeof connection.to === 'string') {
-            return {
-              id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
-              from: connection.from,
-              to: connection.to,
-              metadata: isRecord(connection.metadata) ? connection.metadata : {},
-            };
-          }
-
-          if (typeof connection.sourceId === 'string' && typeof connection.targetId === 'string') {
-            const semantic =
-              typeof connection.type === 'string'
-                ? connectionTypeToSemantic(connection.type)
-                : 'data';
-            return {
-              id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
-              from: endpointId(connection.sourceId, 'output', semantic),
-              to: endpointId(connection.targetId, 'input', semantic),
-              metadata: typeof connection.type === 'string' ? { type: connection.type } : {},
-            };
-          }
-
-          return null;
-        })
-        .filter(
-          (connection): connection is ArchitectureModel['connections'][number] =>
-            connection !== null,
-        );
-
+      const imported = importedRaw as Record<string, unknown>;
       const normalized: ArchitectureModel = {
-        id: (imported.id as string) || generateId('arch'),
-        name: (imported.name as string) || 'Imported Architecture',
-        version: (imported.version as string) || '1',
-        nodes,
-        endpoints,
-        connections,
+        ...ingested.architecture,
         externalActors: (imported.externalActors as ArchitectureModel['externalActors'])?.map(
           (actor) => ({
             ...actor,
             position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
           }),
         ) ?? [
-          {
-            id: 'ext-browser',
-            name: 'Client',
-            type: 'browser',
-            position: { x: -12, y: 0, z: 5 },
-          },
+          { id: 'ext-browser', name: 'Client', type: 'browser', position: { x: -12, y: 0, z: 5 } },
           {
             id: 'ext-internet',
             name: 'Internet',
@@ -625,12 +475,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             position: { x: -10, y: 0, z: 5 },
           },
         ],
-        createdAt: (imported.createdAt as string) || now,
-        updatedAt: now,
       };
 
       // ─── Remap imported nodes to active provider ──────────────
-      canonicalizeResourceNodes(normalized.nodes, provider);
       if (provider !== 'azure') {
         for (const node of normalized.nodes) {
           const azureSubtype = node.subtype ?? node.resourceType;
@@ -690,14 +537,24 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
 
   loadFromTemplate: (template, provider) => {
     const now = new Date().toISOString();
-    const clonedArch = JSON.parse(JSON.stringify(template.architecture));
 
-    const nodeIds = (clonedArch.nodes ?? []).map((n: { id: string }) => n.id);
-    clonedArch.endpoints = nodeIds.flatMap((id: string) => generateEndpointsForBlock(id));
+    const ingested = ingestArchitecture(JSON.parse(JSON.stringify(template.architecture)), {
+      source: 'template',
+      provider,
+      name: template.name,
+      now,
+      regenerateEndpoints: true,
+      validateShape: validateArchitectureShape,
+    });
+
+    if (!ingested.ok) {
+      logger.error('Failed to load template:', ingested.issues[0].message);
+      return;
+    }
+
+    const clonedArch = ingested.architecture;
 
     // ─── Remap nodes to active provider ──────────────────────
-    canonicalizeResourceNodes(clonedArch.nodes ?? [], provider);
-
     if (provider !== 'azure') {
       for (const node of clonedArch.nodes ?? []) {
         const azureSubtype = node.subtype ?? node.resourceType;
@@ -754,19 +611,26 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     });
   },
 
-  replaceArchitecture: (snapshot: ArchitectureSnapshot) => {
+  replaceArchitecture: (snapshot, source: IngestionSource = 'learning-snapshot') => {
     const state = get();
     const provider = state.workspace.provider ?? 'azure';
-    const cloned = isRecord(snapshot)
-      ? (JSON.parse(JSON.stringify(snapshot)) as ArchitectureSnapshot)
-      : snapshot;
-
-    canonicalizeRawNodes(cloned, provider);
-    validateArchitectureShape(cloned);
-
     const now = new Date().toISOString();
+    const cloned: unknown = isRecord(snapshot) ? JSON.parse(JSON.stringify(snapshot)) : snapshot;
+
+    const ingested = ingestArchitecture(cloned, {
+      source,
+      provider,
+      name: state.workspace.architecture.name,
+      now,
+      validateShape: validateArchitectureShape,
+    });
+
+    if (!ingested.ok) {
+      throw new Error(ingested.issues[0].message);
+    }
+
     const newArch: ArchitectureModel = {
-      ...cloned,
+      ...ingested.architecture,
       id: state.workspace.architecture.id,
       createdAt: state.workspace.architecture.createdAt,
       updatedAt: now,

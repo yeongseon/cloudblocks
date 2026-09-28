@@ -272,7 +272,7 @@ export function GitHubSync() {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`,
       );
-      replaceArchitecture(response.architecture as ArchitectureSnapshot);
+      replaceArchitecture(response.architecture as ArchitectureSnapshot, 'github-pull');
       const postPullArchitecture = useArchitectureStore.getState().workspace.architecture;
       const diff = computeArchitectureDiff(prePullArchitecture, postPullArchitecture);
       setLastSyncedArchitecture(cloneArchitecture(postPullArchitecture));
@@ -299,7 +299,7 @@ export function GitHubSync() {
   const handleUndoPull = () => {
     const prePullArchitecture = prePullArchitectureRef.current;
     if (!prePullArchitecture) return;
-    replaceArchitecture(prePullArchitecture);
+    replaceArchitecture(prePullArchitecture, 'github-pull');
     setPullDiffSummary(null);
   };
 

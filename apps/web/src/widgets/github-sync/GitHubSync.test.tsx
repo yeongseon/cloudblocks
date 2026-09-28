@@ -267,7 +267,7 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
     });
-    expect(replaceArchitectureMock).toHaveBeenCalledWith(archPayload);
+    expect(replaceArchitectureMock).toHaveBeenCalledWith(archPayload, 'github-pull');
   });
 
   it('routes auth error to login panel from pull action', async () => {
@@ -670,14 +670,18 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
     await user.click(await screen.findByRole('button', { name: 'Undo Pull' }));
 
-    expect(replaceArchitectureMock).toHaveBeenNthCalledWith(2, {
-      name: 'Test',
-      version: '1.0.0',
-      nodes: [],
-      endpoints: [],
-      connections: [],
-      externalActors: [],
-    });
+    expect(replaceArchitectureMock).toHaveBeenNthCalledWith(
+      2,
+      {
+        name: 'Test',
+        version: '1.0.0',
+        nodes: [],
+        endpoints: [],
+        connections: [],
+        externalActors: [],
+      },
+      'github-pull',
+    );
   });
 
   it('open GitHub repos button toggles repos panel', async () => {

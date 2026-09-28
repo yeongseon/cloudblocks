@@ -14,6 +14,7 @@ import type {
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { CostResponse, GenerateResponse, SuggestResponse } from '../../../shared/types/ai';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
+import type { IngestionSource } from '../../ingestion/pipeline';
 import type { Scenario, LearningProgress } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
 
@@ -159,7 +160,7 @@ export interface ArchitectureState {
   importArchitecture: (json: string, provider: ProviderType) => string | null;
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate, provider: ProviderType) => void;
-  replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
+  replaceArchitecture: (snapshot: ArchitectureSnapshot, source?: IngestionSource) => void;
   generate: (prompt: string, provider: string) => Promise<void>;
   suggest: (provider: string) => Promise<void>;
   estimateCost: (provider: string) => Promise<void>;
