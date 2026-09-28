@@ -27,6 +27,13 @@ export interface ResourceRuleEntry {
   readonly allowedParents: readonly (string | null)[];
   readonly category: ResourceCategory;
   readonly canvasTier: CanvasTier;
+  /**
+   * Azure refuses to deploy these into a shared subnet — Application Gateway
+   * needs its own, Bastion needs `AzureBastionSubnet`, Firewall needs
+   * `AzureFirewallSubnet`. Modelled as a rule rather than a naming convention
+   * so validation and drop-targeting agree (#1928).
+   */
+  readonly requiresDedicatedSubnet?: boolean;
 }
 
 /**
@@ -74,6 +81,7 @@ export const RESOURCE_RULES = {
   application_gateway: {
     containerCapable: false,
     allowedParents: ['subnet'],
+    requiresDedicatedSubnet: true,
     category: 'delivery',
     canvasTier: 'web',
   },
@@ -208,12 +216,14 @@ export const RESOURCE_RULES = {
   bastion_host: {
     containerCapable: false,
     allowedParents: ['subnet'],
+    requiresDedicatedSubnet: true,
     category: 'security',
     canvasTier: 'shared',
   },
   firewall_security: {
     containerCapable: false,
     allowedParents: ['subnet'],
+    requiresDedicatedSubnet: true,
     category: 'security',
     canvasTier: 'shared',
   },
@@ -363,6 +373,11 @@ export function isExternalResourceType(resourceType: string): boolean {
  */
 export function isContainerCapable(resourceType: string): boolean {
   return CONTAINER_CAPABLE_TYPES.has(resourceType);
+}
+
+/** Whether a resource type must be the only occupant of its subnet. */
+export function requiresDedicatedSubnet(resourceType: string): boolean {
+  return getResourceRule(resourceType)?.requiresDedicatedSubnet === true;
 }
 
 /**
