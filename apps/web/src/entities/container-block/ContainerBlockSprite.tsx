@@ -107,6 +107,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
         move(event) {
           if (!isDragging.current) {
             useUIStore.getState().startDragging();
+            useArchitectureStore.getState().beginGesture();
           }
           isDragging.current = true;
 
@@ -156,6 +157,9 @@ export const ContainerBlockSprite = memo(function PlateSprite({
               }
             }
           }
+
+          // The release snap belongs to the same edit as the moves before it.
+          useArchitectureStore.getState().commitGesture();
 
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);

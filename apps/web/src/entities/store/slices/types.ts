@@ -77,6 +77,15 @@ export interface ArchitectureState {
   undo: () => void;
   redo: () => void;
 
+  /**
+   * Architecture captured at the start of the active gesture, or null when no
+   * gesture is in flight. While set, mutations do not push history.
+   */
+  gestureOrigin: ArchitectureModel | null;
+  beginGesture: () => void;
+  commitGesture: () => void;
+  cancelGesture: () => void;
+
   // ── Unified Node API ──────────────────────────────────────────────
   addNode: (input: AddNodeInput) => void;
   removeNode: (id: string, options?: RemoveNodeOptions) => void;
