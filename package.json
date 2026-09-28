@@ -58,7 +58,7 @@
   "author": "yeongseon",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.0.0",
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@9.15.0",
