@@ -455,7 +455,7 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when root-only blob_storage is placed on subnet container', () => {
+  it('accepts blob_storage on a subnet container', () => {
     const block = makeBlock({
       id: 'blob-1',
       name: 'Blob Storage',
@@ -464,12 +464,24 @@ describe('validatePlacement', () => {
     });
     const container = makePlate({ type: 'subnet' });
 
+    expect(validatePlacement(block, container)).toBeNull();
+  });
+
+  it('returns error when subnet-only virtual_machine is placed on a region container', () => {
+    const block = makeBlock({
+      id: 'vm-1',
+      name: 'Virtual Machine',
+      category: 'compute',
+      resourceType: 'virtual_machine',
+    });
+    const container = makePlate({ type: 'region' });
+
     expect(validatePlacement(block, container)).toEqual({
-      ruleId: 'rule-data-parent',
+      ruleId: 'rule-compute-parent',
       severity: 'error',
       message: expect.stringContaining('wrong container type'),
       suggestion: expect.stringContaining('Move this block'),
-      targetId: 'blob-1',
+      targetId: 'vm-1',
     });
   });
 

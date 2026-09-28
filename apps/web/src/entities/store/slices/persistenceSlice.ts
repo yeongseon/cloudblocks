@@ -18,6 +18,7 @@ import {
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { migrateExternalActorsToBlocks } from '../../../shared/types/schema';
+import { canonicalizeResourceNodes } from '../../../shared/types/resourceIdentity';
 import {
   saveWorkspaces,
   loadWorkspaces,
@@ -605,6 +606,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       };
 
       // ─── Remap imported nodes to active provider ──────────────
+      canonicalizeResourceNodes(normalized.nodes, provider);
+
       if (provider !== 'azure') {
         for (const node of normalized.nodes) {
           const azureSubtype = node.subtype ?? node.resourceType;
@@ -621,9 +624,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             node.name = remapName(azureSubtype, node.name, provider);
             if (node.subtype) {
               node.subtype = remapSubtype(node.subtype, provider);
-            }
-            if (node.resourceType) {
-              node.resourceType = remapSubtype(node.resourceType, provider);
             }
           }
         }
@@ -673,6 +673,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     clonedArch.endpoints = nodeIds.flatMap((id: string) => generateEndpointsForBlock(id));
 
     // ─── Remap nodes to active provider ──────────────────────
+    canonicalizeResourceNodes(clonedArch.nodes ?? [], provider);
+
     if (provider !== 'azure') {
       for (const node of clonedArch.nodes ?? []) {
         const azureSubtype = node.subtype ?? node.resourceType;
@@ -695,9 +697,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
           node.name = remapName(azureSubtype, node.name, provider);
           if (node.subtype) {
             node.subtype = remapSubtype(node.subtype, provider);
-          }
-          if (node.resourceType) {
-            node.resourceType = remapSubtype(node.resourceType, provider);
           }
         }
       }
@@ -743,6 +742,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       createdAt: state.workspace.architecture.createdAt,
       updatedAt: now,
     };
+
+    canonicalizeResourceNodes(newArch.nodes, state.workspace.provider ?? 'azure');
 
     set({
       ...withHistory(state, newArch),

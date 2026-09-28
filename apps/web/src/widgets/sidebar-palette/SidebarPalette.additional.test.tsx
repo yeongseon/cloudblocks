@@ -251,7 +251,7 @@ describe('SidebarPalette additional coverage', () => {
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(toastErrorMock).toHaveBeenCalledWith('Please create a Network first.');
+    expect(toastErrorMock).toHaveBeenCalledWith('Create a Subnet first.');
     useTechTreeSpy.mockRestore();
   });
 

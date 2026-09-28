@@ -1051,12 +1051,13 @@ it('normalizes stale subtype aliases (pub-sub → pubsub) on deserialized nodes'
   const psNode = nodes.find((n) => n.id === 'blk-ps')!;
   const okNode = nodes.find((n) => n.id === 'blk-ok')!;
 
-  // pub-sub → pubsub on both resourceType and subtype
-  expect(psNode.resourceType).toBe('pubsub');
+  // pub-sub → pubsub on subtype, then pubsub → canonical message_queue
+  expect(psNode.resourceType).toBe('message_queue');
   expect(psNode.subtype).toBe('pubsub');
 
-  // Unrelated node untouched
-  expect(okNode.resourceType).toBe('cloud-functions');
+  // GCP alias is canonicalized and preserved as the subtype
+  expect(okNode.resourceType).toBe('function_compute');
+  expect(okNode.subtype).toBe('cloud-functions');
 });
 
 it('accepts schema version 2.0.0 without warning', () => {

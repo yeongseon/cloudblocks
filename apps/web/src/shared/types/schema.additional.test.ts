@@ -146,7 +146,7 @@ describe('schema deserialize additional branch coverage', () => {
     });
     expect(subnetPlate).toMatchObject({ parentId: null, metadata: {} });
     expect(app).toMatchObject({
-      resourceType: 'lambda',
+      resourceType: 'function_compute',
       provider: 'aws',
       metadata: { env: 'prod' },
       subtype: 'lambda',

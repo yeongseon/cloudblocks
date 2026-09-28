@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Search, Lock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import interact from 'interactjs';
+import { getAllowedParents } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
@@ -23,6 +24,11 @@ import {
 import { getContainerLabel, remapSubtype } from '../../shared/utils/providerMapping';
 import './SidebarPalette.css';
 import { useIsMobile } from '../../shared/hooks/useIsMobile';
+
+const REQUIRED_CONTAINER_LABEL: Record<string, string> = {
+  subnet: 'Subnet',
+  virtual_network: 'Network',
+};
 
 const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   network: 'var(--cat-network)',
@@ -461,8 +467,18 @@ export function SidebarPalette() {
       }
 
       const targetId = techTree.getTargetPlateId(type);
-      if (!targetId) {
-        toast.error('Please create a Network first.');
+      const allowedParents = getAllowedParents(def.schemaResourceType ?? def.blockCategory) ?? [];
+
+      if (!targetId && !allowedParents.includes(null)) {
+        const requiredContainers = allowedParents
+          .filter((parent): parent is string => parent !== null)
+          .map((parent) => REQUIRED_CONTAINER_LABEL[parent] ?? parent);
+
+        toast.error(
+          requiredContainers.length > 0
+            ? `Create a ${requiredContainers.join(' or ')} first.`
+            : 'Please create a Network first.',
+        );
         return;
       }
 
