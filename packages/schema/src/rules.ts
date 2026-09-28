@@ -437,7 +437,7 @@ export const CATEGORY_PORTS: Record<ResourceCategory, PortPolicy> = {
  * Returns a default of { inbound: 1, outbound: 1 } for unknown types.
  */
 export function getPortsForResourceType(resourceType: string): PortPolicy {
-  const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
+  const rule = getResourceRule(resourceType);
   if (!rule) return { inbound: 1, outbound: 1 };
   return CATEGORY_PORTS[rule.category];
 }
