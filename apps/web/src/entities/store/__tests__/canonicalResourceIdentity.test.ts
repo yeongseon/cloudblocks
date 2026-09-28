@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RESOURCE_RULES, getAllowedParents } from '@cloudblocks/schema';
+import { RESOURCE_RULES, getAllowedParents, requiresDedicatedSubnet } from '@cloudblocks/schema';
 import type { ProviderType } from '@cloudblocks/schema';
 
 import { useArchitectureStore } from '../../../entities/store/architectureStore';
@@ -61,15 +61,44 @@ function createContainers(): { vnetId: string; subnetId: string } {
   return { vnetId, subnetId };
 }
 
-/** Mirror of useTechTree.getTargetPlateId — rule-driven parent selection. */
+/**
+ * Mirror of useTechTree.getTargetPlateId — rule-driven parent selection.
+ *
+ * Application Gateway, Bastion and Firewall need a subnet of their own, so the
+ * palette hands them a fresh one rather than the shared subnet (#1928).
+ */
 function targetParentFor(
   type: ResourceType,
   containers: { vnetId: string; subnetId: string },
 ): string | null {
-  const allowedParents = getAllowedParents(RESOURCE_DEFINITIONS[type].schemaResourceType) ?? [];
-  if (allowedParents.includes('subnet')) return containers.subnetId;
+  const schemaResourceType = RESOURCE_DEFINITIONS[type].schemaResourceType;
+  const allowedParents = getAllowedParents(schemaResourceType) ?? [];
+
+  if (allowedParents.includes('subnet')) {
+    return requiresDedicatedSubnet(schemaResourceType)
+      ? addSubnet(containers.vnetId, `Subnet for ${type}`)
+      : containers.subnetId;
+  }
   if (allowedParents.includes('virtual_network')) return containers.vnetId;
   return null;
+}
+
+function addSubnet(vnetId: string, name: string): string {
+  const before = new Set(
+    useArchitectureStore.getState().workspace.architecture.nodes.map((node) => node.id),
+  );
+
+  useArchitectureStore.getState().addNode({
+    kind: 'container',
+    resourceType: 'subnet',
+    name,
+    parentId: vnetId,
+    layer: 'subnet',
+  });
+
+  return useArchitectureStore
+    .getState()
+    .workspace.architecture.nodes.find((node) => !before.has(node.id))!.id;
 }
 
 /** Mirror of SidebarPalette.handleCreate — the only supported creation entry point. */

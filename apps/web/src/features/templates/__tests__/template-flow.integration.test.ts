@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ArchitectureModel } from '@cloudblocks/schema';
-import { generateEndpointsForBlock } from '@cloudblocks/schema';
+import { generateEndpointsForBlock, requiresDedicatedSubnet } from '@cloudblocks/schema';
 import type { ArchitectureTemplate } from '../registry';
 import type { GeneratorId } from '../../generate/types';
 
@@ -236,11 +236,19 @@ describe('template → edit → export flow', () => {
         // Deep-clone to avoid mutating the registry object
         const architecture = hydrateArchitecture(template);
 
-        // Find the first subnet container to add a resource into
-        const subnet = architecture.nodes.find(
-          (n) => n.kind === 'container' && n.layer === 'subnet',
+        // Find a subnet that is not already claimed by a resource requiring
+        // exclusive use of it (Application Gateway, Bastion, Firewall — #1928).
+        const reservedSubnetIds = new Set(
+          architecture.nodes
+            .filter(
+              (n) => n.kind === 'resource' && requiresDedicatedSubnet(n.resourceType) && n.parentId,
+            )
+            .map((n) => n.parentId),
         );
-        expect(subnet).toBeDefined();
+        const subnet = architecture.nodes.find(
+          (n) => n.kind === 'container' && n.layer === 'subnet' && !reservedSubnetIds.has(n.id),
+        );
+        expect(subnet, `${templateId} has no shareable subnet`).toBeDefined();
 
         const newBlockId = 'block-test-edit';
         const newBlockEndpoints = generateEndpointsForBlock(newBlockId);

@@ -66,6 +66,7 @@ export {
   getCanvasTier,
   getDefaultCategory,
   getPortsForResourceType,
+  requiresDedicatedSubnet,
 } from './rules.js';
 
 export { CATEGORY_DEFAULT_RESOURCE_TYPE } from './rules.js';

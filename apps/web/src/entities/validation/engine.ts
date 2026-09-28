@@ -3,6 +3,7 @@ import type { ValidationResult } from '@cloudblocks/domain';
 import { validateGridAlignment, validateNoOverlap, validatePlacement } from './placement';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { validateGraphInvariants } from './graph';
+import { validateDedicatedSubnets } from './dedicatedSubnet';
 import { validateConnection } from './connection';
 import { validateProviderRules } from './providerValidation';
 import { validateAggregation } from './aggregation';
@@ -12,12 +13,13 @@ import { validateRoles } from './role';
  * Rule Engine — validates an entire ArchitectureModel.
  *
  * Checks:
- * 1. Graph invariants — unique ids, parent links, dimensions, endpoint
+ * 1. Dedicated-subnet constraints (#1928)
+ * 2. Graph invariants — unique ids, parent links, dimensions, endpoint
  *    ownership and port capacity (#1953)
- * 2. All resource nodes satisfy placement, grid-alignment and overlap rules
- * 3. All connections satisfy connection rules
- * 4. All resource nodes satisfy aggregation rules (v2.0 §8)
- * 5. All resource nodes satisfy role rules (v2.0 §9)
+ * 3. All resource nodes satisfy placement, grid-alignment and overlap rules
+ * 4. All connections satisfy connection rules
+ * 5. All resource nodes satisfy aggregation rules (v2.0 §8)
+ * 6. All resource nodes satisfy role rules (v2.0 §9)
  */
 export function validateArchitecture(model: ArchitectureModel): ValidationResult {
   const errors: ValidationResult['errors'] = [];
@@ -25,6 +27,9 @@ export function validateArchitecture(model: ArchitectureModel): ValidationResult
 
   const containers = model.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
   const resources = model.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+
+  // ── Dedicated subnet constraints (#1928) ──
+  errors.push(...validateDedicatedSubnets(model));
 
   // ── Graph invariants ──
   for (const issue of validateGraphInvariants(model)) {

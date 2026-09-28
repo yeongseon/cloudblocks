@@ -5,7 +5,7 @@ import type {
   ResourceCategory,
   ResourceType as SchemaResourceType,
 } from '@cloudblocks/schema';
-import { getAllowedParents } from '@cloudblocks/schema';
+import { getAllowedParents, requiresDedicatedSubnet } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -654,10 +654,26 @@ export function buildTechTreeState(architecture: ArchitectureModel): TechTreeSta
   };
 
   const getTargetPlateId = (type: ResourceType): string | null => {
-    const allowedParents = getAllowedParents(RESOURCE_DEFINITIONS[type].schemaResourceType) ?? [];
+    const schemaResourceType = RESOURCE_DEFINITIONS[type].schemaResourceType;
+    const allowedParents = getAllowedParents(schemaResourceType) ?? [];
 
     if (allowedParents.includes('subnet') && subnetPlates.length > 0) {
-      return subnetPlates[0].id;
+      // A subnet claimed by Application Gateway, Bastion or Firewall is
+      // exclusive, so offering it here would create the state validation
+      // immediately rejects (#1928).
+      const reserved = new Set(
+        resources
+          .filter((resource) => requiresDedicatedSubnet(resource.resourceType))
+          .map((resource) => resource.parentId),
+      );
+
+      const free = requiresDedicatedSubnet(schemaResourceType)
+        ? subnetPlates.filter(
+            (subnet) => !resources.some((resource) => resource.parentId === subnet.id),
+          )
+        : subnetPlates.filter((subnet) => !reserved.has(subnet.id));
+
+      return free.length > 0 ? free[0].id : null;
     }
     if (allowedParents.includes('virtual_network') && networkPlates.length > 0) {
       return networkPlates[0].id;
