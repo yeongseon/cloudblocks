@@ -44,15 +44,13 @@ function createContainers(): { vnetId: string; subnetId: string } {
       (node) => node.kind === 'container' && node.layer === 'region',
     )!.id;
 
-  useArchitectureStore
-    .getState()
-    .addNode({
-      kind: 'container',
-      resourceType: 'subnet',
-      name: 'Subnet',
-      parentId: vnetId,
-      layer: 'subnet',
-    });
+  useArchitectureStore.getState().addNode({
+    kind: 'container',
+    resourceType: 'subnet',
+    name: 'Subnet',
+    parentId: vnetId,
+    layer: 'subnet',
+  });
 
   const subnetId = useArchitectureStore
     .getState()
