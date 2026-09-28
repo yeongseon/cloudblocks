@@ -455,6 +455,43 @@ describe('validatePlacement', () => {
     });
   });
 
+  it('rejects an unknown resourceType inside a container instead of skipping validation', () => {
+    const block = makeBlock({
+      id: 'unknown-1',
+      name: 'Mystery',
+      resourceType: 'totally-unregistered-type',
+    });
+
+    expect(validatePlacement(block, makePlate({ type: 'subnet' }))).toEqual({
+      ruleId: 'rule-unknown-resource-type',
+      severity: 'error',
+      message: expect.stringContaining('totally-unregistered-type'),
+      suggestion: expect.stringContaining('palette'),
+      targetId: 'unknown-1',
+    });
+  });
+
+  it('rejects an unknown resourceType at root instead of reporting a missing container', () => {
+    const block = makeBlock({
+      id: 'unknown-2',
+      name: 'Mystery',
+      resourceType: 'totally-unregistered-type',
+      parentId: null,
+    });
+
+    expect(validatePlacement(block, undefined)?.ruleId).toBe('rule-unknown-resource-type');
+  });
+
+  it('rejects prototype member names that a bare object lookup would resolve', () => {
+    for (const name of ['constructor', 'toString', '__proto__']) {
+      const block = makeBlock({ id: `proto-${name}`, resourceType: name });
+
+      expect(validatePlacement(block, makePlate({ type: 'subnet' }))?.ruleId).toBe(
+        'rule-unknown-resource-type',
+      );
+    }
+  });
+
   it('accepts blob_storage on a subnet container', () => {
     const block = makeBlock({
       id: 'blob-1',

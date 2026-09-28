@@ -255,7 +255,7 @@ describe('template → edit → export flow', () => {
               name: 'Test Storage',
               kind: 'resource',
               layer: 'resource' as const,
-              resourceType: 'blob-storage',
+              resourceType: 'blob_storage',
               category: 'data' as const,
               provider: 'azure' as const,
               subtype: 'blob-storage',
