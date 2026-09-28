@@ -26,7 +26,13 @@ export function validateArchitecture(model: ArchitectureModel): ValidationResult
   const resources = model.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
 
   // ── Graph invariants ──
-  errors.push(...validateGraphInvariants(model));
+  for (const issue of validateGraphInvariants(model)) {
+    if (issue.severity === 'error') {
+      errors.push(issue);
+    } else {
+      warnings.push(issue);
+    }
+  }
 
   // ── Placement validation ──
   for (const resource of resources) {

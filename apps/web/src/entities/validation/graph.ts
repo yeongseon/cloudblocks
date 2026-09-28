@@ -13,13 +13,20 @@ import { validateBlockIntegrity } from '@cloudblocks/domain';
  * must run before a model is trusted.
  */
 
-function error(
+const UNIQUE_ID_FIX = 'Ids must be unique — editing, deleting and connecting all resolve by id.';
+const STRUCTURE_FIX = 'Containers must form a tree of existing container blocks.';
+const GEOMETRY_FIX = 'Sizes and positions must be positive, finite numbers.';
+const ENDPOINT_FIX = 'Endpoints are derived from the block they belong to. Regenerate them.';
+const PORT_FIX = 'Remove connections until the block fits its port budget.';
+
+function issue(
   ruleId: string,
   targetId: string,
   message: string,
   suggestion: string,
+  severity: ValidationError['severity'] = 'error',
 ): ValidationError {
-  return { ruleId, severity: 'error', message, suggestion, targetId };
+  return { ruleId, severity, message, suggestion, targetId };
 }
 
 function findDuplicates<T>(items: readonly T[], keyOf: (item: T) => string): string[] {
@@ -42,33 +49,33 @@ function validateUniqueIds(model: ArchitectureModel): ValidationError[] {
 
   for (const id of findDuplicates(model.nodes, (node) => node.id)) {
     errors.push(
-      error(
+      issue(
         'rule-graph-duplicate-node-id',
         id,
         `Two or more blocks share the id "${id}".`,
-        'Block ids must be unique — editing, deleting and connecting all resolve blocks by id.',
+        UNIQUE_ID_FIX,
       ),
     );
   }
 
   for (const id of findDuplicates(model.endpoints, (endpoint) => endpoint.id)) {
     errors.push(
-      error(
+      issue(
         'rule-graph-duplicate-endpoint-id',
         id,
         `Two or more endpoints share the id "${id}".`,
-        'Endpoint ids must be unique so connections resolve to exactly one port.',
+        UNIQUE_ID_FIX,
       ),
     );
   }
 
   for (const id of findDuplicates(model.connections, (connection) => connection.id)) {
     errors.push(
-      error(
+      issue(
         'rule-graph-duplicate-connection-id',
         id,
         `Two or more connections share the id "${id}".`,
-        'Connection ids must be unique so selection and deletion affect one connection.',
+        UNIQUE_ID_FIX,
       ),
     );
   }
@@ -92,11 +99,11 @@ function validateParentLinks(model: ArchitectureModel): ValidationError[] {
 
     if (node.parentId === node.id) {
       errors.push(
-        error(
+        issue(
           'rule-graph-self-parent',
           node.id,
           `"${node.name}" is its own parent.`,
-          'A block cannot contain itself. Move it to a different container or to the root.',
+          STRUCTURE_FIX,
         ),
       );
       continue;
@@ -105,11 +112,11 @@ function validateParentLinks(model: ArchitectureModel): ValidationError[] {
     const parent = byId.get(node.parentId);
     if (!parent) {
       errors.push(
-        error(
+        issue(
           'rule-graph-missing-parent',
           node.id,
           `"${node.name}" references a parent "${node.parentId}" that does not exist.`,
-          'Move the block to an existing container or to the root.',
+          STRUCTURE_FIX,
         ),
       );
       continue;
@@ -117,11 +124,11 @@ function validateParentLinks(model: ArchitectureModel): ValidationError[] {
 
     if (parent.kind !== 'container') {
       errors.push(
-        error(
+        issue(
           'rule-graph-parent-not-container',
           node.id,
           `"${node.name}" is inside "${parent.name}", which is not a container.`,
-          'Only container blocks can hold children. Move this block into a Network or Subnet.',
+          STRUCTURE_FIX,
         ),
       );
     }
@@ -147,11 +154,11 @@ function findParentCycles(
         if (!reported.has(node.id)) {
           reported.add(node.id);
           errors.push(
-            error(
+            issue(
               'rule-graph-parent-cycle',
               node.id,
               `"${node.name}" is part of a containment cycle.`,
-              'Containers must form a tree. Break the loop by re-parenting one of the blocks.',
+              STRUCTURE_FIX,
             ),
           );
         }
@@ -177,11 +184,11 @@ function validateDimensions(model: ArchitectureModel): ValidationError[] {
     const { x, y, z } = node.position ?? {};
     if (![x, y, z].every((value) => typeof value === 'number' && Number.isFinite(value))) {
       errors.push(
-        error(
+        issue(
           'rule-graph-position',
           node.id,
           `"${node.name}" has a position that is not a finite coordinate.`,
-          'Positions must be finite numbers. Re-place the block on the canvas.',
+          GEOMETRY_FIX,
         ),
       );
     }
@@ -198,11 +205,11 @@ function validateDimensions(model: ArchitectureModel): ValidationError[] {
       !isPositiveFinite(frame.depth)
     ) {
       errors.push(
-        error(
+        issue(
           'rule-graph-container-frame',
           node.id,
           `"${node.name}" has a container size that is not positive.`,
-          'Container width, height and depth must all be positive numbers.',
+          GEOMETRY_FIX,
         ),
       );
     }
@@ -218,11 +225,11 @@ function validateEndpointOwnership(model: ArchitectureModel): ValidationError[] 
   for (const endpoint of model.endpoints) {
     if (!nodeIds.has(endpoint.blockId)) {
       errors.push(
-        error(
+        issue(
           'rule-graph-endpoint-owner',
           endpoint.id,
           `Endpoint "${endpoint.id}" belongs to block "${endpoint.blockId}", which does not exist.`,
-          'Remove the orphaned endpoint, or restore the block it belongs to.',
+          ENDPOINT_FIX,
         ),
       );
       continue;
@@ -230,11 +237,11 @@ function validateEndpointOwnership(model: ArchitectureModel): ValidationError[] 
 
     if (endpoint.id !== endpointId(endpoint.blockId, endpoint.direction, endpoint.semantic)) {
       errors.push(
-        error(
+        issue(
           'rule-graph-endpoint-id',
           endpoint.id,
           `Endpoint "${endpoint.id}" does not match its own block, direction and protocol.`,
-          'Endpoint ids are derived from the block they belong to. Regenerate the block endpoints.',
+          ENDPOINT_FIX,
         ),
       );
     }
@@ -257,6 +264,10 @@ function blockIdOf(
  * re-checks it for a model that arrived whole — an import, an undo/restore, a
  * template or an AI result can exceed the policy without ever passing through
  * that guard.
+ *
+ * Reported as a warning, not an error: an over-connected block is still
+ * well-formed and renderable, and failing it closed would make an already-saved
+ * workspace unopenable.
  */
 function validatePortCapacity(model: ArchitectureModel): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -289,22 +300,24 @@ function validatePortCapacity(model: ArchitectureModel): ValidationError[] {
 
     if (used.outbound > ports.outbound) {
       errors.push(
-        error(
+        issue(
           'rule-graph-port-capacity',
           node.id,
           `"${node.name}" has ${used.outbound} outgoing connections but only ${ports.outbound} outbound ports.`,
-          'Remove connections until the block fits its port budget, or route traffic through another block.',
+          PORT_FIX,
+          'warning',
         ),
       );
     }
 
     if (used.inbound > ports.inbound) {
       errors.push(
-        error(
+        issue(
           'rule-graph-port-capacity',
           node.id,
           `"${node.name}" has ${used.inbound} incoming connections but only ${ports.inbound} inbound ports.`,
-          'Remove connections until the block fits its port budget, or route traffic through another block.',
+          PORT_FIX,
+          'warning',
         ),
       );
     }
@@ -316,7 +329,7 @@ function validatePortCapacity(model: ArchitectureModel): ValidationError[] {
 function validateKindIntegrity(model: ArchitectureModel): ValidationError[] {
   return model.nodes.flatMap((node) =>
     validateBlockIntegrity(node).map((integrityError) =>
-      error(
+      issue(
         'rule-graph-block-integrity',
         integrityError.blockId,
         `"${node.name}" has an invalid ${integrityError.field}: ${integrityError.reason}`,
