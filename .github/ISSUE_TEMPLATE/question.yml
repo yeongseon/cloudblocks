@@ -1,6 +1,6 @@
 name: Question
 description: Ask a question about CloudBlocks
-title: '[Question]: '
+title: 'docs: '
 labels: ['question']
 body:
   - type: markdown

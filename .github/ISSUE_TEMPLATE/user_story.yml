@@ -1,6 +1,6 @@
 name: User Story
 description: A user-facing feature described from the user's perspective with acceptance criteria
-title: '[Story]: '
+title: 'feat: '
 labels: ['enhancement', 'user-story']
 body:
   - type: markdown

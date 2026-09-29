@@ -1,6 +1,6 @@
 name: Epic
 description: A major feature area spanning multiple sub-issues and PRs
-title: '[Epic] '
+title: 'feat: '
 labels: ['epic']
 body:
   - type: markdown
