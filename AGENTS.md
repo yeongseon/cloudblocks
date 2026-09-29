@@ -25,11 +25,11 @@
 ## Git & PR Conventions
 
 - Branch naming: `{type}/{issue#}-{short-desc}` or `{type}/{short-desc}` (e.g. `feat/447-menubar`, `fix/441-actor-css`, `docs/readme-badges`).
-- Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) — `{type}({scope}): {description}`. Types: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`, `perf`, `ci`. Scope optional but recommended (`feat(web):`).
+- Titles for issues, pull requests, and commits follow the **Title Convention** in [`CONTRIBUTING.md`](CONTRIBUTING.md#title-convention), the single source of truth for the format and the allowed types.
 - `main` is protected — all changes go through PR + CI.
 - Copilot review is recommended for substantial changes, not a merge prerequisite. Read available feedback, fix actual correctness/security defects, and briefly explain dismissed or deferred suggestions. Bot availability and stylistic nits do not block merging.
 - Squash-merge with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`. Never use `--admin` — let CI gates enforce quality.
-- PR titles follow Conventional Commits. Each PR references and closes its issue (`Fixes #123`).
+- Each PR references and closes its issue in the PR body (`Fixes #123`), not in the title.
 - Before merging, wait for required CI (`gh pr checks <number>`) and review the diff and available feedback. CI and actual defects remain blocking; automated approval does not replace judgment.
 
 ## Planning
